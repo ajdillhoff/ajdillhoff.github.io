@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Resources Introduction Definition Forward Pass Activation Functions Multi-Class Classification Backpropagation Non-Convex Optimization Resources https://playground.tensorflow.org/ Introduction Previously, we studied the Perceptron and saw that while it made for a simple linear classifier, it is severely limited to problems that are already linearly separable. This limitation was resolved by introduding a hidden layer with multiple perceptron units, aptly named Multi-Layer Perceptrons.
+In this series, we will explore the more general method of neural networks.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/posts/neural_networks/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/posts/neural_networks/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/posts/neural_networks/">
+  <meta property="og:title" content="Neural Networks | Alex Dillhoff">
+  <meta property="og:description" content="Resources Introduction Definition Forward Pass Activation Functions Multi-Class Classification Backpropagation Non-Convex Optimization Resources https://playground.tensorflow.org/ Introduction Previously, we studied the Perceptron and saw that while it made for a simple linear classifier, it is severely limited to problems that are already linearly separable. This limitation was resolved by introduding a hidden layer with multiple perceptron units, aptly named Multi-Layer Perceptrons.
+In this series, we will explore the more general method of neural networks."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Neural Networks | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/posts/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Neural Networks</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="/posts/neural_networks/#disqus_thread"></a>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/posts/neural_networks/&amp;text=Neural%20Networks" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/posts/neural_networks/&amp;t=Neural%20Networks" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Neural%20Networks&amp;body=https://ajdillhoff.github.io/posts/neural_networks/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/posts/neural_networks/&amp;title=Neural%20Networks" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Neural%20Networks%20https://ajdillhoff.github.io/posts/neural_networks/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/posts/neural_networks/&amp;title=Neural%20Networks" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#forward-pass">Forward Pass</a></li>
+<li><a href="#activation-functions">Activation Functions</a></li>
+<li><a href="#multi-class-classification">Multi-Class Classification</a></li>
+<li><a href="#backpropagation">Backpropagation</a></li>
+<li><a href="#non-convex-optimization">Non-Convex Optimization</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://playground.tensorflow.org/">https://playground.tensorflow.org/</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>Previously, we studied the <a href="/posts/perceptron/">Perceptron</a> and saw that while it made for a simple linear classifier, it is severely limited to problems that are already linearly separable.
+This limitation was resolved by introduding a hidden layer with multiple perceptron units, aptly named Multi-Layer Perceptrons.</p>
+<p>In this series, we will explore the more general method of neural networks.
+We will see that even a network of only two layers can approximate any continuous functional mapping to arbitrary accuracy.
+Through a discussion about network architectures, activation functions, and backpropagation, we will understand and use neural networks to resolve a large number of both classification and regression tasks.</p>
+<h2 id="definition">Definition</h2>
+<p>We will take an abstract view of neural networks in which any formulation of a neural network defines a nonlinear mapping from an input space to some output space.
+This implies that our choice of activation function <strong>must</strong> be nonlinear.
+The function we create will be parameterized by some weight matrix \(W\).
+Thus, any neural network can be simply formulated as</p>
+<p>\[
+f(\mathbf{x};W).
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-12_18-08-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;General neural network diagram." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 1: <!-- raw HTML omitted -->General neural network diagram.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>A neural network is in part defined by its <strong>layers</strong>, the number of <strong>nodes</strong> in each layer, the choice of <strong>activation function</strong>, and the choice of <strong>loss function</strong>.</p>
+<p>Each layer has a number of weights equal to the number of input nodes times the number of output nodes.
+This is commonly represented as a weight matrix \(W\).</p>
+<p>The network produces output through the <strong>forward pass</strong> and computes the gradients with respect to that output in the <strong>backwards pass</strong>.</p>
+<h2 id="forward-pass">Forward Pass</h2>
+<p>Computing the output is done in what is called the <strong>forward pass</strong>.</p>
+<p>Our neural network function takes in an input \(\mathbf{x} \in \mathbb{R}^D\), where \(D\) is the number of features in our input space.
+Each output node \(a_j\) in a hidden layer \(h_l\) has a corresponding weight vector \(\mathbf{w}_j^{(l)}\).
+The intermediate output of a hidden layer \(h_l\) is a linear combination of the weights and the input followed by some nonlinear function. Node \(a_j\) of a hidden layer is computed as</p>
+<p>\[
+a_j = \sum_{i=1}^d w_{ji}^{(l)} x_{i} + w_{j0}^{(l)}.
+\]</p>
+<p>As with <a href="/posts/linear_regression/">Linear Regression</a>, we will prepend a constant 1 to our input so that the computation is simply</p>
+<p>\[
+a_{j} = \sum_{i=0}^d w_{ji}^{(i)} x_i = \mathbf{w}_j^T \mathbf{x}.
+\]</p>
+<p>The final output of the hidden layer is \(a_j\) transformed by a nonlinear function \(g\) such that</p>
+<p>\[
+z_j = g(a_j).
+\]</p>
+<p>We can combine all weight vectors for each hidden layer node into a weight matrix \(W \in \mathbb{R}^{n \times d}\), where \(n\) is the number of nodes in the layer and \(d\) is the number of input features such that</p>
+<p>\begin{equation*}
+W =
+\begin{bmatrix}
+\mathbf{w}_1^T\\
+\vdots\\
+\mathbf{w}_n^T\\
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Then the output of the hidden layer can be computed as</p>
+<p>\[
+\mathbf{a} = W\mathbf{x}.
+\]</p>
+<p>If you instead wanted to separate the bias term, this would be</p>
+<p>\[
+\mathbf{a} = W\mathbf{x} + \mathbf{b}.
+\]</p>
+<p>Using the notation to specify the individual layer, we can write the output of a full network.
+Let \(W^{(l)} \in \mathbb{R}^{n_{l} \times n_{l-1}}\) be the weights for layer \(l\) which have \(n_{l-1}\) input connections and \(n_{l}\) output nodes.
+The activation function for layer \(l\) is given by \(g^{(l)}\).</p>
+<p>The complete forward pass of the network is computed by repeating the following step for all layers:</p>
+<p>\[
+\mathbf{z}^{(l)} = g^{(l)}(\mathbf{a}^{(l-1)}),
+\]</p>
+<p>where</p>
+<p>\[
+\mathbf{a}^{(l-1)} = W^{(l-1)}\mathbf{z}^{(l-1)} + \mathbf{b}^{(l-1)}.
+\]</p>
+<p>Once all layers have been computed, then the output of the last layer, \(\hat{\mathbf{y}}^{(L)}\) is used as the final output of the model.
+For training, this is compared with some ground truth label \(\mathbf{y}\) using a loss function \(\mathcal{L}\):</p>
+<p>\[
+\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}).
+\]</p>
+<h3 id="xor-example">XOR Example</h3>
+<p>Consider the XOR problem. A single <a href="/posts/perceptron/">Perceptron</a> was unable to solve that problem.
+However, adding a hidden layer and forming a multi-layer perceptron network allowed for a more complex decision boundary.
+Consider the network below and produce the output given all combinations of binary input:
+\(\{(0, 0), (0, 1), (1, 0), (1, 1)\}\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_22-36-49_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A network with 1 hidden layer that computes XOR. Source: &lt;https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf&gt;" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 2: <!-- raw HTML omitted -->A network with 1 hidden layer that computes XOR. Source: <a href="https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf">https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="activation-functions">Activation Functions</h2>
+<h3 id="sigmoid-function">Sigmoid Function</h3>
+<p>\[
+g(x) = \frac{1}{1 + e^{-x}}
+\]</p>
+<p>The logistic sigmoid function serves two purposes.
+First, it allows the output of the neuron to be interpreted as a posterior probability.
+Note that this is not actually a probability.
+Second, it is a continuous function for which the derivative can be computed:</p>
+<p>\[
+g&rsquo;(x) = g(x)(1 - g(x)).
+\]</p>
+<h3 id="hyperbolic-tangent-function">Hyperbolic Tangent Function</h3>
+<p>\[
+\tanh x = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}}
+\]</p>
+<p>The hyperbolic tangent function maps input to a range of \((-1, 1)\).</p>
+<p>The derivative is calculated as</p>
+<p>\[
+\frac{d}{dx} \tanh x = 1 - \tanh^2 x.
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_23-00-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hyperbolic Tangent Function. Source: Wolfram" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 3: <!-- raw HTML omitted -->Hyperbolic Tangent Function. Source: Wolfram
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong>Key Terms</strong></p>
+<ul>
+<li><strong>bias</strong></li>
+<li><strong>activation function</strong></li>
+<li>Neurons fire after input reaches some threshold.</li>
+<li>Differential activation functions necessary for backpropagation.</li>
+<li>Multi-class learning</li>
+<li>How long to train?</li>
+<li>Weight decay</li>
+<li>How many layers versus how many nodes per layer?</li>
+<li>Training</li>
+<li>Data split (train/test/val)</li>
+</ul>
+<h2 id="multi-class-classification">Multi-Class Classification</h2>
+<p>Consider an output layer of a network with \(k\) nodes.
+Each of these nodes represents a decision node for a one-versus-all classifier.
+For a classification task, we have to think about whether or not the sum of squares loss function works.</p>
+<p>As far as activation functions go, the logistic sigmoid function is a good way to produce some interpretation of probability.
+If we treat every output node as its own one versus all classifier, then a logistic sigmoid at the end of each one would
+indicate the &ldquo;probability&rdquo; that node \(k\) assigns class \(k\).</p>
+<p><strong>How do we formulate this in a neural network?</strong></p>
+<p>The number of nodes in the output layer will be \(K\), the number of classes.
+Since the output of each node produces a value in range \((0, 1)\), we want to construct a target value that works with this.
+Instead of assigning an integer to each class label (e.g. 1 for class 2, 2 for class 3, etc.), we will encode the target label as a \(K\) dimensional vector.
+For example, if our class label is for the class 1, then the corresponding target vector will be</p>
+<p>\begin{equation*}
+\mathbf{t} =
+\begin{bmatrix}
+1\\
+0\\
+\vdots\\
+0
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Since the output of our final layer is also a \(K\) dimensional vector, we can compare the two using some loss function.</p>
+<h2 id="backpropagation">Backpropagation</h2>
+<p>Given a series of linear layers with nonlinear activation functions,
+how can we update the weights across the entire network?</p>
+<p>The short answer is through the chain rule of differentiation.
+Let&rsquo;s explore this through an example.</p>
+<p>After constructing some series of hidden layers with an arbitrary number of nodes,
+we will pick an error function that provides a metric of how our network performs
+on a given regression or classification task.
+This loss is given by \(\mathcal{L}\).</p>
+<p>Neural networks are traditionally trained using <strong>gradient descent</strong>.
+The goal is to optimize the weights such that they result in the lowest loss, or error.
+This is also why our choice of loss function is important.</p>
+<p>\[
+\mathbf{W}^* = \text{argmin}\frac{1}{n}\sum_{i=1}^n \mathcal{L}(f(\mathbf{x}^{(i)}; \mathbf{W}), \mathbf{y}^{(i)})
+\]</p>
+<p>We first compute the gradients of the network with respect to the weights and biases.
+Then, we use those gradients to update our previous values for the weights and biases.</p>
+<h3 id="a-simple-example">A Simple Example</h3>
+<p>We will first look at computing these gradients on a smaller network for binary classification with 1 hidden layer and 1 output layer.
+The loss function is defined using the binary cross-entropy function:</p>
+<p>\[
+\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}) = -\mathbf{y}\log \hat{\mathbf{y}} - (1 - \mathbf{y}) \log (1 - \hat{\mathbf{y}})
+\]</p>
+<p>The network&rsquo;s output is computed in sequence following</p>
+<p>\begin{align*}
+\mathbf{a}^{(1)} &amp;= W^{(1)}\mathbf{x} + \mathbf{b}^{(1)}\\
+\mathbf{z}^{(1)} &amp;= g^{(1)}(\mathbf{a}^{(1)})\\
+\mathbf{a}^{(2)} &amp;= W^{(2)}\mathbf{z}^{(1)} + \mathbf{b}^{(2)}\\
+\mathbf{z}^{(2)} &amp;= g^{(2)}(\mathbf{a}^{(2)})\\
+\end{align*}</p>
+<p>The goal is to compute the gradients for all weights and biases:</p>
+<p>\[
+\frac{d\mathcal{L}}{dW^{(1)}},\quad \frac{d\mathcal{L}}{d\mathbf{b}^{(1)}},\quad \frac{d\mathcal{L}}{dW^{(2)}},\quad \frac{d\mathcal{L}}{d\mathbf{b}^{(2)}}.
+\]</p>
+<p>Starting with the weights of the output layer:</p>
+<p>\[
+\frac{d\mathcal{L}}{dW^{(2)}} = \frac{d\mathcal{L}}{d\mathbf{z}^{(2)}} \frac{d\mathbf{z}^{(2)}}{d\mathbf{a}^{(2)}} \frac{d\mathbf{a}^{(2)}}{dW^{(2)}}.
+\]</p>
+<p>The first step is to compute the partial gradient of the loss function with respect to its input \(\hat{\mathbf{y}} = \mathbf{z}^{(2)}\):</p>
+<p>\[
+\frac{d\mathcal{L}}{d\mathbf{z}^{(2)}} = \frac{\mathbf{z}^{(2)} - \mathbf{y}}{\mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)})}.
+\]</p>
+<p>Next, compute the gradient of the last layer&rsquo;s activation function with respect to its input \(\mathbf{a}^{(2)}\):</p>
+<p>\[
+\frac{d\mathbf{z}^{(2)}}{d\mathbf{a}^{(2)}} = \mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)}).
+\]</p>
+<p>Finally, we compute \(\frac{d\mathbf{a}^{(2)}}{dW^{(2)}}\):
+\[
+\frac{d\mathbf{a}^{(2)}}{dW^{(2)}} = \mathbf{z}^{(1)}.
+\]</p>
+<p>Putting all of this together yields</p>
+<p>\begin{align*}
+\frac{d\mathcal{L}}{dW^{(2)}} &amp;= \frac{\mathbf{z}^{(2)} - \mathbf{y}}{\mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)})} * \mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)}) * \mathbf{z}^{(1)}\\
+&amp;= \mathbf{z}^{(1)} (\mathbf{z}^{(2)} - \mathbf{y}).
+\end{align*}</p>
+<h2 id="non-convex-optimization">Non-Convex Optimization</h2>
+<p>Optimizing networks with non-linearities produces a non-convex landscape.
+Depending on our choice of optimization algorithm and initial starting point, the algorithm will most likely get &ldquo;stuck&rdquo; in some local minimum.
+Consider the figure below produced by (<!-- raw HTML omitted -->Li et al. 2017<!-- raw HTML omitted -->).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-31_09-48-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Loss surface of ResNet-56 (Li et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 4: <!-- raw HTML omitted -->Loss surface of ResNet-56 (Li et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="references">References</h2>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

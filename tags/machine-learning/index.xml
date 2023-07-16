@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>machine learning on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/machine-learning/</link>
+    <description>Recent content in machine learning on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Sat, 15 Jul 2023 00:00:00 -0500</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>An Introduction to Hidden Markov Models for Gesture Recognition</title>
+      <link>https://ajdillhoff.github.io/articles/intro_to_hmms/</link>
+      <pubDate>Sat, 15 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/articles/intro_to_hmms/</guid>
+      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Hidden Markov Models provide a way of modeling the dynamics of sequential information. They have been used for speech recognition, part-of-speech tagging, machine translation, handwriting recognition, and, as we will see in this article, gesture recognition.&lt;/p&gt;
+&lt;p&gt;Consider a somewhat practical use-case: you are going to throw a party with a meticulously curated playlist. You would rather not let anyone have the remote as it might get lost, and letting anyone interrupt the playlist with their own selections may derail the entire event. However, you still want to give your guests the ability to control the volume and skip back and forth between tracks in the playlist. We will also assume that guests will use change tracks and control the volume responsibly.&lt;/p&gt;
+&lt;p&gt;The solution to this problem is to implement a gesture recognition system to identify simple hand motions. In this case, we only have to model 4 separate gestures: VolumeUp, VolumeDown, PrevTrack, NextTrack. Since the motions are temporal in nature, we can model each gesture using Hidden Markov Models. First, we need to cover a bit of background on what a Hidden Markov Model actually is.&lt;/p&gt;
+&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;First, introduce Markov Chains&lt;/li&gt;
+&lt;li&gt;Then the Markov assumption&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At the core of our problem, we want to model a distribution over a sequence of states. Consider a sequence of only 3 states \(p(x_1, x_2, x_3)\). The full computation of this can be done using the chain rule of probability:&lt;/p&gt;
+&lt;p&gt;\[
+p(x_1, x_2, x_3) = p(x_1) p(x_2 | x_1) p(x_3 | x_1, x_2).
+\]&lt;/p&gt;
+&lt;p&gt;If the random variables of our problem are not conditionally independent, the complexity of calculating this is exponential in the number of random variables.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;Markov&lt;/strong&gt; in Hidden Markov Models addresses this complexity. The &lt;strong&gt;Markov Assumption&lt;/strong&gt; states that the probability of an event at time \(t\) is conditioned &lt;em&gt;only&lt;/em&gt; on the previously observed event: \(p(x_t | x_{t-1})\). This is compactly represented with a graphical model, as seen in figure &lt;strong&gt;TODO&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Figure of basic Markov Chain&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;hidden&lt;/strong&gt; qualifier comes from the fact that the data we wish to model was generated from some underlying process that is not directly observable. A classic example for HMMs uses the weather. Imagine you had a log which had the number of water bottles a person had drank per day over the entire year. To make the problem slightly more difficult, the log entries were not associated with a date. It is reasonable to say that the amount of water a person drinks is influenced by how hot or cold it is on a particular day. So, the &lt;strong&gt;hidden state&lt;/strong&gt; in this case is the weather: hot or cold. We can model this with an HMM by establishing that the amount of water (&lt;strong&gt;observed state&lt;/strong&gt;) is conditioned on the weather (&lt;strong&gt;hidden state&lt;/strong&gt;). Figure &lt;strong&gt;TODO&lt;/strong&gt; shows this HMM graphically.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Figure of HMM&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Formally, a Hidden Markov Model is defined by&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The number of hidden states \(N\).&lt;/li&gt;
+&lt;li&gt;A transition probability matrix \(A \in \mathbb{R}^{N \times N}\), where \(a_{ij} = p(z_t = j | z_{t-1} = i)\).&lt;/li&gt;
+&lt;li&gt;An observation symbol probability distribution \(B = \{b_j(k)\} = p(\mathbf{x}_t = k | z_t = j)\).&lt;/li&gt;
+&lt;li&gt;An initial state distribution \(\pi_i = p(z_t = i)\).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The trainable parameters of our model are \(\lambda = (A, B, \pi)\).&lt;/p&gt;
+&lt;h2 id=&#34;functions-of-an-hmm&#34;&gt;Functions of an HMM&lt;/h2&gt;
+&lt;p&gt;Given the basic definition of what an HMM is, how can we train the parameters defined in \(\lambda\). If we somehow already knew the parameters, how can we extract useful information from the model? Depending on our task, we can use HMMs to answer many important questions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Filtering&lt;/strong&gt; computes \(p(z_t | \mathbf{x}_{1:t})\). That is, we are computing this probability as new samples come in up to time \(t\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Smoothing&lt;/strong&gt; is accomplished when we have all the data in the sequence.
+This is expressed as \(p(z_t|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fixed lag smoothing&lt;/strong&gt; allows for a trade off between accuracy and delay. It is useful in cases where we might not have the full sequence, but we wish to compute \(p(z_{t-l}|\mathbf{x}_{1:t})\) for some \(l &amp;gt; 0\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Predictions&lt;/strong&gt; are represented as \(p(z_{t+h}|\mathbf{x}_{1:t})\), where \(h &amp;gt; 0\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;MAP estimation&lt;/strong&gt; yields the most probably state sequence \(\text{arg}\max_{\mathbf{z}_{1:T}}p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;We can sample the &lt;strong&gt;posterior&lt;/strong&gt; \(p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;We can also compute \(p(\mathbf{x}_{1:T})\) by summing up over all hidden paths. This is useful for classification tasks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Of course not all of these functions make sense for every possible task, more on that later. This article is not meant to be an exhaustive resource for all HMM functions; we will only look at the tasks necessary to train and use HMMs for isolated gesture recognition &lt;strong&gt;TODO: offer additional reading suggestions&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;data-processing&#34;&gt;Data Processing&lt;/h2&gt;
+&lt;p&gt;As far as the efficacy of our model goes, how we process the data is the most important. Our system will start with a camera that records our guests performing one of the four simple motions. For simplicity, let&amp;rsquo;s pretend that the camera has an onboard chip that detects the 2D centroids of the left hand for each frame. That helps a lot, but there is still the problem of isolating a group of frames based on when the user wanted to start and finish the command. Assuming we have a solution for both of these problems, we still need to take into account that users will gesture at different speeds. Since all of these problems are challenging in their own right, we will assume the computer vision fairy has taken care of this for us.&lt;/p&gt;
+&lt;p&gt;Each gesture in our dataset consists of 30 \((x, y)\) locations of the center of the left hand with respect to image coordinates. Even with this simplified data, we have another problem: different users may gesture from different locations. The hand locations for one user performing the &lt;code&gt;VolumeUp&lt;/code&gt; gesture may be vastly different from another. This isn&amp;rsquo;t too bad to deal with. We could normalize or training data by subtracting the location of the hand in the first frame from the gesture. That way every input would start at \((0, 0)\). We can simplify this even further by using &lt;strong&gt;relative motion states&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;relative-motion-states&#34;&gt;Relative Motion States&lt;/h3&gt;
+&lt;p&gt;Relative motion states discretize our data, thus simplifying the input space. The idea is quite simple: if the hand moved to the right relative to the previous frame, we assign \(x = 1\) for that frame. If it moved to the left, assign \(x = -1\). If it didn&amp;rsquo;t move at all, or did not move a significant amount, assign \(x = 0\). We apply similar rules for the \(y\) locations as well. The &lt;strong&gt;TODO: figure&lt;/strong&gt; below shows the relative motion grid.&lt;/p&gt;
+&lt;p&gt;Besides greatly simplifying our input space, meaning we can use a simple categorical distribution to model these observations, we no longer have to worry about the discrepency between where each user performed the gesture.&lt;/p&gt;
+&lt;h2 id=&#34;modeling-a-gesture&#34;&gt;Modeling a Gesture&lt;/h2&gt;
+&lt;p&gt;Our system will consist of 4 HMM models to model the dynamics of each gesture. To determine which gesture was performed, we will given our input sequence to each one and have it compute \(p(\mathbf{x}_{1:T}; \lambda_i)\), the probability of the observation given the parameters of model \(i\). Whichever model gives the high probability wins.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Describe EM at a high level, show the breakdown of probabilities that need to be known&lt;/li&gt;
+&lt;li&gt;Go into forward-backwards&lt;/li&gt;
+&lt;li&gt;Go back to EM and plug them in&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;training-expectation-maximization&#34;&gt;Training: Expectation-Maximization&lt;/h3&gt;
+&lt;p&gt;If we cannot observe the hidden states directly, how are we supposed to update the model parameters \(\lambda = (A, B, \pi)\)? We may not have all of the information, but we do have &lt;em&gt;some&lt;/em&gt; information. We can use that to fill in the missing values with what we would expect them to be given what we already know. Then, we can update our parameters using those expected values. This is accomplished through a two-stage algorithm called &lt;strong&gt;Expectation-Maximization&lt;/strong&gt;. Those familiar with k-Nearest Neighbors should already be familiar with this process.&lt;/p&gt;
+&lt;h4 id=&#34;updating-with-perfect-information&#34;&gt;Updating with Perfect Information&lt;/h4&gt;
+&lt;p&gt;It is useful to know how we would update our parameters assuming we had perfect information. If the hidden states were fully observable, then updating our model parameters would be as straightforward as computing the maximum likelihood estimates.
+For \(A\) and \(\pi\), we first tally up the following counts:&lt;/p&gt;
+&lt;p&gt;\[
+\hat{a}_{ij} = \frac{N_{ij}}{\sum_j N_{ij}},
+\]&lt;/p&gt;
+&lt;p&gt;the number of times we expect to transition from \(i\) to \(j\) divided by the number of times we transition from \(i\) to any other state. Put simply, this computes the expected transitions from \(i\) to \(j\) normalized by all the times we expect to start in state \(i\).&lt;/p&gt;
+&lt;p&gt;For \(\pi\), we have&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\pi_i} = \frac{N_i}{\sum_i N_i},
+\]&lt;/p&gt;
+&lt;p&gt;the number of times we expect to start in state \(i\) divided by the number of times we start in any other state.&lt;/p&gt;
+&lt;p&gt;Estimating the parameters for \(B\) depends on which distribution we are using for our observation probabilities.
+For a multinomial distribution, we would compute the number of times we are in state \(j\) and observe a symbol \(k\) divided by the number of times we are in state \(j\):&lt;/p&gt;
+&lt;p&gt;\[
+\hat{b}_{jk} = \frac{N_{jk}}{N_k},
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+N_{jk} = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=j, x_{i, t}=k).
+\]&lt;/p&gt;
+&lt;p&gt;It is also common to model our emission probability using a Normal distribution. We can even use a parameterized model like a neural network. &lt;strong&gt;TODO: provide links to examples of these&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;updating-with-missing-information&#34;&gt;Updating with Missing Information&lt;/h4&gt;
+&lt;p&gt;Now to the real problem: fill in our missing information using our observable data and the current parameter estimates. There are two important statistics that we need to compute, called the &lt;strong&gt;sufficient statistics&lt;/strong&gt;.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The expected number of transitions from \(i\) to \(j\).&lt;/li&gt;
+&lt;li&gt;The expected number of times we are transitioning from \(i\) to any other state.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Both of these can be computed starting with the same probability &lt;em&gt;conditioned&lt;/em&gt; on our observable data:&lt;/p&gt;
+&lt;p&gt;\[
+p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;forwards-backwards-algorithm&#34;&gt;Forwards-Backwards Algorithm&lt;/h3&gt;
+&lt;h2 id=&#34;implementation-in-python&#34;&gt;Implementation in Python&lt;/h2&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

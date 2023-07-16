@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Introduction Probabilistic Interpretation Solving with Normal Equations Another Approach to Normal Equations Fitting Polynomials Linear Basis Functions Introduction Given a dataset of observations \(\mathbf{X} \in \mathbb{R}^{n \times d}\), where \(n\) is the number of samples and \(d\) represents the number of features per sample, and corresponding target values \(\mathbf{Y} \in \mathbb{R}^n\), create a simple prediction model which predicts the target value \(\mathbf{y}\) given a new observation \(\mathbf{x}\). The classic example in this case is a linear model, a function that is a linear combination of the input features and some weights \(\mathbf{w}\).">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/posts/linear_regression/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/posts/linear_regression/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/posts/linear_regression/">
+  <meta property="og:title" content="Linear Regression | Alex Dillhoff">
+  <meta property="og:description" content="Introduction Probabilistic Interpretation Solving with Normal Equations Another Approach to Normal Equations Fitting Polynomials Linear Basis Functions Introduction Given a dataset of observations \(\mathbf{X} \in \mathbb{R}^{n \times d}\), where \(n\) is the number of samples and \(d\) represents the number of features per sample, and corresponding target values \(\mathbf{Y} \in \mathbb{R}^n\), create a simple prediction model which predicts the target value \(\mathbf{y}\) given a new observation \(\mathbf{x}\). The classic example in this case is a linear model, a function that is a linear combination of the input features and some weights \(\mathbf{w}\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-12T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-12T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Linear Regression | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/posts/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Linear Regression</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-12 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-12 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 12, 2022</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="/posts/linear_regression/#disqus_thread"></a>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/posts/linear_regression/&amp;text=Linear%20Regression" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/posts/linear_regression/&amp;t=Linear%20Regression" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Linear%20Regression&amp;body=https://ajdillhoff.github.io/posts/linear_regression/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/posts/linear_regression/&amp;title=Linear%20Regression" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Linear%20Regression%20https://ajdillhoff.github.io/posts/linear_regression/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/posts/linear_regression/&amp;title=Linear%20Regression" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#probabilistic-interpretation">Probabilistic Interpretation</a></li>
+<li><a href="#solving-with-normal-equations">Solving with Normal Equations</a></li>
+<li><a href="#another-approach-to-normal-equations">Another Approach to Normal Equations</a></li>
+<li><a href="#fitting-polynomials">Fitting Polynomials</a></li>
+<li><a href="#linear-basis-functions">Linear Basis Functions</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="introduction">Introduction</h2>
+<p>Given a dataset of observations \(\mathbf{X} \in \mathbb{R}^{n \times d}\), where \(n\) is the number of samples and \(d\) represents the number of features per sample, and corresponding target values \(\mathbf{Y} \in \mathbb{R}^n\), create a simple prediction model which predicts the target value \(\mathbf{y}\) given a new observation \(\mathbf{x}\). The classic example in this case is a linear model, a function that is a linear combination of the input features and some weights \(\mathbf{w}\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-15_13-35-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Plot of univariate data where the (x) values are features and (y) are observations." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 1: <!-- raw HTML omitted -->Plot of univariate data where the (x) values are features and (y) are observations.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The generated data is plotted above along with the underlying true function that was used to generate it. If we already know what the true function is, our job is done. Suppose that we only have the data points (in blue). How do we go about modelling it? It is reasonable to first visualize the data and observe that it does follow a linear pattern. Thus, a linear model would be a decent model to choose.</p>
+<p>If the data followed a curve, we may decide to fit a polynomial. We will look at an example of that later on. For now, let&rsquo;s formalize all of the information that we have.</p>
+<ul>
+<li>\((\mathbf{x}, \mathbf{y})\) - Data points from the original dataset. Generally, \(\mathbf{x}\) is a vector of features and \(\mathbf{y}\) is the target vector. In our simple dataset above, these are both scalar values.</li>
+<li>\(\mathbf{w} = (w_0, w_1)\) - Our model parameters. Comparing to the equation \(y = mx + b\), \(w_0\) is our bias term and \(w_1\) is our slope parameter.</li>
+</ul>
+<h3 id="making-predictions">Making Predictions</h3>
+<p>Given \(\mathbf{w}\), we can make a prediction for a new data sample \(\mathbf{x} = x_1\).</p>
+<p>\[
+h(\mathbf{x}; \mathbf{w}) = w_0 + w_1 x_1
+\]</p>
+<p>Note that the bias term is always added to the result. We can simplify this into a more general form by appending a constant 1 (s.t. \(x_0 = 1\)) to each of our samples such that \(\mathbf{x} = (1, x_1, &hellip;, x_d)\). Then, the general linear model becomes</p>
+<p>\[
+h(\mathbf{x}; \mathbf{w}) = \sum_{i=0}^{d} w_i x_i = \mathbf{w}^T \mathbf{x}.
+\]</p>
+<p>If our data happened to have more than 1 feature, it would be easy enough to model it appropriately using this notation.</p>
+<h3 id="determining-fitness">Determining Fitness</h3>
+<p>If we really wanted to, we could fit our model by plotting it and manually adjusting the weights until our model looked acceptable by some qualitative standard. Fortunately we won&rsquo;t be doing that. Instead, we will use a quantitative measurement that provides a metric of how well our current parameters fit the data.</p>
+<p>For this, we use a <strong><strong>cost function</strong></strong> or <strong><strong>loss function</strong></strong>. The most common one to use for this type of model is the least-squares function:</p>
+<p>\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2.
+\]</p>
+<h3 id="stochastic-gradient-descent">Stochastic Gradient Descent</h3>
+<p>Depending on the random initialization of parameters, our error varies greatly. We can observe that no matter what the chose parameters are, there is no possible way we can achieve an error of 0. The best we can do is minimize this error:</p>
+<p>\[
+\min_{\mathbf{w}} J(\mathbf{w}).
+\]</p>
+<p>For this, we rely on stochastic gradient descent. The basic idea is as follows:</p>
+<ol>
+<li>Begin with an initial guess for \(\mathbf{w}\).</li>
+<li>Compare the prediction for sample \(\mathbf{x}^{(i)}\) with its target \(\mathbf{y}^{(i)}\).</li>
+<li>Update \(\mathbf{w}\) based on the comparison in part 2.</li>
+<li>Repeat steps 2 and 3 on the dataset until the loss has converged.</li>
+</ol>
+<p>Steps 1, 3, and 4 are easy enough. What about step 2? How can we possibly know how to modify \(\mathbf{w}\) such that \(J(\mathbf{w})\) will decrease? By computing the gradient \(\frac{d}{d\mathbf{w}}J(\mathbf{w})\)! How will we know when we have arrived at a minima? When \(\nabla J(\mathbf{w}) = 0\).</p>
+<p>\begin{align*}
+\frac{d}{d\mathbf{w}}J(\mathbf{w}) &amp;= \frac{d}{d\mathbf{w}}\frac{1}{2}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\\
+&amp;= 2 \cdot \frac{1}{2}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \cdot \frac{d}{d\mathbf{w}} (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})\\
+&amp;= (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \cdot \frac{d}{d\mathbf{w}} (\mathbf{w}^T \mathbf{x}_{i} - \mathbf{y}_{i})\\
+&amp;= (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \mathbf{x}_{i}
+\end{align*}</p>
+<p>The gradient represents the direction of greatest change for a function evaluated With this gradient, we can use an update rule to modify the previous parameter vector \(\mathbf{w}\):</p>
+<p>\[
+\mathbf{w}_{t+1} = \mathbf{w}_{t} - \alpha \sum_{i=1}^{n} (h(\mathbf{x}_{i};\mathbf{w}_{t}) - \mathbf{y}_{i}) \mathbf{x}_{i}.
+\]</p>
+<p>Here, \(\alpha\) is an update hyperparameter that allows us to control how big or small of a step our weights can take with each update. In general, a smaller value will be more likely to get stuck in local minima. However, too large of a value may never converge to any minima.</p>
+<p>Another convenience of this approach is that it is possible to update the weights based on a single sample, batch of samples, or the entire dataset. This sequential process makes optimization using very large dataset feasible.</p>
+<h2 id="probabilistic-interpretation">Probabilistic Interpretation</h2>
+<!-- raw HTML omitted -->
+<blockquote>
+<p>&ldquo;Probability theory is nothing but common sense reduced to calculation.&rdquo; - Pierre-Simon Laplace</p>
+</blockquote>
+<!-- raw HTML omitted -->
+<p>Recall Bayes&rsquo; theorem:</p>
+<p>\[
+p(\mathbf{w}|\mathbf{X}) = \frac{p(\mathbf{X}|\mathbf{w})p(\mathbf{w})}{p(\mathbf{X})}.
+\]</p>
+<p>That is, the <em>posterior</em> probability of the weights conditioned on the observered data \(\mathbf{X}\) is equal to the <em>likelihood</em> of the observed data given the times the <em>prior</em> distribution. This base notation doesn&rsquo;t line up well with our problem. For our problem, we have observations \(\mathbf{Y}\) which are dependent on the input features \(\mathbf{X}\):</p>
+<p>\[
+p(\mathbf{w}|\mathbf{X}, \mathbf{Y}) = \frac{p(\mathbf{Y}|\mathbf{X}, \mathbf{w}) p(\mathbf{w}|\mathbf{X})}{p(\mathbf{Y}|\mathbf{X})},
+\]</p>
+<p>where \(\mathbf{X} \in \mathbb{R}^{n \times d}\) and \(\mathbf{Y} \in \mathbb{R}^n\).</p>
+<p>The choice of least squares also has statistical motivations. As discussed previously, we are making a reasonable assumption that there is some relationship between the features of the data and the observed output. This is typically modeled assume</p>
+<p>\[
+\hat{\mathbf{Y}} = f(\mathbf{X}) + \epsilon.
+\]</p>
+<p>Here, \(\epsilon\) is a random error term that is independent of \(\mathbf{X}\) and has 0 mean. This term represents any random noise that occurs either naturally or from sampling. It also includes any effects that are not properly captured by \(f\). Rearranging the terms of this equation to solve for \(\epsilon\) allows us to define the discrepencies in the model:</p>
+<p>\[
+\mathbf{\epsilon}_i = h(\mathbf{x}_{i}; \mathbf{w}) - \mathbf{y}_{i}.
+\]</p>
+<p>If we assume that these discrepancies are independent and identically distributed with variance \(\sigma^2\) and Gaussian PDF \(f\), the likelihood of observations \(\mathbf{y}^{(i)}\) given parameters \(\mathbf{w}\) is</p>
+<p>\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = \prod_{i=1}^{n} f(\epsilon_i; \sigma),
+\]</p>
+<p>where</p>
+<p>\[
+f(\epsilon_i; \sigma) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{\epsilon^2}{2\sigma^2}\Big).
+\]</p>
+<p>This new parameter changes our original distribution function to</p>
+<p>\[
+p(\mathbf{w}|\mathbf{X}, \mathbf{Y}, \sigma) = \frac{p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) p(\mathbf{w}|\mathbf{X}, \sigma)}{p(\mathbf{Y}|\mathbf{X}, \sigma)}.
+\]</p>
+<p>Two things to note before moving on. First, the prior \(p(\mathbf{Y}|\mathbf{X}, \sigma)\) is a normalizing constant to ensure that the posterior is a valid probability distribution. Second, if we assume that all value for \(\mathbf{w}\) are equally likely, then \(p(\mathbf{w}|\mathbf{x}, \sigma)\) also becomes constant. This is a convenient assumption which implies that maximizing the posterior is equivalent to maximizing the likelihood function.</p>
+<p>With that out of the way, we can focus solely on the likelihood function. Expanding out the gaussian PDF \(f\) yields</p>
+<p>\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = -\frac{n}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\Big).
+\]</p>
+<p>We can see that maximizing \(p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma)\) is the same as minimizing the sum of squares. In practice, we use the negative log of the likelihood function since the negative logarithm is monotonically decreasing.</p>
+<h2 id="solving-with-normal-equations">Solving with Normal Equations</h2>
+<p>You may have studied the normal equations when you took Linear Algebra. The normal equations are motivated by finding approximate solutions to \(A\mathbf{x} = \mathbf{b}\). Most of the earlier part of linear algebra courses focus on finding exact solutions by solving systems of equations using Gaussian elimination (row reduction). Approximate solutions can be found by projecting the observed data points \(\mathbf{b}\) onto the column space of \(A\) and solving \(A \mathbf{x} = \hat{\mathbf{b}}\), where \(\hat{\mathbf{b}} = \text{proj}_{\text{Col} A}\mathbf{b}\). Then, \(\mathbf{b} - \hat{\mathbf{b}}\) represents a vector orthogonal to \(\text{Col}A\).</p>
+<p>Since each column vector of \(A\) is orthogonal to \(\mathbf{b} - \hat{\mathbf{b}}\), the dot product between them should be 0. Rewriting this, we get</p>
+<p>\begin{aligned}
+A^T(\mathbf{b} - A\mathbf{x}) &amp;= \mathbf{0}\\
+A^T \mathbf{b} - A^T A \mathbf{x} &amp;= \mathbf{0}.
+\end{aligned}</p>
+<p>This means that each least-squares solution of \(A\mathbf{x} = \mathbf{b}\) satisfies</p>
+<p>\[
+A^T A \mathbf{x} = A^T \mathbf{b}.
+\]</p>
+<h3 id="example">Example</h3>
+<p>Let&rsquo;s take our univariate problem of \((\mathbf{x}, \mathbf{y})\) pairs. To use the normal equations to solve the least squares problem, we first change the notation just a bit as not confuse our data points and our parameters:</p>
+<p>\[
+\mathbf{X}^T \mathbf{X} \beta = \mathbf{X}^T \mathbf{y}
+\]</p>
+<p>Create the design matrix \(\mathbf{X}\) where each row represents the the \(\mathbf{x}\) values. Recall that even though we only have 1 feature for \(\mathbf{x}\), we append the bias constant as \(x_0 = 1\) to account for the bias parameter. \(\mathbf{X}\) is then</p>
+<p>\begin{equation*}
+\mathbf{X} =
+\begin{bmatrix}
+x_0^{(0)} &amp; x_1^{(0)}\\
+x_0^{(1)} &amp; x_1^{(1)}\\
+\vdots &amp; \vdots \\
+x_0^{(n)} &amp; x_1^{(n)}
+\end{bmatrix}.
+\end{equation*}</p>
+<p>The parameter vector is</p>
+<p>\begin{equation*}
+\beta =
+\begin{bmatrix}
+\beta_0\\
+\beta_1
+\end{bmatrix}.
+\end{equation*}</p>
+<p>The observed values are packed into \(\mathbf{y}\). We can then solve for \(\beta\) using any standard solver:</p>
+<p>\[
+\beta = (\mathbf{X}^T \mathbf{X})^{-1}X^T \mathbf{y}.
+\]</p>
+<h3 id="rank-deficient-matrices">Rank-Deficient matrices</h3>
+<p>In the event that the matrix \(\mathbf{X}^T \mathbf{X}\) is singular, then its inverse cannot be computed.
+This implies that one or more of the features is a linear combination of the others.</p>
+<p>This can be detected by checking the rank of \(\mathbf{X}^T \mathbf{X}\) before attempting to compute the inverse.
+You can also determine which features are redundant via Gaussian elimination.
+The columns in the reduced matrix that do not have a pivot entry are redundant.</p>
+<h2 id="another-approach-to-normal-equations">Another Approach to Normal Equations</h2>
+<p>We can arrive at the normal equations by starting at the probabilistic perspective. Recall the likelihood function</p>
+<p>\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = -\frac{n}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\Big).
+\]</p>
+<p>Taking the natural log of this function yields</p>
+<p>\[
+\ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = - \frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i}; \mathbf{w}) - \mathbf{y}_{i})^2 - \frac{n}{2}\ln(\sigma^2) - \frac{n}{2}\ln(2\pi).
+\]</p>
+<p>As mentioned before, maximizing the likelihood function is equivalent to minimizing the sum-of-squares function. Thus, we must find the critical point of the likelihood function by computing the gradient (w.r.t. \(\mathbf{w}\)) and solving for 0:</p>
+<p>\begin{align*}
+\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) &amp;= \sum_{i=1}^{n}(\mathbf{w}^T\mathbf{x}_{i} - \mathbf{y}_{i})\mathbf{x}_{i}^{T}\\
+&amp;= \mathbf{w}^T \sum_{i=1}^{n}\mathbf{x}_i\mathbf{x}_i^T - \sum_{i=1}^{n}\mathbf{y}_{i}\mathbf{x}_{i}^{T}\\
+\end{align*}</p>
+<p>Noting that \(\sum_{i=1}^{n}\mathbf{x}_i \mathbf{x}_i^T\) is simply matrix multiplication, we can use</p>
+<p>\begin{equation*}
+\mathbf{X} =
+\begin{bmatrix}
+\mathbf{x}_1^T\\
+\vdots\\
+\mathbf{x}_n^T\\
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Then, \(\sum_{i=1}^{n}\mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{X}\), \(\sum_{i=1}^{n}\mathbf{y}_i \mathbf{x}_i^T = \mathbf{Y}^T \mathbf{X}\), and</p>
+<p>\[
+\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = \mathbf{w}^T \mathbf{X}^T \mathbf{X} - \mathbf{Y}^T \mathbf{X}.
+\]</p>
+<p>Since we are finding the maximum likelihood, we set \(\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = 0\) and solve for \(\mathbf{w}\):</p>
+<p>\[
+\mathbf{w} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{Y}.
+\]</p>
+<p>Thus, we arrive again at the normal equations and can solve this using a linear solver.</p>
+<h2 id="fitting-polynomials">Fitting Polynomials</h2>
+<p>Not every dataset can be modeled using a simple line.
+Data can be exponential or logarithmic in nature.
+We may also look to use <a href="https://en.wikipedia.org/wiki/Spline_(mathematics)">splines</a> to model more complex data.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-01_17-08-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Data generated from a nonlinear function with added noise." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 2: <!-- raw HTML omitted -->Data generated from a nonlinear function with added noise.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The dataset above was generated from the function as seen in red.
+Using a simple linear model (blue) does not fit the data well.
+For cases such as this, we can fit a polynomial to the data by changing our input data.</p>
+<p>The simple dataset above has 100 paired samples \((x_i, y_i)\).
+There is only a single feature \(x_i\) for each sample.
+It is trivial to determine that the shape of the data follows a cubic function.
+One solution would be to raise each input to the power of 3.
+This results in the function (blue) below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-01_17-30-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Solution from raising each input to the power of 3." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 3: <!-- raw HTML omitted -->Solution from raising each input to the power of 3.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To fit this data, we need to add more features to our input.
+Along with the original \(x_i\) features, we will also add \(x_i^2\) and \(x_i^3\).
+Our data is then 3 dimensional.
+The figure below shows the least squares fit using the modified data (blue).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-01_17-38-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Least squares fit using a polynomial model (blue)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 4: <!-- raw HTML omitted -->Least squares fit using a polynomial model (blue).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>A demo of this can be found <a href="https://github.com/ajdillhoff/CSE6363/blob/main/linear_regression/Linear%20Regression.ipynb">here</a>.</p>
+<h2 id="linear-basis-functions">Linear Basis Functions</h2>
+<p>Linear models are linear in their inputs.
+This formulation is simple, producing models with limited representation.
+Linear models can be extended as a linear combination of fixed nonlinear functions of the original features.
+In the previous section, was saw that they could easily be extended to fit polynomial functions.</p>
+<p>We now consider creating a model that transforms the original input using one or more nonlinear functions.
+This type of model is called a <strong><strong>linear basis function model</strong></strong>.</p>
+<p>\[
+h(\mathbf{x};\mathbf{w}) = \sum_{j=1}^{m} w_j\phi_j(\mathbf{x})
+\]</p>
+<p>Common basis functions are the sigmoid, Gaussian, or exponential function.
+If we choose the \(\sin\) function as a basis function, we can more closely fit our dataset using the least squares approach.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-01_18-46-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A linear basis function model using the sin function as the choice of basis." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 5: <!-- raw HTML omitted -->A linear basis function model using the sin function as the choice of basis.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Introduction The Markov Assumption Definition Evaluation The Viterbi Algorithm Estimating Parameters Expectation Maximization Introduction This article is essentially a grok of a tutorial on HMMs by (RABINER 1989). It will be useful for the reader to reference the original paper.
+Up to this point, we have only explored &ldquo;atomic&rdquo; data points. That is, all of the information about a particular sample is encapsulated into one vector. Sequential data is easily represented by graphical models.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/posts/hidden_markov_models/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/posts/hidden_markov_models/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/posts/hidden_markov_models/">
+  <meta property="og:title" content="Hidden Markov Models | Alex Dillhoff">
+  <meta property="og:description" content="Introduction The Markov Assumption Definition Evaluation The Viterbi Algorithm Estimating Parameters Expectation Maximization Introduction This article is essentially a grok of a tutorial on HMMs by (RABINER 1989). It will be useful for the reader to reference the original paper.
+Up to this point, we have only explored &ldquo;atomic&rdquo; data points. That is, all of the information about a particular sample is encapsulated into one vector. Sequential data is easily represented by graphical models."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-02-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-07-15T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Hidden Markov Models | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/posts/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Hidden Markov Models</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-02-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-07-15 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Jul 15, 2023</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="/posts/hidden_markov_models/#disqus_thread"></a>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/posts/hidden_markov_models/&amp;text=Hidden%20Markov%20Models" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/posts/hidden_markov_models/&amp;t=Hidden%20Markov%20Models" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Hidden%20Markov%20Models&amp;body=https://ajdillhoff.github.io/posts/hidden_markov_models/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/posts/hidden_markov_models/&amp;title=Hidden%20Markov%20Models" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Hidden%20Markov%20Models%20https://ajdillhoff.github.io/posts/hidden_markov_models/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/posts/hidden_markov_models/&amp;title=Hidden%20Markov%20Models" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#the-markov-assumption">The Markov Assumption</a></li>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#evaluation">Evaluation</a></li>
+<li><a href="#the-viterbi-algorithm">The Viterbi Algorithm</a></li>
+<li><a href="#estimating-parameters">Estimating Parameters</a></li>
+<li><a href="#expectation-maximization">Expectation Maximization</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="introduction">Introduction</h2>
+<p>This article is essentially a grok of a tutorial on HMMs by (<!-- raw HTML omitted -->RABINER 1989<!-- raw HTML omitted -->). It will be useful for the reader to reference the <a href="https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf">original paper</a>.</p>
+<p>Up to this point, we have only explored &ldquo;atomic&rdquo; data points.
+That is, all of the information about a particular sample is encapsulated into one vector.
+Sequential data is easily represented by graphical models.
+This article introduces Hidden Markov Models, a powerful probabilistic graphical model used in many applications from gesture recognition to natural language processing.</p>
+<p>There are many tasks for which we do not know the underlying process.
+However, we can observe samples that are produced from such processes.
+Music, gesture recognition, speech, text, etc.
+All of these have some underlying process which forms their outputs together into a hopefully coherent sequence.
+If we wish to make predictions about future samples given these sequences, we will need to make some guess
+about the underlying processes defining their output.</p>
+<h2 id="the-markov-assumption">The Markov Assumption</h2>
+<p>Markov models make a convenient assumption about sequential data.
+That is, all relevant information required for predicting future samples is captured in the current time step \(t\).
+Given a joint distribution over an input of \(T\) frames, \(p(\mathbf{x}_{1:T})\), the Markov assumption allows us to represent it as</p>
+<p>\[
+p(\mathbf{x}_{1:T}) = p(\mathbf{x}_1)\prod_{t=2}^T p(\mathbf{x}_t|\mathbf{x}_{t-1})
+\]</p>
+<h2 id="definition">Definition</h2>
+<p>A more complicated case is when we are attempting to model some unknown process that is responsible for the observations.
+In this case, an ordinary Markov chain is not sufficient.
+A <strong>hidden Markov model (HMM)</strong> is defined by a set \(z_t \in \{1, \dots, K\}\) of discrete hidden states and an <strong>observation</strong> model \(p(\mathbf{x}_i|z_t)\).
+The joint probability distribution of this model is given by</p>
+<p>\[
+p(\mathbf{z}, \mathbf{x}) = p(\mathbf{z})p(\mathbf{x}|\mathbf{z}) = \Big(p(z_1)\prod_{t=2}^Tp(z_t|z_{t-1})\Big)\Big(\prod_{t=1}^Tp(\mathbf{x}_t|z_t)\Big).
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-24_20-41-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The observations y are generated by the latent states x. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 1: <!-- raw HTML omitted -->The observations y are generated by the latent states x. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Although the states themselves are discrete, the observations may be continuous: \(p(\mathbf{x}|z_t, \mathbf{\theta})\).
+If they are discrete, they can be modeled by an observation matrix \(B\).
+Continuous observations are typically modeled using a conditional Gaussian:</p>
+<p>\[
+p(\mathbf{x}_t|z_t=k, \theta) = \mathcal{N}(\mathbf{x}_t|\mathbf{\mu}_k,\mathbf{\Sigma}_k).
+\]</p>
+<p>Following <a href="https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf">Rabiner</a>, an HMM can be characterized by</p>
+<ol>
+<li>The number of states in the model \(N\).</li>
+<li>The number of distinct observation symbols per state \(M\).</li>
+<li>The state probability distribution \(A = \{a_{ij}\}\), \(a_{ij} = p(z_t=j | z_{t-1} = i)\).</li>
+<li>The observation symbol probability distribution \(B = \{b_j(k)\} = p(\mathbf{x}_t = k|z_t = j)\).</li>
+<li>An initial state distribution \(\mathbf{\pi}_i = p(z_t = i)\).</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-24_20-42-34_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;HMM with observation probabilities and state transition probabilities. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 2: <!-- raw HTML omitted -->HMM with observation probabilities and state transition probabilities. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The observation probability distribution is commonly modeled as a Gaussian, Mixture of Gaussians, or Multinomial distribution. Thus, the parameter estimates for those distributions follow the likelihood estimates for each respective distribution.</p>
+<p>In his famous tutorial on HMMs, Rabiner addressed the three fundamental problems of HMMs:</p>
+<ol>
+<li>Given an observation sequence and model parameters, how do we compute the probability of the observation sequence given the parameters (likelihood)?</li>
+<li>Given an observation sequence and model parameters, how do we choose a state sequence which is optimal (decoding)?</li>
+<li>How do we adjust the model parameters (learning)?</li>
+</ol>
+<p>HMMs are able to solve several different inference problems.</p>
+<ul>
+<li><strong>Filtering</strong> computes \(p(z_t | \mathbf{x}_{1:t})\). That is, we are computing this probability as new samples come in up to time \(t\).</li>
+<li><strong>Smoothing</strong> is accomplished when we have all the data in the sequence.
+This is expressed as \(p(z_t|\mathbf{x}_{1:T})\).</li>
+<li><strong>Fixed lag smoothing</strong> allows for a trade off between accuracy and delay. It is useful in cases where we might not have the full sequence, but we wish to compute \(p(z_{t-l}|\mathbf{x}_{1:t})\) for some \(l &gt; 0\).</li>
+<li><strong>Predictions</strong> are represented as \(p(z_{t+h}|\mathbf{x}_{1:t})\), where \(h &gt; 0\).</li>
+<li><strong>MAP estimation</strong> yields the most probably state sequence \(\text{arg}\max_{\mathbf{z}_{1:T}}p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).</li>
+<li>We can sample the <strong>posterior</strong> \(p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).</li>
+<li>We can also compute \(p(\mathbf{x}_{1:T})\) by summing up over all hidden paths. This is useful for classification tasks.</li>
+</ul>
+<h2 id="evaluation">Evaluation</h2>
+<p>We start by solving the first problem posited by (<!-- raw HTML omitted -->RABINER 1989<!-- raw HTML omitted -->).</p>
+<ol>
+<li>Given an observation sequence and model parameters, how do we compute the probability of the observation sequence given the parameters?</li>
+</ol>
+<p>That is, given some model parameters \(\lambda = (A, B, \pi)\), compute \(p(z_t|\mathbf{x}_{1:t})\).</p>
+<h3 id="forwards-pass">Forwards Pass</h3>
+<p>The forwards algorithm solves two problems of interest.
+First, we want to know how well our current parameters explain the observation sequence.
+That is, \(p(\mathbf{x}_{1:T}|\lambda)\).</p>
+<p>Second, we want to compute \(p(z_t | \mathbf{x}_{1:t})\).
+To compute these in an efficient way, a recursive strategy is adopted.
+Let the forward variable \(\alpha_t(i)\) be defined as</p>
+<p>\[
+\alpha_t(i) = p(\mathbf{x}_{1:t}, z_t = i | \lambda).
+\]</p>
+<p>The forwards algorithm is defined as 3 steps.</p>
+<ol>
+<li>
+<p>Initialization:</p>
+<p>\[
+\alpha_1(i) = \pi_i b_i(\mathbf{x}_1),\quad 1 \leq i \leq N.
+\]</p>
+</li>
+<li>
+<p>Recursion:</p>
+<p>\[
+\alpha_{t+1}(j) = \Big(\sum_{i=1}^N \alpha_t(i)a_{ij}\Big)b_j(\mathbf{x}_{t+1}),\quad 1 \leq t \leq T - 1,\quad 1 \leq j \leq N
+\]</p>
+</li>
+<li>
+<p>Termination:</p>
+<p>\[
+p(\mathbf{x}_{1:T})  = \sum_{i=1}^N \alpha_T(i).
+\]</p>
+</li>
+</ol>
+<p>The recursive step is visualized as a lattice structure <a href="#figure--lattice">as seen below.</a></p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-24_20-12-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From Rabiner 1989." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 3: <!-- raw HTML omitted -->From Rabiner 1989.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>With this step, we have a solution for the first problem.
+We can now calculate more efficiently the probability of our observations given the current model parameters.
+This along with the following backwards pass will be essential for updating our model parameters.</p>
+<p>The forwards algorithm is also used to solve the <strong>filtering</strong> problem.
+To see how, consider \(p(z_t | \mathbf{x}_{1:t-1})\) right before time \(t\).</p>
+<p>\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t-1}) = \sum_i p(z_t=j|z_{t-1}=i)p(z_{t-1}=i|\mathbf{x}_{1:t-1})
+\end{equation*}</p>
+<p>When we update for time \(t\), we have that</p>
+<p>\begin{align*}
+p(z_t=j|\mathbf{x}_{1:t}) &amp;= p(z_t=j|\mathbf{x}_t, \mathbf{x}_{1:t})\\
+&amp;=\frac{p(\mathbf{x}_t|z_t=j, \mathbf{x}_{1:t-1})p(z_t=j|\mathbf{x}_{1:t-1})}{p(\mathbf{x}_t|\mathbf{x}_{t-1})}
+\end{align*}</p>
+<p>However, \(\mathbf{x}_{1:t-1}\) is conditionally independent given \(z_t\), so it becomes</p>
+<p>\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t})=\frac{p(\mathbf{x}_t|z_t=j)p(z_t=j|\mathbf{x}_{1:t-1})}{p(\mathbf{x}_t|\mathbf{x}_{t-1})}.
+\end{equation*}</p>
+<p>Writing out \(p(z_t=j|\mathbf{x}_{1:t-1})\) fully yields</p>
+<p>\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t}) \propto p(\mathbf{x}_t|z_t=j)\sum_i p(z_t=j|z_{t-1}=i)p(z_{t-1}=i|\mathbf{x}_{1:t-1}).
+\end{equation*}</p>
+<p>This is the recursion step from above!</p>
+<p>This can also be represented in terms of the \(\alpha\) variables from above. To compute \(p(z_t=i|\mathbf{x}_{1:t})\), we can use the definition of a conditional probability distribution:</p>
+<p>\begin{align*}
+p(z_t=i|\mathbf{x}_{1:t}) &amp;= \frac{p(z_t=i, \mathbf{x}_{1:t})}{p(\mathbf{x}_{1:t})}\\
+&amp;= \frac{\alpha_t(i)}{\sum_{j=1}^N \alpha_t(j)}
+\end{align*}</p>
+<p>Compared to the complexity of the explicit representation, the forwards pass needs only \(N^2T\) calculations.
+As pointed out in (<!-- raw HTML omitted -->RABINER 1989<!-- raw HTML omitted -->), with 5 hidden states and an observation sequence of length 100, the forwards pass only needs around 3000 computations.
+A direct calculation would require \(10^{72}\).</p>
+<h3 id="backwards-pass">Backwards Pass</h3>
+<p>When updating the parameters of our model, we will need to consider the entire observation sequence.
+The forward pass did not require the entire sequence.
+Instead, we can compute the probability of the observation up to some time \(t\).
+The backwards pass begins by defining the variable</p>
+<p>\[
+\beta_t(i) = p(\mathbf{x}_{t+1:T} | z_t = i).
+\]</p>
+<p>We can utilize a recursive process similar to the forwards algorithm with the following steps:</p>
+<ol>
+<li>
+<p>Initialization:</p>
+<p>\[
+\beta_T(i) = 1,\quad 1 \leq i \leq N
+\]</p>
+</li>
+<li>
+<p>Recursion:</p>
+<p>\[
+\beta_t(i) = \sum_{j=1}^N a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j),\quad t = T-1,\dots,1,\quad 1 \leq i \leq N.
+\]</p>
+</li>
+<li>
+<p>Termination:</p>
+<p>\[
+p(\mathbf{x}_{1:T}) = \sum_{j=1}^N \pi_j b_j(x_1) \beta_1(j)
+\]</p>
+</li>
+</ol>
+<p>The complexity of the backwards algorithm is similar to that of the forwards: \(N^2T\).</p>
+<p>With both the forward and backwards passes defined, we can compute the <strong>smoothing</strong> problem:</p>
+<p>\[
+p(z_t=i|\mathbf{x}_{1:T}) = \frac{\alpha_t(i)\beta_t(i)}{\sum_{j=1}^N \alpha_t(j)\beta_t(j)}
+\]</p>
+<h2 id="the-viterbi-algorithm">The Viterbi Algorithm</h2>
+<p>With problem 1 out of the way, we turn our attention to problem 2.</p>
+<ol>
+<li>Given an observation sequence and model parameters, how do we choose a state sequence which is optimal?</li>
+</ol>
+<p>\[
+\mathbf{z}^* = \text{arg}\max_{\mathbf{z}_{1:T}}p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})
+\]</p>
+<p>With respect to the <a href="#figure--lattice">lattice diagram</a>, this is equivalent to computing the shortest path.
+This is accomplished via the <strong>Viterbi</strong> algorithm, sometimes referred to as the max-sum algorithm.
+As with the forwards-backwards algorithm, the Viterbi algorithm takes on a recursive approach.
+It starts by defining an intermediate variable</p>
+<p>\[
+\gamma_t(i) = p(z_t=i|\mathbf{x}_{1:T}).
+\]</p>
+<p>Using the variables defined in the forwards-backwards algorithm, this can be expressed as</p>
+<p>\[
+\gamma_t(i) = \frac{\alpha_t(i) \beta_t(i)}{\sum_{i=1}^N \alpha_t(i) \beta_t(i)}.
+\]</p>
+<p>This \(\gamma_t(i)\), we can compute the most likely state at time \(t\):</p>
+<p>\[
+z_t^* = \text{arg}\max_{1\leq i \leq N} \gamma_t(i), \quad 1 \leq t \leq T.
+\]</p>
+<p>One problem with this approach alone is that the most likely state at a particular time \(t\) may not lead us to the most probable sequence of states.
+As stated above, we need to maximize \(p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).
+In order to tackle this efficiently, Viterbi employs a dynamic programming approach.</p>
+<ol>
+<li>
+<p>Initialization</p>
+<p>Start with the best initial state out of all states given the observation at \(t=1\).
+Additionally, we want to record the index of each state through time so that the best path can be retraced.</p>
+<p>\begin{align*}
+\delta_1(i) &amp;= \pi_i b_i(\mathbf{x}_1),\quad 1 \leq i \leq N\\
+\psi_1(i) &amp;= 0
+\end{align*}</p>
+</li>
+<li>
+<p>Recursion:</p>
+<p>The quantity \(\delta_t(i)\) represents the joint probability of state sequences and observations up to time \(t\) ending with state \(z_t=i\).
+Thus, the recursive step is to maximize the probability of the intermediate output for \(t-1\):</p>
+<p>\[
+\delta_t(j) = \max_{1 \leq i \leq N} (\delta_{t-1}(i) a_{ij})b_j(\mathbf{x}_t), \quad 2 \leq t \leq T,\quad 1 \leq j \leq N.
+\]</p>
+<p>The corresponding index for this step is recorded in the path matrix:</p>
+<p>\[
+\psi_t(j) = \text{arg}\max_{1 \leq i \leq N} \delta_{t-1}(i)a_{ij},\quad 2 \leq t \leq T,\quad 1 \leq j \leq N.
+\]</p>
+</li>
+<li>
+<p>Termination</p>
+<p>The last step of the Viterbi algorithm completes the calcuation of the joint probability of state sequences and observations.</p>
+<p>\[
+p^* = \max_{1 \leq i \leq N} \delta_T(i)
+\]</p>
+<p>\[
+\mathbf{z}_T^* = \text{arg}\max_{1 \leq i \leq N} \delta_T(i)
+\]</p>
+</li>
+<li>
+<p>Path Backtrace</p>
+<p>With the state sequence matrix recorded along the way, we can retrace it to get the most probable sequence:</p>
+<p>\[
+z_t^* = \psi_{t+1}(z_{t+1}^*),\quad t = T-1, \cdots, 1.
+\]</p>
+</li>
+</ol>
+<h2 id="estimating-parameters">Estimating Parameters</h2>
+<p>If the hidden states were fully observable, then updating our model parameters would be as straightforward as computing the maximum likelihood estimates for the model parameters \(\lambda = (A, B, \pi)\).
+For \(A\) and \(\pi\), we first tally up the following counts:</p>
+<p>\[
+\hat{a}_{ij} = \frac{N_{ij}}{\sum_j N_{ij}},
+\]</p>
+<p>the number of times we expect to transition from \(i\) to \(j\) divided by the number of times we transition from \(i\) to any other state.</p>
+<p>For \(\pi\), we have</p>
+<p>\[
+\hat{\pi_i} = \frac{N_i}{\sum_i N_i},
+\]</p>
+<p>The number of times we expect to start in state \(i\) divided by the number of times we start in any other state.</p>
+<p>Estimating the parameters for \(B\) depends on which distribution we are using for our observation probabilities.
+For a multinomial distribution, we would compute the number of times we are in state \(j\) and observe a symbol \(k\) divided by the number of times we are in state \(j\):</p>
+<p>\[
+\hat{B}_{jk} = \frac{N_{jk}}{N_k},
+\]</p>
+<p>where</p>
+<p>\[
+N_{jk} = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=j, x_{i, t}=k).
+\]</p>
+<p>If the observation probability follows a Gaussian distribution, the MLEs for \(\mu\) and \(\mathbf{\Sigma}\) are</p>
+<p>\[
+\hat{\mathbf{\mu}}_k = \frac{\bar{\mathbf{x}}_k}{N_k},\quad \hat{\mathbf{\Sigma}}_k = \frac{(\bar{\mathbf{x}}\bar{\mathbf{x}})_k^T - N_k \hat{\mathbf{\mu}}_k\hat{\mathbf{\mu}}_k^T}{N_k},
+\]</p>
+<p>where</p>
+<p>\[
+\bar{\mathbf{x}}_k = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1}(z_{i, t}=k)\mathbf{x}_{i, t}
+\]</p>
+<p>and</p>
+<p>\[
+(\bar{\mathbf{x}}\bar{\mathbf{x}})_k^T) = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=k)\mathbf{x}_{i,k}\mathbf{x}_{i,k}^T.
+\]</p>
+<h2 id="expectation-maximization">Expectation Maximization</h2>
+<p>Of course, HMMs have hidden states which are not fully observable.
+Thus, we need to come up with another strategy for updating our parameters based on the observable data.
+The intuition behind this approach is as follows.
+We first start out by using our current parameters to estimate the missing data, making it complete.
+Initially, we may randomize our estimates if we have no good heuristic or guess as to what they should be.</p>
+<p>With the completed data, we can update our current parameters.
+In other words, the expected values of the sufficient statistics can be derived now that the data has been filled in.
+A new set of parameters is found such that it maximizes the likelihood function with respect to the estimated data.</p>
+<h3 id="e-step">E Step</h3>
+<p>Following (<!-- raw HTML omitted -->RABINER 1989<!-- raw HTML omitted -->), we start with the joint probability of being in state \(i\) at time \(t\) and state \(j\) at time \(t+1\):</p>
+<p>\[
+\xi_t(i, j) = p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
+\]</p>
+<p>This can be computed using the forwards-backwards algorithm:</p>
+<p>\[
+\xi_t(i, j) = \frac{\alpha_t(i)a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j)}{\sum_{i=1}^N \sum_{j=1}^N \alpha_t(i)a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j)}.
+\]</p>
+<p>This can be related back to \(\gamma_t(i)\) by summing over over \(j\):</p>
+<p>\[
+\gamma_t(i) = \sum_{j=1}^N \xi_t(i, j).
+\]</p>
+<p>Here, \(\gamma_t(i)\) is the expected number of times we transition from \(z = i\).
+Summing over all \(t\) yields the expected transitions from \(z_i\) over all time steps:</p>
+<p>\[
+\sum_{t=1}^{T-1} \gamma_t(i).
+\]</p>
+<p>Since \(\xi_t(i, j)\) is the expected transition from \(i\) to \(j\) at time \(t\), we can compute the total number of transitions from \(i\) to \(j\) via</p>
+<p>\[
+\sum_{t=1}^{T-1} \xi_t(i, j).
+\]</p>
+<h3 id="m-step">M Step</h3>
+<p>The previous <strong>E Step</strong> computed the expected values given the current parameter estimates.
+Now that the data is complete, we can update our parameter estimates.
+Starting with the transition probabilities, we must add the expected number of transitions from \(i\) to \(j\) and divide by the expected number of times we transition from \(i\).
+Using the parameters from the E Step, this can be written</p>
+<p>\[
+\hat{a}_{ij} = \frac{\sum_{t=1}^{T-1}\xi_t(i, j)}{\sum_{t=1}^{T-1}\gamma_t(i)}.
+\]</p>
+<p>The initial state probability at \(t=1\) is the number of times we expect to be in state \(z=i\) at \(t=1\):</p>
+<p>\[
+\gamma_1(i).
+\]</p>
+<p>Finally, the observation probability parameters are updated by considering the number of times we are in state \(z=j\) and observing \(x=k\) divided by the number of times we are in state \(z=j\). Note that this is for a multinomial probabiliy distribution:</p>
+<p>\[
+\hat{b}_j(k) = \frac{\sum_{t=1, x_t = k}^T \gamma_t(j)}{\sum_{t=1}^T \gamma_t(j)}.
+\]</p>
+<p>These formulas are derived from maximizing Baum&rsquo;s auxiliary function</p>
+<p>\[
+Q(\lambda, \hat{\lambda}) = \sum_{Q} p(\mathbf{z}|\mathbf{x}, \lambda) \log p(\mathbf{x}, \mathbf{z}|\hat{\lambda})
+\]</p>
+<p>over \(\hat{\lambda}\). It has further been shown that maximizing this function leads to increased likelihood:</p>
+<p>\[
+\max_{\hat{\lambda}} Q(\lambda, \hat{\lambda}) \implies p(\mathbf{x}|\hat{\lambda}) \geq p(\mathbf{x}|\lambda).
+\]</p>
+<p>If we have a Gaussian observation model, the values for \(\hat{b}_j(k)\) are computed to accommodate the parameters of the distribution.
+These parameter estimates assume a Gaussian mixture model.
+Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected value of observations belonging to Gaussian density \(k\) by the expected number of times we are in state \(j\) using the \(k^{\text{th}}\) mixture component:</p>
+<p>\[
+\hat{\mathbf{\mu}}_{jk} = \frac{\sum_{t=1}^T \gamma_t(j, k)\mathbf{x}_t}{\sum_{t=1}^T \gamma_t(j, k)}.
+\]</p>
+<p>Here, \(\gamma_t(j, k)\) is the probability of being in state \(j\) at time \(t\) with the \(k^{\text{th}}\) mixture component accounting for \(\mathbf{x}_t\):</p>
+<p>\[
+\gamma_t(j, k) = \frac{\alpha_t(j)\beta_t(j)}{\sum_{j=1}^N \alpha_t(j) \beta_t(j)} \frac{c_{jk}\mathcal{N}(\mathbf{x}_t, \mu_{jk}, \mathbf{\Sigma}_{jk})}{\sum_{m=1}^M c_{jm}\mathcal{N}(\mathbf{x}_t, \mu_{jm}, \mathbf{\Sigma}_{jm})}.
+\]</p>
+<p>This method is proven to improve the parameters.</p>
+<ol>
+<li>Each iteration is guaranteed to improve the log-likelihood function.</li>
+<li>The process is guaranteed to converge.</li>
+<li>The convergence point is a fixed point of the likelihood function.</li>
+</ol>
+<p>These guarantees are similar to gradient ascent.</p>
+<h2 id="references">References</h2>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
