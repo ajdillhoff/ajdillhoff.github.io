@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Introduction Picking a Model Binary Classification Multiple Classes Introduction With Linear Regression we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With logistic regression, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/logistic_regression/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/logistic_regression/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/logistic_regression/">
+  <meta property="og:title" content="Logistic Regression | Alex Dillhoff">
+  <meta property="og:description" content="Introduction Picking a Model Binary Classification Multiple Classes Introduction With Linear Regression we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With logistic regression, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Logistic Regression | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Logistic Regression</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="/notes/logistic_regression/#disqus_thread"></a>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/logistic_regression/&amp;text=Logistic%20Regression" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/logistic_regression/&amp;t=Logistic%20Regression" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Logistic%20Regression&amp;body=https://ajdillhoff.github.io/notes/logistic_regression/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/logistic_regression/&amp;title=Logistic%20Regression" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Logistic%20Regression%20https://ajdillhoff.github.io/notes/logistic_regression/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/logistic_regression/&amp;title=Logistic%20Regression" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#picking-a-model">Picking a Model</a></li>
+<li><a href="#binary-classification">Binary Classification</a></li>
+<li><a href="#multiple-classes">Multiple Classes</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="introduction">Introduction</h2>
+<p>With <a href="/notes/linear_regression/">Linear Regression</a> we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With logistic regression, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes.</p>
+<p>In the binary case, the target variable will takes on either a 0 or 1. For \(K &gt; 2\), we will use a \(K\) dimensional vector that has a 1 corresponding to the class encoding for that input and a 0 for all other positions. For example, if our possible target classes were \(\{\text{car, truck, person}\}\), then a target vector for \(\text{person}\) would be \(\mathbf{y} = [0, 0, 1]^T\).</p>
+<p>This article will stick to a discriminative approach to logistic regression. That is, we define a discriminant function which assigns each data input \(\mathbf{x}\) to a class. For a probabilistic perspective, see <a href="/notes/linear_discriminant_analysis/">Linear Discriminant Analysis</a>.</p>
+<h2 id="picking-a-model">Picking a Model</h2>
+<p>We will again start with a linear model \(y = f(\mathbf{x}; \mathbf{w})\). Unlike the model used with <a href="/notes/linear_regression/">Linear Regression</a>, ours will need to predict a discrete class label. The logistic model is often approached by introducing the <strong>odds</strong> of an event occurring:</p>
+<p>\[
+\frac{p}{1-p},
+\]</p>
+<p>where \(p\) is the probability of the event happening.
+As \(p\) increases, the odds of it happening increase exponentially.</p>
+<p>Our input \(p\) represents the probability in range \((0, 1)\) which we want to map to the real number space.
+To approximate this, we apply the natural logarithm to the odds.</p>
+<p>The logistic model assumes a linear relationship between the linear model \(\mathbf{w}^T\mathbf{x}\) and the logit function</p>
+<p>\[
+\text{logit}(p) = \ln \frac{p}{1-p}.
+\]</p>
+<p>This function maps a value in range \((0, 1)\) to the space of real numbers.
+Under this assumption, we can write</p>
+<p>\[
+\text{logit}(p) = \mathbf{w}^T\mathbf{x}.
+\]</p>
+<p>This assumption is reasonable because we ultimately want to predict the <strong>probability</strong> that an event occurs.
+The output should then be in the range of \((0, 1)\).
+If the logit function produces output in the range of real numbers, as does our linear model \(\mathbf{w}^T\mathbf{x}\), then we ultimately want a function that maps <strong>from</strong> the range of real numbers to <strong>to</strong> \((0, 1)\).</p>
+<p>We can achieve this using the <strong>inverse</strong> of the logit function, the logistic sigmoid function.
+It is defined as</p>
+<p>\begin{equation*}
+\sigma(z) = \frac{1}{1 + \exp(-z)},
+\end{equation*}</p>
+<p>where \(z = \mathbf{w}^T\mathbf{x}\).</p>
+<p>The reason for this choice becomes more clear when plotting the function, as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-23_17-43-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The logistic sigmoid function. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 1: <!-- raw HTML omitted -->The logistic sigmoid function. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The inputs on the \(x\) axis are clamped to values between 0 and 1. It is also called a squashing function because of this property. This form is also convenient and arises naturally in many probabilistic settings. With this nonlinear activation function, the form of our model becomes</p>
+<p>\begin{equation*}
+f(\mathbf{x};\mathbf{w}) = h(\mathbf{w}^T\mathbf{x}),
+\end{equation*}</p>
+<p>where \(h\) is our choice of activation function.</p>
+<p>The logistic sigmoid function also has a convenient derivative, which is useful when solving for the model parameters via gradient descent.</p>
+<p>\[
+\frac{d}{dx} = \sigma(x)(1 - \sigma(x))
+\]</p>
+<h2 id="binary-classification">Binary Classification</h2>
+<p>Consider a simple dataset with 2 features per data sample. Our goal is to classify the data as being one of two possible classes. For now, we&rsquo;ll drop the activation function so that our model represents a line that separates both groups of data.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-23_18-10-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Two groups of data that are very clearly linearly separable." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <!-- raw HTML omitted -->Figure 2: <!-- raw HTML omitted -->Two groups of data that are very clearly linearly separable.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the binary case, we are approximating \(p(C_1|\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x})\).
+Then \(p(C_2|\mathbf{x}) = 1 - p(C_1| \mathbf{x})\).</p>
+<p>The parameter vector \(\mathbf{w}\) is orthogonal to the decision boundary that separates the two classes. The model output is such that \(f(\mathbf{x};\mathbf{w}) = 0\) when \(\mathbf{x}\) lies on the decision boundary. If \(f(\mathbf{x};\mathbf{w}) \geq 0\) then \(\mathbf{x}\) is assigned to class 1. It is assigned to class 2 otherwise. Since we originally stated that the model should predict either a 0 or 1, we can use the model result as input to the <a href="https://en.wikipedia.org/wiki/Heaviside_step_function">Heaviside step function</a>.</p>
+<h3 id="fitting-the-model-via-maximum-likelihood">Fitting the Model via Maximum Likelihood</h3>
+<p>Let \(y_i \in \{0, 1\}\) be the target for binary classification and \(\hat{y}_i \in (0, 1)\) be the output of a logistic regression model.
+The likelihood function is</p>
+<p>\[
+p(\mathbf{y}|\mathbf{w}) = \prod_{i=1}^n \hat{y}_i^{y_i}(1 - \hat{y}_i)^{1 - y_i}.
+\]</p>
+<p>Let&rsquo;s briefly take a look at \(\hat{y}_i^{y_i}(1 - \hat{y}_i)^{1 - y_i}\) to understand the output when the model correctly predicts the \(i^{\text{th}}\) sample or not.
+Since the output is restricted within the range \((0, 1)\), the model will never produce 0 or 1.</p>
+<p>If the target \(y_i = 0\), then we can evaluate the subexpression \(1 - \hat{y}_i\).
+In this case, the likelihood increases as \(\hat{y}_i\) decreases.</p>
+<p>If the target \(y_i = 1\), then we evaluate the subexpression \(\hat{y}_i\).</p>
+<p>When fitting this model, we want to define an error measure based on the above function.
+This is done by taking the negative logarithm of \(p(\mathbf{y}|\mathbf{w})\).</p>
+<p>\[
+E(\mathbf{w}) = -\ln p(\mathbf{y}|\mathbf{w}) = -\sum_{i=1}^n y_i \ln \hat{y}_i + (1 - y_i) \ln (1 - \hat{y}_i)
+\]</p>
+<p>This function is commonly referred to as the <strong>cross-entropy</strong> function.</p>
+<p>If we use this as an objective function for gradient descent with the understanding that \(\hat{y}_i = \sigma(\mathbf{w}^T \mathbf{x})\), then the gradient of the error function is</p>
+<p>\[
+\nabla E(\mathbf{w}) = \sum_{i=1}^n (\hat{y}_i - y_i)\mathbf{x}_i.
+\]</p>
+<p>This results in a similar update rule as linear regression, even though the problem itself is different.</p>
+<h3 id="measuring-classifier-performance">Measuring Classifier Performance</h3>
+<p><strong>How do we determine how well our model is performing?</strong></p>
+<p>We will use L1 loss because it works well with discrete outputs. L1 loss is defined as</p>
+<p>\begin{equation*}
+L_1 = \sum_{i}|\hat{y}_i - y_i|,
+\end{equation*}</p>
+<p>where \(\hat{y}_i\) is the ground truth corresponding to \(\mathbf{x}_i\) and \(y_i\) is the output of our model. We can further normalize this loss to bound it between 0 and 1. Either way, a loss of 0 will indicate 100% classification accuracy.</p>
+<h2 id="multiple-classes">Multiple Classes</h2>
+<p>In multiclass logistic regression, we are dealing with target values that can take on one of \(k\) values \(y \in \{1, 2, \dots, k\}\).
+If our goal is to model the distribution over \(K\) classes, a multinomial distribution is the obvious choice.
+Let \(p(y|\mathbf{x};\theta)\) be a distribution over \(K\) numbers \(w_1, \dots, w_K\) that sum to 1.
+Our parameterized model cannot be represented exactly by a multinomial distribution, so we will derive it so that it satisfies the same constraints.</p>
+<p>We can start by introducing \(K\) parameter vectors \(\mathbf{w}_1, \dots, \mathbf{w}_K \in \mathbb{R}^{d}\), where \(d\) is the number of input features.
+Then each vector \(\mathbf{w}_k^T \mathbf{x}\) represents \(p(C_k | \mathbf{x};\mathbf{w}_k)\).
+We need to <em>squash</em> each \(\mathbf{w}_k^T \mathbf{x}\) so that the output sums to 1.</p>
+<p>This is accomplished via the <strong>softmax function</strong>:</p>
+<p>\[
+p(C_k|\mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x})}{\sum_{j} \exp(\mathbf{w}_j^T \mathbf{x})}.
+\]</p>
+<h3 id="maximum-likelihood">Maximum Likelihood</h3>
+<p>The target vector for each sample is \(\mathbf{y}_i \in \mathbb{R}^{k}\).
+Likewise, the output vector \(\hat{\mathbf{y}}_i\) also has \(k\) elements.</p>
+<p>The maximum likelihood function for the multiclass setting is given by</p>
+<p>\[
+p(\mathbf{Y}|\mathbf{W}) = \prod_{i=1}^n \prod_{k=1}^K p(C_k|\mathbf{x}_i)^{y_{ik}} = \prod_{i=1}^n \prod_{k=1}^K \hat{y}_{ik}^{y_{ik}}.
+\]</p>
+<p>\(\mathbf{Y} \in \mathbb{R}^{n \times K}\) is a matrix of all target vectors in the data set.
+As with the binary case, we can take the negative logarithm of this function to produce an error function.</p>
+<p>\[
+E(\mathbf{W}) = -\ln p(\mathbf{Y}|\mathbf{W}) = -\sum_{i=1}^n \sum_{k=1}^K y_{ik} \ln \hat{y}_{ik}
+\]</p>
+<p>This is the <strong>cross-entropy</strong> function for multiclass classification.</p>
+<p>The gradient of this function is given as</p>
+<p>\[
+\nabla_{\mathbf{w}_j}E(\mathbf{W}) = \sum_{i=1}^n (\hat{y}_{ij} - y_{ij}) \mathbf{x}_i.
+\]</p>
+<p>Part of your first assignment will be to work through the derivation of this function.
+It is standard practice at this point, but it is highly valuable to understand how the result was produced.</p>
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

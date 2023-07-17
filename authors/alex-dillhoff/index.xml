@@ -112,11 +112,435 @@ p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
     </item>
     
     <item>
+      <title>Boosting</title>
+      <link>https://ajdillhoff.github.io/notes/boosting/</link>
+      <pubDate>Wed, 23 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/boosting/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#todo&#34;&gt;TODO&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#adaboost&#34;&gt;AdaBoost&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;todo&#34;&gt;TODO&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;input disabled=&#34;&#34; type=&#34;checkbox&#34;&gt; Gradient Boosting&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Combining predictions from multiple sources is usually preferred to a single source.
+For example, a medical diagnosis would carry much more weight if it was the result of a consensus of several experts.
+This idea of prediction by consensus is a powerful way to improve classification and regression models.
+In fact, good performance of a committee of models can be achieved even if each individual model is conceptually very simple.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Boosting&lt;/strong&gt; is one such way of building a committee of models for classification or regression and is popularly implemented by an algorithm called &lt;strong&gt;AdaBoost&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;adaboost&#34;&gt;AdaBoost&lt;/h2&gt;
+&lt;p&gt;Given a dataset \(\{\mathbf{x}_i\}\) and target variables \(\{\mathbf{y}_i\}\), AdaBoost first initializes a set of weights corresponding to each data sample as \(w_i = \frac{1}{N}\).
+At each step of the algorithm, a simple classifier, called a &lt;strong&gt;weak learner&lt;/strong&gt; is fit to the data.
+The weights for each sample are adjusted based on the individual classifier&amp;rsquo;s performance.
+If the sample was misclassified, the relative weight for that sample is increased.
+After all classifiers have been fit, they are combined to form an ensemble model.&lt;/p&gt;
+&lt;h3 id=&#34;the-algorithm&#34;&gt;The Algorithm&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Initialize data weights \({w_i}\) as \(w_i^{(1)} = \frac{1}{n}\) for \(i = 1, \dots, n\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Fit each weak learner \(j\) to the training data by minimizing the misclassification cost:&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{i=1}^n w_i^{(j)} \mathbb{1}(f_j(\mathbf{x}_i) \neq \mathbf{y}_i)
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Compute a weighted error rate&lt;/p&gt;
+&lt;p&gt;\[
+\epsilon_j = \frac{\sum_{i=1}^n w_i^{(j)} \mathbb{1}(f_j(\mathbf{x}_i) \neq \mathbf{y}_i)}{\sum_{i=1}^n w_i^{(j)}}
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Use the weighted error rate to compute a weight for each classifier such that misclassified samples are given higher weight:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_j = \ln \bigg\{\frac{1 - \epsilon_j}{\epsilon_j}\bigg\}.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Update the data weights for the next model in the sequence:&lt;/p&gt;
+&lt;p&gt;\[
+w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i)\}.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Once all weak learners are trained, the final model predictions are given by&lt;/p&gt;
+&lt;p&gt;\[
+Y_M(\mathbf{x}) = \text{sign} \Bigg(\sum_{j=1}^M \alpha_j f_j(\mathbf{x})\Bigg).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;weak-learners&#34;&gt;Weak Learners&lt;/h3&gt;
+&lt;p&gt;The weak learners can be any classification or regression model.
+However, they are typically chosen to be very simple to account for training time.
+For example, a complex deep learning model would be a poor choice for a weak learner.&lt;/p&gt;
+&lt;p&gt;One example of a weak learner is a simple linear model like a &lt;a href=&#34;https://ajdillhoff.github.io/notes/perceptron/&#34;&gt;Perceptron&lt;/a&gt; or decision stump.
+A standard implementation of AdaBoost uses a decision tree with depth 1, as observed in &lt;a href=&#34;https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html?highlight=boost#sklearn.ensemble.AdaBoostClassifier&#34;&gt;sklearn&amp;rsquo;s implementation.&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s put this together and walk through the first few steps of training an AdaBoost model using a decision stump as the weak learner. We will use a very simple dataset to keep the values easy to compute by hand.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Initial Data&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 1&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The first learner is trained on the initial data and picks \(x_1 = 2.5\) as the split threshold.
+Input where \(x_1 \leq 2.5\) is assigned to class 0 and all other samples are assigned class 1.
+The data with this learner&amp;rsquo;s predictions are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Error and weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The error is simple enough to compute as all samples are currently weighted equally. Since two of the samples were misclassified, the error is the sum of their weights.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_1 = 0.2 + 0.2 = 0.4\).&lt;/p&gt;
+&lt;p&gt;The weight of the classifier can then be computed.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_1 = \frac{1}{2} \ln \big(\frac{1 - e_1}{e_1}\big) = 0.2027\).&lt;/p&gt;
+&lt;p&gt;The weights of our data can now be updated using this value of \(\alpha_1\).
+The weight of each example is updated by multiplying each correctly classifed sample by \(\exp\{-\alpha_1\}\) and each incorrectly classified sample by \(\exp\{\alpha\}\):&lt;/p&gt;
+&lt;p&gt;\[
+w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i)\}.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; You will notice that the equation above is different from the actual update rule that was applied to the weights in this example. In the original publication &lt;strong&gt;(TODO: reference Fruend)&lt;/strong&gt;, the weights are renormalized at the end of the loop. In this example, the normalization is combined with the update. In either case, the updated weights are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 2&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The algorithm now moves to the next weak learner, which classifies the data given a threshold of \(x_1 = 3.5\). Its predictions are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Only a single sample is misclassified, and the error is computed as before.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_2 = 0.250\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_2 = \frac{1}{2} \ln \big(\frac{1 - e_2}{e_2}\big) = 0.5493\)&lt;/p&gt;
+&lt;p&gt;The weights are updated for each sample, yielding the following data:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.500&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The second sample has been misclassified twice at this point, leading to a relatively high weight. This will hopefully be addressed by the third learner.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 3&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The final weak learner splits the data on \(x_2 = 6.5\), yielding the following output for each sample.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.500&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Unfortunately, sample 2 is too tricky for any of our weak learners. The total error is shown below. Since this is a binary classification problem, the error suggests that our weak learner performs worse than random guessing.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_3 = 0.667\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_3 = \frac{1}{2} \ln \big(\frac{1 - e_3}{e_3}\big) = -0.3473\)&lt;/p&gt;
+&lt;p&gt;The negative value of the classifier weight suggests that its predictions will be reversed when evaluated. The updated weights of each data sample are given below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.375&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.125&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Final Classifier&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The final classifier is a weighted vote of the three weak learners, with the weights being the classifier weights we calculated (0.2027, 0.5493, and -0.3473). The negative weight means that the third learner&amp;rsquo;s predictions are reversed.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Hidden Markov Models</title>
-      <link>https://ajdillhoff.github.io/posts/hidden_markov_models/</link>
+      <link>https://ajdillhoff.github.io/notes/hidden_markov_models/</link>
       <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
       
-      <guid>https://ajdillhoff.github.io/posts/hidden_markov_models/</guid>
+      <guid>https://ajdillhoff.github.io/notes/hidden_markov_models/</guid>
       <description>&lt;!-- raw HTML omitted --&gt;
 &lt;!-- raw HTML omitted --&gt;
 &lt;ul&gt;

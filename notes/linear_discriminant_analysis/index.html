@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
+Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\).">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
+  <meta property="og:title" content="Linear Discriminant Analysis | Alex Dillhoff">
+  <meta property="og:description" content="Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
+Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Linear Discriminant Analysis | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Linear Discriminant Analysis</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="/notes/linear_discriminant_analysis/#disqus_thread"></a>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&amp;text=Linear%20Discriminant%20Analysis" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&amp;t=Linear%20Discriminant%20Analysis" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Linear%20Discriminant%20Analysis&amp;body=https://ajdillhoff.github.io/notes/linear_discriminant_analysis/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&amp;title=Linear%20Discriminant%20Analysis" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Linear%20Discriminant%20Analysis%20https://ajdillhoff.github.io/notes/linear_discriminant_analysis/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&amp;title=Linear%20Discriminant%20Analysis" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#gaussian-class-conditional-densities">Gaussian Class Conditional Densities</a></li>
+<li><a href="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
+<li><a href="#example">Example</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="introduction">Introduction</h2>
+<p>This section covers classification from a probabilistic perspective.
+The <a href="/notes/discriminant_functions/">discriminative approach</a> involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class.
+We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.</p>
+<p>Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\).
+The posterior probability for \(C_1\) can be written in the form of a sigmoid function:</p>
+<p>\begin{align*}
+p(C_1|\mathbf{x}) &amp;= \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_1)p(C_1) + p(\mathbf{x}|C_2)p(C_2)}
+\end{align*}</p>
+<p>Then multiply the numerator and denominator by</p>
+<p>\begin{equation*}
+\frac{(p(\mathbf{x}|C_1))^{-1}}{(p(\mathbf{x}|C_1))^{-1}},
+\end{equation*}</p>
+<p>which yields</p>
+<p>\begin{equation*}
+\frac{1}{1 + \frac{p(\mathbf{x}|C_2)p(C_2)}{p(\mathbf{x}|C_1)p(C_1)}}.
+\end{equation*}</p>
+<p>Noting that \(a = \exp(\ln(a))\), we can rewrite further</p>
+<p>\begin{equation*}
+\frac{1}{1 + \exp(-a)},
+\end{equation*}</p>
+<p>where \(a = \ln \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_2)p(C_2)}\).</p>
+<p>Writing this distribution in the form of the sigmoid function is convenient as it is a natural choice for many other classification models. It also has a very simple derivative which is convenient for models optimized using gradient descent.</p>
+<p>Given certain choices for the class conditional densities, the posterior probabilty distribution will be a linear function of the input features:</p>
+<p>\begin{equation*}
+\ln p(C_k|\mathbf{x};\theta) = \mathbf{w}^T \mathbf{x} + c,
+\end{equation*}</p>
+<p>where \(\mathbf{w}\) is a parameter vector based on the parameters of the chosen probability distribution, and \(c\) is a constant term that is not dependent on the parameters. As we will see, the resulting model will take an equivalent form to the discriminative approach.</p>
+<h2 id="gaussian-class-conditional-densities">Gaussian Class Conditional Densities</h2>
+<p>Let&rsquo;s assume that our class conditional densities \(p(\mathbf{x}|C_k)\) are Gaussian. We will additionally assume that the covariance matrices between classes are shared. This will result in linear decision boundaries. Since the conditional densities are chosen to be Gaussian, the posterior is given by</p>
+<p>\begin{equation*}
+p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_c,\Sigma),
+\end{equation*}</p>
+<p>where \(\pi_k\) is the prior probability of class \(k\). We choose to ignore the normalizing constant since it is not dependent on the class.</p>
+<p>The class conditional density function for class \(k\) is given by</p>
+<p>\begin{equation*}
+p(\mathbf{x}|C_k;\theta) = \frac{1}{2\pi^{D/2}}\frac{1}{|\Sigma|^{1/2}}\exp\Big(-\frac{1}{2}(\mathbf{x} - \mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x} - \mathbf{\mu}_k)\Big).
+\end{equation*}</p>
+<p>Now that we have a concrete function to work with, let&rsquo;s go back to the simple case of two classes and define \(a = \ln \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_2)p(C_2)}\). First, we rewrite \(a\):</p>
+<p>\begin{equation*}
+a = \ln p(\mathbf{x}|C_1) - \ln p(\mathbf{x}|C_2) + \ln \frac{p(C_1)}{p(C_2)}.
+\end{equation*}</p>
+<p>The log of the class conditional density for a Gaussian is</p>
+<p>\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{D}{2}\ln(2\pi) - \frac{1}{2}\ln|\Sigma|-\frac{1}{2}(\mathbf{x}-\mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x}-\mathbf{\mu}_k).
+\end{equation*}</p>
+<p>To simplify the above result, we will group the terms that are not dependent on the class parameters since they are consant:</p>
+<p>\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{1}{2}(\mathbf{x}-\mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x}-\mathbf{\mu}_k) + c.
+\end{equation*}</p>
+<p>Observing that this quantity takes on a quadratic form, we can rewrite the above as</p>
+<p>\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{1}{2}\mathbf{\mu}_k\Sigma^{-1}\mathbf{\mu}_k + \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_k
+-\frac{1}{2}\mathbf{x}^T \Sigma^{-1}\mathbf{x} + c.
+\end{equation*}</p>
+<p>Using this, we complete the definition of \(a\):</p>
+<p>\begin{align*}
+a &amp;= \ln p(\mathbf{x}|C_1) - \ln p(\mathbf{x}|C_2) + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;= -\frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 - \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;= \mathbf{x}^T(\Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)) - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;= (\Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2))^T \mathbf{x} - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}.
+\end{align*}</p>
+<p>Finally, we define</p>
+<p>\begin{equation*}
+\mathbf{w} = \Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)
+\end{equation*}</p>
+<p>and</p>
+<p>\begin{equation*}
+w_0 = - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 - \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}.
+\end{equation*}</p>
+<p>Thus, our posterior takes on the form</p>
+<p>\begin{equation*}
+p(C_1|\mathbf{x};\theta) = \sigma(\mathbf{w}^T \mathbf{x} + w_0).
+\end{equation*}</p>
+<h3 id="multiple-classes">Multiple Classes</h3>
+<p>What if we have more than 2 classes?
+Recall that a <strong>generative classifier</strong> is modeled as</p>
+<p>\[
+p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{p(C_k|\mathbf{\theta})p(\mathbf{x}|C_k, \mathbf{\theta})}{\sum_{k&rsquo;}p(C_{k&rsquo;}|\mathbf{\theta})p(\mathbf{x}|C_{k&rsquo;}, \mathbf{\theta})}.
+\]</p>
+<p>As stated above, \(\mathbf{\pi}_k = p(C_k|\mathbf{\theta})\) and \(p(\mathbf{x}|C_k,\mathbf{\theta}) = \mathcal{N}(\mathbf{x}|\mathbf{\mu}_c,\Sigma)\).</p>
+<p>For LDA, the covariance matrices are shared across all classes.
+This permits a simplification of the class posterior distribution \(p(C_k|\mathbf{x};\mathbf{\theta})\):</p>
+<p>\begin{align*}
+p(C_k|\mathbf{x};\mathbf{\theta}) &amp;\propto \mathbf{\pi}_k \exp\big(\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{x} - \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x} - \frac{1}{2}\mathbf{\mu}_k\mathbf{\Sigma}^{-1}\mathbf{\mu}_k\big)\\
+&amp;= \exp\big(\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{x}  - \frac{1}{2}\mathbf{\mu}_k\mathbf{\Sigma}^{-1}\mathbf{\mu}_k + \log \mathbf{\pi}_k \big) \exp\big(- \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x}\big).
+\end{align*}</p>
+<p>The term \(\exp\big(- \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x}\big)\) is placed aside since it is not dependent on the class \(k\).
+When divided by the sum per the definition of \(p(C_k|\mathbf{x};\mathbf{\theta})\), it will equal to 1.</p>
+<p>Under this formulation, we let</p>
+<p>\begin{align*}
+\mathbf{w}_k &amp;= \mathbf{\Sigma}^{-1}\mathbf{\mu}_k\\
+\mathbf{b}_k &amp;= -\frac{1}{2}\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_k + \log \mathbf{\pi}_k.
+\end{align*}</p>
+<p>This lets us express \(p(C_k|\mathbf{x};\mathbf{\theta})\) as the <strong>softmax</strong> function:</p>
+<p>\(p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&rsquo;}\exp(\mathbf{w}_{k&rsquo;}^T\mathbf{x}+\mathbf{b}_{k&rsquo;})}\).</p>
+<h2 id="maximum-likelihood-estimation">Maximum Likelihood Estimation</h2>
+<p>Given our formulation in the previous section, we can estimate the parameters of the model via <strong>maximum likelihood estimation</strong>. Assuming \(K\) classes with Gaussian class conditional densities, the likelihood function is</p>
+<p>\begin{equation*}
+p(\mathbf{X}|\mathbf{\theta}) = \prod_{i=1}^n \mathcal{M}(y_i|\mathbf{\pi})\prod_{k=1}^K \mathcal{N}(\mathbf{x}_i|\mathbf{\mu}_k, \mathbf{\Sigma}_k)^{\mathbb{1}(y_i=k)}.
+\end{equation*}</p>
+<p>Taking the log of this function yields</p>
+<p>\begin{equation*}
+\ln p(\mathbf{X}|\mathbf{\theta}) = \Big[\sum_{i=1}^n \sum_{k=1}^K \mathbb{1}(y_i=k)\ln \pi_k\Big] + \sum_{k=1}^K\Big[\sum_{i:y_i=c} \ln \mathcal{N}(\mathbf{x}_n|\mathbf{\mu}_k, \mathbf{\Sigma}_k)\Big].
+\end{equation*}</p>
+<p>Given that this is a sum of two different components, we can optimize the multinomial parameter \(\mathbf{\pi}\) and the class Gaussian parameters \((\mathbf{\mu}_k, \mathbf{\Sigma}_k)\) separately.</p>
+<h3 id="class-prior">Class Prior</h3>
+<p>For multinomial distributions, the class prior parameter estimation \(\hat{\pi}_k\) is easily calculated by counting the number of samples belonging to class \(k\) and dividing it by the total number of samples.</p>
+<p>\[
+\hat{\pi}_k = \frac{n_k}{n}
+\]</p>
+<h3 id="class-gaussians">Class Gaussians</h3>
+<p>The Gaussian parameters can be calculated as discussed during the probability review. The parameter estimates are</p>
+<p>\begin{align*}
+\hat{\mathbf{u}}_k &amp;= \frac{1}{n_k}\sum_{i:y_i=k}\mathbf{x}_i\\
+\hat{\Sigma}_k &amp;= \frac{1}{n_k}\sum_{i:y_i=k}(\mathbf{x}_i - \hat{\mathbf{\mu}}_k)(\mathbf{x}_i - \hat{\mathbf{\mu}}_k)^T
+\end{align*}</p>
+<h3 id="the-decision-boundary">The Decision Boundary</h3>
+<p>The decision boundary between two classes can be visualized at the point when \(p(C_k|\mathbf{x};\theta) = 0.5\).</p>
+<h2 id="example">Example</h2>
+<p>See <a href="https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb">here</a> for an example using scikit-learn.</p>
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

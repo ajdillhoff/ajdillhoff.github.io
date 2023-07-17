@@ -1,0 +1,2236 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My Notes on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/notes/</link>
+    <description>Recent content in My Notes on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Tue, 07 Jun 2022 00:00:00 -0500</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Discriminant Functions</title>
+      <link>https://ajdillhoff.github.io/notes/discriminant_functions/</link>
+      <pubDate>Tue, 07 Jun 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/discriminant_functions/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#binary-classification&#34;&gt;Binary Classification&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#plotting-a-decision-boundary&#34;&gt;Plotting a Decision Boundary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multiple-classes&#34;&gt;Multiple Classes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sensitivity-to-outliers&#34;&gt;Sensitivity to Outliers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The notebook for this lesson can be found &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/least_squares_classification.ipynb&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;With &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;linear regression&lt;/a&gt;, we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With discriminant functions, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes.&lt;/p&gt;
+&lt;p&gt;For classification with linear discriminant functions, we will use a \(K\) dimensional vector that has a 1 corresponding to the class encoding for that input and a 0 for all other positions. For example, if our possible target classes were \(\{\text{car, truck, person}\}\), then a target vector for \(\text{person}\) would be \(\mathbf{y} = [0, 0, 1]^T\).&lt;/p&gt;
+&lt;p&gt;This article will stick to a discriminative approach to classification. That is, we define a discriminant function which assigns each data input \(\mathbf{x}\) to a class. For a probabilistic perspective, see &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&#34;&gt;Linear Discriminant Analysis&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We will again start with a linear model \(y = f(\mathbf{x}; \mathbf{w})\). Unlike the model used with &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;linear regression&lt;/a&gt;, ours will need to predict a discrete class label. In other words, we need to predict a vector with a 1 corresponding to the class encoding.&lt;/p&gt;
+&lt;h2 id=&#34;binary-classification&#34;&gt;Binary Classification&lt;/h2&gt;
+&lt;p&gt;Consider a simple dataset with 2 features per data sample. Our goal is to classify the data as being one of two possible classes.
+This only requires a single function which classifies the sample as being in class 0 if \(f(\mathbf{x};\mathbf{w}) \geq 0\) and class 1 otherwise.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-23_18-10-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Two groups of data that are very clearly linearly separable.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;Two groups of data that are very clearly linearly separable.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The model output is such that \(f(\mathbf{x};\mathbf{w}) = [1, 0]\) when \(\mathbf{x}\) is predicted as class 1. If \(f(\mathbf{x};\mathbf{w}) = [0, 1]\) then \(\mathbf{x}\) is assigned to class 2.
+In practice, the actual output will not be a one-hot vector.
+There will be some values in all positions of the vector.&lt;/p&gt;
+&lt;p&gt;For example, a model trained on a binary classification task outputs the following vector given a randomly selected input sample:&lt;/p&gt;
+&lt;p&gt;\[
+[0.1224, 0.8776]
+\]&lt;/p&gt;
+&lt;p&gt;A class would be assigned by taking the argmax of this output vector.
+That is, the model predicts that this sample belongs to class 1.&lt;/p&gt;
+&lt;h3 id=&#34;measuring-classifier-performance&#34;&gt;Measuring Classifier Performance&lt;/h3&gt;
+&lt;p&gt;L1 loss can be used to measure classifier performance for linear discriminant function models.&lt;/p&gt;
+&lt;p&gt;\[
+E = \sum_{i=1}^N \sum_{j=1}^M |\hat{y}_{ij} - y_{ij}|
+\]&lt;/p&gt;
+&lt;h2 id=&#34;plotting-a-decision-boundary&#34;&gt;Plotting a Decision Boundary&lt;/h2&gt;
+&lt;p&gt;In the case of binary classification, a sample is predicted as class 1 if the output vector has the highest value at index 0.
+Otherwise, it is classified as class 2.
+If we were to plot the decision regions, we would see that the boundary is at the point when the output for both classes is equal.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-10_19-03-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Binary classification with decision regions shown.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;Binary classification with decision regions shown.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;multiple-classes&#34;&gt;Multiple Classes&lt;/h2&gt;
+&lt;p&gt;Extending this to multiple classes is as easy as encoding the classes in a one-hot vector whose length equals the number of classes.
+The parameters of the model can be obtained using gradient descent, the normal equations, or any other method that optimizes the least squares criterion.&lt;/p&gt;
+&lt;p&gt;The figure below shows an example of a linear discriminant function model fit to a dataset with 3 classes.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-10_19-08-29_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Multiclass classification using linear discriminant functions.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;Multiclass classification using linear discriminant functions.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;sensitivity-to-outliers&#34;&gt;Sensitivity to Outliers&lt;/h2&gt;
+&lt;p&gt;One major flaw with least squares models is their sensitivity to outliers in the data.
+Consider the dataset shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-11_11-28-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Linearly separable dataset&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 4: &lt;!-- raw HTML omitted --&gt;Linearly separable dataset
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This dataset is clearly linearly separable. This will be no problem for our linear classifier, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-11_11-29-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Linear classifier fit to data using least squares.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 5: &lt;!-- raw HTML omitted --&gt;Linear classifier fit to data using least squares.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This dataset has a convenient property that the samples from each class are tightly clustered.
+What happens if our data is slightly more diverse?&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-11_11-32-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;2-class dataset in which one class is not as tightly clustered as the other.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 6: &lt;!-- raw HTML omitted --&gt;2-class dataset in which one class is not as tightly clustered as the other.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the dataset above, we can still clearly see that it should be linearly separable.
+Unfortunately, our least squares model will be very sensitive to the 20 points at the top left of the plot.
+Training a linear discriminant function using least squares results in the following decision boundary.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-11_11-33-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;The model misclassifies samples that should be linearly separable.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 7: &lt;!-- raw HTML omitted --&gt;The model misclassifies samples that should be linearly separable.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we determine that a linear classifier is adequate for a given dataset, we may wish to use a slightly more robust model such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/logistic_regression/&#34;&gt;Logistic Regression&lt;/a&gt; instead of linear discriminant functions.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Boosting</title>
+      <link>https://ajdillhoff.github.io/notes/boosting/</link>
+      <pubDate>Wed, 23 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/boosting/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#todo&#34;&gt;TODO&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#adaboost&#34;&gt;AdaBoost&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;todo&#34;&gt;TODO&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;input disabled=&#34;&#34; type=&#34;checkbox&#34;&gt; Gradient Boosting&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Combining predictions from multiple sources is usually preferred to a single source.
+For example, a medical diagnosis would carry much more weight if it was the result of a consensus of several experts.
+This idea of prediction by consensus is a powerful way to improve classification and regression models.
+In fact, good performance of a committee of models can be achieved even if each individual model is conceptually very simple.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Boosting&lt;/strong&gt; is one such way of building a committee of models for classification or regression and is popularly implemented by an algorithm called &lt;strong&gt;AdaBoost&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;adaboost&#34;&gt;AdaBoost&lt;/h2&gt;
+&lt;p&gt;Given a dataset \(\{\mathbf{x}_i\}\) and target variables \(\{\mathbf{y}_i\}\), AdaBoost first initializes a set of weights corresponding to each data sample as \(w_i = \frac{1}{N}\).
+At each step of the algorithm, a simple classifier, called a &lt;strong&gt;weak learner&lt;/strong&gt; is fit to the data.
+The weights for each sample are adjusted based on the individual classifier&amp;rsquo;s performance.
+If the sample was misclassified, the relative weight for that sample is increased.
+After all classifiers have been fit, they are combined to form an ensemble model.&lt;/p&gt;
+&lt;h3 id=&#34;the-algorithm&#34;&gt;The Algorithm&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Initialize data weights \({w_i}\) as \(w_i^{(1)} = \frac{1}{n}\) for \(i = 1, \dots, n\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Fit each weak learner \(j\) to the training data by minimizing the misclassification cost:&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{i=1}^n w_i^{(j)} \mathbb{1}(f_j(\mathbf{x}_i) \neq \mathbf{y}_i)
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Compute a weighted error rate&lt;/p&gt;
+&lt;p&gt;\[
+\epsilon_j = \frac{\sum_{i=1}^n w_i^{(j)} \mathbb{1}(f_j(\mathbf{x}_i) \neq \mathbf{y}_i)}{\sum_{i=1}^n w_i^{(j)}}
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Use the weighted error rate to compute a weight for each classifier such that misclassified samples are given higher weight:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_j = \ln \bigg\{\frac{1 - \epsilon_j}{\epsilon_j}\bigg\}.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Update the data weights for the next model in the sequence:&lt;/p&gt;
+&lt;p&gt;\[
+w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i)\}.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Once all weak learners are trained, the final model predictions are given by&lt;/p&gt;
+&lt;p&gt;\[
+Y_M(\mathbf{x}) = \text{sign} \Bigg(\sum_{j=1}^M \alpha_j f_j(\mathbf{x})\Bigg).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;weak-learners&#34;&gt;Weak Learners&lt;/h3&gt;
+&lt;p&gt;The weak learners can be any classification or regression model.
+However, they are typically chosen to be very simple to account for training time.
+For example, a complex deep learning model would be a poor choice for a weak learner.&lt;/p&gt;
+&lt;p&gt;One example of a weak learner is a simple linear model like a &lt;a href=&#34;https://ajdillhoff.github.io/notes/perceptron/&#34;&gt;Perceptron&lt;/a&gt; or decision stump.
+A standard implementation of AdaBoost uses a decision tree with depth 1, as observed in &lt;a href=&#34;https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html?highlight=boost#sklearn.ensemble.AdaBoostClassifier&#34;&gt;sklearn&amp;rsquo;s implementation.&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s put this together and walk through the first few steps of training an AdaBoost model using a decision stump as the weak learner. We will use a very simple dataset to keep the values easy to compute by hand.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Initial Data&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 1&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The first learner is trained on the initial data and picks \(x_1 = 2.5\) as the split threshold.
+Input where \(x_1 \leq 2.5\) is assigned to class 0 and all other samples are assigned class 1.
+The data with this learner&amp;rsquo;s predictions are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.2&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Error and weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The error is simple enough to compute as all samples are currently weighted equally. Since two of the samples were misclassified, the error is the sum of their weights.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_1 = 0.2 + 0.2 = 0.4\).&lt;/p&gt;
+&lt;p&gt;The weight of the classifier can then be computed.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_1 = \frac{1}{2} \ln \big(\frac{1 - e_1}{e_1}\big) = 0.2027\).&lt;/p&gt;
+&lt;p&gt;The weights of our data can now be updated using this value of \(\alpha_1\).
+The weight of each example is updated by multiplying each correctly classifed sample by \(\exp\{-\alpha_1\}\) and each incorrectly classified sample by \(\exp\{\alpha\}\):&lt;/p&gt;
+&lt;p&gt;\[
+w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i)\}.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; You will notice that the equation above is different from the actual update rule that was applied to the weights in this example. In the original publication &lt;strong&gt;(TODO: reference Fruend)&lt;/strong&gt;, the weights are renormalized at the end of the loop. In this example, the normalization is combined with the update. In either case, the updated weights are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 2&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The algorithm now moves to the next weak learner, which classifies the data given a threshold of \(x_1 = 3.5\). Its predictions are shown below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.250&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Only a single sample is misclassified, and the error is computed as before.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_2 = 0.250\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_2 = \frac{1}{2} \ln \big(\frac{1 - e_2}{e_2}\big) = 0.5493\)&lt;/p&gt;
+&lt;p&gt;The weights are updated for each sample, yielding the following data:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.500&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The second sample has been misclassified twice at this point, leading to a relatively high weight. This will hopefully be addressed by the third learner.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Weak Learner 3&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The final weak learner splits the data on \(x_2 = 6.5\), yielding the following output for each sample.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;th&gt;prediction&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.500&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.111&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Unfortunately, sample 2 is too tricky for any of our weak learners. The total error is shown below. Since this is a binary classification problem, the error suggests that our weak learner performs worse than random guessing.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total error&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(e_3 = 0.667\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Classifier weight&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\(\alpha_3 = \frac{1}{2} \ln \big(\frac{1 - e_3}{e_3}\big) = -0.3473\)&lt;/p&gt;
+&lt;p&gt;The negative value of the classifier weight suggests that its predictions will be reversed when evaluated. The updated weights of each data sample are given below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;x1&lt;/th&gt;
+&lt;th&gt;x2&lt;/th&gt;
+&lt;th&gt;y&lt;/th&gt;
+&lt;th&gt;weight&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.375&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0.125&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0.167&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Final Classifier&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The final classifier is a weighted vote of the three weak learners, with the weights being the classifier weights we calculated (0.2027, 0.5493, and -0.3473). The negative weight means that the third learner&amp;rsquo;s predictions are reversed.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hidden Markov Models</title>
+      <link>https://ajdillhoff.github.io/notes/hidden_markov_models/</link>
+      <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/hidden_markov_models/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-markov-assumption&#34;&gt;The Markov Assumption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#evaluation&#34;&gt;Evaluation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-viterbi-algorithm&#34;&gt;The Viterbi Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#estimating-parameters&#34;&gt;Estimating Parameters&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#expectation-maximization&#34;&gt;Expectation Maximization&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This article is essentially a grok of a tutorial on HMMs by (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;). It will be useful for the reader to reference the &lt;a href=&#34;https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf&#34;&gt;original paper&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Up to this point, we have only explored &amp;ldquo;atomic&amp;rdquo; data points.
+That is, all of the information about a particular sample is encapsulated into one vector.
+Sequential data is easily represented by graphical models.
+This article introduces Hidden Markov Models, a powerful probabilistic graphical model used in many applications from gesture recognition to natural language processing.&lt;/p&gt;
+&lt;p&gt;There are many tasks for which we do not know the underlying process.
+However, we can observe samples that are produced from such processes.
+Music, gesture recognition, speech, text, etc.
+All of these have some underlying process which forms their outputs together into a hopefully coherent sequence.
+If we wish to make predictions about future samples given these sequences, we will need to make some guess
+about the underlying processes defining their output.&lt;/p&gt;
+&lt;h2 id=&#34;the-markov-assumption&#34;&gt;The Markov Assumption&lt;/h2&gt;
+&lt;p&gt;Markov models make a convenient assumption about sequential data.
+That is, all relevant information required for predicting future samples is captured in the current time step \(t\).
+Given a joint distribution over an input of \(T\) frames, \(p(\mathbf{x}_{1:T})\), the Markov assumption allows us to represent it as&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{x}_{1:T}) = p(\mathbf{x}_1)\prod_{t=2}^T p(\mathbf{x}_t|\mathbf{x}_{t-1})
+\]&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;A more complicated case is when we are attempting to model some unknown process that is responsible for the observations.
+In this case, an ordinary Markov chain is not sufficient.
+A &lt;strong&gt;hidden Markov model (HMM)&lt;/strong&gt; is defined by a set \(z_t \in \{1, \dots, K\}\) of discrete hidden states and an &lt;strong&gt;observation&lt;/strong&gt; model \(p(\mathbf{x}_i|z_t)\).
+The joint probability distribution of this model is given by&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{z}, \mathbf{x}) = p(\mathbf{z})p(\mathbf{x}|\mathbf{z}) = \Big(p(z_1)\prod_{t=2}^Tp(z_t|z_{t-1})\Big)\Big(\prod_{t=1}^Tp(\mathbf{x}_t|z_t)\Big).
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_20-41-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The observations y are generated by the latent states x. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;The observations y are generated by the latent states x. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Although the states themselves are discrete, the observations may be continuous: \(p(\mathbf{x}|z_t, \mathbf{\theta})\).
+If they are discrete, they can be modeled by an observation matrix \(B\).
+Continuous observations are typically modeled using a conditional Gaussian:&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{x}_t|z_t=k, \theta) = \mathcal{N}(\mathbf{x}_t|\mathbf{\mu}_k,\mathbf{\Sigma}_k).
+\]&lt;/p&gt;
+&lt;p&gt;Following &lt;a href=&#34;https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf&#34;&gt;Rabiner&lt;/a&gt;, an HMM can be characterized by&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The number of states in the model \(N\).&lt;/li&gt;
+&lt;li&gt;The number of distinct observation symbols per state \(M\).&lt;/li&gt;
+&lt;li&gt;The state probability distribution \(A = \{a_{ij}\}\), \(a_{ij} = p(z_t=j | z_{t-1} = i)\).&lt;/li&gt;
+&lt;li&gt;The observation symbol probability distribution \(B = \{b_j(k)\} = p(\mathbf{x}_t = k|z_t = j)\).&lt;/li&gt;
+&lt;li&gt;An initial state distribution \(\mathbf{\pi}_i = p(z_t = i)\).&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_20-42-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;HMM with observation probabilities and state transition probabilities. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;HMM with observation probabilities and state transition probabilities. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The observation probability distribution is commonly modeled as a Gaussian, Mixture of Gaussians, or Multinomial distribution. Thus, the parameter estimates for those distributions follow the likelihood estimates for each respective distribution.&lt;/p&gt;
+&lt;p&gt;In his famous tutorial on HMMs, Rabiner addressed the three fundamental problems of HMMs:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Given an observation sequence and model parameters, how do we compute the probability of the observation sequence given the parameters (likelihood)?&lt;/li&gt;
+&lt;li&gt;Given an observation sequence and model parameters, how do we choose a state sequence which is optimal (decoding)?&lt;/li&gt;
+&lt;li&gt;How do we adjust the model parameters (learning)?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;HMMs are able to solve several different inference problems.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Filtering&lt;/strong&gt; computes \(p(z_t | \mathbf{x}_{1:t})\). That is, we are computing this probability as new samples come in up to time \(t\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Smoothing&lt;/strong&gt; is accomplished when we have all the data in the sequence.
+This is expressed as \(p(z_t|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fixed lag smoothing&lt;/strong&gt; allows for a trade off between accuracy and delay. It is useful in cases where we might not have the full sequence, but we wish to compute \(p(z_{t-l}|\mathbf{x}_{1:t})\) for some \(l &amp;gt; 0\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Predictions&lt;/strong&gt; are represented as \(p(z_{t+h}|\mathbf{x}_{1:t})\), where \(h &amp;gt; 0\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;MAP estimation&lt;/strong&gt; yields the most probably state sequence \(\text{arg}\max_{\mathbf{z}_{1:T}}p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;We can sample the &lt;strong&gt;posterior&lt;/strong&gt; \(p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).&lt;/li&gt;
+&lt;li&gt;We can also compute \(p(\mathbf{x}_{1:T})\) by summing up over all hidden paths. This is useful for classification tasks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h2&gt;
+&lt;p&gt;We start by solving the first problem posited by (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;).&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Given an observation sequence and model parameters, how do we compute the probability of the observation sequence given the parameters?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;That is, given some model parameters \(\lambda = (A, B, \pi)\), compute \(p(z_t|\mathbf{x}_{1:t})\).&lt;/p&gt;
+&lt;h3 id=&#34;forwards-pass&#34;&gt;Forwards Pass&lt;/h3&gt;
+&lt;p&gt;The forwards algorithm solves two problems of interest.
+First, we want to know how well our current parameters explain the observation sequence.
+That is, \(p(\mathbf{x}_{1:T}|\lambda)\).&lt;/p&gt;
+&lt;p&gt;Second, we want to compute \(p(z_t | \mathbf{x}_{1:t})\).
+To compute these in an efficient way, a recursive strategy is adopted.
+Let the forward variable \(\alpha_t(i)\) be defined as&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_t(i) = p(\mathbf{x}_{1:t}, z_t = i | \lambda).
+\]&lt;/p&gt;
+&lt;p&gt;The forwards algorithm is defined as 3 steps.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Initialization:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_1(i) = \pi_i b_i(\mathbf{x}_1),\quad 1 \leq i \leq N.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Recursion:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_{t+1}(j) = \Big(\sum_{i=1}^N \alpha_t(i)a_{ij}\Big)b_j(\mathbf{x}_{t+1}),\quad 1 \leq t \leq T - 1,\quad 1 \leq j \leq N
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Termination:&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{x}_{1:T})  = \sum_{i=1}^N \alpha_T(i).
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The recursive step is visualized as a lattice structure &lt;a href=&#34;#figure--lattice&#34;&gt;as seen below.&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_20-12-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;From Rabiner 1989.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;From Rabiner 1989.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;With this step, we have a solution for the first problem.
+We can now calculate more efficiently the probability of our observations given the current model parameters.
+This along with the following backwards pass will be essential for updating our model parameters.&lt;/p&gt;
+&lt;p&gt;The forwards algorithm is also used to solve the &lt;strong&gt;filtering&lt;/strong&gt; problem.
+To see how, consider \(p(z_t | \mathbf{x}_{1:t-1})\) right before time \(t\).&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t-1}) = \sum_i p(z_t=j|z_{t-1}=i)p(z_{t-1}=i|\mathbf{x}_{1:t-1})
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;When we update for time \(t\), we have that&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(z_t=j|\mathbf{x}_{1:t}) &amp;amp;= p(z_t=j|\mathbf{x}_t, \mathbf{x}_{1:t})\\
+&amp;amp;=\frac{p(\mathbf{x}_t|z_t=j, \mathbf{x}_{1:t-1})p(z_t=j|\mathbf{x}_{1:t-1})}{p(\mathbf{x}_t|\mathbf{x}_{t-1})}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;However, \(\mathbf{x}_{1:t-1}\) is conditionally independent given \(z_t\), so it becomes&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t})=\frac{p(\mathbf{x}_t|z_t=j)p(z_t=j|\mathbf{x}_{1:t-1})}{p(\mathbf{x}_t|\mathbf{x}_{t-1})}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Writing out \(p(z_t=j|\mathbf{x}_{1:t-1})\) fully yields&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(z_t=j|\mathbf{x}_{1:t}) \propto p(\mathbf{x}_t|z_t=j)\sum_i p(z_t=j|z_{t-1}=i)p(z_{t-1}=i|\mathbf{x}_{1:t-1}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This is the recursion step from above!&lt;/p&gt;
+&lt;p&gt;This can also be represented in terms of the \(\alpha\) variables from above. To compute \(p(z_t=i|\mathbf{x}_{1:t})\), we can use the definition of a conditional probability distribution:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(z_t=i|\mathbf{x}_{1:t}) &amp;amp;= \frac{p(z_t=i, \mathbf{x}_{1:t})}{p(\mathbf{x}_{1:t})}\\
+&amp;amp;= \frac{\alpha_t(i)}{\sum_{j=1}^N \alpha_t(j)}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Compared to the complexity of the explicit representation, the forwards pass needs only \(N^2T\) calculations.
+As pointed out in (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;), with 5 hidden states and an observation sequence of length 100, the forwards pass only needs around 3000 computations.
+A direct calculation would require \(10^{72}\).&lt;/p&gt;
+&lt;h3 id=&#34;backwards-pass&#34;&gt;Backwards Pass&lt;/h3&gt;
+&lt;p&gt;When updating the parameters of our model, we will need to consider the entire observation sequence.
+The forward pass did not require the entire sequence.
+Instead, we can compute the probability of the observation up to some time \(t\).
+The backwards pass begins by defining the variable&lt;/p&gt;
+&lt;p&gt;\[
+\beta_t(i) = p(\mathbf{x}_{t+1:T} | z_t = i).
+\]&lt;/p&gt;
+&lt;p&gt;We can utilize a recursive process similar to the forwards algorithm with the following steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Initialization:&lt;/p&gt;
+&lt;p&gt;\[
+\beta_T(i) = 1,\quad 1 \leq i \leq N
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Recursion:&lt;/p&gt;
+&lt;p&gt;\[
+\beta_t(i) = \sum_{j=1}^N a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j),\quad t = T-1,\dots,1,\quad 1 \leq i \leq N.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Termination:&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{x}_{1:T}) = \sum_{j=1}^N \pi_j b_j(x_1) \beta_1(j)
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The complexity of the backwards algorithm is similar to that of the forwards: \(N^2T\).&lt;/p&gt;
+&lt;p&gt;With both the forward and backwards passes defined, we can compute the &lt;strong&gt;smoothing&lt;/strong&gt; problem:&lt;/p&gt;
+&lt;p&gt;\[
+p(z_t=i|\mathbf{x}_{1:T}) = \frac{\alpha_t(i)\beta_t(i)}{\sum_{j=1}^N \alpha_t(j)\beta_t(j)}
+\]&lt;/p&gt;
+&lt;h2 id=&#34;the-viterbi-algorithm&#34;&gt;The Viterbi Algorithm&lt;/h2&gt;
+&lt;p&gt;With problem 1 out of the way, we turn our attention to problem 2.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Given an observation sequence and model parameters, how do we choose a state sequence which is optimal?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;\[
+\mathbf{z}^* = \text{arg}\max_{\mathbf{z}_{1:T}}p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})
+\]&lt;/p&gt;
+&lt;p&gt;With respect to the &lt;a href=&#34;#figure--lattice&#34;&gt;lattice diagram&lt;/a&gt;, this is equivalent to computing the shortest path.
+This is accomplished via the &lt;strong&gt;Viterbi&lt;/strong&gt; algorithm, sometimes referred to as the max-sum algorithm.
+As with the forwards-backwards algorithm, the Viterbi algorithm takes on a recursive approach.
+It starts by defining an intermediate variable&lt;/p&gt;
+&lt;p&gt;\[
+\gamma_t(i) = p(z_t=i|\mathbf{x}_{1:T}).
+\]&lt;/p&gt;
+&lt;p&gt;Using the variables defined in the forwards-backwards algorithm, this can be expressed as&lt;/p&gt;
+&lt;p&gt;\[
+\gamma_t(i) = \frac{\alpha_t(i) \beta_t(i)}{\sum_{i=1}^N \alpha_t(i) \beta_t(i)}.
+\]&lt;/p&gt;
+&lt;p&gt;This \(\gamma_t(i)\), we can compute the most likely state at time \(t\):&lt;/p&gt;
+&lt;p&gt;\[
+z_t^* = \text{arg}\max_{1\leq i \leq N} \gamma_t(i), \quad 1 \leq t \leq T.
+\]&lt;/p&gt;
+&lt;p&gt;One problem with this approach alone is that the most likely state at a particular time \(t\) may not lead us to the most probable sequence of states.
+As stated above, we need to maximize \(p(\mathbf{z}_{1:T}|\mathbf{x}_{1:T})\).
+In order to tackle this efficiently, Viterbi employs a dynamic programming approach.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Initialization&lt;/p&gt;
+&lt;p&gt;Start with the best initial state out of all states given the observation at \(t=1\).
+Additionally, we want to record the index of each state through time so that the best path can be retraced.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\delta_1(i) &amp;amp;= \pi_i b_i(\mathbf{x}_1),\quad 1 \leq i \leq N\\
+\psi_1(i) &amp;amp;= 0
+\end{align*}&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Recursion:&lt;/p&gt;
+&lt;p&gt;The quantity \(\delta_t(i)\) represents the joint probability of state sequences and observations up to time \(t\) ending with state \(z_t=i\).
+Thus, the recursive step is to maximize the probability of the intermediate output for \(t-1\):&lt;/p&gt;
+&lt;p&gt;\[
+\delta_t(j) = \max_{1 \leq i \leq N} (\delta_{t-1}(i) a_{ij})b_j(\mathbf{x}_t), \quad 2 \leq t \leq T,\quad 1 \leq j \leq N.
+\]&lt;/p&gt;
+&lt;p&gt;The corresponding index for this step is recorded in the path matrix:&lt;/p&gt;
+&lt;p&gt;\[
+\psi_t(j) = \text{arg}\max_{1 \leq i \leq N} \delta_{t-1}(i)a_{ij},\quad 2 \leq t \leq T,\quad 1 \leq j \leq N.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Termination&lt;/p&gt;
+&lt;p&gt;The last step of the Viterbi algorithm completes the calcuation of the joint probability of state sequences and observations.&lt;/p&gt;
+&lt;p&gt;\[
+p^* = \max_{1 \leq i \leq N} \delta_T(i)
+\]&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{z}_T^* = \text{arg}\max_{1 \leq i \leq N} \delta_T(i)
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Path Backtrace&lt;/p&gt;
+&lt;p&gt;With the state sequence matrix recorded along the way, we can retrace it to get the most probable sequence:&lt;/p&gt;
+&lt;p&gt;\[
+z_t^* = \psi_{t+1}(z_{t+1}^*),\quad t = T-1, \cdots, 1.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;estimating-parameters&#34;&gt;Estimating Parameters&lt;/h2&gt;
+&lt;p&gt;If the hidden states were fully observable, then updating our model parameters would be as straightforward as computing the maximum likelihood estimates for the model parameters \(\lambda = (A, B, \pi)\).
+For \(A\) and \(\pi\), we first tally up the following counts:&lt;/p&gt;
+&lt;p&gt;\[
+\hat{a}_{ij} = \frac{N_{ij}}{\sum_j N_{ij}},
+\]&lt;/p&gt;
+&lt;p&gt;the number of times we expect to transition from \(i\) to \(j\) divided by the number of times we transition from \(i\) to any other state.&lt;/p&gt;
+&lt;p&gt;For \(\pi\), we have&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\pi_i} = \frac{N_i}{\sum_i N_i},
+\]&lt;/p&gt;
+&lt;p&gt;The number of times we expect to start in state \(i\) divided by the number of times we start in any other state.&lt;/p&gt;
+&lt;p&gt;Estimating the parameters for \(B\) depends on which distribution we are using for our observation probabilities.
+For a multinomial distribution, we would compute the number of times we are in state \(j\) and observe a symbol \(k\) divided by the number of times we are in state \(j\):&lt;/p&gt;
+&lt;p&gt;\[
+\hat{B}_{jk} = \frac{N_{jk}}{N_k},
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+N_{jk} = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=j, x_{i, t}=k).
+\]&lt;/p&gt;
+&lt;p&gt;If the observation probability follows a Gaussian distribution, the MLEs for \(\mu\) and \(\mathbf{\Sigma}\) are&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{\mu}}_k = \frac{\bar{\mathbf{x}}_k}{N_k},\quad \hat{\mathbf{\Sigma}}_k = \frac{(\bar{\mathbf{x}}\bar{\mathbf{x}})_k^T - N_k \hat{\mathbf{\mu}}_k\hat{\mathbf{\mu}}_k^T}{N_k},
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\bar{\mathbf{x}}_k = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1}(z_{i, t}=k)\mathbf{x}_{i, t}
+\]&lt;/p&gt;
+&lt;p&gt;and&lt;/p&gt;
+&lt;p&gt;\[
+(\bar{\mathbf{x}}\bar{\mathbf{x}})_k^T) = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=k)\mathbf{x}_{i,k}\mathbf{x}_{i,k}^T.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;expectation-maximization&#34;&gt;Expectation Maximization&lt;/h2&gt;
+&lt;p&gt;Of course, HMMs have hidden states which are not fully observable.
+Thus, we need to come up with another strategy for updating our parameters based on the observable data.
+The intuition behind this approach is as follows.
+We first start out by using our current parameters to estimate the missing data, making it complete.
+Initially, we may randomize our estimates if we have no good heuristic or guess as to what they should be.&lt;/p&gt;
+&lt;p&gt;With the completed data, we can update our current parameters.
+In other words, the expected values of the sufficient statistics can be derived now that the data has been filled in.
+A new set of parameters is found such that it maximizes the likelihood function with respect to the estimated data.&lt;/p&gt;
+&lt;h3 id=&#34;e-step&#34;&gt;E Step&lt;/h3&gt;
+&lt;p&gt;Following (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;), we start with the joint probability of being in state \(i\) at time \(t\) and state \(j\) at time \(t+1\):&lt;/p&gt;
+&lt;p&gt;\[
+\xi_t(i, j) = p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
+\]&lt;/p&gt;
+&lt;p&gt;This can be computed using the forwards-backwards algorithm:&lt;/p&gt;
+&lt;p&gt;\[
+\xi_t(i, j) = \frac{\alpha_t(i)a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j)}{\sum_{i=1}^N \sum_{j=1}^N \alpha_t(i)a_{ij}b_j(\mathbf{x}_{t+1})\beta_{t+1}(j)}.
+\]&lt;/p&gt;
+&lt;p&gt;This can be related back to \(\gamma_t(i)\) by summing over over \(j\):&lt;/p&gt;
+&lt;p&gt;\[
+\gamma_t(i) = \sum_{j=1}^N \xi_t(i, j).
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\gamma_t(i)\) is the expected number of times we transition from \(z = i\).
+Summing over all \(t\) yields the expected transitions from \(z_i\) over all time steps:&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{t=1}^{T-1} \gamma_t(i).
+\]&lt;/p&gt;
+&lt;p&gt;Since \(\xi_t(i, j)\) is the expected transition from \(i\) to \(j\) at time \(t\), we can compute the total number of transitions from \(i\) to \(j\) via&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{t=1}^{T-1} \xi_t(i, j).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;m-step&#34;&gt;M Step&lt;/h3&gt;
+&lt;p&gt;The previous &lt;strong&gt;E Step&lt;/strong&gt; computed the expected values given the current parameter estimates.
+Now that the data is complete, we can update our parameter estimates.
+Starting with the transition probabilities, we must add the expected number of transitions from \(i\) to \(j\) and divide by the expected number of times we transition from \(i\).
+Using the parameters from the E Step, this can be written&lt;/p&gt;
+&lt;p&gt;\[
+\hat{a}_{ij} = \frac{\sum_{t=1}^{T-1}\xi_t(i, j)}{\sum_{t=1}^{T-1}\gamma_t(i)}.
+\]&lt;/p&gt;
+&lt;p&gt;The initial state probability at \(t=1\) is the number of times we expect to be in state \(z=i\) at \(t=1\):&lt;/p&gt;
+&lt;p&gt;\[
+\gamma_1(i).
+\]&lt;/p&gt;
+&lt;p&gt;Finally, the observation probability parameters are updated by considering the number of times we are in state \(z=j\) and observing \(x=k\) divided by the number of times we are in state \(z=j\). Note that this is for a multinomial probabiliy distribution:&lt;/p&gt;
+&lt;p&gt;\[
+\hat{b}_j(k) = \frac{\sum_{t=1, x_t = k}^T \gamma_t(j)}{\sum_{t=1}^T \gamma_t(j)}.
+\]&lt;/p&gt;
+&lt;p&gt;These formulas are derived from maximizing Baum&amp;rsquo;s auxiliary function&lt;/p&gt;
+&lt;p&gt;\[
+Q(\lambda, \hat{\lambda}) = \sum_{Q} p(\mathbf{z}|\mathbf{x}, \lambda) \log p(\mathbf{x}, \mathbf{z}|\hat{\lambda})
+\]&lt;/p&gt;
+&lt;p&gt;over \(\hat{\lambda}\). It has further been shown that maximizing this function leads to increased likelihood:&lt;/p&gt;
+&lt;p&gt;\[
+\max_{\hat{\lambda}} Q(\lambda, \hat{\lambda}) \implies p(\mathbf{x}|\hat{\lambda}) \geq p(\mathbf{x}|\lambda).
+\]&lt;/p&gt;
+&lt;p&gt;If we have a Gaussian observation model, the values for \(\hat{b}_j(k)\) are computed to accommodate the parameters of the distribution.
+These parameter estimates assume a Gaussian mixture model.
+Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected value of observations belonging to Gaussian density \(k\) by the expected number of times we are in state \(j\) using the \(k^{\text{th}}\) mixture component:&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{\mu}}_{jk} = \frac{\sum_{t=1}^T \gamma_t(j, k)\mathbf{x}_t}{\sum_{t=1}^T \gamma_t(j, k)}.
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\gamma_t(j, k)\) is the probability of being in state \(j\) at time \(t\) with the \(k^{\text{th}}\) mixture component accounting for \(\mathbf{x}_t\):&lt;/p&gt;
+&lt;p&gt;\[
+\gamma_t(j, k) = \frac{\alpha_t(j)\beta_t(j)}{\sum_{j=1}^N \alpha_t(j) \beta_t(j)} \frac{c_{jk}\mathcal{N}(\mathbf{x}_t, \mu_{jk}, \mathbf{\Sigma}_{jk})}{\sum_{m=1}^M c_{jm}\mathcal{N}(\mathbf{x}_t, \mu_{jm}, \mathbf{\Sigma}_{jm})}.
+\]&lt;/p&gt;
+&lt;p&gt;This method is proven to improve the parameters.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Each iteration is guaranteed to improve the log-likelihood function.&lt;/li&gt;
+&lt;li&gt;The process is guaranteed to converge.&lt;/li&gt;
+&lt;li&gt;The convergence point is a fixed point of the likelihood function.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;These guarantees are similar to gradient ascent.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Linear Discriminant Analysis</title>
+      <link>https://ajdillhoff.github.io/notes/linear_discriminant_analysis/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/linear_discriminant_analysis/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gaussian-class-conditional-densities&#34;&gt;Gaussian Class Conditional Densities&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example&#34;&gt;Example&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This section covers classification from a probabilistic perspective.
+The &lt;a href=&#34;https://ajdillhoff.github.io/notes/discriminant_functions/&#34;&gt;discriminative approach&lt;/a&gt; involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class.
+We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\).
+The posterior probability for \(C_1\) can be written in the form of a sigmoid function:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(C_1|\mathbf{x}) &amp;amp;= \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_1)p(C_1) + p(\mathbf{x}|C_2)p(C_2)}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then multiply the numerator and denominator by&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{(p(\mathbf{x}|C_1))^{-1}}{(p(\mathbf{x}|C_1))^{-1}},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;which yields&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{1}{1 + \frac{p(\mathbf{x}|C_2)p(C_2)}{p(\mathbf{x}|C_1)p(C_1)}}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Noting that \(a = \exp(\ln(a))\), we can rewrite further&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{1}{1 + \exp(-a)},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(a = \ln \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_2)p(C_2)}\).&lt;/p&gt;
+&lt;p&gt;Writing this distribution in the form of the sigmoid function is convenient as it is a natural choice for many other classification models. It also has a very simple derivative which is convenient for models optimized using gradient descent.&lt;/p&gt;
+&lt;p&gt;Given certain choices for the class conditional densities, the posterior probabilty distribution will be a linear function of the input features:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(C_k|\mathbf{x};\theta) = \mathbf{w}^T \mathbf{x} + c,
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{w}\) is a parameter vector based on the parameters of the chosen probability distribution, and \(c\) is a constant term that is not dependent on the parameters. As we will see, the resulting model will take an equivalent form to the discriminative approach.&lt;/p&gt;
+&lt;h2 id=&#34;gaussian-class-conditional-densities&#34;&gt;Gaussian Class Conditional Densities&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s assume that our class conditional densities \(p(\mathbf{x}|C_k)\) are Gaussian. We will additionally assume that the covariance matrices between classes are shared. This will result in linear decision boundaries. Since the conditional densities are chosen to be Gaussian, the posterior is given by&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_c,\Sigma),
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\pi_k\) is the prior probability of class \(k\). We choose to ignore the normalizing constant since it is not dependent on the class.&lt;/p&gt;
+&lt;p&gt;The class conditional density function for class \(k\) is given by&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(\mathbf{x}|C_k;\theta) = \frac{1}{2\pi^{D/2}}\frac{1}{|\Sigma|^{1/2}}\exp\Big(-\frac{1}{2}(\mathbf{x} - \mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x} - \mathbf{\mu}_k)\Big).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Now that we have a concrete function to work with, let&amp;rsquo;s go back to the simple case of two classes and define \(a = \ln \frac{p(\mathbf{x}|C_1)p(C_1)}{p(\mathbf{x}|C_2)p(C_2)}\). First, we rewrite \(a\):&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+a = \ln p(\mathbf{x}|C_1) - \ln p(\mathbf{x}|C_2) + \ln \frac{p(C_1)}{p(C_2)}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The log of the class conditional density for a Gaussian is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{D}{2}\ln(2\pi) - \frac{1}{2}\ln|\Sigma|-\frac{1}{2}(\mathbf{x}-\mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x}-\mathbf{\mu}_k).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;To simplify the above result, we will group the terms that are not dependent on the class parameters since they are consant:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{1}{2}(\mathbf{x}-\mathbf{\mu}_k)^T \Sigma^{-1} (\mathbf{x}-\mathbf{\mu}_k) + c.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Observing that this quantity takes on a quadratic form, we can rewrite the above as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(\mathbf{x}|C_k;\mathbf{\mu}_k,\Sigma) =
+-\frac{1}{2}\mathbf{\mu}_k\Sigma^{-1}\mathbf{\mu}_k + \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_k
+-\frac{1}{2}\mathbf{x}^T \Sigma^{-1}\mathbf{x} + c.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Using this, we complete the definition of \(a\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+a &amp;amp;= \ln p(\mathbf{x}|C_1) - \ln p(\mathbf{x}|C_2) + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;amp;= -\frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 - \mathbf{x}^T \Sigma^{-1} \mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;amp;= \mathbf{x}^T(\Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)) - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}\\
+&amp;amp;= (\Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2))^T \mathbf{x} - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 + \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Finally, we define&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{w} = \Sigma^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;and&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+w_0 = - \frac{1}{2}\mathbf{\mu}_1\Sigma^{-1}\mathbf{\mu}_1 - \frac{1}{2}\mathbf{\mu}_2\Sigma^{-1}\mathbf{\mu}_2 + \ln \frac{p(C_1)}{p(C_2)}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Thus, our posterior takes on the form&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(C_1|\mathbf{x};\theta) = \sigma(\mathbf{w}^T \mathbf{x} + w_0).
+\end{equation*}&lt;/p&gt;
+&lt;h3 id=&#34;multiple-classes&#34;&gt;Multiple Classes&lt;/h3&gt;
+&lt;p&gt;What if we have more than 2 classes?
+Recall that a &lt;strong&gt;generative classifier&lt;/strong&gt; is modeled as&lt;/p&gt;
+&lt;p&gt;\[
+p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{p(C_k|\mathbf{\theta})p(\mathbf{x}|C_k, \mathbf{\theta})}{\sum_{k&amp;rsquo;}p(C_{k&amp;rsquo;}|\mathbf{\theta})p(\mathbf{x}|C_{k&amp;rsquo;}, \mathbf{\theta})}.
+\]&lt;/p&gt;
+&lt;p&gt;As stated above, \(\mathbf{\pi}_k = p(C_k|\mathbf{\theta})\) and \(p(\mathbf{x}|C_k,\mathbf{\theta}) = \mathcal{N}(\mathbf{x}|\mathbf{\mu}_c,\Sigma)\).&lt;/p&gt;
+&lt;p&gt;For LDA, the covariance matrices are shared across all classes.
+This permits a simplification of the class posterior distribution \(p(C_k|\mathbf{x};\mathbf{\theta})\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(C_k|\mathbf{x};\mathbf{\theta}) &amp;amp;\propto \mathbf{\pi}_k \exp\big(\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{x} - \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x} - \frac{1}{2}\mathbf{\mu}_k\mathbf{\Sigma}^{-1}\mathbf{\mu}_k\big)\\
+&amp;amp;= \exp\big(\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{x}  - \frac{1}{2}\mathbf{\mu}_k\mathbf{\Sigma}^{-1}\mathbf{\mu}_k + \log \mathbf{\pi}_k \big) \exp\big(- \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x}\big).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The term \(\exp\big(- \frac{1}{2}\mathbf{x}^T\mathbf{\Sigma}^{-1}\mathbf{x}\big)\) is placed aside since it is not dependent on the class \(k\).
+When divided by the sum per the definition of \(p(C_k|\mathbf{x};\mathbf{\theta})\), it will equal to 1.&lt;/p&gt;
+&lt;p&gt;Under this formulation, we let&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{w}_k &amp;amp;= \mathbf{\Sigma}^{-1}\mathbf{\mu}_k\\
+\mathbf{b}_k &amp;amp;= -\frac{1}{2}\mathbf{\mu}_k^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_k + \log \mathbf{\pi}_k.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This lets us express \(p(C_k|\mathbf{x};\mathbf{\theta})\) as the &lt;strong&gt;softmax&lt;/strong&gt; function:&lt;/p&gt;
+&lt;p&gt;\(p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&amp;rsquo;}\exp(\mathbf{w}_{k&amp;rsquo;}^T\mathbf{x}+\mathbf{b}_{k&amp;rsquo;})}\).&lt;/p&gt;
+&lt;h2 id=&#34;maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/h2&gt;
+&lt;p&gt;Given our formulation in the previous section, we can estimate the parameters of the model via &lt;strong&gt;maximum likelihood estimation&lt;/strong&gt;. Assuming \(K\) classes with Gaussian class conditional densities, the likelihood function is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(\mathbf{X}|\mathbf{\theta}) = \prod_{i=1}^n \mathcal{M}(y_i|\mathbf{\pi})\prod_{k=1}^K \mathcal{N}(\mathbf{x}_i|\mathbf{\mu}_k, \mathbf{\Sigma}_k)^{\mathbb{1}(y_i=k)}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Taking the log of this function yields&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(\mathbf{X}|\mathbf{\theta}) = \Big[\sum_{i=1}^n \sum_{k=1}^K \mathbb{1}(y_i=k)\ln \pi_k\Big] + \sum_{k=1}^K\Big[\sum_{i:y_i=c} \ln \mathcal{N}(\mathbf{x}_n|\mathbf{\mu}_k, \mathbf{\Sigma}_k)\Big].
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Given that this is a sum of two different components, we can optimize the multinomial parameter \(\mathbf{\pi}\) and the class Gaussian parameters \((\mathbf{\mu}_k, \mathbf{\Sigma}_k)\) separately.&lt;/p&gt;
+&lt;h3 id=&#34;class-prior&#34;&gt;Class Prior&lt;/h3&gt;
+&lt;p&gt;For multinomial distributions, the class prior parameter estimation \(\hat{\pi}_k\) is easily calculated by counting the number of samples belonging to class \(k\) and dividing it by the total number of samples.&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\pi}_k = \frac{n_k}{n}
+\]&lt;/p&gt;
+&lt;h3 id=&#34;class-gaussians&#34;&gt;Class Gaussians&lt;/h3&gt;
+&lt;p&gt;The Gaussian parameters can be calculated as discussed during the probability review. The parameter estimates are&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\hat{\mathbf{u}}_k &amp;amp;= \frac{1}{n_k}\sum_{i:y_i=k}\mathbf{x}_i\\
+\hat{\Sigma}_k &amp;amp;= \frac{1}{n_k}\sum_{i:y_i=k}(\mathbf{x}_i - \hat{\mathbf{\mu}}_k)(\mathbf{x}_i - \hat{\mathbf{\mu}}_k)^T
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;the-decision-boundary&#34;&gt;The Decision Boundary&lt;/h3&gt;
+&lt;p&gt;The decision boundary between two classes can be visualized at the point when \(p(C_k|\mathbf{x};\theta) = 0.5\).&lt;/p&gt;
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+&lt;p&gt;See &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb&#34;&gt;here&lt;/a&gt; for an example using scikit-learn.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Logistic Regression</title>
+      <link>https://ajdillhoff.github.io/notes/logistic_regression/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/logistic_regression/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#picking-a-model&#34;&gt;Picking a Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#binary-classification&#34;&gt;Binary Classification&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multiple-classes&#34;&gt;Multiple Classes&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;With &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;Linear Regression&lt;/a&gt; we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With logistic regression, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes.&lt;/p&gt;
+&lt;p&gt;In the binary case, the target variable will takes on either a 0 or 1. For \(K &amp;gt; 2\), we will use a \(K\) dimensional vector that has a 1 corresponding to the class encoding for that input and a 0 for all other positions. For example, if our possible target classes were \(\{\text{car, truck, person}\}\), then a target vector for \(\text{person}\) would be \(\mathbf{y} = [0, 0, 1]^T\).&lt;/p&gt;
+&lt;p&gt;This article will stick to a discriminative approach to logistic regression. That is, we define a discriminant function which assigns each data input \(\mathbf{x}\) to a class. For a probabilistic perspective, see &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_discriminant_analysis/&#34;&gt;Linear Discriminant Analysis&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;picking-a-model&#34;&gt;Picking a Model&lt;/h2&gt;
+&lt;p&gt;We will again start with a linear model \(y = f(\mathbf{x}; \mathbf{w})\). Unlike the model used with &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;Linear Regression&lt;/a&gt;, ours will need to predict a discrete class label. The logistic model is often approached by introducing the &lt;strong&gt;odds&lt;/strong&gt; of an event occurring:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{p}{1-p},
+\]&lt;/p&gt;
+&lt;p&gt;where \(p\) is the probability of the event happening.
+As \(p\) increases, the odds of it happening increase exponentially.&lt;/p&gt;
+&lt;p&gt;Our input \(p\) represents the probability in range \((0, 1)\) which we want to map to the real number space.
+To approximate this, we apply the natural logarithm to the odds.&lt;/p&gt;
+&lt;p&gt;The logistic model assumes a linear relationship between the linear model \(\mathbf{w}^T\mathbf{x}\) and the logit function&lt;/p&gt;
+&lt;p&gt;\[
+\text{logit}(p) = \ln \frac{p}{1-p}.
+\]&lt;/p&gt;
+&lt;p&gt;This function maps a value in range \((0, 1)\) to the space of real numbers.
+Under this assumption, we can write&lt;/p&gt;
+&lt;p&gt;\[
+\text{logit}(p) = \mathbf{w}^T\mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;This assumption is reasonable because we ultimately want to predict the &lt;strong&gt;probability&lt;/strong&gt; that an event occurs.
+The output should then be in the range of \((0, 1)\).
+If the logit function produces output in the range of real numbers, as does our linear model \(\mathbf{w}^T\mathbf{x}\), then we ultimately want a function that maps &lt;strong&gt;from&lt;/strong&gt; the range of real numbers to &lt;strong&gt;to&lt;/strong&gt; \((0, 1)\).&lt;/p&gt;
+&lt;p&gt;We can achieve this using the &lt;strong&gt;inverse&lt;/strong&gt; of the logit function, the logistic sigmoid function.
+It is defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\sigma(z) = \frac{1}{1 + \exp(-z)},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(z = \mathbf{w}^T\mathbf{x}\).&lt;/p&gt;
+&lt;p&gt;The reason for this choice becomes more clear when plotting the function, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-23_17-43-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The logistic sigmoid function. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;The logistic sigmoid function. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The inputs on the \(x\) axis are clamped to values between 0 and 1. It is also called a squashing function because of this property. This form is also convenient and arises naturally in many probabilistic settings. With this nonlinear activation function, the form of our model becomes&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(\mathbf{x};\mathbf{w}) = h(\mathbf{w}^T\mathbf{x}),
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(h\) is our choice of activation function.&lt;/p&gt;
+&lt;p&gt;The logistic sigmoid function also has a convenient derivative, which is useful when solving for the model parameters via gradient descent.&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d}{dx} = \sigma(x)(1 - \sigma(x))
+\]&lt;/p&gt;
+&lt;h2 id=&#34;binary-classification&#34;&gt;Binary Classification&lt;/h2&gt;
+&lt;p&gt;Consider a simple dataset with 2 features per data sample. Our goal is to classify the data as being one of two possible classes. For now, we&amp;rsquo;ll drop the activation function so that our model represents a line that separates both groups of data.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-23_18-10-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Two groups of data that are very clearly linearly separable.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;Two groups of data that are very clearly linearly separable.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the binary case, we are approximating \(p(C_1|\mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x})\).
+Then \(p(C_2|\mathbf{x}) = 1 - p(C_1| \mathbf{x})\).&lt;/p&gt;
+&lt;p&gt;The parameter vector \(\mathbf{w}\) is orthogonal to the decision boundary that separates the two classes. The model output is such that \(f(\mathbf{x};\mathbf{w}) = 0\) when \(\mathbf{x}\) lies on the decision boundary. If \(f(\mathbf{x};\mathbf{w}) \geq 0\) then \(\mathbf{x}\) is assigned to class 1. It is assigned to class 2 otherwise. Since we originally stated that the model should predict either a 0 or 1, we can use the model result as input to the &lt;a href=&#34;https://en.wikipedia.org/wiki/Heaviside_step_function&#34;&gt;Heaviside step function&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;fitting-the-model-via-maximum-likelihood&#34;&gt;Fitting the Model via Maximum Likelihood&lt;/h3&gt;
+&lt;p&gt;Let \(y_i \in \{0, 1\}\) be the target for binary classification and \(\hat{y}_i \in (0, 1)\) be the output of a logistic regression model.
+The likelihood function is&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{y}|\mathbf{w}) = \prod_{i=1}^n \hat{y}_i^{y_i}(1 - \hat{y}_i)^{1 - y_i}.
+\]&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s briefly take a look at \(\hat{y}_i^{y_i}(1 - \hat{y}_i)^{1 - y_i}\) to understand the output when the model correctly predicts the \(i^{\text{th}}\) sample or not.
+Since the output is restricted within the range \((0, 1)\), the model will never produce 0 or 1.&lt;/p&gt;
+&lt;p&gt;If the target \(y_i = 0\), then we can evaluate the subexpression \(1 - \hat{y}_i\).
+In this case, the likelihood increases as \(\hat{y}_i\) decreases.&lt;/p&gt;
+&lt;p&gt;If the target \(y_i = 1\), then we evaluate the subexpression \(\hat{y}_i\).&lt;/p&gt;
+&lt;p&gt;When fitting this model, we want to define an error measure based on the above function.
+This is done by taking the negative logarithm of \(p(\mathbf{y}|\mathbf{w})\).&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{w}) = -\ln p(\mathbf{y}|\mathbf{w}) = -\sum_{i=1}^n y_i \ln \hat{y}_i + (1 - y_i) \ln (1 - \hat{y}_i)
+\]&lt;/p&gt;
+&lt;p&gt;This function is commonly referred to as the &lt;strong&gt;cross-entropy&lt;/strong&gt; function.&lt;/p&gt;
+&lt;p&gt;If we use this as an objective function for gradient descent with the understanding that \(\hat{y}_i = \sigma(\mathbf{w}^T \mathbf{x})\), then the gradient of the error function is&lt;/p&gt;
+&lt;p&gt;\[
+\nabla E(\mathbf{w}) = \sum_{i=1}^n (\hat{y}_i - y_i)\mathbf{x}_i.
+\]&lt;/p&gt;
+&lt;p&gt;This results in a similar update rule as linear regression, even though the problem itself is different.&lt;/p&gt;
+&lt;h3 id=&#34;measuring-classifier-performance&#34;&gt;Measuring Classifier Performance&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;How do we determine how well our model is performing?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;We will use L1 loss because it works well with discrete outputs. L1 loss is defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L_1 = \sum_{i}|\hat{y}_i - y_i|,
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\hat{y}_i\) is the ground truth corresponding to \(\mathbf{x}_i\) and \(y_i\) is the output of our model. We can further normalize this loss to bound it between 0 and 1. Either way, a loss of 0 will indicate 100% classification accuracy.&lt;/p&gt;
+&lt;h2 id=&#34;multiple-classes&#34;&gt;Multiple Classes&lt;/h2&gt;
+&lt;p&gt;In multiclass logistic regression, we are dealing with target values that can take on one of \(k\) values \(y \in \{1, 2, \dots, k\}\).
+If our goal is to model the distribution over \(K\) classes, a multinomial distribution is the obvious choice.
+Let \(p(y|\mathbf{x};\theta)\) be a distribution over \(K\) numbers \(w_1, \dots, w_K\) that sum to 1.
+Our parameterized model cannot be represented exactly by a multinomial distribution, so we will derive it so that it satisfies the same constraints.&lt;/p&gt;
+&lt;p&gt;We can start by introducing \(K\) parameter vectors \(\mathbf{w}_1, \dots, \mathbf{w}_K \in \mathbb{R}^{d}\), where \(d\) is the number of input features.
+Then each vector \(\mathbf{w}_k^T \mathbf{x}\) represents \(p(C_k | \mathbf{x};\mathbf{w}_k)\).
+We need to &lt;em&gt;squash&lt;/em&gt; each \(\mathbf{w}_k^T \mathbf{x}\) so that the output sums to 1.&lt;/p&gt;
+&lt;p&gt;This is accomplished via the &lt;strong&gt;softmax function&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;\[
+p(C_k|\mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x})}{\sum_{j} \exp(\mathbf{w}_j^T \mathbf{x})}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;maximum-likelihood&#34;&gt;Maximum Likelihood&lt;/h3&gt;
+&lt;p&gt;The target vector for each sample is \(\mathbf{y}_i \in \mathbb{R}^{k}\).
+Likewise, the output vector \(\hat{\mathbf{y}}_i\) also has \(k\) elements.&lt;/p&gt;
+&lt;p&gt;The maximum likelihood function for the multiclass setting is given by&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{Y}|\mathbf{W}) = \prod_{i=1}^n \prod_{k=1}^K p(C_k|\mathbf{x}_i)^{y_{ik}} = \prod_{i=1}^n \prod_{k=1}^K \hat{y}_{ik}^{y_{ik}}.
+\]&lt;/p&gt;
+&lt;p&gt;\(\mathbf{Y} \in \mathbb{R}^{n \times K}\) is a matrix of all target vectors in the data set.
+As with the binary case, we can take the negative logarithm of this function to produce an error function.&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{W}) = -\ln p(\mathbf{Y}|\mathbf{W}) = -\sum_{i=1}^n \sum_{k=1}^K y_{ik} \ln \hat{y}_{ik}
+\]&lt;/p&gt;
+&lt;p&gt;This is the &lt;strong&gt;cross-entropy&lt;/strong&gt; function for multiclass classification.&lt;/p&gt;
+&lt;p&gt;The gradient of this function is given as&lt;/p&gt;
+&lt;p&gt;\[
+\nabla_{\mathbf{w}_j}E(\mathbf{W}) = \sum_{i=1}^n (\hat{y}_{ij} - y_{ij}) \mathbf{x}_i.
+\]&lt;/p&gt;
+&lt;p&gt;Part of your first assignment will be to work through the derivation of this function.
+It is standard practice at this point, but it is highly valuable to understand how the result was produced.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Neural Networks</title>
+      <link>https://ajdillhoff.github.io/notes/neural_networks/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/neural_networks/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#forward-pass&#34;&gt;Forward Pass&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multi-class-classification&#34;&gt;Multi-Class Classification&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#backpropagation&#34;&gt;Backpropagation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#non-convex-optimization&#34;&gt;Non-Convex Optimization&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://playground.tensorflow.org/&#34;&gt;https://playground.tensorflow.org/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Previously, we studied the &lt;a href=&#34;https://ajdillhoff.github.io/notes/perceptron/&#34;&gt;Perceptron&lt;/a&gt; and saw that while it made for a simple linear classifier, it is severely limited to problems that are already linearly separable.
+This limitation was resolved by introduding a hidden layer with multiple perceptron units, aptly named Multi-Layer Perceptrons.&lt;/p&gt;
+&lt;p&gt;In this series, we will explore the more general method of neural networks.
+We will see that even a network of only two layers can approximate any continuous functional mapping to arbitrary accuracy.
+Through a discussion about network architectures, activation functions, and backpropagation, we will understand and use neural networks to resolve a large number of both classification and regression tasks.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;We will take an abstract view of neural networks in which any formulation of a neural network defines a nonlinear mapping from an input space to some output space.
+This implies that our choice of activation function &lt;strong&gt;must&lt;/strong&gt; be nonlinear.
+The function we create will be parameterized by some weight matrix \(W\).
+Thus, any neural network can be simply formulated as&lt;/p&gt;
+&lt;p&gt;\[
+f(\mathbf{x};W).
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-12_18-08-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;General neural network diagram.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;General neural network diagram.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;A neural network is in part defined by its &lt;strong&gt;layers&lt;/strong&gt;, the number of &lt;strong&gt;nodes&lt;/strong&gt; in each layer, the choice of &lt;strong&gt;activation function&lt;/strong&gt;, and the choice of &lt;strong&gt;loss function&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Each layer has a number of weights equal to the number of input nodes times the number of output nodes.
+This is commonly represented as a weight matrix \(W\).&lt;/p&gt;
+&lt;p&gt;The network produces output through the &lt;strong&gt;forward pass&lt;/strong&gt; and computes the gradients with respect to that output in the &lt;strong&gt;backwards pass&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h2&gt;
+&lt;p&gt;Computing the output is done in what is called the &lt;strong&gt;forward pass&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Our neural network function takes in an input \(\mathbf{x} \in \mathbb{R}^D\), where \(D\) is the number of features in our input space.
+Each output node \(a_j\) in a hidden layer \(h_l\) has a corresponding weight vector \(\mathbf{w}_j^{(l)}\).
+The intermediate output of a hidden layer \(h_l\) is a linear combination of the weights and the input followed by some nonlinear function. Node \(a_j\) of a hidden layer is computed as&lt;/p&gt;
+&lt;p&gt;\[
+a_j = \sum_{i=1}^d w_{ji}^{(l)} x_{i} + w_{j0}^{(l)}.
+\]&lt;/p&gt;
+&lt;p&gt;As with &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;Linear Regression&lt;/a&gt;, we will prepend a constant 1 to our input so that the computation is simply&lt;/p&gt;
+&lt;p&gt;\[
+a_{j} = \sum_{i=0}^d w_{ji}^{(i)} x_i = \mathbf{w}_j^T \mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;The final output of the hidden layer is \(a_j\) transformed by a nonlinear function \(g\) such that&lt;/p&gt;
+&lt;p&gt;\[
+z_j = g(a_j).
+\]&lt;/p&gt;
+&lt;p&gt;We can combine all weight vectors for each hidden layer node into a weight matrix \(W \in \mathbb{R}^{n \times d}\), where \(n\) is the number of nodes in the layer and \(d\) is the number of input features such that&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+W =
+\begin{bmatrix}
+\mathbf{w}_1^T\\
+\vdots\\
+\mathbf{w}_n^T\\
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Then the output of the hidden layer can be computed as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{a} = W\mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;If you instead wanted to separate the bias term, this would be&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{a} = W\mathbf{x} + \mathbf{b}.
+\]&lt;/p&gt;
+&lt;p&gt;Using the notation to specify the individual layer, we can write the output of a full network.
+Let \(W^{(l)} \in \mathbb{R}^{n_{l} \times n_{l-1}}\) be the weights for layer \(l\) which have \(n_{l-1}\) input connections and \(n_{l}\) output nodes.
+The activation function for layer \(l\) is given by \(g^{(l)}\).&lt;/p&gt;
+&lt;p&gt;The complete forward pass of the network is computed by repeating the following step for all layers:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{z}^{(l)} = g^{(l)}(\mathbf{a}^{(l-1)}),
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{a}^{(l-1)} = W^{(l-1)}\mathbf{z}^{(l-1)} + \mathbf{b}^{(l-1)}.
+\]&lt;/p&gt;
+&lt;p&gt;Once all layers have been computed, then the output of the last layer, \(\hat{\mathbf{y}}^{(L)}\) is used as the final output of the model.
+For training, this is compared with some ground truth label \(\mathbf{y}\) using a loss function \(\mathcal{L}\):&lt;/p&gt;
+&lt;p&gt;\[
+\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;xor-example&#34;&gt;XOR Example&lt;/h3&gt;
+&lt;p&gt;Consider the XOR problem. A single &lt;a href=&#34;https://ajdillhoff.github.io/notes/perceptron/&#34;&gt;Perceptron&lt;/a&gt; was unable to solve that problem.
+However, adding a hidden layer and forming a multi-layer perceptron network allowed for a more complex decision boundary.
+Consider the network below and produce the output given all combinations of binary input:
+\(\{(0, 0), (0, 1), (1, 0), (1, 1)\}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_22-36-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A network with 1 hidden layer that computes XOR. Source: &amp;lt;https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf&amp;gt;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;A network with 1 hidden layer that computes XOR. Source: &lt;a href=&#34;https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf&#34;&gt;https://athitsos.utasites.cloud/courses/cse4309_fall2021/lectures/09a_neural_networks.pdf&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;activation-functions&#34;&gt;Activation Functions&lt;/h2&gt;
+&lt;h3 id=&#34;sigmoid-function&#34;&gt;Sigmoid Function&lt;/h3&gt;
+&lt;p&gt;\[
+g(x) = \frac{1}{1 + e^{-x}}
+\]&lt;/p&gt;
+&lt;p&gt;The logistic sigmoid function serves two purposes.
+First, it allows the output of the neuron to be interpreted as a posterior probability.
+Note that this is not actually a probability.
+Second, it is a continuous function for which the derivative can be computed:&lt;/p&gt;
+&lt;p&gt;\[
+g&amp;rsquo;(x) = g(x)(1 - g(x)).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;hyperbolic-tangent-function&#34;&gt;Hyperbolic Tangent Function&lt;/h3&gt;
+&lt;p&gt;\[
+\tanh x = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}}
+\]&lt;/p&gt;
+&lt;p&gt;The hyperbolic tangent function maps input to a range of \((-1, 1)\).&lt;/p&gt;
+&lt;p&gt;The derivative is calculated as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d}{dx} \tanh x = 1 - \tanh^2 x.
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_23-00-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Hyperbolic Tangent Function. Source: Wolfram&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;Hyperbolic Tangent Function. Source: Wolfram
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Terms&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;bias&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;activation function&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Neurons fire after input reaches some threshold.&lt;/li&gt;
+&lt;li&gt;Differential activation functions necessary for backpropagation.&lt;/li&gt;
+&lt;li&gt;Multi-class learning&lt;/li&gt;
+&lt;li&gt;How long to train?&lt;/li&gt;
+&lt;li&gt;Weight decay&lt;/li&gt;
+&lt;li&gt;How many layers versus how many nodes per layer?&lt;/li&gt;
+&lt;li&gt;Training&lt;/li&gt;
+&lt;li&gt;Data split (train/test/val)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;multi-class-classification&#34;&gt;Multi-Class Classification&lt;/h2&gt;
+&lt;p&gt;Consider an output layer of a network with \(k\) nodes.
+Each of these nodes represents a decision node for a one-versus-all classifier.
+For a classification task, we have to think about whether or not the sum of squares loss function works.&lt;/p&gt;
+&lt;p&gt;As far as activation functions go, the logistic sigmoid function is a good way to produce some interpretation of probability.
+If we treat every output node as its own one versus all classifier, then a logistic sigmoid at the end of each one would
+indicate the &amp;ldquo;probability&amp;rdquo; that node \(k\) assigns class \(k\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How do we formulate this in a neural network?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The number of nodes in the output layer will be \(K\), the number of classes.
+Since the output of each node produces a value in range \((0, 1)\), we want to construct a target value that works with this.
+Instead of assigning an integer to each class label (e.g. 1 for class 2, 2 for class 3, etc.), we will encode the target label as a \(K\) dimensional vector.
+For example, if our class label is for the class 1, then the corresponding target vector will be&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{t} =
+\begin{bmatrix}
+1\\
+0\\
+\vdots\\
+0
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Since the output of our final layer is also a \(K\) dimensional vector, we can compare the two using some loss function.&lt;/p&gt;
+&lt;h2 id=&#34;backpropagation&#34;&gt;Backpropagation&lt;/h2&gt;
+&lt;p&gt;Given a series of linear layers with nonlinear activation functions,
+how can we update the weights across the entire network?&lt;/p&gt;
+&lt;p&gt;The short answer is through the chain rule of differentiation.
+Let&amp;rsquo;s explore this through an example.&lt;/p&gt;
+&lt;p&gt;After constructing some series of hidden layers with an arbitrary number of nodes,
+we will pick an error function that provides a metric of how our network performs
+on a given regression or classification task.
+This loss is given by \(\mathcal{L}\).&lt;/p&gt;
+&lt;p&gt;Neural networks are traditionally trained using &lt;strong&gt;gradient descent&lt;/strong&gt;.
+The goal is to optimize the weights such that they result in the lowest loss, or error.
+This is also why our choice of loss function is important.&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{W}^* = \text{argmin}\frac{1}{n}\sum_{i=1}^n \mathcal{L}(f(\mathbf{x}^{(i)}; \mathbf{W}), \mathbf{y}^{(i)})
+\]&lt;/p&gt;
+&lt;p&gt;We first compute the gradients of the network with respect to the weights and biases.
+Then, we use those gradients to update our previous values for the weights and biases.&lt;/p&gt;
+&lt;h3 id=&#34;a-simple-example&#34;&gt;A Simple Example&lt;/h3&gt;
+&lt;p&gt;We will first look at computing these gradients on a smaller network for binary classification with 1 hidden layer and 1 output layer.
+The loss function is defined using the binary cross-entropy function:&lt;/p&gt;
+&lt;p&gt;\[
+\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}) = -\mathbf{y}\log \hat{\mathbf{y}} - (1 - \mathbf{y}) \log (1 - \hat{\mathbf{y}})
+\]&lt;/p&gt;
+&lt;p&gt;The network&amp;rsquo;s output is computed in sequence following&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{a}^{(1)} &amp;amp;= W^{(1)}\mathbf{x} + \mathbf{b}^{(1)}\\
+\mathbf{z}^{(1)} &amp;amp;= g^{(1)}(\mathbf{a}^{(1)})\\
+\mathbf{a}^{(2)} &amp;amp;= W^{(2)}\mathbf{z}^{(1)} + \mathbf{b}^{(2)}\\
+\mathbf{z}^{(2)} &amp;amp;= g^{(2)}(\mathbf{a}^{(2)})\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The goal is to compute the gradients for all weights and biases:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\mathcal{L}}{dW^{(1)}},\quad \frac{d\mathcal{L}}{d\mathbf{b}^{(1)}},\quad \frac{d\mathcal{L}}{dW^{(2)}},\quad \frac{d\mathcal{L}}{d\mathbf{b}^{(2)}}.
+\]&lt;/p&gt;
+&lt;p&gt;Starting with the weights of the output layer:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\mathcal{L}}{dW^{(2)}} = \frac{d\mathcal{L}}{d\mathbf{z}^{(2)}} \frac{d\mathbf{z}^{(2)}}{d\mathbf{a}^{(2)}} \frac{d\mathbf{a}^{(2)}}{dW^{(2)}}.
+\]&lt;/p&gt;
+&lt;p&gt;The first step is to compute the partial gradient of the loss function with respect to its input \(\hat{\mathbf{y}} = \mathbf{z}^{(2)}\):&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\mathcal{L}}{d\mathbf{z}^{(2)}} = \frac{\mathbf{z}^{(2)} - \mathbf{y}}{\mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)})}.
+\]&lt;/p&gt;
+&lt;p&gt;Next, compute the gradient of the last layer&amp;rsquo;s activation function with respect to its input \(\mathbf{a}^{(2)}\):&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\mathbf{z}^{(2)}}{d\mathbf{a}^{(2)}} = \mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)}).
+\]&lt;/p&gt;
+&lt;p&gt;Finally, we compute \(\frac{d\mathbf{a}^{(2)}}{dW^{(2)}}\):
+\[
+\frac{d\mathbf{a}^{(2)}}{dW^{(2)}} = \mathbf{z}^{(1)}.
+\]&lt;/p&gt;
+&lt;p&gt;Putting all of this together yields&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{d\mathcal{L}}{dW^{(2)}} &amp;amp;= \frac{\mathbf{z}^{(2)} - \mathbf{y}}{\mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)})} * \mathbf{z}^{(2)}(1 - \mathbf{z}^{(2)}) * \mathbf{z}^{(1)}\\
+&amp;amp;= \mathbf{z}^{(1)} (\mathbf{z}^{(2)} - \mathbf{y}).
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;non-convex-optimization&#34;&gt;Non-Convex Optimization&lt;/h2&gt;
+&lt;p&gt;Optimizing networks with non-linearities produces a non-convex landscape.
+Depending on our choice of optimization algorithm and initial starting point, the algorithm will most likely get &amp;ldquo;stuck&amp;rdquo; in some local minimum.
+Consider the figure below produced by (&lt;!-- raw HTML omitted --&gt;Li et al. 2017&lt;!-- raw HTML omitted --&gt;).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_09-48-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Loss surface of ResNet-56 (Li et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 4: &lt;!-- raw HTML omitted --&gt;Loss surface of ResNet-56 (Li et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Perceptron</title>
+      <link>https://ajdillhoff.github.io/notes/perceptron/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/perceptron/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-perceptron-learning-algorithm&#34;&gt;The Perceptron Learning Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#limitations-of-single-layer-perceptrons&#34;&gt;Limitations of Single-Layer Perceptrons&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;A popular example of a &lt;a href=&#34;https://ajdillhoff.github.io/notes/logistic_regression/&#34;&gt;Logistic Regression&lt;/a&gt; model is the &lt;strong&gt;perceptron&lt;/strong&gt;. Proposed by Frank Rosenblatt in 1962, the perceptron is defined as a generalized linear model:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(\mathbf{w}^T\mathbf{\phi}(\mathbf{x})),
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\phi\) is a basis function and \(f\) is a stepwise function with the form&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(a) =
+\begin{cases}
+1, a \geq 0\\
+-1, a &amp;lt; 0
+\end{cases}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;To match this, the targets will take on a value of either 1 or -1.&lt;/p&gt;
+&lt;h2 id=&#34;the-perceptron-learning-algorithm&#34;&gt;The Perceptron Learning Algorithm&lt;/h2&gt;
+&lt;p&gt;Based on the stepwise function, the parameters \(\mathbf{w}\) should lead to outputs above 0 for one class and outputs below 0 for the other.
+There is 0 error with a correct classification.&lt;/p&gt;
+&lt;p&gt;The original formulation does not work well with gradient based optimization methods due to the fact that the derivative of the stepwise function is 0 almost everyone. To get around this, the perceptron criterion is used:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\hat{y}_i\) is the target class (either 1 or -1).&lt;/p&gt;
+&lt;p&gt;An incorrect classification will minimize \(\mathbf{w}^T\phi_i y_i\). We can consider this loss only for misclassified patterns.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Update Steps&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;For each input, evaluate \(f(\mathbf{w}^T\phi(\mathbf{x}_i))\).&lt;/li&gt;
+&lt;li&gt;For incorrect classifications
+&lt;ul&gt;
+&lt;li&gt;Add \(\phi(\mathbf{x}_i)\) to \(\mathbf{w}\) estimate for class 1&lt;/li&gt;
+&lt;li&gt;Subtract \(\phi(\mathbf{x}_i)\) from \(\mathbf{w}\) for class 2.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Does not necessarily get better each step, but guaranteed to converge.&lt;/p&gt;
+&lt;h2 id=&#34;limitations-of-single-layer-perceptrons&#34;&gt;Limitations of Single-Layer Perceptrons&lt;/h2&gt;
+&lt;p&gt;Single layer perceptrons are limited to solving linearly separable patterns. As we have seen with a few datasets now, expecting our data to be linearly separable is wishful thinking. Minsky and Papert exposed this limitation in their book &lt;a href=&#34;https://en.wikipedia.org/wiki/Perceptrons_(book)&#34;&gt;Perceptrons: an introduction to computational geometry&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Consider the example XOR problem. It is a binary classification problem consisting of 4 data points. It is &lt;strong&gt;not&lt;/strong&gt; linearly separable as seen in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-06-27_21-22-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;XOR cannot be solved with a linear classifier.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;XOR cannot be solved with a linear classifier.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This is the result of using only a single Perceptron. What if we added another perceptron? A single perceptron computes \(\mathbf{w}^T + b\). It is important to transform the first perceptron&amp;rsquo;s output using a non-linear activation function, otherwise the output would be similar to that of a logistic regression model. The updated &amp;ldquo;network&amp;rdquo; is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-06-27_21-54-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A 2 layer perceptron for which each layer has a single node.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;A 2 layer perceptron for which each layer has a single node.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The result is the same! The original input in 2D is transformed to a single dimensional output. This is then used as input to the second perceptron. The result is a linear decision boundary followed by another linear decision boundary. What if we used 2 perceptrons in the first layer? The idea is that using two linear decision boundaries in a single space would allow our model to create a more complex boundary. The updated network is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-06-27_21-58-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A 2 layer perceptron for which the first layer has 2 nodes.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;A 2 layer perceptron for which the first layer has 2 nodes.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This effectively solves the XOR problem! Since each node computes a linear combination of the input, we can visualize two decision boundaries with respect to the input space.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-06-27_22-04-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Visualization of input space.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 4: &lt;!-- raw HTML omitted --&gt;Visualization of input space.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Similarly, we can visualize how the data points are transformed by visualizing the space of the output layer.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-06-27_22-05-05_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Output space&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 5: &lt;!-- raw HTML omitted --&gt;Output space
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>Linear Regression</title>
+      <link>https://ajdillhoff.github.io/notes/linear_regression/</link>
+      <pubDate>Wed, 12 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/linear_regression/</guid>
+      <description>&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#probabilistic-interpretation&#34;&gt;Probabilistic Interpretation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#solving-with-normal-equations&#34;&gt;Solving with Normal Equations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#another-approach-to-normal-equations&#34;&gt;Another Approach to Normal Equations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#fitting-polynomials&#34;&gt;Fitting Polynomials&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#linear-basis-functions&#34;&gt;Linear Basis Functions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Given a dataset of observations \(\mathbf{X} \in \mathbb{R}^{n \times d}\), where \(n\) is the number of samples and \(d\) represents the number of features per sample, and corresponding target values \(\mathbf{Y} \in \mathbb{R}^n\), create a simple prediction model which predicts the target value \(\mathbf{y}\) given a new observation \(\mathbf{x}\). The classic example in this case is a linear model, a function that is a linear combination of the input features and some weights \(\mathbf{w}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-15_13-35-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Plot of univariate data where the (x) values are features and (y) are observations.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;Plot of univariate data where the (x) values are features and (y) are observations.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The generated data is plotted above along with the underlying true function that was used to generate it. If we already know what the true function is, our job is done. Suppose that we only have the data points (in blue). How do we go about modelling it? It is reasonable to first visualize the data and observe that it does follow a linear pattern. Thus, a linear model would be a decent model to choose.&lt;/p&gt;
+&lt;p&gt;If the data followed a curve, we may decide to fit a polynomial. We will look at an example of that later on. For now, let&amp;rsquo;s formalize all of the information that we have.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\((\mathbf{x}, \mathbf{y})\) - Data points from the original dataset. Generally, \(\mathbf{x}\) is a vector of features and \(\mathbf{y}\) is the target vector. In our simple dataset above, these are both scalar values.&lt;/li&gt;
+&lt;li&gt;\(\mathbf{w} = (w_0, w_1)\) - Our model parameters. Comparing to the equation \(y = mx + b\), \(w_0\) is our bias term and \(w_1\) is our slope parameter.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;making-predictions&#34;&gt;Making Predictions&lt;/h3&gt;
+&lt;p&gt;Given \(\mathbf{w}\), we can make a prediction for a new data sample \(\mathbf{x} = x_1\).&lt;/p&gt;
+&lt;p&gt;\[
+h(\mathbf{x}; \mathbf{w}) = w_0 + w_1 x_1
+\]&lt;/p&gt;
+&lt;p&gt;Note that the bias term is always added to the result. We can simplify this into a more general form by appending a constant 1 (s.t. \(x_0 = 1\)) to each of our samples such that \(\mathbf{x} = (1, x_1, &amp;hellip;, x_d)\). Then, the general linear model becomes&lt;/p&gt;
+&lt;p&gt;\[
+h(\mathbf{x}; \mathbf{w}) = \sum_{i=0}^{d} w_i x_i = \mathbf{w}^T \mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;If our data happened to have more than 1 feature, it would be easy enough to model it appropriately using this notation.&lt;/p&gt;
+&lt;h3 id=&#34;determining-fitness&#34;&gt;Determining Fitness&lt;/h3&gt;
+&lt;p&gt;If we really wanted to, we could fit our model by plotting it and manually adjusting the weights until our model looked acceptable by some qualitative standard. Fortunately we won&amp;rsquo;t be doing that. Instead, we will use a quantitative measurement that provides a metric of how well our current parameters fit the data.&lt;/p&gt;
+&lt;p&gt;For this, we use a &lt;strong&gt;&lt;strong&gt;cost function&lt;/strong&gt;&lt;/strong&gt; or &lt;strong&gt;&lt;strong&gt;loss function&lt;/strong&gt;&lt;/strong&gt;. The most common one to use for this type of model is the least-squares function:&lt;/p&gt;
+&lt;p&gt;\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;stochastic-gradient-descent&#34;&gt;Stochastic Gradient Descent&lt;/h3&gt;
+&lt;p&gt;Depending on the random initialization of parameters, our error varies greatly. We can observe that no matter what the chose parameters are, there is no possible way we can achieve an error of 0. The best we can do is minimize this error:&lt;/p&gt;
+&lt;p&gt;\[
+\min_{\mathbf{w}} J(\mathbf{w}).
+\]&lt;/p&gt;
+&lt;p&gt;For this, we rely on stochastic gradient descent. The basic idea is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Begin with an initial guess for \(\mathbf{w}\).&lt;/li&gt;
+&lt;li&gt;Compare the prediction for sample \(\mathbf{x}^{(i)}\) with its target \(\mathbf{y}^{(i)}\).&lt;/li&gt;
+&lt;li&gt;Update \(\mathbf{w}\) based on the comparison in part 2.&lt;/li&gt;
+&lt;li&gt;Repeat steps 2 and 3 on the dataset until the loss has converged.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Steps 1, 3, and 4 are easy enough. What about step 2? How can we possibly know how to modify \(\mathbf{w}\) such that \(J(\mathbf{w})\) will decrease? By computing the gradient \(\frac{d}{d\mathbf{w}}J(\mathbf{w})\)! How will we know when we have arrived at a minima? When \(\nabla J(\mathbf{w}) = 0\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{d}{d\mathbf{w}}J(\mathbf{w}) &amp;amp;= \frac{d}{d\mathbf{w}}\frac{1}{2}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\\
+&amp;amp;= 2 \cdot \frac{1}{2}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \cdot \frac{d}{d\mathbf{w}} (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})\\
+&amp;amp;= (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \cdot \frac{d}{d\mathbf{w}} (\mathbf{w}^T \mathbf{x}_{i} - \mathbf{y}_{i})\\
+&amp;amp;= (h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i}) \mathbf{x}_{i}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The gradient represents the direction of greatest change for a function evaluated With this gradient, we can use an update rule to modify the previous parameter vector \(\mathbf{w}\):&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{w}_{t+1} = \mathbf{w}_{t} - \alpha \sum_{i=1}^{n} (h(\mathbf{x}_{i};\mathbf{w}_{t}) - \mathbf{y}_{i}) \mathbf{x}_{i}.
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\alpha\) is an update hyperparameter that allows us to control how big or small of a step our weights can take with each update. In general, a smaller value will be more likely to get stuck in local minima. However, too large of a value may never converge to any minima.&lt;/p&gt;
+&lt;p&gt;Another convenience of this approach is that it is possible to update the weights based on a single sample, batch of samples, or the entire dataset. This sequential process makes optimization using very large dataset feasible.&lt;/p&gt;
+&lt;h2 id=&#34;probabilistic-interpretation&#34;&gt;Probabilistic Interpretation&lt;/h2&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;Probability theory is nothing but common sense reduced to calculation.&amp;rdquo; - Pierre-Simon Laplace&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;Recall Bayes&amp;rsquo; theorem:&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{w}|\mathbf{X}) = \frac{p(\mathbf{X}|\mathbf{w})p(\mathbf{w})}{p(\mathbf{X})}.
+\]&lt;/p&gt;
+&lt;p&gt;That is, the &lt;em&gt;posterior&lt;/em&gt; probability of the weights conditioned on the observered data \(\mathbf{X}\) is equal to the &lt;em&gt;likelihood&lt;/em&gt; of the observed data given the times the &lt;em&gt;prior&lt;/em&gt; distribution. This base notation doesn&amp;rsquo;t line up well with our problem. For our problem, we have observations \(\mathbf{Y}\) which are dependent on the input features \(\mathbf{X}\):&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{w}|\mathbf{X}, \mathbf{Y}) = \frac{p(\mathbf{Y}|\mathbf{X}, \mathbf{w}) p(\mathbf{w}|\mathbf{X})}{p(\mathbf{Y}|\mathbf{X})},
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{X} \in \mathbb{R}^{n \times d}\) and \(\mathbf{Y} \in \mathbb{R}^n\).&lt;/p&gt;
+&lt;p&gt;The choice of least squares also has statistical motivations. As discussed previously, we are making a reasonable assumption that there is some relationship between the features of the data and the observed output. This is typically modeled assume&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{Y}} = f(\mathbf{X}) + \epsilon.
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\epsilon\) is a random error term that is independent of \(\mathbf{X}\) and has 0 mean. This term represents any random noise that occurs either naturally or from sampling. It also includes any effects that are not properly captured by \(f\). Rearranging the terms of this equation to solve for \(\epsilon\) allows us to define the discrepencies in the model:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{\epsilon}_i = h(\mathbf{x}_{i}; \mathbf{w}) - \mathbf{y}_{i}.
+\]&lt;/p&gt;
+&lt;p&gt;If we assume that these discrepancies are independent and identically distributed with variance \(\sigma^2\) and Gaussian PDF \(f\), the likelihood of observations \(\mathbf{y}^{(i)}\) given parameters \(\mathbf{w}\) is&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = \prod_{i=1}^{n} f(\epsilon_i; \sigma),
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+f(\epsilon_i; \sigma) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{\epsilon^2}{2\sigma^2}\Big).
+\]&lt;/p&gt;
+&lt;p&gt;This new parameter changes our original distribution function to&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{w}|\mathbf{X}, \mathbf{Y}, \sigma) = \frac{p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) p(\mathbf{w}|\mathbf{X}, \sigma)}{p(\mathbf{Y}|\mathbf{X}, \sigma)}.
+\]&lt;/p&gt;
+&lt;p&gt;Two things to note before moving on. First, the prior \(p(\mathbf{Y}|\mathbf{X}, \sigma)\) is a normalizing constant to ensure that the posterior is a valid probability distribution. Second, if we assume that all value for \(\mathbf{w}\) are equally likely, then \(p(\mathbf{w}|\mathbf{x}, \sigma)\) also becomes constant. This is a convenient assumption which implies that maximizing the posterior is equivalent to maximizing the likelihood function.&lt;/p&gt;
+&lt;p&gt;With that out of the way, we can focus solely on the likelihood function. Expanding out the gaussian PDF \(f\) yields&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = -\frac{n}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\Big).
+\]&lt;/p&gt;
+&lt;p&gt;We can see that maximizing \(p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma)\) is the same as minimizing the sum of squares. In practice, we use the negative log of the likelihood function since the negative logarithm is monotonically decreasing.&lt;/p&gt;
+&lt;h2 id=&#34;solving-with-normal-equations&#34;&gt;Solving with Normal Equations&lt;/h2&gt;
+&lt;p&gt;You may have studied the normal equations when you took Linear Algebra. The normal equations are motivated by finding approximate solutions to \(A\mathbf{x} = \mathbf{b}\). Most of the earlier part of linear algebra courses focus on finding exact solutions by solving systems of equations using Gaussian elimination (row reduction). Approximate solutions can be found by projecting the observed data points \(\mathbf{b}\) onto the column space of \(A\) and solving \(A \mathbf{x} = \hat{\mathbf{b}}\), where \(\hat{\mathbf{b}} = \text{proj}_{\text{Col} A}\mathbf{b}\). Then, \(\mathbf{b} - \hat{\mathbf{b}}\) represents a vector orthogonal to \(\text{Col}A\).&lt;/p&gt;
+&lt;p&gt;Since each column vector of \(A\) is orthogonal to \(\mathbf{b} - \hat{\mathbf{b}}\), the dot product between them should be 0. Rewriting this, we get&lt;/p&gt;
+&lt;p&gt;\begin{aligned}
+A^T(\mathbf{b} - A\mathbf{x}) &amp;amp;= \mathbf{0}\\
+A^T \mathbf{b} - A^T A \mathbf{x} &amp;amp;= \mathbf{0}.
+\end{aligned}&lt;/p&gt;
+&lt;p&gt;This means that each least-squares solution of \(A\mathbf{x} = \mathbf{b}\) satisfies&lt;/p&gt;
+&lt;p&gt;\[
+A^T A \mathbf{x} = A^T \mathbf{b}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s take our univariate problem of \((\mathbf{x}, \mathbf{y})\) pairs. To use the normal equations to solve the least squares problem, we first change the notation just a bit as not confuse our data points and our parameters:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{X}^T \mathbf{X} \beta = \mathbf{X}^T \mathbf{y}
+\]&lt;/p&gt;
+&lt;p&gt;Create the design matrix \(\mathbf{X}\) where each row represents the the \(\mathbf{x}\) values. Recall that even though we only have 1 feature for \(\mathbf{x}\), we append the bias constant as \(x_0 = 1\) to account for the bias parameter. \(\mathbf{X}\) is then&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{X} =
+\begin{bmatrix}
+x_0^{(0)} &amp;amp; x_1^{(0)}\\
+x_0^{(1)} &amp;amp; x_1^{(1)}\\
+\vdots &amp;amp; \vdots \\
+x_0^{(n)} &amp;amp; x_1^{(n)}
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The parameter vector is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\beta =
+\begin{bmatrix}
+\beta_0\\
+\beta_1
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The observed values are packed into \(\mathbf{y}\). We can then solve for \(\beta\) using any standard solver:&lt;/p&gt;
+&lt;p&gt;\[
+\beta = (\mathbf{X}^T \mathbf{X})^{-1}X^T \mathbf{y}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;rank-deficient-matrices&#34;&gt;Rank-Deficient matrices&lt;/h3&gt;
+&lt;p&gt;In the event that the matrix \(\mathbf{X}^T \mathbf{X}\) is singular, then its inverse cannot be computed.
+This implies that one or more of the features is a linear combination of the others.&lt;/p&gt;
+&lt;p&gt;This can be detected by checking the rank of \(\mathbf{X}^T \mathbf{X}\) before attempting to compute the inverse.
+You can also determine which features are redundant via Gaussian elimination.
+The columns in the reduced matrix that do not have a pivot entry are redundant.&lt;/p&gt;
+&lt;h2 id=&#34;another-approach-to-normal-equations&#34;&gt;Another Approach to Normal Equations&lt;/h2&gt;
+&lt;p&gt;We can arrive at the normal equations by starting at the probabilistic perspective. Recall the likelihood function&lt;/p&gt;
+&lt;p&gt;\[
+p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = -\frac{n}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i};\mathbf{w}) - \mathbf{y}_{i})^2\Big).
+\]&lt;/p&gt;
+&lt;p&gt;Taking the natural log of this function yields&lt;/p&gt;
+&lt;p&gt;\[
+\ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = - \frac{1}{2\sigma^2}\sum_{i=1}^{n}(h(\mathbf{x}_{i}; \mathbf{w}) - \mathbf{y}_{i})^2 - \frac{n}{2}\ln(\sigma^2) - \frac{n}{2}\ln(2\pi).
+\]&lt;/p&gt;
+&lt;p&gt;As mentioned before, maximizing the likelihood function is equivalent to minimizing the sum-of-squares function. Thus, we must find the critical point of the likelihood function by computing the gradient (w.r.t. \(\mathbf{w}\)) and solving for 0:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) &amp;amp;= \sum_{i=1}^{n}(\mathbf{w}^T\mathbf{x}_{i} - \mathbf{y}_{i})\mathbf{x}_{i}^{T}\\
+&amp;amp;= \mathbf{w}^T \sum_{i=1}^{n}\mathbf{x}_i\mathbf{x}_i^T - \sum_{i=1}^{n}\mathbf{y}_{i}\mathbf{x}_{i}^{T}\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Noting that \(\sum_{i=1}^{n}\mathbf{x}_i \mathbf{x}_i^T\) is simply matrix multiplication, we can use&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{X} =
+\begin{bmatrix}
+\mathbf{x}_1^T\\
+\vdots\\
+\mathbf{x}_n^T\\
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Then, \(\sum_{i=1}^{n}\mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{X}\), \(\sum_{i=1}^{n}\mathbf{y}_i \mathbf{x}_i^T = \mathbf{Y}^T \mathbf{X}\), and&lt;/p&gt;
+&lt;p&gt;\[
+\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = \mathbf{w}^T \mathbf{X}^T \mathbf{X} - \mathbf{Y}^T \mathbf{X}.
+\]&lt;/p&gt;
+&lt;p&gt;Since we are finding the maximum likelihood, we set \(\nabla \ln p(\mathbf{Y}|\mathbf{X}, \mathbf{w}, \sigma) = 0\) and solve for \(\mathbf{w}\):&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{w} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{Y}.
+\]&lt;/p&gt;
+&lt;p&gt;Thus, we arrive again at the normal equations and can solve this using a linear solver.&lt;/p&gt;
+&lt;h2 id=&#34;fitting-polynomials&#34;&gt;Fitting Polynomials&lt;/h2&gt;
+&lt;p&gt;Not every dataset can be modeled using a simple line.
+Data can be exponential or logarithmic in nature.
+We may also look to use &lt;a href=&#34;https://en.wikipedia.org/wiki/Spline_(mathematics)&#34;&gt;splines&lt;/a&gt; to model more complex data.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-01_17-08-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Data generated from a nonlinear function with added noise.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;Data generated from a nonlinear function with added noise.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The dataset above was generated from the function as seen in red.
+Using a simple linear model (blue) does not fit the data well.
+For cases such as this, we can fit a polynomial to the data by changing our input data.&lt;/p&gt;
+&lt;p&gt;The simple dataset above has 100 paired samples \((x_i, y_i)\).
+There is only a single feature \(x_i\) for each sample.
+It is trivial to determine that the shape of the data follows a cubic function.
+One solution would be to raise each input to the power of 3.
+This results in the function (blue) below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-01_17-30-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Solution from raising each input to the power of 3.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;Solution from raising each input to the power of 3.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To fit this data, we need to add more features to our input.
+Along with the original \(x_i\) features, we will also add \(x_i^2\) and \(x_i^3\).
+Our data is then 3 dimensional.
+The figure below shows the least squares fit using the modified data (blue).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-01_17-38-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Least squares fit using a polynomial model (blue).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 4: &lt;!-- raw HTML omitted --&gt;Least squares fit using a polynomial model (blue).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;A demo of this can be found &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/linear_regression/Linear%20Regression.ipynb&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;linear-basis-functions&#34;&gt;Linear Basis Functions&lt;/h2&gt;
+&lt;p&gt;Linear models are linear in their inputs.
+This formulation is simple, producing models with limited representation.
+Linear models can be extended as a linear combination of fixed nonlinear functions of the original features.
+In the previous section, was saw that they could easily be extended to fit polynomial functions.&lt;/p&gt;
+&lt;p&gt;We now consider creating a model that transforms the original input using one or more nonlinear functions.
+This type of model is called a &lt;strong&gt;&lt;strong&gt;linear basis function model&lt;/strong&gt;&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;\[
+h(\mathbf{x};\mathbf{w}) = \sum_{j=1}^{m} w_j\phi_j(\mathbf{x})
+\]&lt;/p&gt;
+&lt;p&gt;Common basis functions are the sigmoid, Gaussian, or exponential function.
+If we choose the \(\sin\) function as a basis function, we can more closely fit our dataset using the least squares approach.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-01_18-46-08_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;A linear basis function model using the sin function as the choice of basis.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;!-- raw HTML omitted --&gt;Figure 5: &lt;!-- raw HTML omitted --&gt;A linear basis function model using the sin function as the choice of basis.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+  </channel>
+</rss>
