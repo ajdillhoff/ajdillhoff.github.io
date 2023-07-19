@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Definition Maximum Likelihood Estimation Making a Decision Relation to Multinomial Logistic Regression MNIST Example Gaussian Formulation Introduction To motivate naive Bayes classifiers, let&rsquo;s look at slightly more complex data. The MNIST dataset was one of the standard benchmarks for computer vision classification algorithms for a long time. It remains useful for educational purposes. The dataset consists of 60,000 training images and 10,000 testing images of size \(28 \times 28\).">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/naive_bayes/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/naive_bayes/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/naive_bayes/">
+  <meta property="og:title" content="Naive Bayes | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Definition Maximum Likelihood Estimation Making a Decision Relation to Multinomial Logistic Regression MNIST Example Gaussian Formulation Introduction To motivate naive Bayes classifiers, let&rsquo;s look at slightly more complex data. The MNIST dataset was one of the standard benchmarks for computer vision classification algorithms for a long time. It remains useful for educational purposes. The dataset consists of 60,000 training images and 10,000 testing images of size \(28 \times 28\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Naive Bayes | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Naive Bayes</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    3 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/naive_bayes/&amp;text=Naive%20Bayes" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/naive_bayes/&amp;t=Naive%20Bayes" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Naive%20Bayes&amp;body=https://ajdillhoff.github.io/notes/naive_bayes/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/naive_bayes/&amp;title=Naive%20Bayes" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Naive%20Bayes%20https://ajdillhoff.github.io/notes/naive_bayes/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/naive_bayes/&amp;title=Naive%20Bayes" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
+<li><a href="#making-a-decision">Making a Decision</a></li>
+<li><a href="#relation-to-multinomial-logistic-regression">Relation to Multinomial Logistic Regression</a></li>
+<li><a href="#mnist-example">MNIST Example</a></li>
+<li><a href="#gaussian-formulation">Gaussian Formulation</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>To motivate naive Bayes classifiers, let&rsquo;s look at slightly more complex data. The MNIST dataset was one of the standard benchmarks for computer vision classification algorithms for a long time. It remains useful for educational purposes. The dataset consists of 60,000 training images and 10,000 testing images of size \(28 \times 28\). These images depict handwritten digits. For the purposes of this section, we will work with binary version of the images. This implies that each data sample has 784 binary features.</p>
+<p>We will use the naive Bayes classifier to make an image classification model which predicts the class of digit given a new image. Each image will be represented by a vector \(\mathbf{x} \in \mathbb{R}^{784}\). Modeling \(p(\mathbf{x}|C_k)\) with a multinomial distribution would require \(10^{784} - 1\) parameters since there are 10 classes and 784 features.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-01_18-47-49_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Samples of the MNIST training dataset." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Samples of the MNIST training dataset.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>With the naive assumption that the features are independent conditioned on the class, the number model parameters becomes \(10 \times 784\).</p>
+<h2 id="definition">Definition</h2>
+<p>A naive Bayes classifier makes the assumption that the features of the data are independent. That is,
+\[
+p(\mathbf{x}|C_k, \mathbf{\theta}) = \prod_{d=1}^D p(x_i|C_k, \theta_{dk}),
+\]
+where \(\mathbf{\theta}_{dk}\) are the parameters for the class conditional density for class \(k\) and feature \(d\). Using the MNIST dataset, \(\mathbf{\theta}_{dk} \in \mathbb{R}^{784}\). The posterior distribution is then</p>
+<p>\begin{equation*}
+p(C_k|\mathbf{x},\mathbf{\theta}) = \frac{p(C_k|\mathbf{\pi})\prod_{i=1}^Dp(x_i|C_k, \mathbf{\theta}_{dk})}{\sum_{k&rsquo;}p(C_{k&rsquo;}|\mathbf{\pi})\prod_{i=1}^Dp(x_i|C_{k&rsquo;},\mathbf{\theta}_{dk&rsquo;})}.
+\end{equation*}</p>
+<p>If we convert the input images to binary, the class conditional density \(p(\mathbf{x}|C_k, \mathbf{\theta})\) takes on the Bernoulli pdf. That is,</p>
+<p>\begin{equation*}
+p(\mathbf{x}|C_k, \mathbf{\theta}) = \prod_{i=1}^D\text{Ber}(x_i|\mathbf{\theta}_{dk}).
+\end{equation*}</p>
+<p>The parameter \(\theta_{dk}\) is the probability that the feature \(x_i=1\) given class \(C_k\).</p>
+<h2 id="maximum-likelihood-estimation">Maximum Likelihood Estimation</h2>
+<p>Fitting a naive Bayes classifier is relatively simple using MLE. The likelihood is given by</p>
+<p>\begin{equation*}
+p(\mathbf{X}, \mathbf{y}|\mathbf{\theta}) = \prod_{n=1}^N \mathcal{M}(y_n|\mathbf{\pi})\prod_{d=1}^D\prod_{k=1}^{K}p(x_{nd}|\mathbf{\theta}_{dk})^{\mathbb{1}(y_n=k)}.
+\end{equation*}</p>
+<p>To derive the estimators, we first take the log of the likelihood:</p>
+<p>\begin{equation*}
+\ln p(\mathbf{X}, \mathbf{y}|\mathbf{\theta}) = \Bigg[\sum_{n=1}^N\sum_{k=1}^K \mathbb{1}(y_n = k)\ln \pi_k\Bigg] + \sum_{k=1}^K\sum_{d=1}^D\Bigg[\sum_{n:y_n=k}\ln p(x_{nd}|\theta_{dk})\Bigg].
+\end{equation*}</p>
+<p>Thus, we have a term for the the multinomial and terms for the class-feature parameters. As with previous models that use a multinomial form, the parameter estimate for the first term is computed as</p>
+<p>\begin{equation*}
+\hat{\pi}_k = \frac{N_k}{N}.
+\end{equation*}</p>
+<p>The features used in our data are binary, so the parameter estimate for each \(\hat{\theta}_{dk}\) follows the Bernoulli distribution:</p>
+<p>\begin{equation*}
+\hat{\theta}_{dk} = \frac{N_{dk}}{N_{k}}.
+\end{equation*}</p>
+<p>That is, the number of times that feature \(d\) is in an example of class \(k\) divided by the total number of samples for class \(k\).</p>
+<h2 id="making-a-decision">Making a Decision</h2>
+<p>Given parameters \(\mathbf{\theta}\), how can we classify a given data sample?</p>
+<p>\begin{equation*}
+\text{arg}\max_{k}p(y=k)\prod_{i}p(x_i|y=k)
+\end{equation*}</p>
+<h2 id="relation-to-multinomial-logistic-regression">Relation to Multinomial Logistic Regression</h2>
+<p>Consider some data with discrete features having one of \(K\) states, then \(x_{dk} = \mathbb{1}(x_d=k)\). The class conditional density, in this case, follows a multinomial distribution:</p>
+<p>\[
+p(y=c|\mathbf{x}, \mathbf{\theta}) = \prod_{d=1}^D \prod_{k=1}^K \theta_{dck}^{x_{dk}}.
+\]</p>
+<p>We can see a connection between naive Bayes and logistic regression when we evaluate the posterior over classes:</p>
+<p>\begin{align*}
+p(y=c|\mathbf{x}, \mathbf{\theta}) &amp;= \frac{p(y)p(\mathbf{x}|y, \mathbf{\theta})}{p(\mathbf{x})}\\
+&amp;= \frac{\pi_c \prod_{d} \prod_{k} \theta_{dck}^{x_{dk}}}{\sum_{c&rsquo;}\pi_{c&rsquo;}\prod_{d}\prod_{k}\theta_{dc&rsquo;k}^{x_{dk}}} \\
+&amp;= \frac{\exp[\log \pi_c + \sum_d \sum_k x_{dk}\log \theta_{dck}]}{\sum_{c&rsquo;} \exp[\log \pi_{c&rsquo;} + \sum_d \sum_k x_{dk} \log \theta_{dc&rsquo;k}]}.
+\end{align*}</p>
+<p>This has the same form as the softmax function:</p>
+<p>\[
+p(y=c|\mathbf{x}, \mathbf{\theta}) = \frac{e^{\beta^{T}_c \mathbf{x} + \gamma_c}}{\sum_{c&rsquo;=1}^C e^{\beta^{T}_{c&rsquo;}\mathbf{x} + \gamma_{c&rsquo;}}}
+\]</p>
+<h2 id="mnist-example">MNIST Example</h2>
+<p>With the model definition and parameter estimates defined, we can fit and evaluate the model. Using <code>scikit-learn</code>, we fit a Bernoulli naive Bayes classifier on the MNIST training set: <a href="https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/naive_bayes_mnist.ipynb">Naive Bayes</a>.</p>
+<h2 id="gaussian-formulation">Gaussian Formulation</h2>
+<p>If our features are continuous, we would model them with univariate Gaussians.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/kernels/">Kernels</a></li>
+          
+          <li><a href="/notes/neural_networks/">Neural Networks</a></li>
+          
+          <li><a href="/notes/perceptron/">Perceptron</a></li>
+          
+          <li><a href="/notes/principal_component_analysis/">Principal Component Analysis</a></li>
+          
+          <li><a href="/notes/support_vector_machine/">Support Vector Machine</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

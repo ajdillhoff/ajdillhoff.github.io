@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Dual Representation Relating Back to the Original Formulation Types of Kernels Introduction Notebook link: https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb
+Parametric models use training data to estimate a set of parameters that can then be used to perform inference on new data. An alternative approach uses nonparametric methods, meaning the function is estimated directly from the data instead of optimizing a set of parameters.
+One possible downside to such an approach is that it becomes less efficient as the amount of training data increases.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/kernels/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/kernels/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/kernels/">
+  <meta property="og:title" content="Kernels | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Dual Representation Relating Back to the Original Formulation Types of Kernels Introduction Notebook link: https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb
+Parametric models use training data to estimate a set of parameters that can then be used to perform inference on new data. An alternative approach uses nonparametric methods, meaning the function is estimated directly from the data instead of optimizing a set of parameters.
+One possible downside to such an approach is that it becomes less efficient as the amount of training data increases."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Kernels | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Kernels</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/kernels/&amp;text=Kernels" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/kernels/&amp;t=Kernels" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Kernels&amp;body=https://ajdillhoff.github.io/notes/kernels/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/kernels/&amp;title=Kernels" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Kernels%20https://ajdillhoff.github.io/notes/kernels/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/kernels/&amp;title=Kernels" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#dual-representation">Dual Representation</a></li>
+<li><a href="#relating-back-to-the-original-formulation">Relating Back to the Original Formulation</a></li>
+<li><a href="#types-of-kernels">Types of Kernels</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Notebook link: <a href="https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb">https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb</a></p>
+<p>Parametric models use training data to estimate a set of parameters that can then be used to perform inference on new data.
+An alternative approach uses <strong>nonparametric methods</strong>, meaning the function is estimated directly from the data instead of optimizing a set of parameters.</p>
+<p>One possible downside to such an approach is that it becomes less efficient as the amount of training data increases.
+Additionally, the transformation into a feature space such that the data becomes linearly separable may be intractable.
+Consider sequential data such as text or audio.
+If each sample has a variable number of features, how do we account for this using standard linear models with a fixed number of parameters?</p>
+<p>The situations described above can be overcome through the use of the <strong>kernel trick</strong>.
+We will see that, by computing a measure of similarity between samples in the feature space, we do not need to directly transform each individual sample to that space.</p>
+<p>A kernel function is defined as</p>
+<p>\[
+k(\mathbf{x}, \mathbf{x}&rsquo;) = \phi(\mathbf{x})^T \phi(\mathbf{x}&rsquo;),
+\]</p>
+<p>where \(\phi\) is some function which transforms the input to a feature space.</p>
+<p>Methods that require part or all of the training data to make prediction will benefit from using kernel representations, especially when using high dimensional data. Instead of transforming the data into a high dimensional space which may be computationally intractable, a measure of similarity via the <em>inner product</em> is used. The inner product is not the projection into some space. Instead, it represents the outcome of that projection.</p>
+<h2 id="dual-representation">Dual Representation</h2>
+<p>The key to taking advantage of the kernel trick relies on reformulating our linear model into a dual representation.
+In this form, we will establish a dependence on the kernel function.</p>
+<p>The following derivation of the dual representation for linear regression follows (Bishop). Consider the least squares loss with \(L2\) regularization, as we discussed with <a href="/notes/linear_regression/">Linear Regression</a>.</p>
+<p>\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)^2 + \frac{\lambda}{2} \mathbf{w}^T \mathbf{w}
+\]</p>
+<p>Here, \(\phi\) is a basis function that transforms the input. This could also be a simple identity function in which \(\phi(\mathbf{x}) = \mathbf{x}\). To solve for \(\mathbf{w}\), we take the gradient of \(J(\mathbf{w})\) with respect to \(\mathbf{w}\) and set it to 0.</p>
+<p>\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{w}) &amp;= \sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)\phi(\mathbf{x}_i) + \lambda \mathbf{w}\\
+\implies \mathbf{w} &amp;= -\frac{1}{\lambda}\sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)\phi(\mathbf{x}_i)
+\end{align*}</p>
+<p>We can formulate this as a matrix-vector product by letting</p>
+<p>\begin{equation*}
+\mathbf{\Phi} =
+\begin{bmatrix}
+\phi(\mathbf{x}_1)^T\\
+\vdots \\
+\phi(\mathbf{x}_n)^T\\
+\end{bmatrix}
+\text{ and }
+a_{i} = -\frac{1}{\lambda}(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i).
+\end{equation*}</p>
+<p>Then, \(\mathbf{w} = \mathbf{\Phi}^T\mathbf{a}\), where \(\mathbf{a} = [a_1, \dots, a_n]^T\).</p>
+<p>The dual representation is derived by reformulating \(J(\mathbf{w})\) in terms of \(\mathbf{a}\).</p>
+<p>\begin{equation*}
+J(\mathbf{a}) = \frac{1}{2}\mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{a} - \mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{y} + \frac{1}{2}\mathbf{y}^T\mathbf{y} + \frac{\lambda}{2} \mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{a},
+\end{equation*}</p>
+<p>where \(\mathbf{y} = [y_1, \dots, y_n]\).</p>
+<p>Looking at the products \(\mathbf{\Phi}\mathbf{\Phi}^T\), we see that these relate to our original kernel form: \(\phi(\mathbf{x}_i)^T\phi(\mathbf{x}_j)\). This product defines a <a href="https://en.wikipedia.org/wiki/Gram_matrix">Gram matrix</a> \(\mathbf{K} = \mathbf{\Phi}\mathbf{\Phi}^T\) whose elements are \(k(\mathbf{x}_i, \mathbf{x}_j)\). Thus, we can rewrite \(J(\mathbf{a})\) as</p>
+<p>\begin{equation*}
+J(\mathbf{a}) = \frac{1}{2}\mathbf{a}^T\mathbf{K}\mathbf{K}\mathbf{a} - \mathbf{a}^T\mathbf{K}\mathbf{y} + \frac{1}{2}\mathbf{y}^T\mathbf{y} + \frac{\lambda}{2}\mathbf{a}^T\mathbf{K}\mathbf{a}.
+\end{equation*}</p>
+<p>Solving for \(\mathbf{a}\) can be done by computing the gradient of \(J(\mathbf{a})\) with respect to \(\mathbf{a}\) and setting the result to 0.</p>
+<p>\begin{align*}
+\nabla_\mathbf{a}J(\mathbf{a}) = \mathbf{K}\mathbf{K}\mathbf{a} - \mathbf{K}\mathbf{y} + \lambda \mathbf{K}\mathbf{a} &amp;= 0\\
+\mathbf{K}\mathbf{a} + \lambda I\mathbf{a} - \mathbf{y} &amp;= 0\\
+(\mathbf{K} + \lambda I)\mathbf{a} &amp;= \mathbf{y}\\
+\mathbf{a} &amp;= (\mathbf{K} + \lambda I)^{-1} \mathbf{y}.
+\end{align*}</p>
+<p>With \(\mathbf{a}\) solved, we can complete the dual representation of our original linear regression model. Recall that</p>
+<p>\begin{equation*}
+h(\mathbf{x}; \mathbf{w}) = \mathbf{w}^T\phi(\mathbf{x}).
+\end{equation*}</p>
+<p>If we substitute \(\mathbf{w} = \mathbf{\Phi}^T\mathbf{a}\), we get</p>
+<p>\begin{align*}
+f(\mathbf{x};\mathbf{a}) &amp;= \mathbf{a}^T\mathbf{\Phi}\phi(\mathbf{x})\\
+&amp;= \Big[(\mathbf{K} + \lambda I)^{-1}\mathbf{y})\Big]^T\mathbf{\Phi}\phi(\mathbf{x}).
+\end{align*}</p>
+<p>Again, the kernel form is apparent in the product \(\mathbf{\Phi}\phi(\mathbf{x})\). If we let \(k_i(\mathbf{x}) = k(\mathbf{x}_i,\mathbf{x})\) and</p>
+<p>\begin{equation*}
+\mathbf{k}(\mathbf{x}) =
+\begin{bmatrix}
+k_1(\mathbf{x})\\
+\vdots \\
+k_n(\mathbf{x})
+\end{bmatrix},
+\end{equation*}</p>
+<p>we can write the dual representation of our linear regression model as</p>
+<p>\begin{equation*}
+f(\mathbf{x}) = \mathbf{k}(\mathbf{x})^T(\mathbf{K} + \lambda \mathbf{I})^{-1}\mathbf{y}.
+\end{equation*}</p>
+<h2 id="relating-back-to-the-original-formulation">Relating Back to the Original Formulation</h2>
+<p>In this dual formulation, the solution for \(\mathbf{a}\) can be expressed as a linear combination of elements \(\phi(\mathbf{x})\).
+From above, we see that</p>
+<p>\[
+a_i = -\frac{1}{\lambda}\big(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i\big).
+\]</p>
+<p>Expanding this into individual coefficients yields</p>
+<p>\begin{align*}
+a_i &amp;= -\frac{1}{\lambda}\big(w_1\phi_1(\mathbf{x}_i) + \cdots + w_m \phi_m(\mathbf{x}_i) - y_i\big)\\
+&amp;= -\frac{w_1}{\lambda}\phi_1(\mathbf{x}_i) - \cdots - \frac{w_m}{\lambda} \phi_m(\mathbf{x}_i) + \frac{y_i}{\lambda}.
+\end{align*}</p>
+<p>We are close, but we still need to do something about the term \(\frac{y_i}{\lambda}\). For this, we can multiply both sides of our equation by a convenient 1. That is, we multiply by</p>
+<p>\[
+\frac{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}.
+\]</p>
+<p>By doing this and grouping the \(\phi_j\) terms, we get</p>
+<p>\begin{align*}
+&amp;\Big(\frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)} - \frac{w_1}{\lambda}\Big)\phi_1(\mathbf{x}_i) + \cdots\\
+&amp;+ \Big(\frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)} - \frac{w_m}{\lambda}\Big)\phi_m(\mathbf{x}_i).
+\end{align*}</p>
+<p>We can simplify this by introducing a term</p>
+<p>\[
+c_i = \frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}.
+\]</p>
+<p>Then the solution can be rewritten as</p>
+<p>\[
+\Big(c_i - \frac{w_1}{\lambda}\Big)\phi_1(\mathbf{x}_i) + \cdots + \Big(c_i - \frac{w_m}{\lambda}\Big)\phi_m(\mathbf{x}_i).
+\]</p>
+<p>With this, we can step backwards using intermediate results in the previous section to get back to the original formulation of our linear regression model.</p>
+<h2 id="types-of-kernels">Types of Kernels</h2>
+<p>There are several types of kernels that can be used to transform the input data depending on the problem. The simplest kernel is the <strong>identity kernel:</strong></p>
+<p>\[
+k(\mathbf{x}, \mathbf{x&rsquo;}) = \mathbf{x}^T \mathbf{x&rsquo;}.
+\]</p>
+<h3 id="polynomial-kernel">Polynomial Kernel</h3>
+<p>A polynomial kernel is defined as</p>
+<p>\[
+k(\mathbf{x}, \mathbf{x&rsquo;}) = (\mathbf{x}^T\mathbf{x&rsquo;}+c)^d.
+\]</p>
+<p>This is a common choice for solving problems akin to polynomial regression.
+We can use this kernel to present a visual explanation of kernel functions.
+Consider the following dataset.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-19_22-06-55_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Binary classification dataset that is not linearly separable." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Binary classification dataset that is not linearly separable.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>It is easy enough to see that this dataset could not be separated using a hyperplane in 2D.
+We could separate the two using some nonlinear decision boundary like a circle.
+If we could transform this into 3D space, we could come up with some features such that it is linearly separable in 3D.
+For example, let \(\phi(\mathbf{x}) = (x_1^2, x_2^2, \sqrt{2}x_1x_2)\).</p>
+<p>Transforming all points and visualizing yields the figure below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-06-19_22-11-36_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Binary classification dataset transformed into a 3D feature space." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Binary classification dataset transformed into a 3D feature space.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>From this perspective, we can clearly see that the data is linearly separable.
+The question remains: if we only have the original 2D features, how do we compare points in this 3D features space without explicitly transforming each point?
+The kernel function corresponding to the feature transform above is</p>
+<p>\begin{align*}
+k(\mathbf{x}, \mathbf{x}&rsquo;) &amp;= (\mathbf{x}^T\mathbf{x}&rsquo;)^2\\
+&amp;= (x_1x&rsquo;_1 + x_2x&rsquo;_2)^2\\
+&amp;= 2x_1x&rsquo;_1x_2x&rsquo;_2 + (x_1x&rsquo;_1)^2 + (x_2x&rsquo;_2)^2\\
+&amp;= \phi(\mathbf{x})^T \phi(\mathbf{x}&rsquo;)
+\end{align*}</p>
+<p>where</p>
+<p>\[
+\phi(\mathbf{x}) =
+\begin{bmatrix}
+\sqrt{2}x_1x_2\\
+x_1^2\\
+x_2^2
+\end{bmatrix}.
+\]</p>
+<h3 id="radial-basis-function-kernel">Radial Basis Function Kernel</h3>
+<p>This kernel follows a Gaussian term and is commonly used with <a href="/notes/support_vector_machine/">SVMs</a>. It is defined as</p>
+<p>\[
+k(\mathbf{x}, \mathbf{x&rsquo;}) = \exp\Big(-\frac{\|\mathbf{x}-\mathbf{x&rsquo;}\|^2}{2\sigma^2}\Big).
+\]</p>
+<h3 id="cosine-similarity">Cosine Similarity</h3>
+<p>Consider the problem of comparing text sequences for a document classification task.
+One approach is to compare the number of occurrences of each word.
+The idea is that documents that are similar will have a similar number of words that occur.</p>
+<p>\[
+k(\mathbf{x}, \mathbf{x}&rsquo;) = \frac{\mathbf{x}^T \mathbf{x}&rsquo;}{\|\mathbf{x}\|_2 \|\mathbf{x}&rsquo;\|_2}
+\]</p>
+<p>Documents that are <strong>orthogonal</strong>, in the sense that the resulting cosine similarity is 0, are dissimilar.
+The similarity increases as the score approaches 1.
+There are several issues with this approach which are addressed by using the term frequence-inverse document frequency (TF-IDF) score.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/naive_bayes/">Naive Bayes</a></li>
+          
+          <li><a href="/notes/neural_networks/">Neural Networks</a></li>
+          
+          <li><a href="/notes/perceptron/">Perceptron</a></li>
+          
+          <li><a href="/notes/principal_component_analysis/">Principal Component Analysis</a></li>
+          
+          <li><a href="/notes/support_vector_machine/">Support Vector Machine</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

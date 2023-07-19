@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction A Simple Example Probability Distributions Conditional Probability Rules of Probability Random Variables Continuous Variables Expectation, Variance, and Covariance Introduction Probability theory provides a consistent framework for the quantification and manipulation of uncertainty. It allows us to make the best decisions given the limited information we may have. Many tasks, models, and evaluation metrics that we will explore in this course are either based on, or are inspired by, probability theory.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/probability_theory/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/probability_theory/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/probability_theory/">
+  <meta property="og:title" content="Probability Theory | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction A Simple Example Probability Distributions Conditional Probability Rules of Probability Random Variables Continuous Variables Expectation, Variance, and Covariance Introduction Probability theory provides a consistent framework for the quantification and manipulation of uncertainty. It allows us to make the best decisions given the limited information we may have. Many tasks, models, and evaluation metrics that we will explore in this course are either based on, or are inspired by, probability theory."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Probability Theory | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Probability Theory</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/probability_theory/&amp;text=Probability%20Theory" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/probability_theory/&amp;t=Probability%20Theory" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Probability%20Theory&amp;body=https://ajdillhoff.github.io/notes/probability_theory/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/probability_theory/&amp;title=Probability%20Theory" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Probability%20Theory%20https://ajdillhoff.github.io/notes/probability_theory/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/probability_theory/&amp;title=Probability%20Theory" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#a-simple-example">A Simple Example</a></li>
+<li><a href="#probability-distributions">Probability Distributions</a></li>
+<li><a href="#conditional-probability">Conditional Probability</a></li>
+<li><a href="#rules-of-probability">Rules of Probability</a></li>
+<li><a href="#random-variables">Random Variables</a></li>
+<li><a href="#continuous-variables">Continuous Variables</a></li>
+<li><a href="#expectation-variance-and-covariance">Expectation, Variance, and Covariance</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Probability theory provides a consistent framework for the quantification and manipulation of uncertainty.
+It allows us to make the best decisions given the limited information we may have.
+Many tasks, models, and evaluation metrics that we will explore in this course are either based on, or are inspired by, probability theory.</p>
+<h2 id="a-simple-example">A Simple Example</h2>
+<p><strong>Scenario:</strong> There are two cookie jars, a blue one for cookies with oatmeal raisin cookies and a red one for chocolate chip cookies. The jar with oatmeal raisin cookies has 8 cookies in it. The chocolate chip jar has 10 cookies. Some monster took 2 of the chocolate chip cookies and placed them in the oatmeal raisin jar and placed 1 of the oatmeal raisin cookies in the chocolate chip jar. Thus, the oatmeal raisin jar has 2 chocolate chip and 7 oatmeal raisin. The chocolate chip jar has 8 chocolate chip and 1 oatmeal raisin.</p>
+<p>Let&rsquo;s say that we pick the chocolate chip jar 80% of the time and the oatmeal raisin jar 20% of the time. For a given jar, the cookies inside are all equally likely to be picked. We can assign this probability to <strong>random variables</strong>:</p>
+<ul>
+<li>\(J\) - The type of jar, either blue \(b\) or red \(r\).</li>
+<li>\(C\) - The type of cookie, either oatmeal \(o\) or chocolate chip \(c\).</li>
+</ul>
+<p>We can define the probability of picking a particular jar:</p>
+<ul>
+<li>\(p(J=b) = 0.2\)</li>
+<li>\(p(J = r) = 0.8\)</li>
+</ul>
+<p>Notice that their sum is 1.0. These probabilities can be estimated empirically given an observer recording the events. We may also define the probabilities of picking a particular type of cookie.</p>
+<ul>
+<li>\(p(C = o)\)</li>
+<li>\(p(C = c)\)</li>
+</ul>
+<p>For each jar, the probabilities of picking the cookies must sum to 1. The tables below show the individual probabilities of picking each type of cookie from each jar. Since we can observe the actual quantities, we can define the probabilities empirically.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Chocolate Chip</th>
+<th>Oatmeal Raisin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blue Jar</td>
+<td>2 / 9 = 0.222</td>
+<td>7 / 9 = 0.778</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Chocolate Chip</th>
+<th>Oatmeal Raisin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Red Jar</td>
+<td>8 / 9 = 0.889</td>
+<td>1 / 9 = 0.111</td>
+</tr>
+</tbody>
+</table>
+<p>Given these quantities, we can ask slightly more complicated questions such as &ldquo;what is the probability that I will select the red jar AND take a chocolate chip cookie?&rdquo; This is expressed as a <strong>joint probability distribution</strong>, written as \(p(J = r, C = c)\). It is defined based on two events:</p>
+<ol>
+<li>the prior probability of picking the red jar,</li>
+<li>the conditional probability of picking a chocolate chip cookie conditioned on the event that the red jar was picked.</li>
+</ol>
+<p>\begin{equation*}
+p(J=r, C=c) = p(C=c | J=r) p(J = r)
+\end{equation*}</p>
+<p>This is also referred to as the <strong>product rule</strong>.</p>
+<p>We already know \(p(J=r) = 0.8\). From the table above, we can see that \(p(C=c|J=r) = 0.889\). Thus, \(p(C=c,J=r) = 0.8 * 0.889 = 0.711\).</p>
+<p>If we knew nothing about the contents of the jar or the prior probabilities of selecting a jar, we could measure the joint probability empirically. This would simply be the number of times we select the red jar AND a chocolate chip cookie divided by total number of trials. For best results, perform an infinite number of trials.</p>
+<p>If instead we wanted to measure the <strong>conditional probability</strong> \(p(C=c|J=r)\), we would simply take the number of times a chocolate chip cookie is taken from the red jar and divide by the total number of times the red jar was selected.</p>
+<p>We can construct a joint probability table given the joint probabilities of all the events listed.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Chocolate Chip</th>
+<th>Oatmeal Raisin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Red Jar</td>
+<td>0.711</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>Blue Jar</td>
+<td>0.044</td>
+<td>0.156</td>
+</tr>
+</tbody>
+</table>
+<p>If you summed each row and further took the sum of the sum of rows, you would get 1. Likewise, the sum of the sum of columns would equal 1.</p>
+<p>Summing the columns for each row yields the prior probability of selecting each type of jar. Similarly, summing the rows for each column gives the prior probability of selecting that type of cookie. This is referred to as the <strong>marginal probability</strong> or <strong>sum rule</strong>, which is computed by summing out the other variables in the joint distribution. For example,</p>
+<p>\begin{equation*}
+p(x_i) = \sum_j p(x_i, y_j)
+\end{equation*}</p>
+<p>Empirically, this is computed as the number of times event \(x_i\) occurs out of ALL trials.</p>
+<p>Although the joint probabilities \(p(X, Y)\) and \(p(Y, X)\) would be written slightly differently, they are equal. With this in mind, we can set them equal to each other to derive <strong>Bayes&rsquo; rule</strong>:</p>
+<p>\begin{align*}
+p(X, Y) &amp;= p(Y, X)\\
+p(X|Y)p(Y) &amp;= p(Y|X)p(X)\\
+p(X|Y) &amp;= \frac{p(Y|X)p(X)}{p(Y)}
+\end{align*}</p>
+<p>In this context, \(p(X|Y)\) is referred to as the <strong>posterior probability</strong> of event \(X\) conditioned on the fact that we know event \(Y\) has occurred. On the right, \(p(X)\) is the <strong>prior probability</strong> of event \(X\) in the absence of any additional evidence.</p>
+<p>Two variables are <strong>independent</strong>, then</p>
+<p>\[
+p(X, Y) = p(X)p(Y)
+\]</p>
+<p>If two variables are conditionally independent given a third event, then</p>
+<p>\[
+p(X, Y|Z) = P(X|Z)P(Y|Z)
+\]</p>
+<h2 id="probability-distributions">Probability Distributions</h2>
+<p><strong>Events</strong> come from a <strong>space</strong> of possible outcomes.</p>
+<p>\begin{equation*}
+\Omega = {1, 2, 3, 4, 5, 6}
+\end{equation*}</p>
+<p>A <strong>measureable event</strong> is one for which we can assign a probability.</p>
+<p>An <strong>event space</strong> must satisfy the following:</p>
+<ol>
+<li>It contains the empty event \(\emptyset\) and trivial event \(\Omega\)</li>
+<li>It is closed under union</li>
+<li>It is closed under complementation: if \(\alpha \in S\), so is \(\Omega - \alpha\)</li>
+<li>Statement 2 implies difference and intersection</li>
+</ol>
+<p>A <strong>probability distribution</strong> \(P\) over \((\Omega, S)\) maps events \(S\) to real values and satisfies:</p>
+<ol>
+<li>\(P(\alpha) \geq 0\) for all \(\alpha \in S\)</li>
+<li>\(P(\Omega) = 1\)</li>
+<li>If \(\alpha,\beta \in S\) and \(\alpha \cap \beta = \emptyset\), then \(P(\alpha \cup \beta) = P(\alpha)+P(\beta)\)</li>
+<li>\(P(\emptyset) = 0\)</li>
+<li>\(P(\alpha \cup \beta) = P(\alpha) + P(\beta) - P(\alpha \cap \beta)\)</li>
+</ol>
+<h2 id="conditional-probability">Conditional Probability</h2>
+<p>Defined as</p>
+<p>\begin{equation*}
+P(\beta | \alpha) = \frac{P(\alpha \cap \beta)}{P(\alpha)}
+\end{equation*}</p>
+<p>The more that \(\alpha\) and \(\beta\) relate, the higher the probability.</p>
+<h3 id="the-chain-rule-of-probability">The Chain Rule of Probability</h3>
+<p>\begin{equation*}
+P(\alpha \cap \beta) = P(\alpha) P(\beta | \alpha)
+\end{equation*}</p>
+<p>Generally&hellip;</p>
+<p>\begin{equation*}
+P(\alpha_1 \cap \dotsb \cap \alpha_k) = P(\alpha_1)P(\alpha_2 | \alpha_1) \dotsm P(\alpha_k | \alpha_1 \cap \dotsb \cap \alpha_{k-1})
+\end{equation*}</p>
+<h3 id="bayes-rule">Bayes&rsquo; Rule</h3>
+<p>\begin{equation*}
+P(\alpha | \beta) = \frac{P(\beta | \alpha)P(\alpha)}{P(\beta)}
+\end{equation*}</p>
+<p>Computes the inverse conditional probability.</p>
+<p>A general conditional version of Baye&rsquo;s rule:</p>
+<p>\begin{equation*}
+P(\alpha | \beta \cap \gamma) = \frac{P(\beta | \alpha \cap \gamma)P(\alpha | \gamma)}{P(\beta | \gamma)}
+\end{equation*}</p>
+<p><strong>Example: TB Tests</strong>
+A common example for introduction Bayes&rsquo; rule is that of the test that gives 95% accuracy.
+The naive assumption here is that if you receive a positive result with no prior information, then
+there is a 95% chance you have the infection. This is wrong because that value is conditioned on
+<strong>already being infected</strong>.</p>
+<h2 id="rules-of-probability">Rules of Probability</h2>
+<p><strong><strong>Sum Rule:</strong></strong> \(p(X) = \sum_{Y}p(X, Y)\)</p>
+<p><strong><strong>Product Rule:</strong></strong> \(p(X, Y) = p(Y|X)p(X)\)</p>
+<h2 id="random-variables">Random Variables</h2>
+<p>Allows for compact notation when talking about an event. It can also be represented as a function:</p>
+<p>\begin{equation*}
+f_{\text{Grade}}
+\end{equation*}</p>
+<p>maps each person in \(\Omega\) to a grade value.</p>
+<p>Random variables are commonly either <strong>categorical</strong> or <strong>real numbers</strong>.</p>
+<p>The <strong>multinoulli distribution</strong> is one over \(k &gt; 2\) categorical random variables.
+If \(k = 2\), the distribution is called the <strong>Bernoulli</strong> or <strong>binomial</strong> distribution.</p>
+<p>The <strong>marginal distribution</strong> is one over a single random variable \(X\).</p>
+<p>A <strong>joint distribution</strong> is one over a set of random variables.</p>
+<p>The marginal can be computed from a joint distribution.</p>
+<p>\begin{equation*}
+P(x) = \sum_{y}P(x, y)
+\end{equation*}</p>
+<h2 id="continuous-variables">Continuous Variables</h2>
+<p>The introductory example looked at events that take on discrete values. That is, we either selected a cookie or did not. Most of the problems we will deal with in this course involve continuous values. In this case, we are concerned with intervals that the values may take on. If we consider a small differential of our random variable \(x\) as \(\delta x\), we can compute the probability density \(p(x)\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-23_13-11-32_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;PDF (p(x)) and CDF (P(x)). Source: Bishop" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>PDF (p(x)) and CDF (P(x)). Source: Bishop
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>With this differential \(\delta x\), we can compute the probability that \(x\) lies on some interval \((a, b)\):</p>
+<p>\begin{equation*}
+p(a \leq x \leq b) = \int_{a}^{b} p(x) dx
+\end{equation*}</p>
+<p>As with discrete probability distributions, the probability density must sum to 1 and cannot take a negative value. That is</p>
+<p>\begin{align*}
+p(x) &amp;\geq 0\\
+\int_{-\infty}^{\infty}p(x)dx &amp;= 1
+\end{align*}</p>
+<p>In the plot above, \(p(x)\) is the probability density function (pdf) and \(P(x)\) is the cumulative distribution function (cdf). It is possible for a pdf to have a value greater than 1, as long as integrals over any interval are less than or equal to 1.</p>
+<p>The cumulative distribution function \(P(x)\) is the probability that \(x\) lies in the interval \((-\infty, z)\), given by</p>
+<p>\begin{equation*}
+P(z) = \int_{\infty}^{z} p(x)dx.
+\end{equation*}</p>
+<p>Note that the derivative of the cdf is equal to the pdf.</p>
+<p>The product rule for continuous probability distributions takes on the same form as that of discrete distributions. The sum rule is written in terms of integration:</p>
+<p>\begin{equation*}
+p(x) = \int p(x, y)dy.
+\end{equation*}</p>
+<h2 id="expectation-variance-and-covariance">Expectation, Variance, and Covariance</h2>
+<p>Three extremely important statistics for any probability distribution are the average, variance, and covariance.</p>
+<h3 id="expectation">Expectation</h3>
+<p>The average of a function \(f(x)\) under a probability distribution \(p(x)\) is referred to as the <strong>expectation</strong> of \(f(x)\), written as \(\mathbb{E}[f]\). The expectation for discrete and continuous distributions are</p>
+<p>\begin{align*}
+\mathbb{E}[f] &amp;= \sum_x p(x)f(x) \text{ and}\\
+\mathbb{E}[f] &amp;= \int p(x)f(x)dx,
+\end{align*}</p>
+<p>respectively.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-25_17-56-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Expectation of rolling a d6 over ~1800 trials converges to 3.5. Source: [Seeing Theory](https://seeing-theory.brown.edu/)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Expectation of rolling a d6 over ~1800 trials converges to 3.5. Source: <a href="https://seeing-theory.brown.edu/">Seeing Theory</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The <strong>mean value</strong> for a discrete and continuous probability distribution is define as</p>
+<p>\begin{align*}
+\mathbb{E}[f] &amp;= \sum_x p(x)x \text{ and}\\
+\mathbb{E}[f] &amp;= \int_{-\infty}^{\infty} p(x)xdx,
+\end{align*}</p>
+<p>respectively.</p>
+<p>Empirically, we can approximate this quantity given \(N\) samples as</p>
+<p>\begin{equation*}
+\mathbb{E}[f] \approx \frac{1}{N}\sum_{i=1}^{N}f(x_i).
+\end{equation*}</p>
+<h3 id="variance">Variance</h3>
+<p>The <strong>variance</strong> of a function \(f(x)\) under a probability distribution \(p(x)\) measures how much variability is in \(f(x)\) around the expected value \(\mathbb{E}[f(x)]\) and is defined by</p>
+<p>\begin{align*}
+\text{var}[f] &amp;= \mathbb{E}[(f(x) - \mathbb{E}[f(x)])^2]\\
+&amp;= \mathbb{E}[f(x)^2] - \mathbb{E}[f(x)]^2.
+\end{align*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-25_18-02-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Variance of drawing cars with values 1-10 100 trials converges to 8.79. True variance is 8.25. Source: [Seeing Theory](https://seeing-theory.brown.edu/)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Variance of drawing cars with values 1-10 100 trials converges to 8.79. True variance is 8.25. Source: <a href="https://seeing-theory.brown.edu/">Seeing Theory</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="covariance">Covariance</h3>
+<p>The <strong>covariance</strong> of two random variables \(x\) and \(y\) provides a measure of dependence between the two variables. This implies that the covariance between two independent variables is 0.</p>
+<p>\begin{align*}
+\text{cov}[\mathbf{x},\mathbf{y}] &amp;= \mathbf{E}_{\mathbf{x},\mathbf{y}}[\{\mathbf{x} - \mathbb{E}[\mathbf{x}]\}\{\mathbf{y}^T - \mathbb{E}[\mathbf{y}^T]\}]\\
+&amp;= \mathbb{E}_{\mathbf{x},\mathbf{y}}[\mathbf{x}\mathbf{y}^T] - \mathbb{E}[\mathbf{x}]\mathbb{E}[\mathbf{y}^T].
+\end{align*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-25_18-13-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Plot of 2D data with negative covariance. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Plot of 2D data with negative covariance. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-25_18-14-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Plot of 2D data with approximately 0 covariance. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Plot of 2D data with approximately 0 covariance. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-01-25_18-14-45_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Plot of data with positive covariance. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Plot of data with positive covariance. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

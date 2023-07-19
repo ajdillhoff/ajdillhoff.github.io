@@ -100,6 +100,7 @@ This implies that \(f_1\) is predicting the gradient of the previous function.&l
         
         &lt;/figure&gt;
 
+&lt;p&gt;Check out a basic implementation in Python &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/boosting/intro_to_gradient_boosting.ipynb&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
@@ -108,6 +109,338 @@ This implies that \(f_1\) is predicting the gradient of the previous function.&l
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Friedman, Jerome H. 2001. “Greedy Function Approximation: A Gradient Boosting Machine.” &lt;i&gt;The Annals of Statistics&lt;/i&gt; 29 (5): 1189–1232. &lt;a href=&#34;https://www.jstor.org/stable/2699986&#34;&gt;https://www.jstor.org/stable/2699986&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Bias and Variance</title>
+      <link>https://ajdillhoff.github.io/notes/bias_and_variance/</link>
+      <pubDate>Tue, 04 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/bias_and_variance/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#generalization&#34;&gt;Generalization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bias&#34;&gt;Bias&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#variance&#34;&gt;Variance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bias-variance-tradeoff&#34;&gt;Bias-Variance Tradeoff&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;generalization&#34;&gt;Generalization&lt;/h2&gt;
+&lt;p&gt;When fitting machine learning models to data, we want them to &lt;strong&gt;generalize&lt;/strong&gt; well to the distribution that we have sampled from. We can measure a model&amp;rsquo;s ability to generalize by evaluating it on previously unseen data that is sampled from the same distribution as the training set. However, we often do not know the true underlying distribution. So we must fit the models to empirical distributions derived from observed data.&lt;/p&gt;
+&lt;p&gt;Measuring bias and variance is crucial for determining the quality of a model. &lt;strong&gt;Bias&lt;/strong&gt; refers to the difference between the average prediction of a model and the correct value we are trying to predict. A model with high bias oversimplifies the problem and leads to high error on both training and test data. &lt;strong&gt;Variance&lt;/strong&gt; refers to the sensitivity of a model to fluctuations in the training set. High variance suggests that the model&amp;rsquo;s performance changes significantly when it is fit on different samplings of the training data, which can lead to overfitting.&lt;/p&gt;
+&lt;p&gt;To achieve good generalization, it is essential to find a balance between bias and variance, minimizing the total error. This can be done by selecting appropriate model complexity and using regularization techniques to prevent overfitting or underfitting. Additionally, model validation techniques, such as hold-out validation and cross-validation, can be employed to assess a model&amp;rsquo;s ability to generalize to unseen data.&lt;/p&gt;
+&lt;h2 id=&#34;bias&#34;&gt;Bias&lt;/h2&gt;
+&lt;p&gt;Consider fitting a simple linear model to nonlinear data. The model will not be able to generalize well, regardless of the size of the training set. In fact, it would also exhibit poor performance when evaluated on the training set as well. When a model has not learned the patterns in the training data and is likewise unable to generalize to new data, it is known as &lt;strong&gt;underfitting&lt;/strong&gt;. In this case, such a model has &lt;strong&gt;high bias&lt;/strong&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-07-04_22-51-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regardless of the dataset sampled, a linear model exhibits high bias.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regardless of the dataset sampled, a linear model exhibits high bias.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;variance&#34;&gt;Variance&lt;/h2&gt;
+&lt;p&gt;Variance is described in terms of the model fitting procedure and the training data. In terms of data, variance measures dispersion. It could also be interpreted as a measure of diversity. Sets with low variance contain samples that are close to the mean, and sampling from such a set would produce rather consistent data points.&lt;/p&gt;
+&lt;p&gt;In terms of model fitting, a model that fits the training data well but not the test data describes &lt;strong&gt;overfitting&lt;/strong&gt;. This is because the training data is only an empirical sample of the true underlying distribution. A different sampling of the distribution may yield a set that more closely resembles the test set. Due to the &lt;strong&gt;variance&lt;/strong&gt; of the underlying distribution, our model overfits the patterns that exist in the training set.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-07-04_17-54-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A 5th degree polynomial trained on 3 different samplings of the distribution.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A 5th degree polynomial trained on 3 different samplings of the distribution.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;bias-variance-tradeoff&#34;&gt;Bias-Variance Tradeoff&lt;/h2&gt;
+&lt;p&gt;If a model is not complex enough to capture the underlying distribution, it will perform poorly on both the training and test sets. Indeed, the model has low bias. If the model is too complex, it will exhibit low bias and high variance, overfitting the training set while failing to generalize well to unseen data. The solution then is to find a tradeoff between bias and variance with respect to the model complexity.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sequential Minimal Optimization</title>
+      <link>https://ajdillhoff.github.io/notes/sequential_minimal_optimization/</link>
+      <pubDate>Mon, 04 Jul 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/sequential_minimal_optimization/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#box-constraints&#34;&gt;Box Constraints&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#updating-the-lagrangians&#34;&gt;Updating the Lagrangians&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-algorithm&#34;&gt;The Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#implementation&#34;&gt;Implementation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Paper link:&lt;/strong&gt; &lt;a href=&#34;https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/&#34;&gt;https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently. Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.&lt;/p&gt;
+&lt;p&gt;The two key components of SMO are&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;an analytic method to solving for two Lagrange multipliers at a time&lt;/li&gt;
+&lt;li&gt;and a heuristic for choosing which multipliers to optimize.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The original objective is to maximize the margin between the nearest positive and negative examples.
+For the linear case, if the output is given as&lt;/p&gt;
+&lt;p&gt;\[
+u = \mathbf{w}^T \mathbf{x} - b,
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{w}\) is the normal vector to the hyperplane separating the classes, then the margin is given as&lt;/p&gt;
+&lt;p&gt;\[
+m = \frac{1}{\|w\|_2}.
+\]&lt;/p&gt;
+&lt;p&gt;Maximizing this margin yielded the primal optimization problem&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\min_{\mathbf{w},b} \frac{1}{2} \|\mathbf{w}\|^2\\
+\textrm{s.t.} \quad &amp;amp; y_i(\mathbf{w}^T \mathbf{x} - b) \geq 1, \forall i\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The dual form of the objective function for a &lt;a href=&#34;https://ajdillhoff.github.io/notes/support_vector_machine/&#34;&gt;Support Vector Machine&lt;/a&gt; is&lt;/p&gt;
+&lt;p&gt;\[
+\min_{\vec\alpha} \Psi(\vec{\alpha}) = \min_{\vec{\alpha}} \frac{1}{2}\sum_{i=1}^N \sum_{j=1}^N y_i y_j K(\mathbf{x}_i, \mathbf{x}_j)\alpha_i\alpha_j - \sum_{i=1}^N \alpha_i
+\]&lt;/p&gt;
+&lt;p&gt;with inequality constraints&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_i \geq 0, \forall i,
+\]&lt;/p&gt;
+&lt;p&gt;and a linear equality constraint&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{i=1}^N y_i \alpha_i = 0.
+\]&lt;/p&gt;
+&lt;p&gt;For a linear SVM, the output is dependent on a weight vector \(\mathbf{w}\) and threshold \(b\):&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{w} = \sum_{i=1}^N y_i \alpha_i \mathbf{x}_i, \quad b = \mathbf{w}^T \mathbf{x}_k - y_k.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;The threshold is also dependent on the weight vector?&lt;/strong&gt;&lt;/strong&gt; The weight vector \(\mathbf{w}\) is computed using the training data. The threshold is only dependent on non-zero support vectors, \(\alpha_k &amp;gt; 0\).&lt;/p&gt;
+&lt;h3 id=&#34;overlapping-distributions&#34;&gt;Overlapping Distributions&lt;/h3&gt;
+&lt;p&gt;Slack variables were introduced to allow misclassifications at the cost of a linear penalty.
+This is useful for datasets that are not linearly separable.
+In practice, this is accomplished with a slight modification of the original objective function:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\min_{\mathbf{w},b} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^N \xi_i\\
+\textrm{s.t.} \quad &amp;amp; y_i(\mathbf{w}^T \mathbf{x} - b) \geq 1 - \xi_i, \forall i\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The convenience of this formulation is that the parameters \(\xi_i\) do not appear in the dual formulation at all.
+The only added constraint is&lt;/p&gt;
+&lt;p&gt;\[
+0 \leq \alpha_i \leq C, \forall i.
+\]&lt;/p&gt;
+&lt;p&gt;This is referred to as the box constraint for reasons we shall see shortly.&lt;/p&gt;
+&lt;h2 id=&#34;box-constraints&#34;&gt;Box Constraints&lt;/h2&gt;
+&lt;p&gt;The smallest optimization step that SMO solves is that of two variables.
+Given the constraints above, the solution lies on a diagonal line \(\sum_{i=1}^N y_i \alpha_i = 0\) bounded within a box \(0 \leq \alpha_i \leq C, \forall i\).&lt;/p&gt;
+&lt;p&gt;Isolating for two samples with alphas \(\alpha_1\) and \(\alpha_2\), the constraint \(\sum_{i=1}^n y_i \alpha_i = 0\) suggests that&lt;/p&gt;
+&lt;p&gt;\[
+y_1 \alpha_1 + y_2 \alpha_2 = w.
+\]&lt;/p&gt;
+&lt;p&gt;We first consider the case when \(y_1 \neq y_2\).
+Let \(y_1 = 1\) and \(y_2 = -1\), then \(a_1 - a_2 = w\).
+As \(\alpha_1\) increases, \(\alpha_2\) must also increase to satisfy the constraint.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-07-10_22-48-56_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Equality constraint for case 1 (from Platt&amp;#39;s SMO paper).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Equality constraint for case 1 (from Platt&amp;rsquo;s SMO paper).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The other case is when \(y_1 = y_2\), then \(\alpha_1 + \alpha_2 = w\).
+As \(\alpha_1\) is increased, \(\alpha_2\) is decreased to satisfy the constraint.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-07-10_22-51-53_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Box constraint for samples of the same class (from Platt&amp;#39;s SMO paper).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Box constraint for samples of the same class (from Platt&amp;rsquo;s SMO paper).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;updating-the-lagrangians&#34;&gt;Updating the Lagrangians&lt;/h2&gt;
+&lt;p&gt;SMO solves for only two Lagrange multipliers at a time.
+Solving for only 1 at a time would be impossible under the constraint \(\sum_{i=1}^N y_i \alpha_i = 0\).
+The first step is to compute \(\alpha_2\) and constrain it between the ends of the diagonal line segment from the box constraints.&lt;/p&gt;
+&lt;p&gt;If \(y_1 \neq y_2\), then the following bounds are applied to \(\alpha_2\):&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L = \max(0, \alpha_2 - \alpha_1), \quad H = \min(C, C + \alpha_2 - \alpha_1)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;otherwise, the bounds are computed as:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L = \max(0, \alpha_2 + \alpha_1 - C), \quad H = \min(C, \alpha_2 + \alpha_1)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Updating the actual parameter is done following the update rule of gradient descent:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_2^{\text{new}} = \alpha_2 + \frac{y_2(E_1 - E_2)}{\eta}.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How do we arrive at this update rule?&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;second-derivative-of-the-objective-function&#34;&gt;Second Derivative of the Objective Function&lt;/h3&gt;
+&lt;p&gt;Here, \(\eta\) represents the step size and direction. It is computed from the second derivative of the objective function along the diagonal line. To see that this is the case, consider the original objective function&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\min_{\mathbf{\alpha}} \quad &amp;amp; \frac{1}{2} \sum_{i=1}^N \sum_{j=1}^N y_i y_j K(\mathbf{x}_i, \mathbf{x}_j) \mathbf{\alpha}_1 \mathbf{\alpha}_2 - \sum_{i=1}^N \alpha_i\\
+\textrm{s.t.} \quad &amp;amp; 0 \leq \alpha_i \leq C, \forall i\\
+&amp;amp; \sum_{i=1}^N y_i \alpha_i = 0\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Since we are optimizing with respect to only 2 Lagrangian multipliers at a time, we can write the Lagrangian function as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{1}{2} y_1^2 K_{11} \alpha_1^2 + \frac{1}{2} y_2^2 K_{22} \alpha_2^2 + y_1 \alpha_1 \sum_{j=3}^N y_j \alpha_j K_{1j} + y_2 \alpha_2 \sum_{j=3}^N y_j \alpha_j K_{2j} - \alpha_1 - \alpha_2 + \sum_{j=3}^N \alpha_j
+\]&lt;/p&gt;
+&lt;p&gt;We are only optimizing with respect to \(\alpha_1\) and \(\alpha_2\), the next step is to extract those terms from the sum.
+This is simplified further by noting that \(\sum_{j=3}^N y_j \alpha_j K_{ij}\) looks very similar to the output of an SVM:&lt;/p&gt;
+&lt;p&gt;\[
+u = \sum_{j=1}^N y_j \alpha_j K(\mathbf{x}_j, \mathbf{x}) - b.
+\]&lt;/p&gt;
+&lt;p&gt;This allows us to introduce a variable \(v_i\) based on \(u_i\), the output of an SVM given sample \(\mathbf{x}_i\):&lt;/p&gt;
+&lt;p&gt;\[
+v_i = \sum_{j=3}^N y_j \alpha_j K_{ij} = u_i + b - y_1 \alpha_1 K_{1i} - y_2 \alpha_2 K_{2i}.
+\]&lt;/p&gt;
+&lt;p&gt;The objective function is then written as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{1}{2} y_1^2 K_{11} \alpha_1^2 + \frac{1}{2} y_2^2 K_{22} \alpha_2^2 + y_1 \alpha_1 v_1 + y_2 \alpha_2 v_2 - \alpha_1 - \alpha_2 + \sum_{j=3}^N \alpha_j.
+\]&lt;/p&gt;
+&lt;p&gt;Note that the trailing sum \(\sum_{j=3}^N \alpha_j\) is treated as a constant since those values are not considered when optimizing for \(\alpha_1\) and \(\alpha_2\).&lt;/p&gt;
+&lt;p&gt;Given the box constraints from above, we must update \(\alpha_1\) and \(\alpha_2\) such that&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_1 + s \alpha_2 = \alpha_1^* + s \alpha_2^* = w.
+\]&lt;/p&gt;
+&lt;p&gt;This linear relationship allows us to express the objective function in terms of α_2:&lt;/p&gt;
+&lt;p&gt;\[
+\Psi = \frac{1}{2} y_1^2 K_{11} (w - s \alpha_2)^2 + \frac{1}{2} y_2^2 K_{22} \alpha_2^2 + y_1 (w - s \alpha_2) v_1 + y_2 \alpha_2 v_2 - \alpha_1 - \alpha_2 + \sum_{j=3}^N \alpha_j.
+\]&lt;/p&gt;
+&lt;p&gt;The extremum of the function is given by the first derivative with respect to \(\alpha_2\):&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\Psi}{d\alpha_2} = -sK_{11}(w - s\alpha_2) + K_{22}\alpha_2 - K_{12}\alpha_2 + s K_{12} (w - s \alpha_2) - y_2 v_2 + s + y_2 v_2 - 1 = 0.
+\]&lt;/p&gt;
+&lt;p&gt;In most cases, the second derivative will be positive.
+The minimum of \(\alpha_2\) is where&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\alpha_2 (K_{11} + K_{22} - 2 K_{12}) &amp;amp;= s(K_{11} - K_{12})w + y_2(v_1 - v_2) + 1 - s\\
+&amp;amp;= s(K_{11} - K_{12})(s\alpha_2^*+\alpha_1^*)\\
+&amp;amp;+ y_2(u_1-u_2+y_1\alpha_1^*(K_{12} - K_{11}) + y_2 \alpha_2^* (K_{22} - K_{21})) + y_2^2 - s\\
+&amp;amp;= \alpha_2^*(K_{11}+K_{22} - 2K_{12}) + y_2(u_1 - u_2 + y_2 - y_1).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;If we let \(E_1 = u_1 - y_1\), \(E_2 = u_2 - y_2\), and \(\eta = K_{11} + K_{22} - 2K_{12}\), then&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_2^{\text{new}} = \alpha_2 + \frac{y_2(E_1 - E_2)}{\eta}.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;the-algorithm&#34;&gt;The Algorithm&lt;/h2&gt;
+&lt;p&gt;Sequential Minimal Optimization (SMO) solves the SVM problem which usually requires a Quadratic Programming (QP) solution.
+It does this by breaking down the larger optimization problem into a small and simple form: solving for two Lagrangians.
+Solving for one would not be possible without violating KKT conditions.
+There are two components to Sequential Minimal Optimization: the first is how the Lagrangians are selected and the second is the actual optimization step.&lt;/p&gt;
+&lt;h3 id=&#34;choosing-the-first-lagrangian&#34;&gt;Choosing the First Lagrangian&lt;/h3&gt;
+&lt;p&gt;The algorithm first determines which samples in the dataset violate the given KKT conditions.
+Only those violating the conditions are eligible for optimization.
+Additionally, samples that are not on the bounds are selected (those with \(\alpha_i \neq 0\) and \(\alpha_i \neq C\)).
+This continues through the dataset until no sample violates the KKT constraints within \(\epsilon\).&lt;/p&gt;
+&lt;p&gt;As a last step, SMO searches the entire dataset to look for any bound samples that violate KKT conditions.&lt;/p&gt;
+&lt;h3 id=&#34;choosing-the-second-lagrangian&#34;&gt;Choosing the Second Lagrangian&lt;/h3&gt;
+&lt;p&gt;The second Lagrangian is chosen to maximize the size of the step taken during joint optimization.
+Noting that the step size is based on&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_2^{\text{new}} = \alpha_2 + \frac{y_2(E_1 - E_2)}{\eta},
+\]&lt;/p&gt;
+&lt;p&gt;it is approximated by computing \(|E_1 - E_2|\).&lt;/p&gt;
+&lt;p&gt;If positive progress cannot be made given the choice of Lagrangian, SMO will begin iterating through non-bound examples.
+If no eligible candidates are found in the non-bound samples, the entire dataset is searched.&lt;/p&gt;
+&lt;h3 id=&#34;updating-the-parameters&#34;&gt;Updating the Parameters&lt;/h3&gt;
+&lt;p&gt;With the second derivative of the objective function, we can take an optimization step along the diagonal line.
+To ensure that this step adheres to the box constraints defined above, the new value of \(\alpha_2\) is clipped:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\alpha_2^{\text{new,clipped}} =
+\begin{cases}
+H &amp;amp;\text{if} \quad \alpha_2^{\text{new}} \geq H;\\
+\alpha_2^{\text{new}} &amp;amp;\text{if} \quad L &amp;lt; \alpha_2^{\text{new}} &amp;lt; H;\\
+L &amp;amp;\text{if} \quad \alpha_2^{\text{new}} \geq L.\\
+\end{cases}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;With the new value of \(\alpha_2\), \(\alpha_1\) is computed such that the original KKT condition is preserved:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_1^{\text{new}} = \alpha_1 + s(\alpha_2 - \alpha_2^{\text{new,clipped}}),
+\]&lt;/p&gt;
+&lt;p&gt;where \(s = y_1y_2\).&lt;/p&gt;
+&lt;p&gt;Points that are beyond the margin are given an alpha of 0: \(\alpha_i = 0\).
+Points that are on the margin satisfy \(0 &amp;lt; \alpha_i &amp;lt; C\). These are the support vectors.
+Points inside the margin satisfy \(\alpha_i = C\).&lt;/p&gt;
+&lt;h4 id=&#34;linear-svms&#34;&gt;Linear SVMs&lt;/h4&gt;
+&lt;p&gt;In the case of linear SVMs, the parameters can be stored as a single weight vector&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{w}^{\text{new}} = \mathbf{w} + y_1 (\alpha_1^{\text{new}} - \alpha_1)\mathbf{x}_1 + y_2(\alpha_2^{\text{new,clipped}} - \alpha_2)\mathbf{x}_2.
+\]&lt;/p&gt;
+&lt;p&gt;The output of a linear SVM is computed as&lt;/p&gt;
+&lt;p&gt;\[
+u = \mathbf{w}^T \mathbf{x} - b.
+\]&lt;/p&gt;
+&lt;h4 id=&#34;nonlinear-svms&#34;&gt;Nonlinear SVMs&lt;/h4&gt;
+&lt;p&gt;In the nonlinear case, the output of the model is computed as&lt;/p&gt;
+&lt;p&gt;\[
+u = \sum_{i=1}^N y_i \alpha_i K(\mathbf{x}_i, \mathbf{x}) - b.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;implementation&#34;&gt;Implementation&lt;/h2&gt;
+&lt;p&gt;An implementation of SMO in Python is available at &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb&#34;&gt;https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     
@@ -766,6 +1099,253 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
     </item>
     
     <item>
+      <title>Decision Trees</title>
+      <link>https://ajdillhoff.github.io/notes/decision_trees/</link>
+      <pubDate>Fri, 18 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/decision_trees/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-iris-dataset&#34;&gt;Example: Iris Dataset&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#growing-a-tree&#34;&gt;Growing a Tree&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#examining-the-iris-classification-tree&#34;&gt;Examining the Iris Classification Tree&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#pruning-a-tree&#34;&gt;Pruning a Tree&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-algorithm&#34;&gt;The Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset&#34;&gt;https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;decision tree&lt;/strong&gt;, or Classification and Regression Trees (CART), is a model that recursively partitions the input space based on a collection of features.
+The partitions are split based on very simple binary choices.
+If yes, branch to the left; if no, branch to the right.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-03-18_13-03-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regression tree (left) and its piecewise constant surface (right) (Source: &lt;em&gt;Machine Learning: A Probabilistic Perspective&lt;/em&gt; by Kevin P. Murphy).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To compute the response, we represent each individual decision as a function \(\phi\) and sum the responses:&lt;/p&gt;
+&lt;p&gt;\[
+f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
+\]&lt;/p&gt;
+&lt;p&gt;where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value.&lt;/p&gt;
+&lt;h2 id=&#34;example-iris-dataset&#34;&gt;Example: Iris Dataset&lt;/h2&gt;
+&lt;p&gt;To see this on real data, consider the Iris flower dataset.
+For example, we will look at a decision tree model that classifies each flower into either &lt;strong&gt;setosa&lt;/strong&gt;, &lt;strong&gt;versicolor&lt;/strong&gt;, or &lt;strong&gt;virginica&lt;/strong&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-20_21-04-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Our initial Iris classifier.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Our initial Iris classifier.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;We are given data about a new iris and want to classify it using this tree.
+Our sample has a sepal length of 6.1cm, a sepal width of 2.8cm, a petal length of 4.7cm, and a petal width of 1.2cm.
+The first decision considers the petal width.
+Our sample has a width of 1.2, so it continues down the right branch.&lt;/p&gt;
+&lt;p&gt;The second decision consideres petal width again.
+Since our sample does not have a width greater than 1.75, we continue down the left branch.&lt;/p&gt;
+&lt;p&gt;At this point, the model was optimized to now consider the petal length.
+Our length comes in at 4.7, just shy of going down the right path.&lt;/p&gt;
+&lt;p&gt;We now arrive at the last decision.
+Since our petal length is not greater than 1.65, the model classifies this sample as &lt;strong&gt;versicolor&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;growing-a-tree&#34;&gt;Growing a Tree&lt;/h2&gt;
+&lt;p&gt;To grow a tree, a decision needs to be made as to whether or not the current set of data can be split based on some feature.
+As such, there should be a reliable way of determining if a feature provided a good split.
+This is evaluated using a cost function and selecting the feature and value corresponding to the minimum cost:&lt;/p&gt;
+&lt;p&gt;\[
+(j^*, t^*) = \text{arg} \min_{j\in\{1, \dots, D\}} \min_{t \in \mathcal{T}_j} \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} \leq t\}) + \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} &amp;gt; t\}).
+\]&lt;/p&gt;
+&lt;p&gt;In words, this function finds a value \(t\) such that groups the data with the lowest cost.
+For a regression task, the cost function is typically defined as&lt;/p&gt;
+&lt;p&gt;\[
+\text{cost}(\mathcal{D}) = \sum_{i \in \mathcal{D}}(y_i - \bar{y})^2,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\bar{y} = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} y_i.
+\]&lt;/p&gt;
+&lt;p&gt;Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.&lt;/p&gt;
+&lt;p&gt;As their alternative name implies, decision trees can also be used for classification.
+The splits are still based on features and threshold values at each branch.
+When a split is considered, a class-conditional probability is estimated for that data.
+Given data satisfying \(X_j &amp;lt; t\), the class-conditional probability is&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
+\]&lt;/p&gt;
+&lt;p&gt;The common error functions used for classification are &lt;strong&gt;misclassification rate&lt;/strong&gt;, &lt;strong&gt;entropy&lt;/strong&gt;, and &lt;strong&gt;Gini index&lt;/strong&gt;.
+Misclassification rate is computed by summing the number of misclassifications:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{1}{|\mathcal{D}|} \sum_{i \in \mathcal{D}} \mathbb{1}(y_i \neq \hat{y}) = 1 - \hat{\pi}_{\hat{y}}.
+\]&lt;/p&gt;
+&lt;p&gt;Entropy is computed as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbb{H}(\mathbb{\hat{\pi}}) = -\sum_{c=1}^C \hat{\pi}_c \log \hat{\pi}_c.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Gini index&lt;/strong&gt; computes the expected error rate.&lt;/p&gt;
+&lt;p&gt;\[
+G = \sum_{c=1}^C \hat{\pi}_c (1 - \hat{\pi}_c) = 1 - \sum_{c=1}^C \hat{\pi}_c^2
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-19_17-32-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Impurity measured for binary classification (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Impurity measured for binary classification (Source: &lt;em&gt;Machine Learning: A Probabilistic Perspective&lt;/em&gt; by Kevin P. Murphy)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Like entropy, it promotes an equal number of observations across all classes in a node.
+For small values of \(\hat{\pi}\), the error is smaller than that of entropy.
+If the dataset is imbalanced, entropy is typically favored as it penalizes imbalanced datasets more than Gini will.
+Both will favor splits that result in one node being pure.&lt;/p&gt;
+&lt;h3 id=&#34;stopping-growth&#34;&gt;Stopping Growth&lt;/h3&gt;
+&lt;p&gt;If left unchecked, the algorithm to grow a tree will continue until the data can no longer be split.
+In the trivial case, this will be when every data point represents a leaf node.
+In order to prevent overfitting, there are several criteria that are considered.&lt;/p&gt;
+&lt;h4 id=&#34;does-the-split-reduce-the-cost-enough&#34;&gt;Does the split reduce the cost enough?&lt;/h4&gt;
+&lt;p&gt;It may be ideal to only split the data if the cost is reduced by some acceptable value.
+The reduction can be computed by&lt;/p&gt;
+&lt;p&gt;\[
+\Delta = \text{cost}(\mathcal{D}) - \bigg(\frac{|\mathcal{D}_L|}{|\mathcal{D}|}\text{cost}(\mathcal{D}_L) + \frac{|\mathcal{D}_R|}{|\mathcal{D}|} \text{cost}(\mathcal{D}_R)\bigg).
+\]&lt;/p&gt;
+&lt;h4 id=&#34;has-the-tree-reached-some-maximum-depth&#34;&gt;Has the tree reached some maximum depth?&lt;/h4&gt;
+&lt;p&gt;The depth of a tree is set as a hyperparameter.
+Later, when we look at an example, we will use cross validation to select the best depth parameter for our model.&lt;/p&gt;
+&lt;h4 id=&#34;is-the-distribution-of-the-split-pure&#34;&gt;Is the distribution of the split &lt;strong&gt;pure&lt;/strong&gt;?&lt;/h4&gt;
+&lt;p&gt;If either of the splits is fully made up of data with the same label, there is no need to split it any further.&lt;/p&gt;
+&lt;h4 id=&#34;is-the-split-too-small&#34;&gt;Is the split too small?&lt;/h4&gt;
+&lt;p&gt;A split that is too small may lead to overfitting.&lt;/p&gt;
+&lt;h2 id=&#34;examining-the-iris-classification-tree&#34;&gt;Examining the Iris Classification Tree&lt;/h2&gt;
+&lt;p&gt;How exactly does the earlier example model make its decision at each node?
+The full tree is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-20_21-11-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A detailed view of our Iris classifier.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A detailed view of our Iris classifier.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The first split is visually very simple to intuit.
+Using petal width can perfectly split all setosa samples into a single leaf node.&lt;/p&gt;
+&lt;h2 id=&#34;pruning-a-tree&#34;&gt;Pruning a Tree&lt;/h2&gt;
+&lt;p&gt;Depending on the data, stopping growth based on measuring the relative decrease in error may not result in a model that performs well.
+Image a dataset that requires multiple features to provide a sufficient classification.
+If only one of the features is considered in isolation, it may provide no decrease in error.
+A practical example of this is the XOR problem.
+Splitting on \(x_1\) or \(x_2\) in isolation does not provide any indication about the true output.
+It is only when \(x_1 \neq x_2\) does the output equal to 1.&lt;/p&gt;
+&lt;p&gt;To rectify this, a tree can be grown until it is completely full before &lt;strong&gt;pruning&lt;/strong&gt; the branches
+that result in the smallest increase in error.&lt;/p&gt;
+&lt;h2 id=&#34;the-algorithm&#34;&gt;The Algorithm&lt;/h2&gt;
+&lt;p&gt;The general algorithm is shown in MATLAB below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-matlab&#34; data-lang=&#34;matlab&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;% node = fitTree(node, D, depth)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;% Recursive function to learn a decision tree&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;% Returns the index of the current node.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;%&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;%   node  - The node index in obj.Nodes.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;%   D     - Indices to the current data.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;%   depth - Current depth of the tree.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; node = &lt;span style=&#34;color:#a6e22e&#34;&gt;fitTree&lt;/span&gt;(obj, node, D, depth)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;% Determine best split for the data and return the split&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [j, t, dSplit, classDist] = obj.split(D, obj.Nodes(node).features);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    obj.Nodes(node).prediction = classDist;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    disp(classDist);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;% Use heuristic to determine if node is worth splitting&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; obj.splitNode(depth, classDist) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; true
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;% set the node test, the function that determines the branch&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        obj.Nodes(node .test = {j, t};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        newFeatures = obj.Nodes(node).features(obj.Nodes(node).features &lt;span style=&#34;color:#f92672&#34;&gt;~=&lt;/span&gt; j);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;% set the child nodes to the left and right splits&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        obj.Nodes(node).children = zeros(size(dSplit, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;), &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        numNewNodes = size(dSplit, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i = &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; : numNewNodes
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            obj.Nodes(&lt;span style=&#34;color:#66d9ef&#34;&gt;end&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) = struct(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;prediction&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;features&amp;#39;&lt;/span&gt;, newFeatures, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;children&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;parent&amp;#39;&lt;/span&gt;, node);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            obj.Nodes(node).children(i)  = obj.fitTree(length(obj.Nodes), dSplit{i}, depth &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;end&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;end&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;end&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+    </item>
+    
+    <item>
       <title>Hidden Markov Models</title>
       <link>https://ajdillhoff.github.io/notes/hidden_markov_models/</link>
       <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
@@ -1197,6 +1777,298 @@ Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected v
     </item>
     
     <item>
+      <title>Lagrangian Multipliers</title>
+      <link>https://ajdillhoff.github.io/notes/lagrangian_multipliers/</link>
+      <pubDate>Sat, 05 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/lagrangian_multipliers/</guid>
+      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s take a simple constrained problem (from Nocedal and Wright).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\min \quad &amp;amp; x_1 + x_2\\
+\textrm{s.t.} \quad &amp;amp; x_1^2 + x_2^2 - 2 = 0
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The set of possible solutions to this problem lie on the boundary of the circle defined by the constraint:&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2021-12-01_18-06-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: Nocedal and Wright&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: Nocedal and Wright
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we let \(g(\mathbf{x}) = x_1^2 + x_2^2 - 2\), then the gradient vector is \((2x_1, 2x_2)\)&lt;/p&gt;
+&lt;p&gt;Our original function \(f(\mathbf{x}) = x_1 + x_2\) has a gradient vector of \((1, 1)\).&lt;/p&gt;
+&lt;p&gt;The figure above visualizes these vectors at different points on the constraint boundary.&lt;/p&gt;
+&lt;p&gt;Notice that the optimal solution \(\mathbf{x}^* = (-1, -1)\) is at a point where \(\nabla g(\mathbf{x}^*)\) is parallel to \(\nabla f(\mathbf{x}^*)\). However, the gradients of the vectors are not equal. So there must be some scalar \(\lambda\) such that \(\nabla f(\mathbf{x}^*) = \lambda \nabla g(\mathbf{x}^*)\).&lt;/p&gt;
+&lt;p&gt;This scalar \(\lambda\) is called a Lagrangian multiplier. We use this and introduce the Lagrangian function:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) - \lambda g(\mathbf{x})
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This yields a form for which we can analytically calculate the stationary points. That is,&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\nabla_{\mathbf{x}} \mathcal{L}(\mathbf{x}^*, \lambda^*) = 0.
+\end{equation*}&lt;/p&gt;
+&lt;h2 id=&#34;lagrangian-duality&#34;&gt;Lagrangian Duality&lt;/h2&gt;
+&lt;p&gt;In general, the primal optimization problem is formulated as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\min_{w} \quad &amp;amp; f(w)\\
+\textrm{s.t.} \quad &amp;amp; g_i(w) \leq 0, \quad i = 1, \dots, k\\
+&amp;amp; h_i(w) = 0, \quad i = 1, \dots, l.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The Lagrangian function is then&lt;/p&gt;
+&lt;p&gt;\[
+L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i h_i(w).
+\]&lt;/p&gt;
+&lt;h2 id=&#34;additional-resources&#34;&gt;Additional Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf&#34;&gt;https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Kernels</title>
+      <link>https://ajdillhoff.github.io/notes/kernels/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/kernels/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dual-representation&#34;&gt;Dual Representation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#relating-back-to-the-original-formulation&#34;&gt;Relating Back to the Original Formulation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#types-of-kernels&#34;&gt;Types of Kernels&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Notebook link: &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb&#34;&gt;https://github.com/ajdillhoff/CSE6363/blob/main/svm/kernels.ipynb&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Parametric models use training data to estimate a set of parameters that can then be used to perform inference on new data.
+An alternative approach uses &lt;strong&gt;nonparametric methods&lt;/strong&gt;, meaning the function is estimated directly from the data instead of optimizing a set of parameters.&lt;/p&gt;
+&lt;p&gt;One possible downside to such an approach is that it becomes less efficient as the amount of training data increases.
+Additionally, the transformation into a feature space such that the data becomes linearly separable may be intractable.
+Consider sequential data such as text or audio.
+If each sample has a variable number of features, how do we account for this using standard linear models with a fixed number of parameters?&lt;/p&gt;
+&lt;p&gt;The situations described above can be overcome through the use of the &lt;strong&gt;kernel trick&lt;/strong&gt;.
+We will see that, by computing a measure of similarity between samples in the feature space, we do not need to directly transform each individual sample to that space.&lt;/p&gt;
+&lt;p&gt;A kernel function is defined as&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \phi(\mathbf{x})^T \phi(\mathbf{x}&amp;rsquo;),
+\]&lt;/p&gt;
+&lt;p&gt;where \(\phi\) is some function which transforms the input to a feature space.&lt;/p&gt;
+&lt;p&gt;Methods that require part or all of the training data to make prediction will benefit from using kernel representations, especially when using high dimensional data. Instead of transforming the data into a high dimensional space which may be computationally intractable, a measure of similarity via the &lt;em&gt;inner product&lt;/em&gt; is used. The inner product is not the projection into some space. Instead, it represents the outcome of that projection.&lt;/p&gt;
+&lt;h2 id=&#34;dual-representation&#34;&gt;Dual Representation&lt;/h2&gt;
+&lt;p&gt;The key to taking advantage of the kernel trick relies on reformulating our linear model into a dual representation.
+In this form, we will establish a dependence on the kernel function.&lt;/p&gt;
+&lt;p&gt;The following derivation of the dual representation for linear regression follows (Bishop). Consider the least squares loss with \(L2\) regularization, as we discussed with &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;Linear Regression&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)^2 + \frac{\lambda}{2} \mathbf{w}^T \mathbf{w}
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\phi\) is a basis function that transforms the input. This could also be a simple identity function in which \(\phi(\mathbf{x}) = \mathbf{x}\). To solve for \(\mathbf{w}\), we take the gradient of \(J(\mathbf{w})\) with respect to \(\mathbf{w}\) and set it to 0.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{w}) &amp;amp;= \sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)\phi(\mathbf{x}_i) + \lambda \mathbf{w}\\
+\implies \mathbf{w} &amp;amp;= -\frac{1}{\lambda}\sum_{i=1}^n(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i)\phi(\mathbf{x}_i)
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can formulate this as a matrix-vector product by letting&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{\Phi} =
+\begin{bmatrix}
+\phi(\mathbf{x}_1)^T\\
+\vdots \\
+\phi(\mathbf{x}_n)^T\\
+\end{bmatrix}
+\text{ and }
+a_{i} = -\frac{1}{\lambda}(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Then, \(\mathbf{w} = \mathbf{\Phi}^T\mathbf{a}\), where \(\mathbf{a} = [a_1, \dots, a_n]^T\).&lt;/p&gt;
+&lt;p&gt;The dual representation is derived by reformulating \(J(\mathbf{w})\) in terms of \(\mathbf{a}\).&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+J(\mathbf{a}) = \frac{1}{2}\mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{a} - \mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{y} + \frac{1}{2}\mathbf{y}^T\mathbf{y} + \frac{\lambda}{2} \mathbf{a}^T\mathbf{\Phi}\mathbf{\Phi}^T\mathbf{a},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{y} = [y_1, \dots, y_n]\).&lt;/p&gt;
+&lt;p&gt;Looking at the products \(\mathbf{\Phi}\mathbf{\Phi}^T\), we see that these relate to our original kernel form: \(\phi(\mathbf{x}_i)^T\phi(\mathbf{x}_j)\). This product defines a &lt;a href=&#34;https://en.wikipedia.org/wiki/Gram_matrix&#34;&gt;Gram matrix&lt;/a&gt; \(\mathbf{K} = \mathbf{\Phi}\mathbf{\Phi}^T\) whose elements are \(k(\mathbf{x}_i, \mathbf{x}_j)\). Thus, we can rewrite \(J(\mathbf{a})\) as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+J(\mathbf{a}) = \frac{1}{2}\mathbf{a}^T\mathbf{K}\mathbf{K}\mathbf{a} - \mathbf{a}^T\mathbf{K}\mathbf{y} + \frac{1}{2}\mathbf{y}^T\mathbf{y} + \frac{\lambda}{2}\mathbf{a}^T\mathbf{K}\mathbf{a}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Solving for \(\mathbf{a}\) can be done by computing the gradient of \(J(\mathbf{a})\) with respect to \(\mathbf{a}\) and setting the result to 0.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\nabla_\mathbf{a}J(\mathbf{a}) = \mathbf{K}\mathbf{K}\mathbf{a} - \mathbf{K}\mathbf{y} + \lambda \mathbf{K}\mathbf{a} &amp;amp;= 0\\
+\mathbf{K}\mathbf{a} + \lambda I\mathbf{a} - \mathbf{y} &amp;amp;= 0\\
+(\mathbf{K} + \lambda I)\mathbf{a} &amp;amp;= \mathbf{y}\\
+\mathbf{a} &amp;amp;= (\mathbf{K} + \lambda I)^{-1} \mathbf{y}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;With \(\mathbf{a}\) solved, we can complete the dual representation of our original linear regression model. Recall that&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+h(\mathbf{x}; \mathbf{w}) = \mathbf{w}^T\phi(\mathbf{x}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;If we substitute \(\mathbf{w} = \mathbf{\Phi}^T\mathbf{a}\), we get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+f(\mathbf{x};\mathbf{a}) &amp;amp;= \mathbf{a}^T\mathbf{\Phi}\phi(\mathbf{x})\\
+&amp;amp;= \Big[(\mathbf{K} + \lambda I)^{-1}\mathbf{y})\Big]^T\mathbf{\Phi}\phi(\mathbf{x}).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Again, the kernel form is apparent in the product \(\mathbf{\Phi}\phi(\mathbf{x})\). If we let \(k_i(\mathbf{x}) = k(\mathbf{x}_i,\mathbf{x})\) and&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{k}(\mathbf{x}) =
+\begin{bmatrix}
+k_1(\mathbf{x})\\
+\vdots \\
+k_n(\mathbf{x})
+\end{bmatrix},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;we can write the dual representation of our linear regression model as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(\mathbf{x}) = \mathbf{k}(\mathbf{x})^T(\mathbf{K} + \lambda \mathbf{I})^{-1}\mathbf{y}.
+\end{equation*}&lt;/p&gt;
+&lt;h2 id=&#34;relating-back-to-the-original-formulation&#34;&gt;Relating Back to the Original Formulation&lt;/h2&gt;
+&lt;p&gt;In this dual formulation, the solution for \(\mathbf{a}\) can be expressed as a linear combination of elements \(\phi(\mathbf{x})\).
+From above, we see that&lt;/p&gt;
+&lt;p&gt;\[
+a_i = -\frac{1}{\lambda}\big(\mathbf{w}^T\phi(\mathbf{x}_i) - y_i\big).
+\]&lt;/p&gt;
+&lt;p&gt;Expanding this into individual coefficients yields&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+a_i &amp;amp;= -\frac{1}{\lambda}\big(w_1\phi_1(\mathbf{x}_i) + \cdots + w_m \phi_m(\mathbf{x}_i) - y_i\big)\\
+&amp;amp;= -\frac{w_1}{\lambda}\phi_1(\mathbf{x}_i) - \cdots - \frac{w_m}{\lambda} \phi_m(\mathbf{x}_i) + \frac{y_i}{\lambda}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We are close, but we still need to do something about the term \(\frac{y_i}{\lambda}\). For this, we can multiply both sides of our equation by a convenient 1. That is, we multiply by&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}.
+\]&lt;/p&gt;
+&lt;p&gt;By doing this and grouping the \(\phi_j\) terms, we get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+&amp;amp;\Big(\frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)} - \frac{w_1}{\lambda}\Big)\phi_1(\mathbf{x}_i) + \cdots\\
+&amp;amp;+ \Big(\frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)} - \frac{w_m}{\lambda}\Big)\phi_m(\mathbf{x}_i).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can simplify this by introducing a term&lt;/p&gt;
+&lt;p&gt;\[
+c_i = \frac{y_i}{\lambda}\cdot \frac{1}{\phi_1(\mathbf{x}_i) + \cdots + \phi_m(\mathbf{x}_i)}.
+\]&lt;/p&gt;
+&lt;p&gt;Then the solution can be rewritten as&lt;/p&gt;
+&lt;p&gt;\[
+\Big(c_i - \frac{w_1}{\lambda}\Big)\phi_1(\mathbf{x}_i) + \cdots + \Big(c_i - \frac{w_m}{\lambda}\Big)\phi_m(\mathbf{x}_i).
+\]&lt;/p&gt;
+&lt;p&gt;With this, we can step backwards using intermediate results in the previous section to get back to the original formulation of our linear regression model.&lt;/p&gt;
+&lt;h2 id=&#34;types-of-kernels&#34;&gt;Types of Kernels&lt;/h2&gt;
+&lt;p&gt;There are several types of kernels that can be used to transform the input data depending on the problem. The simplest kernel is the &lt;strong&gt;identity kernel:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x&amp;rsquo;}) = \mathbf{x}^T \mathbf{x&amp;rsquo;}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;polynomial-kernel&#34;&gt;Polynomial Kernel&lt;/h3&gt;
+&lt;p&gt;A polynomial kernel is defined as&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x&amp;rsquo;}) = (\mathbf{x}^T\mathbf{x&amp;rsquo;}+c)^d.
+\]&lt;/p&gt;
+&lt;p&gt;This is a common choice for solving problems akin to polynomial regression.
+We can use this kernel to present a visual explanation of kernel functions.
+Consider the following dataset.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-19_22-06-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Binary classification dataset that is not linearly separable.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Binary classification dataset that is not linearly separable.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;It is easy enough to see that this dataset could not be separated using a hyperplane in 2D.
+We could separate the two using some nonlinear decision boundary like a circle.
+If we could transform this into 3D space, we could come up with some features such that it is linearly separable in 3D.
+For example, let \(\phi(\mathbf{x}) = (x_1^2, x_2^2, \sqrt{2}x_1x_2)\).&lt;/p&gt;
+&lt;p&gt;Transforming all points and visualizing yields the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-06-19_22-11-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Binary classification dataset transformed into a 3D feature space.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Binary classification dataset transformed into a 3D feature space.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;From this perspective, we can clearly see that the data is linearly separable.
+The question remains: if we only have the original 2D features, how do we compare points in this 3D features space without explicitly transforming each point?
+The kernel function corresponding to the feature transform above is&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+k(\mathbf{x}, \mathbf{x}&amp;rsquo;) &amp;amp;= (\mathbf{x}^T\mathbf{x}&amp;rsquo;)^2\\
+&amp;amp;= (x_1x&amp;rsquo;_1 + x_2x&amp;rsquo;_2)^2\\
+&amp;amp;= 2x_1x&amp;rsquo;_1x_2x&amp;rsquo;_2 + (x_1x&amp;rsquo;_1)^2 + (x_2x&amp;rsquo;_2)^2\\
+&amp;amp;= \phi(\mathbf{x})^T \phi(\mathbf{x}&amp;rsquo;)
+\end{align*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\phi(\mathbf{x}) =
+\begin{bmatrix}
+\sqrt{2}x_1x_2\\
+x_1^2\\
+x_2^2
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;radial-basis-function-kernel&#34;&gt;Radial Basis Function Kernel&lt;/h3&gt;
+&lt;p&gt;This kernel follows a Gaussian term and is commonly used with &lt;a href=&#34;https://ajdillhoff.github.io/notes/support_vector_machine/&#34;&gt;SVMs&lt;/a&gt;. It is defined as&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x&amp;rsquo;}) = \exp\Big(-\frac{\|\mathbf{x}-\mathbf{x&amp;rsquo;}\|^2}{2\sigma^2}\Big).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;cosine-similarity&#34;&gt;Cosine Similarity&lt;/h3&gt;
+&lt;p&gt;Consider the problem of comparing text sequences for a document classification task.
+One approach is to compare the number of occurrences of each word.
+The idea is that documents that are similar will have a similar number of words that occur.&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \frac{\mathbf{x}^T \mathbf{x}&amp;rsquo;}{\|\mathbf{x}\|_2 \|\mathbf{x}&amp;rsquo;\|_2}
+\]&lt;/p&gt;
+&lt;p&gt;Documents that are &lt;strong&gt;orthogonal&lt;/strong&gt;, in the sense that the resulting cosine similarity is 0, are dissimilar.
+The similarity increases as the score approaches 1.
+There are several issues with this approach which are addressed by using the term frequence-inverse document frequency (TF-IDF) score.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Linear Discriminant Analysis</title>
       <link>https://ajdillhoff.github.io/notes/linear_discriminant_analysis/</link>
       <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
@@ -1509,6 +2381,112 @@ E(\mathbf{W}) = -\ln p(\mathbf{Y}|\mathbf{W}) = -\sum_{i=1}^n \sum_{k=1}^K y_{ik
 \]&lt;/p&gt;
 &lt;p&gt;Part of your first assignment will be to work through the derivation of this function.
 It is standard practice at this point, but it is highly valuable to understand how the result was produced.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Naive Bayes</title>
+      <link>https://ajdillhoff.github.io/notes/naive_bayes/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/naive_bayes/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#making-a-decision&#34;&gt;Making a Decision&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#relation-to-multinomial-logistic-regression&#34;&gt;Relation to Multinomial Logistic Regression&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#mnist-example&#34;&gt;MNIST Example&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gaussian-formulation&#34;&gt;Gaussian Formulation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;To motivate naive Bayes classifiers, let&amp;rsquo;s look at slightly more complex data. The MNIST dataset was one of the standard benchmarks for computer vision classification algorithms for a long time. It remains useful for educational purposes. The dataset consists of 60,000 training images and 10,000 testing images of size \(28 \times 28\). These images depict handwritten digits. For the purposes of this section, we will work with binary version of the images. This implies that each data sample has 784 binary features.&lt;/p&gt;
+&lt;p&gt;We will use the naive Bayes classifier to make an image classification model which predicts the class of digit given a new image. Each image will be represented by a vector \(\mathbf{x} \in \mathbb{R}^{784}\). Modeling \(p(\mathbf{x}|C_k)\) with a multinomial distribution would require \(10^{784} - 1\) parameters since there are 10 classes and 784 features.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-01_18-47-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Samples of the MNIST training dataset.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Samples of the MNIST training dataset.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;With the naive assumption that the features are independent conditioned on the class, the number model parameters becomes \(10 \times 784\).&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;A naive Bayes classifier makes the assumption that the features of the data are independent. That is,
+\[
+p(\mathbf{x}|C_k, \mathbf{\theta}) = \prod_{d=1}^D p(x_i|C_k, \theta_{dk}),
+\]
+where \(\mathbf{\theta}_{dk}\) are the parameters for the class conditional density for class \(k\) and feature \(d\). Using the MNIST dataset, \(\mathbf{\theta}_{dk} \in \mathbb{R}^{784}\). The posterior distribution is then&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(C_k|\mathbf{x},\mathbf{\theta}) = \frac{p(C_k|\mathbf{\pi})\prod_{i=1}^Dp(x_i|C_k, \mathbf{\theta}_{dk})}{\sum_{k&amp;rsquo;}p(C_{k&amp;rsquo;}|\mathbf{\pi})\prod_{i=1}^Dp(x_i|C_{k&amp;rsquo;},\mathbf{\theta}_{dk&amp;rsquo;})}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;If we convert the input images to binary, the class conditional density \(p(\mathbf{x}|C_k, \mathbf{\theta})\) takes on the Bernoulli pdf. That is,&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(\mathbf{x}|C_k, \mathbf{\theta}) = \prod_{i=1}^D\text{Ber}(x_i|\mathbf{\theta}_{dk}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The parameter \(\theta_{dk}\) is the probability that the feature \(x_i=1\) given class \(C_k\).&lt;/p&gt;
+&lt;h2 id=&#34;maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/h2&gt;
+&lt;p&gt;Fitting a naive Bayes classifier is relatively simple using MLE. The likelihood is given by&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(\mathbf{X}, \mathbf{y}|\mathbf{\theta}) = \prod_{n=1}^N \mathcal{M}(y_n|\mathbf{\pi})\prod_{d=1}^D\prod_{k=1}^{K}p(x_{nd}|\mathbf{\theta}_{dk})^{\mathbb{1}(y_n=k)}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;To derive the estimators, we first take the log of the likelihood:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\ln p(\mathbf{X}, \mathbf{y}|\mathbf{\theta}) = \Bigg[\sum_{n=1}^N\sum_{k=1}^K \mathbb{1}(y_n = k)\ln \pi_k\Bigg] + \sum_{k=1}^K\sum_{d=1}^D\Bigg[\sum_{n:y_n=k}\ln p(x_{nd}|\theta_{dk})\Bigg].
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Thus, we have a term for the the multinomial and terms for the class-feature parameters. As with previous models that use a multinomial form, the parameter estimate for the first term is computed as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\hat{\pi}_k = \frac{N_k}{N}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The features used in our data are binary, so the parameter estimate for each \(\hat{\theta}_{dk}\) follows the Bernoulli distribution:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\hat{\theta}_{dk} = \frac{N_{dk}}{N_{k}}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;That is, the number of times that feature \(d\) is in an example of class \(k\) divided by the total number of samples for class \(k\).&lt;/p&gt;
+&lt;h2 id=&#34;making-a-decision&#34;&gt;Making a Decision&lt;/h2&gt;
+&lt;p&gt;Given parameters \(\mathbf{\theta}\), how can we classify a given data sample?&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\text{arg}\max_{k}p(y=k)\prod_{i}p(x_i|y=k)
+\end{equation*}&lt;/p&gt;
+&lt;h2 id=&#34;relation-to-multinomial-logistic-regression&#34;&gt;Relation to Multinomial Logistic Regression&lt;/h2&gt;
+&lt;p&gt;Consider some data with discrete features having one of \(K\) states, then \(x_{dk} = \mathbb{1}(x_d=k)\). The class conditional density, in this case, follows a multinomial distribution:&lt;/p&gt;
+&lt;p&gt;\[
+p(y=c|\mathbf{x}, \mathbf{\theta}) = \prod_{d=1}^D \prod_{k=1}^K \theta_{dck}^{x_{dk}}.
+\]&lt;/p&gt;
+&lt;p&gt;We can see a connection between naive Bayes and logistic regression when we evaluate the posterior over classes:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(y=c|\mathbf{x}, \mathbf{\theta}) &amp;amp;= \frac{p(y)p(\mathbf{x}|y, \mathbf{\theta})}{p(\mathbf{x})}\\
+&amp;amp;= \frac{\pi_c \prod_{d} \prod_{k} \theta_{dck}^{x_{dk}}}{\sum_{c&amp;rsquo;}\pi_{c&amp;rsquo;}\prod_{d}\prod_{k}\theta_{dc&amp;rsquo;k}^{x_{dk}}} \\
+&amp;amp;= \frac{\exp[\log \pi_c + \sum_d \sum_k x_{dk}\log \theta_{dck}]}{\sum_{c&amp;rsquo;} \exp[\log \pi_{c&amp;rsquo;} + \sum_d \sum_k x_{dk} \log \theta_{dc&amp;rsquo;k}]}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This has the same form as the softmax function:&lt;/p&gt;
+&lt;p&gt;\[
+p(y=c|\mathbf{x}, \mathbf{\theta}) = \frac{e^{\beta^{T}_c \mathbf{x} + \gamma_c}}{\sum_{c&amp;rsquo;=1}^C e^{\beta^{T}_{c&amp;rsquo;}\mathbf{x} + \gamma_{c&amp;rsquo;}}}
+\]&lt;/p&gt;
+&lt;h2 id=&#34;mnist-example&#34;&gt;MNIST Example&lt;/h2&gt;
+&lt;p&gt;With the model definition and parameter estimates defined, we can fit and evaluate the model. Using &lt;code&gt;scikit-learn&lt;/code&gt;, we fit a Bernoulli naive Bayes classifier on the MNIST training set: &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/naive_bayes_mnist.ipynb&#34;&gt;Naive Bayes&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;gaussian-formulation&#34;&gt;Gaussian Formulation&lt;/h2&gt;
+&lt;p&gt;If our features are continuous, we would model them with univariate Gaussians.&lt;/p&gt;
 </description>
     </item>
     
@@ -2002,6 +2980,677 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
 
 &lt;/figure&gt;
 
+</description>
+    </item>
+    
+    <item>
+      <title>Principal Component Analysis</title>
+      <link>https://ajdillhoff.github.io/notes/principal_component_analysis/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/principal_component_analysis/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#maximum-variance-formulation&#34;&gt;Maximum Variance Formulation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#motivating-example&#34;&gt;Motivating Example&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#noise-and-redundancy&#34;&gt;Noise and Redundancy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#covariance-matrix&#34;&gt;Covariance Matrix&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;If we have some measurements of data, but do not know the underlying dynamics, PCA can resolve this by producing a change of basis such that the dynamics are reflected upon the eigenvectors.&lt;/p&gt;
+&lt;h2 id=&#34;maximum-variance-formulation&#34;&gt;Maximum Variance Formulation&lt;/h2&gt;
+&lt;p&gt;Although there are several derivations of PCA. I really like the approach of projecting the data onto a lower dimensional space in order to maximize the variance of the projected data.&lt;/p&gt;
+&lt;p&gt;Let \(\mathbf{X}\) be a dataset of \(N\) samples, each with \(D\) features. The goal of PCA is to project this data onto an $M$-dimensional space such that \(M &amp;lt; D\).&lt;/p&gt;
+&lt;p&gt;Remember that the goal here is to maximize the variance of the &lt;strong&gt;projected data&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How do we project the data?&lt;/strong&gt;
+Let&amp;rsquo;s say that we want to go from $D$-dimensional space to $M$-dimensional space where \(M = 1\). Let the vector \(\mathbf{u}\) define this 1D space. If \(\mathbf{u}\) is a unit vector, then the scalar projection of a data point \(\mathbf{x}\) onto \(\mathbf{u}\) is simply \(\mathbf{u} \cdot \mathbf{x}\).&lt;/p&gt;
+&lt;p&gt;Since we are maximizing variance, we need to subtract the mean sample from our data&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{\bar{x}} = \frac{1}{N}\sum_{n=1}^{N}\mathbf{x}_n
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Then, the mean of the projected data is \(\mathbf{u} \cdot \mathbf{\bar{x}}\).&lt;/p&gt;
+&lt;p&gt;With the mean of the projected data, we can calculate the variance:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{1}{N}\sum_{n=1}^{N}\{\mathbf{u}^T\mathbf{x}_n - \mathbf{u}^T\mathbf{\bar{x}}\}^2 = \mathbf{u}^T\mathbf{S}\mathbf{u}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{S} = \frac{1}{N}\sum_{n=1}^{N}(\mathbf{x}_n - \mathbf{\bar{x}})(\mathbf{x}_n - \mathbf{\bar{x}})^T
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Thus, if we are maximizing the variance of the projected data, then we are maximizing \(\mathbf{u}^T\mathbf{S}\mathbf{u}\)!&lt;/p&gt;
+&lt;p&gt;So this is an optimization problem, but there is one minor issue to deal with: if \(\mathbf{u}\) is not constrained, then we scale it to infinity while maximizing the function.&lt;/p&gt;
+&lt;p&gt;Before, we stated that \(\mathbf{u}\) is a unit vector. Thus, the constraint is that \(\mathbf{u} \cdot \mathbf{u} = 1\).&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;After reviewing Lagrangian multipliers&amp;hellip;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To enforce this constraint, we can use a lagrangian multiplier:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathcal{L}(\mathbf{u}, \lambda) = \mathbf{u}^T\mathbf{S}\mathbf{u} + \lambda(1 - \mathbf{u}^T\mathbf{u}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s see what happens when we compute the stationary points (critical points) of the given Lagrangian function.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\nabla_{\mathbf{u}}\mathcal{L}(\mathbf{u}, \lambda) = \mathbf{S}\mathbf{u} - \lambda \mathbf{u} = 0
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This implies that&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{S}\mathbf{u} = \lambda \mathbf{u}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;That particular equation means that \(\mathbf{u}\) is an eigenvector of \(\mathbf{S}\) with \(\lambda\) being the corresponding eigenvalue. Since \(\mathbf{u}\) is a unit vector, we can conveniently left-multiply both sides of that equation by \(\mathbf{u}^T\), resulting in:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{u}^T\mathbf{S}\mathbf{u} = \lambda
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What does this mean?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;That means that the variance is maximized when \(\mathbf{u}\) is the eigenvector corresponding to the largest eigenvalue \(\lambda\).&lt;/p&gt;
+&lt;p&gt;We can repeat this process to find the direction (eigenvector) corresponding to the second largest variance by considering eigenvectors that are orthogonal to the first one. This is where an orthonormal eigenbasis comes in handy.&lt;/p&gt;
+&lt;h2 id=&#34;motivating-example&#34;&gt;Motivating Example&lt;/h2&gt;
+&lt;p&gt;Consider a frictionless, massless spring that produces dynamics in a single direction.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2021-11-24_12-23-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Toy model of spring with ball observed from 3 perspectives.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Toy model of spring with ball observed from 3 perspectives.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;We can clearly understand that the spring will only move in a single direction. That movement reflects the underlying dynamics of this data. To understand how PCA can be useful in this situation, let&amp;rsquo;s pretend that we do not know the underlying dynamics. Instead, we observe that the data seems to go back and forth along a single axis. We observe the data over time from 3 different perspectives given by the cameras in the above figure.&lt;/p&gt;
+&lt;p&gt;From the perspective of the observer, we are recording some observations in an effort to understand which dimensions are the most salient at representing the underlying mechanics. From the above figure, we know that the most important dimension in this system is that of the labeled x-axis.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How would we figure this out if we did not already know that?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Each camera has its own coordinate system (basis). If each camera gives us a 2D location of the ball relative to that camera&amp;rsquo;s basis, then each sample in time gives us a 6D vector of locations.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Equivalently, every time sample is a vector that lies in an $m$-dimensional vector space spanned by an orthonormal basis.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Is it possible to find another basis that best expresses the data?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Mathemtically, is there some matrix \(P\) that changes our original data \(X\) into a new representation \(Y\)?&lt;/p&gt;
+&lt;p&gt;\(PX = Y\)&lt;/p&gt;
+&lt;h2 id=&#34;noise-and-redundancy&#34;&gt;Noise and Redundancy&lt;/h2&gt;
+&lt;p&gt;When observing real data, we will have to account for noisy measurements. Noise can come from a wide variety of sources. Being able to reduce it or filter it out is vital to understanding the underlying system.&lt;/p&gt;
+&lt;p&gt;Noise is an arbitrary measurement and means nothing without some measurement of a signal. Thus, we typically measure the amount of noise in our system using a Signal-to-Noise Ratio (SNR). This assumes we have some idea of what our signal is. This is usually given based on the nature of whatever problem we are investigating. &lt;strong&gt;In the toy example, we know that the spring largely moves in a single dimension. That is the signal we expect to observe.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;For arguments sake, imagine we that the recordings over time from a single camera plot the following data:&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2021-11-24_14-56-35_screenshot.png&#34; &gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;From our advantageous position of knowing the true nature of the problem, we understand there really should be no noise. However, let&amp;rsquo;s say that our camera has some noise in interpreting the precise location of the ball at any given time. In this case, our SNR is quite high, which is good! Ideally, it would be a straight line.&lt;/p&gt;
+&lt;p&gt;There is a second factor to consider: the fact that we are taking measurements from multiple sensors means that there may be some redundancy among the data collected from them. If we were to discover features that have high redundancy, we could be confident in concluding that they are highly correlated.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2021-11-24_15-01-05_screenshot.png&#34; &gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;covariance-matrix&#34;&gt;Covariance Matrix&lt;/h2&gt;
+&lt;p&gt;Let \(X\) be a an \(m \times n\) matrix of \(n\) observations with \(m\) features per observation.&lt;/p&gt;
+&lt;p&gt;We can produce a covariance matrix of the features via \(S_{X} = \frac{1}{n-1}XX^{T}\).&lt;/p&gt;
+&lt;p&gt;This gives us a measurement of the correlations between all pairs of measurements.&lt;/p&gt;
+&lt;p&gt;If we want to reduce redunancy between separate measurements (those in the off-diagonal of the matrix), we would then want to diagonalize this matrix. In terms of the equation \(PX=Y\), this has the effective of finding a new covariance matrix \(S_{Y}\) that is diagonal. This means that each value in the off-diagonal of \(S_{Y}\) is 0.&lt;/p&gt;
+&lt;p&gt;PCA has a convenient assumption: the change of basis matrix \(P\) is orthonormal.
+&lt;strong&gt;Why is this convenient?&lt;/strong&gt;
+PCA can then select the normalized direction in the feature space for which the variance in the data is maximized. This is called the first &lt;em&gt;principal component&lt;/em&gt;. Because we assume \(P\) is orthonormal, the subsequent principal components must be orthogonal to the previously discovered components.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;One more thing&lt;/strong&gt;
+If \(P\) is not orthonormal, then we can simply scale our eigenvectors to maximize variance.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Probability Theory</title>
+      <link>https://ajdillhoff.github.io/notes/probability_theory/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/probability_theory/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-simple-example&#34;&gt;A Simple Example&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#probability-distributions&#34;&gt;Probability Distributions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#conditional-probability&#34;&gt;Conditional Probability&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#rules-of-probability&#34;&gt;Rules of Probability&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#random-variables&#34;&gt;Random Variables&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#continuous-variables&#34;&gt;Continuous Variables&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#expectation-variance-and-covariance&#34;&gt;Expectation, Variance, and Covariance&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Probability theory provides a consistent framework for the quantification and manipulation of uncertainty.
+It allows us to make the best decisions given the limited information we may have.
+Many tasks, models, and evaluation metrics that we will explore in this course are either based on, or are inspired by, probability theory.&lt;/p&gt;
+&lt;h2 id=&#34;a-simple-example&#34;&gt;A Simple Example&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Scenario:&lt;/strong&gt; There are two cookie jars, a blue one for cookies with oatmeal raisin cookies and a red one for chocolate chip cookies. The jar with oatmeal raisin cookies has 8 cookies in it. The chocolate chip jar has 10 cookies. Some monster took 2 of the chocolate chip cookies and placed them in the oatmeal raisin jar and placed 1 of the oatmeal raisin cookies in the chocolate chip jar. Thus, the oatmeal raisin jar has 2 chocolate chip and 7 oatmeal raisin. The chocolate chip jar has 8 chocolate chip and 1 oatmeal raisin.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s say that we pick the chocolate chip jar 80% of the time and the oatmeal raisin jar 20% of the time. For a given jar, the cookies inside are all equally likely to be picked. We can assign this probability to &lt;strong&gt;random variables&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(J\) - The type of jar, either blue \(b\) or red \(r\).&lt;/li&gt;
+&lt;li&gt;\(C\) - The type of cookie, either oatmeal \(o\) or chocolate chip \(c\).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can define the probability of picking a particular jar:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(p(J=b) = 0.2\)&lt;/li&gt;
+&lt;li&gt;\(p(J = r) = 0.8\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Notice that their sum is 1.0. These probabilities can be estimated empirically given an observer recording the events. We may also define the probabilities of picking a particular type of cookie.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(p(C = o)\)&lt;/li&gt;
+&lt;li&gt;\(p(C = c)\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For each jar, the probabilities of picking the cookies must sum to 1. The tables below show the individual probabilities of picking each type of cookie from each jar. Since we can observe the actual quantities, we can define the probabilities empirically.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;Chocolate Chip&lt;/th&gt;
+&lt;th&gt;Oatmeal Raisin&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Blue Jar&lt;/td&gt;
+&lt;td&gt;2 / 9 = 0.222&lt;/td&gt;
+&lt;td&gt;7 / 9 = 0.778&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;Chocolate Chip&lt;/th&gt;
+&lt;th&gt;Oatmeal Raisin&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Red Jar&lt;/td&gt;
+&lt;td&gt;8 / 9 = 0.889&lt;/td&gt;
+&lt;td&gt;1 / 9 = 0.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Given these quantities, we can ask slightly more complicated questions such as &amp;ldquo;what is the probability that I will select the red jar AND take a chocolate chip cookie?&amp;rdquo; This is expressed as a &lt;strong&gt;joint probability distribution&lt;/strong&gt;, written as \(p(J = r, C = c)\). It is defined based on two events:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the prior probability of picking the red jar,&lt;/li&gt;
+&lt;li&gt;the conditional probability of picking a chocolate chip cookie conditioned on the event that the red jar was picked.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;\begin{equation*}
+p(J=r, C=c) = p(C=c | J=r) p(J = r)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This is also referred to as the &lt;strong&gt;product rule&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;We already know \(p(J=r) = 0.8\). From the table above, we can see that \(p(C=c|J=r) = 0.889\). Thus, \(p(C=c,J=r) = 0.8 * 0.889 = 0.711\).&lt;/p&gt;
+&lt;p&gt;If we knew nothing about the contents of the jar or the prior probabilities of selecting a jar, we could measure the joint probability empirically. This would simply be the number of times we select the red jar AND a chocolate chip cookie divided by total number of trials. For best results, perform an infinite number of trials.&lt;/p&gt;
+&lt;p&gt;If instead we wanted to measure the &lt;strong&gt;conditional probability&lt;/strong&gt; \(p(C=c|J=r)\), we would simply take the number of times a chocolate chip cookie is taken from the red jar and divide by the total number of times the red jar was selected.&lt;/p&gt;
+&lt;p&gt;We can construct a joint probability table given the joint probabilities of all the events listed.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;Chocolate Chip&lt;/th&gt;
+&lt;th&gt;Oatmeal Raisin&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Red Jar&lt;/td&gt;
+&lt;td&gt;0.711&lt;/td&gt;
+&lt;td&gt;0.089&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Blue Jar&lt;/td&gt;
+&lt;td&gt;0.044&lt;/td&gt;
+&lt;td&gt;0.156&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;If you summed each row and further took the sum of the sum of rows, you would get 1. Likewise, the sum of the sum of columns would equal 1.&lt;/p&gt;
+&lt;p&gt;Summing the columns for each row yields the prior probability of selecting each type of jar. Similarly, summing the rows for each column gives the prior probability of selecting that type of cookie. This is referred to as the &lt;strong&gt;marginal probability&lt;/strong&gt; or &lt;strong&gt;sum rule&lt;/strong&gt;, which is computed by summing out the other variables in the joint distribution. For example,&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(x_i) = \sum_j p(x_i, y_j)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Empirically, this is computed as the number of times event \(x_i\) occurs out of ALL trials.&lt;/p&gt;
+&lt;p&gt;Although the joint probabilities \(p(X, Y)\) and \(p(Y, X)\) would be written slightly differently, they are equal. With this in mind, we can set them equal to each other to derive &lt;strong&gt;Bayes&amp;rsquo; rule&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(X, Y) &amp;amp;= p(Y, X)\\
+p(X|Y)p(Y) &amp;amp;= p(Y|X)p(X)\\
+p(X|Y) &amp;amp;= \frac{p(Y|X)p(X)}{p(Y)}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;In this context, \(p(X|Y)\) is referred to as the &lt;strong&gt;posterior probability&lt;/strong&gt; of event \(X\) conditioned on the fact that we know event \(Y\) has occurred. On the right, \(p(X)\) is the &lt;strong&gt;prior probability&lt;/strong&gt; of event \(X\) in the absence of any additional evidence.&lt;/p&gt;
+&lt;p&gt;Two variables are &lt;strong&gt;independent&lt;/strong&gt;, then&lt;/p&gt;
+&lt;p&gt;\[
+p(X, Y) = p(X)p(Y)
+\]&lt;/p&gt;
+&lt;p&gt;If two variables are conditionally independent given a third event, then&lt;/p&gt;
+&lt;p&gt;\[
+p(X, Y|Z) = P(X|Z)P(Y|Z)
+\]&lt;/p&gt;
+&lt;h2 id=&#34;probability-distributions&#34;&gt;Probability Distributions&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Events&lt;/strong&gt; come from a &lt;strong&gt;space&lt;/strong&gt; of possible outcomes.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\Omega = {1, 2, 3, 4, 5, 6}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;measureable event&lt;/strong&gt; is one for which we can assign a probability.&lt;/p&gt;
+&lt;p&gt;An &lt;strong&gt;event space&lt;/strong&gt; must satisfy the following:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;It contains the empty event \(\emptyset\) and trivial event \(\Omega\)&lt;/li&gt;
+&lt;li&gt;It is closed under union&lt;/li&gt;
+&lt;li&gt;It is closed under complementation: if \(\alpha \in S\), so is \(\Omega - \alpha\)&lt;/li&gt;
+&lt;li&gt;Statement 2 implies difference and intersection&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;A &lt;strong&gt;probability distribution&lt;/strong&gt; \(P\) over \((\Omega, S)\) maps events \(S\) to real values and satisfies:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(P(\alpha) \geq 0\) for all \(\alpha \in S\)&lt;/li&gt;
+&lt;li&gt;\(P(\Omega) = 1\)&lt;/li&gt;
+&lt;li&gt;If \(\alpha,\beta \in S\) and \(\alpha \cap \beta = \emptyset\), then \(P(\alpha \cup \beta) = P(\alpha)+P(\beta)\)&lt;/li&gt;
+&lt;li&gt;\(P(\emptyset) = 0\)&lt;/li&gt;
+&lt;li&gt;\(P(\alpha \cup \beta) = P(\alpha) + P(\beta) - P(\alpha \cap \beta)\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;conditional-probability&#34;&gt;Conditional Probability&lt;/h2&gt;
+&lt;p&gt;Defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+P(\beta | \alpha) = \frac{P(\alpha \cap \beta)}{P(\alpha)}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The more that \(\alpha\) and \(\beta\) relate, the higher the probability.&lt;/p&gt;
+&lt;h3 id=&#34;the-chain-rule-of-probability&#34;&gt;The Chain Rule of Probability&lt;/h3&gt;
+&lt;p&gt;\begin{equation*}
+P(\alpha \cap \beta) = P(\alpha) P(\beta | \alpha)
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Generally&amp;hellip;&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+P(\alpha_1 \cap \dotsb \cap \alpha_k) = P(\alpha_1)P(\alpha_2 | \alpha_1) \dotsm P(\alpha_k | \alpha_1 \cap \dotsb \cap \alpha_{k-1})
+\end{equation*}&lt;/p&gt;
+&lt;h3 id=&#34;bayes-rule&#34;&gt;Bayes&amp;rsquo; Rule&lt;/h3&gt;
+&lt;p&gt;\begin{equation*}
+P(\alpha | \beta) = \frac{P(\beta | \alpha)P(\alpha)}{P(\beta)}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Computes the inverse conditional probability.&lt;/p&gt;
+&lt;p&gt;A general conditional version of Baye&amp;rsquo;s rule:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+P(\alpha | \beta \cap \gamma) = \frac{P(\beta | \alpha \cap \gamma)P(\alpha | \gamma)}{P(\beta | \gamma)}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example: TB Tests&lt;/strong&gt;
+A common example for introduction Bayes&amp;rsquo; rule is that of the test that gives 95% accuracy.
+The naive assumption here is that if you receive a positive result with no prior information, then
+there is a 95% chance you have the infection. This is wrong because that value is conditioned on
+&lt;strong&gt;already being infected&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;rules-of-probability&#34;&gt;Rules of Probability&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Sum Rule:&lt;/strong&gt;&lt;/strong&gt; \(p(X) = \sum_{Y}p(X, Y)\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Product Rule:&lt;/strong&gt;&lt;/strong&gt; \(p(X, Y) = p(Y|X)p(X)\)&lt;/p&gt;
+&lt;h2 id=&#34;random-variables&#34;&gt;Random Variables&lt;/h2&gt;
+&lt;p&gt;Allows for compact notation when talking about an event. It can also be represented as a function:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f_{\text{Grade}}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;maps each person in \(\Omega\) to a grade value.&lt;/p&gt;
+&lt;p&gt;Random variables are commonly either &lt;strong&gt;categorical&lt;/strong&gt; or &lt;strong&gt;real numbers&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;multinoulli distribution&lt;/strong&gt; is one over \(k &amp;gt; 2\) categorical random variables.
+If \(k = 2\), the distribution is called the &lt;strong&gt;Bernoulli&lt;/strong&gt; or &lt;strong&gt;binomial&lt;/strong&gt; distribution.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;marginal distribution&lt;/strong&gt; is one over a single random variable \(X\).&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;joint distribution&lt;/strong&gt; is one over a set of random variables.&lt;/p&gt;
+&lt;p&gt;The marginal can be computed from a joint distribution.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+P(x) = \sum_{y}P(x, y)
+\end{equation*}&lt;/p&gt;
+&lt;h2 id=&#34;continuous-variables&#34;&gt;Continuous Variables&lt;/h2&gt;
+&lt;p&gt;The introductory example looked at events that take on discrete values. That is, we either selected a cookie or did not. Most of the problems we will deal with in this course involve continuous values. In this case, we are concerned with intervals that the values may take on. If we consider a small differential of our random variable \(x\) as \(\delta x\), we can compute the probability density \(p(x)\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-23_13-11-32_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;PDF (p(x)) and CDF (P(x)). Source: Bishop&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;PDF (p(x)) and CDF (P(x)). Source: Bishop
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;With this differential \(\delta x\), we can compute the probability that \(x\) lies on some interval \((a, b)\):&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(a \leq x \leq b) = \int_{a}^{b} p(x) dx
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;As with discrete probability distributions, the probability density must sum to 1 and cannot take a negative value. That is&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(x) &amp;amp;\geq 0\\
+\int_{-\infty}^{\infty}p(x)dx &amp;amp;= 1
+\end{align*}&lt;/p&gt;
+&lt;p&gt;In the plot above, \(p(x)\) is the probability density function (pdf) and \(P(x)\) is the cumulative distribution function (cdf). It is possible for a pdf to have a value greater than 1, as long as integrals over any interval are less than or equal to 1.&lt;/p&gt;
+&lt;p&gt;The cumulative distribution function \(P(x)\) is the probability that \(x\) lies in the interval \((-\infty, z)\), given by&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+P(z) = \int_{\infty}^{z} p(x)dx.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Note that the derivative of the cdf is equal to the pdf.&lt;/p&gt;
+&lt;p&gt;The product rule for continuous probability distributions takes on the same form as that of discrete distributions. The sum rule is written in terms of integration:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(x) = \int p(x, y)dy.
+\end{equation*}&lt;/p&gt;
+&lt;h2 id=&#34;expectation-variance-and-covariance&#34;&gt;Expectation, Variance, and Covariance&lt;/h2&gt;
+&lt;p&gt;Three extremely important statistics for any probability distribution are the average, variance, and covariance.&lt;/p&gt;
+&lt;h3 id=&#34;expectation&#34;&gt;Expectation&lt;/h3&gt;
+&lt;p&gt;The average of a function \(f(x)\) under a probability distribution \(p(x)\) is referred to as the &lt;strong&gt;expectation&lt;/strong&gt; of \(f(x)\), written as \(\mathbb{E}[f]\). The expectation for discrete and continuous distributions are&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbb{E}[f] &amp;amp;= \sum_x p(x)f(x) \text{ and}\\
+\mathbb{E}[f] &amp;amp;= \int p(x)f(x)dx,
+\end{align*}&lt;/p&gt;
+&lt;p&gt;respectively.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-25_17-56-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Expectation of rolling a d6 over ~1800 trials converges to 3.5. Source: [Seeing Theory](https://seeing-theory.brown.edu/)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Expectation of rolling a d6 over ~1800 trials converges to 3.5. Source: &lt;a href=&#34;https://seeing-theory.brown.edu/&#34;&gt;Seeing Theory&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The &lt;strong&gt;mean value&lt;/strong&gt; for a discrete and continuous probability distribution is define as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbb{E}[f] &amp;amp;= \sum_x p(x)x \text{ and}\\
+\mathbb{E}[f] &amp;amp;= \int_{-\infty}^{\infty} p(x)xdx,
+\end{align*}&lt;/p&gt;
+&lt;p&gt;respectively.&lt;/p&gt;
+&lt;p&gt;Empirically, we can approximate this quantity given \(N\) samples as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbb{E}[f] \approx \frac{1}{N}\sum_{i=1}^{N}f(x_i).
+\end{equation*}&lt;/p&gt;
+&lt;h3 id=&#34;variance&#34;&gt;Variance&lt;/h3&gt;
+&lt;p&gt;The &lt;strong&gt;variance&lt;/strong&gt; of a function \(f(x)\) under a probability distribution \(p(x)\) measures how much variability is in \(f(x)\) around the expected value \(\mathbb{E}[f(x)]\) and is defined by&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\text{var}[f] &amp;amp;= \mathbb{E}[(f(x) - \mathbb{E}[f(x)])^2]\\
+&amp;amp;= \mathbb{E}[f(x)^2] - \mathbb{E}[f(x)]^2.
+\end{align*}&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-25_18-02-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Variance of drawing cars with values 1-10 100 trials converges to 8.79. True variance is 8.25. Source: [Seeing Theory](https://seeing-theory.brown.edu/)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Variance of drawing cars with values 1-10 100 trials converges to 8.79. True variance is 8.25. Source: &lt;a href=&#34;https://seeing-theory.brown.edu/&#34;&gt;Seeing Theory&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;covariance&#34;&gt;Covariance&lt;/h3&gt;
+&lt;p&gt;The &lt;strong&gt;covariance&lt;/strong&gt; of two random variables \(x\) and \(y\) provides a measure of dependence between the two variables. This implies that the covariance between two independent variables is 0.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\text{cov}[\mathbf{x},\mathbf{y}] &amp;amp;= \mathbf{E}_{\mathbf{x},\mathbf{y}}[\{\mathbf{x} - \mathbb{E}[\mathbf{x}]\}\{\mathbf{y}^T - \mathbb{E}[\mathbf{y}^T]\}]\\
+&amp;amp;= \mathbb{E}_{\mathbf{x},\mathbf{y}}[\mathbf{x}\mathbf{y}^T] - \mathbb{E}[\mathbf{x}]\mathbb{E}[\mathbf{y}^T].
+\end{align*}&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-25_18-13-52_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Plot of 2D data with negative covariance. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Plot of 2D data with negative covariance. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-25_18-14-22_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Plot of 2D data with approximately 0 covariance. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Plot of 2D data with approximately 0 covariance. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-25_18-14-45_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Plot of data with positive covariance. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Plot of data with positive covariance. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>Support Vector Machine</title>
+      <link>https://ajdillhoff.github.io/notes/support_vector_machine/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/support_vector_machine/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#maximum-margin-classifier&#34;&gt;Maximum Margin Classifier&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#formulation&#34;&gt;Formulation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#overlapping-class-distributions&#34;&gt;Overlapping Class Distributions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multiclass-svm&#34;&gt;Multiclass SVM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#additional-resources&#34;&gt;Additional Resources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Support Vector Machines are a class of supervised learning methods primarily used for classification. Although they can be formulated for regression and outlier detection as well. Instead of optimizing a set of parameters which compress or summarize the training set, they use a small subset of the training data to compute the decision function.&lt;/p&gt;
+&lt;p&gt;They rely on the data being linearly separable, so feature transformations are critical for problems in which the original representation of the data is not linearly separable.&lt;/p&gt;
+&lt;h2 id=&#34;maximum-margin-classifier&#34;&gt;Maximum Margin Classifier&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s start with a simple classification model as we studied with &lt;a href=&#34;https://ajdillhoff.github.io/notes/logistic_regression/&#34;&gt;Logistic Regression&lt;/a&gt;. That is, we have&lt;/p&gt;
+&lt;p&gt;\[
+f(\mathbf{x}) = \mathbf{w}^T\phi(\mathbf{x}),
+\]&lt;/p&gt;
+&lt;p&gt;where \(\phi(\mathbf{x})\) is a function which transforms our original input into some new feature space. The transformed input is assumed to be linearly separable so that a decision boundary can be computed. In the original logistic regression problem, a decision boundary was found through optimization. For linearly separable data, there are an infinite number of decision boundaries that satisfy the problem.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What about the quality of the decision boundary?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Is one decision boundary better than the other?&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO:&lt;/strong&gt; Add a few plots comparing decision boundaries&lt;/p&gt;
+&lt;h2 id=&#34;formulation&#34;&gt;Formulation&lt;/h2&gt;
+&lt;p&gt;Given a training set \(\{\mathbf{x}_1, \dots, \mathbf{x}_n\}\) with labels \(\{y_1, \dots, y_n\}\), where \(y_i \in \{-1, 1\}\), we construct a linear model which classifies an input sample depending on the sign of the output.&lt;/p&gt;
+&lt;p&gt;Our decision rule for classification, given some input \(\mathbf{x}\), is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(\mathbf{x}) =
+\begin{cases}
+1\text{ if }\mathbf{w}^T\mathbf{x} + b \geq 0\\
+-1\text{ if }\mathbf{w}^T\mathbf{x} + b &amp;lt; 0
+\end{cases}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How large should the margin be?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In the original formulation of &lt;a href=&#34;https://ajdillhoff.github.io/notes/logistic_regression/&#34;&gt;Logistic Regression&lt;/a&gt;, we saw that the parameter vector \(\mathbf{w}\) described the &lt;strong&gt;normal&lt;/strong&gt; to the decision boundary. The distance between a given point \(\mathbf{x}\) and the decision boundary is given by&lt;/p&gt;
+&lt;p&gt;\[
+\frac{y_if(\mathbf{x})}{||\mathbf{w}||}.
+\]&lt;/p&gt;
+&lt;p&gt;We can frame this as an optimization problem: come up with a value for \(\mathbf{w}\) that maximizes the margin.&lt;/p&gt;
+&lt;p&gt;\[
+\text{arg max}_{\mathbf{w}, b} \frac{1}{\|\mathbf{w}\|}\min_{i} y_i (\mathbf{w}^T\phi(\mathbf{x}_i) + b)
+\]&lt;/p&gt;
+&lt;p&gt;We can arbitrarily scale the parameters, so we add an additional constraint that any point that lies on the boundary of the margin satisfies&lt;/p&gt;
+&lt;p&gt;\[
+y_i(\mathbf{w}^T\mathbf{x} + b) = 1.
+\]&lt;/p&gt;
+&lt;p&gt;Under this constraint, we have that all samples satisfy&lt;/p&gt;
+&lt;p&gt;\[
+y_i(\mathbf{w}^T\mathbf{x} + b) \geq 1.
+\]&lt;/p&gt;
+&lt;p&gt;That is, all positive samples with target \(1\) will produce at least a \(1\), yielding a value greater than or equal to 1. All negative samples with target \(-1\) will produce at most a \(-1\), yielding a value greater than or equal to 1.&lt;/p&gt;
+&lt;p&gt;Another way of writing this is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(\mathbf{x}) =
+\begin{cases}
+1\text{ if }\mathbf{w}^T\mathbf{x}_{+} + b \geq 1\\
+-1\text{ if }\mathbf{w}^T\mathbf{x}_{-} + b \leq -1,
+\end{cases}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{x}_+\) is a positive sample and \(\mathbf{x}_-\) is a negative sample. The decision rule can then be written as&lt;/p&gt;
+&lt;p&gt;\[
+y_i(\mathbf{w}^T\mathbf{x} + b) - 1 \geq 0.
+\]&lt;/p&gt;
+&lt;p&gt;This implies that the only samples that would yield an output of 0 are those that lie directly on the margins of the decision boundary.&lt;/p&gt;
+&lt;p&gt;Given this constraint of \(y_i(\mathbf{w}^T\mathbf{x} + b) - 1 = 0\), we can derive our optimization objective.&lt;/p&gt;
+&lt;p&gt;The margin can be computed via the training data. To do this, consider two data points which lie on their respective boundaries, one positive and one negative, and compute the distance between them: \(\mathbf{x}_+ - \mathbf{x}_-\). This distance with respect to our decision boundary, defined by \(\mathbf{w}\), is given by&lt;/p&gt;
+&lt;p&gt;\[
+(\mathbf{x}_+ - \mathbf{x}_-) \cdot \frac{\mathbf{w}}{||\mathbf{w}||}.
+\]&lt;/p&gt;
+&lt;p&gt;For clarity, we can rewrite this as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{1}{||\mathbf{w}||}(\mathbf{x}_{+} \cdot \mathbf{w} - \mathbf{x}_{-} \cdot \mathbf{w}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;If we substitute the sample values into the equality constraint above, we can simplify this form. For the positive sample, we have \(\mathbf{w}^T\mathbf{x} = 1 - b\). For the negative sample, we get \(\mathbf{w}^T\mathbf{x} = -1 - b\). The equation above then becomes&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{1}{||\mathbf{w}||}(1 - b - (-1 - b)) = \frac{2}{||\mathbf{w}||}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Thus, our objective is to maximize \(\frac{2}{||\mathbf{w}||}\) which is equivalent to minimizing \(\frac{1}{2}||\mathbf{w}||^2\) subject to the constraints \(y_i(\mathbf{w}^T\mathbf{x}+b)\geq 1\). This is a constrainted optimization problem. As discussed previously, we can simplify such problems by introducing &lt;a href=&#34;https://ajdillhoff.github.io/notes/lagrangian_multipliers/&#34;&gt;Lagrangian Multipliers&lt;/a&gt;. Doing this produces the dual representation of our optimization objection:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^n \alpha_i \big(y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1\big).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;To solve for \(\mathbf{w}\) we compute \(\frac{\partial}{\partial \mathbf{w}}L\).&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{\partial}{\partial \mathbf{w}}L = \mathbf{w} - \sum_{i=1}^n \alpha_i y_i \mathbf{x}_i.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Setting this to 0 yields&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{w} = \sum_{i=1}^n \alpha_i y_i \mathbf{x}_i.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Doing the same for the other parameter \(b\) yields&lt;/p&gt;
+&lt;p&gt;\[
+0 = \sum_{i=1}^n \alpha_i y_i.
+\]&lt;/p&gt;
+&lt;p&gt;We can now simplify our objective function by substituting these results into it:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+L &amp;amp;= \frac{1}{2}\Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i\Big)^2 - \sum_{i=1}^n \alpha_i\Big(y_i\big((\sum_{i=1}^n\alpha_i y_i \mathbf{x}_i)^T\mathbf{x}_i + b \big) - 1 \Big)\\
+&amp;amp;= \frac{1}{2}\Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i\Big)^2 - \Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i \Big)^2 - \sum_{i=1}^n \alpha_i y_i b + \sum_{i=1}^n \alpha_i\\
+&amp;amp;= -\frac{1}{2} \Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i \Big)^2 + \sum_{i=1}^n \alpha_i\\
+&amp;amp;= \sum_{i=1}^n \alpha_i - \frac{1}{2}\sum_{i=1}^n\sum_{j=1}^m \alpha_i \alpha_j y_i y_j \mathbf{x}_i \cdot \mathbf{x}_j
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Thus, the objective is dependent on the inner product of samples \(\mathbf{x}_i\) and \(\mathbf{x}_j\). If these were representations in some complex feature space, our problem would remain computationally inefficient. However, we can take advantage of &lt;a href=&#34;https://ajdillhoff.github.io/notes/kernels/&#34;&gt;Kernels&lt;/a&gt; for this.&lt;/p&gt;
+&lt;p&gt;Note that, in most cases, \(\alpha_i\) will be 0 since we only consider &lt;strong&gt;support vectors&lt;/strong&gt;. That is, the points that lie on the margins of the decision boundary.&lt;/p&gt;
+&lt;h2 id=&#34;overlapping-class-distributions&#34;&gt;Overlapping Class Distributions&lt;/h2&gt;
+&lt;p&gt;The above formulation is fine and works with datasets that have no overlap in feature space.
+That is, they are completely linearly separable.
+However, it is not always the case that they will be.&lt;/p&gt;
+&lt;p&gt;To account for misclassifications while still maximizing a the margin between datasets, we introduce a penalty value for points that are misclassified.
+As long as there aren&amp;rsquo;t too many misclassifications, this penalty will stay relatively low while still allowing us to come up with an optimal solution.&lt;/p&gt;
+&lt;p&gt;This penalty comes in the form of a &lt;strong&gt;slack variable&lt;/strong&gt; \(\xi_i \geq 0\) for each sample that is \(0\) for points that are on or inside the correct margin and \(\xi_i = |y_i - f(\mathbf{x})|\) for others.
+If the point is misclassified, its slack variable will be \(\xi_i &amp;gt; 1\).&lt;/p&gt;
+&lt;h2 id=&#34;multiclass-svm&#34;&gt;Multiclass SVM&lt;/h2&gt;
+&lt;p&gt;Similar to our simple &lt;a href=&#34;https://ajdillhoff.github.io/notes/logistic_regression/&#34;&gt;Logistic Regression&lt;/a&gt; method, SVMs are binary classifiers by default. We can take a similar approach to extending them to multiple classes, but there are downsides to each approach.&lt;/p&gt;
+&lt;p&gt;The &amp;ldquo;one-vs-all&amp;rdquo; approach entails building \(|K|\) classifiers and choose the classifier which predicts the input with the greatest margin.&lt;/p&gt;
+&lt;p&gt;The &amp;ldquo;one-vs-one&amp;rdquo; approach involves building \(|K|\cdot\frac{|K| - 1}{2}\) classifiers. In this case, training each classifer will be more tractable since the amount of data required for each one is less. For example, you would have a model for class 1 vs 2, class 1 vs 3, &amp;hellip;, class 1 vs \(K\). Then repeat for class 2: 2 vs 3, 2 vs 4, &amp;hellip;, 2 vs \(|K|\), and so on.&lt;/p&gt;
+&lt;p&gt;A third approach is to construct several models using a feature vector dependent on both the data and class label. When given a new input, the model computes&lt;/p&gt;
+&lt;p&gt;\[
+y = \text{arg}\max_{y&amp;rsquo;}\mathbf{w}^T\phi(\mathbf{x},y&amp;rsquo;).
+\]&lt;/p&gt;
+&lt;p&gt;The margin for this classifier is the distance between the correct class and the closest data point of any other class.&lt;/p&gt;
+&lt;h2 id=&#34;additional-resources&#34;&gt;Additional Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://web.mit.edu/6.034/wwwbob/svm.pdf&#34;&gt;https://web.mit.edu/6.034/wwwbob/svm.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://see.stanford.edu/materials/aimlcs229/cs229-notes3.pdf&#34;&gt;https://see.stanford.edu/materials/aimlcs229/cs229-notes3.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 </description>
     </item>
     

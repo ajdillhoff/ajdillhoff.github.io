@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Maximum Margin Classifier Formulation Overlapping Class Distributions Multiclass SVM Additional Resources Introduction Support Vector Machines are a class of supervised learning methods primarily used for classification. Although they can be formulated for regression and outlier detection as well. Instead of optimizing a set of parameters which compress or summarize the training set, they use a small subset of the training data to compute the decision function.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/support_vector_machine/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/support_vector_machine/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/support_vector_machine/">
+  <meta property="og:title" content="Support Vector Machine | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Maximum Margin Classifier Formulation Overlapping Class Distributions Multiclass SVM Additional Resources Introduction Support Vector Machines are a class of supervised learning methods primarily used for classification. Although they can be formulated for regression and outlier detection as well. Instead of optimizing a set of parameters which compress or summarize the training set, they use a small subset of the training data to compute the decision function."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Support Vector Machine | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Support Vector Machine</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/support_vector_machine/&amp;text=Support%20Vector%20Machine" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/support_vector_machine/&amp;t=Support%20Vector%20Machine" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Support%20Vector%20Machine&amp;body=https://ajdillhoff.github.io/notes/support_vector_machine/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/support_vector_machine/&amp;title=Support%20Vector%20Machine" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Support%20Vector%20Machine%20https://ajdillhoff.github.io/notes/support_vector_machine/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/support_vector_machine/&amp;title=Support%20Vector%20Machine" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#maximum-margin-classifier">Maximum Margin Classifier</a></li>
+<li><a href="#formulation">Formulation</a></li>
+<li><a href="#overlapping-class-distributions">Overlapping Class Distributions</a></li>
+<li><a href="#multiclass-svm">Multiclass SVM</a></li>
+<li><a href="#additional-resources">Additional Resources</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Support Vector Machines are a class of supervised learning methods primarily used for classification. Although they can be formulated for regression and outlier detection as well. Instead of optimizing a set of parameters which compress or summarize the training set, they use a small subset of the training data to compute the decision function.</p>
+<p>They rely on the data being linearly separable, so feature transformations are critical for problems in which the original representation of the data is not linearly separable.</p>
+<h2 id="maximum-margin-classifier">Maximum Margin Classifier</h2>
+<p>Let&rsquo;s start with a simple classification model as we studied with <a href="/notes/logistic_regression/">Logistic Regression</a>. That is, we have</p>
+<p>\[
+f(\mathbf{x}) = \mathbf{w}^T\phi(\mathbf{x}),
+\]</p>
+<p>where \(\phi(\mathbf{x})\) is a function which transforms our original input into some new feature space. The transformed input is assumed to be linearly separable so that a decision boundary can be computed. In the original logistic regression problem, a decision boundary was found through optimization. For linearly separable data, there are an infinite number of decision boundaries that satisfy the problem.</p>
+<p><strong>What about the quality of the decision boundary?</strong></p>
+<p>Is one decision boundary better than the other?</p>
+<p><strong>TODO:</strong> Add a few plots comparing decision boundaries</p>
+<h2 id="formulation">Formulation</h2>
+<p>Given a training set \(\{\mathbf{x}_1, \dots, \mathbf{x}_n\}\) with labels \(\{y_1, \dots, y_n\}\), where \(y_i \in \{-1, 1\}\), we construct a linear model which classifies an input sample depending on the sign of the output.</p>
+<p>Our decision rule for classification, given some input \(\mathbf{x}\), is</p>
+<p>\begin{equation*}
+f(\mathbf{x}) =
+\begin{cases}
+1\text{ if }\mathbf{w}^T\mathbf{x} + b \geq 0\\
+-1\text{ if }\mathbf{w}^T\mathbf{x} + b &lt; 0
+\end{cases}
+\end{equation*}</p>
+<p><strong>How large should the margin be?</strong></p>
+<p>In the original formulation of <a href="/notes/logistic_regression/">Logistic Regression</a>, we saw that the parameter vector \(\mathbf{w}\) described the <strong>normal</strong> to the decision boundary. The distance between a given point \(\mathbf{x}\) and the decision boundary is given by</p>
+<p>\[
+\frac{y_if(\mathbf{x})}{||\mathbf{w}||}.
+\]</p>
+<p>We can frame this as an optimization problem: come up with a value for \(\mathbf{w}\) that maximizes the margin.</p>
+<p>\[
+\text{arg max}_{\mathbf{w}, b} \frac{1}{\|\mathbf{w}\|}\min_{i} y_i (\mathbf{w}^T\phi(\mathbf{x}_i) + b)
+\]</p>
+<p>We can arbitrarily scale the parameters, so we add an additional constraint that any point that lies on the boundary of the margin satisfies</p>
+<p>\[
+y_i(\mathbf{w}^T\mathbf{x} + b) = 1.
+\]</p>
+<p>Under this constraint, we have that all samples satisfy</p>
+<p>\[
+y_i(\mathbf{w}^T\mathbf{x} + b) \geq 1.
+\]</p>
+<p>That is, all positive samples with target \(1\) will produce at least a \(1\), yielding a value greater than or equal to 1. All negative samples with target \(-1\) will produce at most a \(-1\), yielding a value greater than or equal to 1.</p>
+<p>Another way of writing this is</p>
+<p>\begin{equation*}
+f(\mathbf{x}) =
+\begin{cases}
+1\text{ if }\mathbf{w}^T\mathbf{x}_{+} + b \geq 1\\
+-1\text{ if }\mathbf{w}^T\mathbf{x}_{-} + b \leq -1,
+\end{cases}
+\end{equation*}</p>
+<p>where \(\mathbf{x}_+\) is a positive sample and \(\mathbf{x}_-\) is a negative sample. The decision rule can then be written as</p>
+<p>\[
+y_i(\mathbf{w}^T\mathbf{x} + b) - 1 \geq 0.
+\]</p>
+<p>This implies that the only samples that would yield an output of 0 are those that lie directly on the margins of the decision boundary.</p>
+<p>Given this constraint of \(y_i(\mathbf{w}^T\mathbf{x} + b) - 1 = 0\), we can derive our optimization objective.</p>
+<p>The margin can be computed via the training data. To do this, consider two data points which lie on their respective boundaries, one positive and one negative, and compute the distance between them: \(\mathbf{x}_+ - \mathbf{x}_-\). This distance with respect to our decision boundary, defined by \(\mathbf{w}\), is given by</p>
+<p>\[
+(\mathbf{x}_+ - \mathbf{x}_-) \cdot \frac{\mathbf{w}}{||\mathbf{w}||}.
+\]</p>
+<p>For clarity, we can rewrite this as</p>
+<p>\begin{equation*}
+\frac{1}{||\mathbf{w}||}(\mathbf{x}_{+} \cdot \mathbf{w} - \mathbf{x}_{-} \cdot \mathbf{w}).
+\end{equation*}</p>
+<p>If we substitute the sample values into the equality constraint above, we can simplify this form. For the positive sample, we have \(\mathbf{w}^T\mathbf{x} = 1 - b\). For the negative sample, we get \(\mathbf{w}^T\mathbf{x} = -1 - b\). The equation above then becomes</p>
+<p>\begin{equation*}
+\frac{1}{||\mathbf{w}||}(1 - b - (-1 - b)) = \frac{2}{||\mathbf{w}||}.
+\end{equation*}</p>
+<p>Thus, our objective is to maximize \(\frac{2}{||\mathbf{w}||}\) which is equivalent to minimizing \(\frac{1}{2}||\mathbf{w}||^2\) subject to the constraints \(y_i(\mathbf{w}^T\mathbf{x}+b)\geq 1\). This is a constrainted optimization problem. As discussed previously, we can simplify such problems by introducing <a href="/notes/lagrangian_multipliers/">Lagrangian Multipliers</a>. Doing this produces the dual representation of our optimization objection:</p>
+<p>\begin{equation*}
+L = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^n \alpha_i \big(y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1\big).
+\end{equation*}</p>
+<p>To solve for \(\mathbf{w}\) we compute \(\frac{\partial}{\partial \mathbf{w}}L\).</p>
+<p>\begin{equation*}
+\frac{\partial}{\partial \mathbf{w}}L = \mathbf{w} - \sum_{i=1}^n \alpha_i y_i \mathbf{x}_i.
+\end{equation*}</p>
+<p>Setting this to 0 yields</p>
+<p>\begin{equation*}
+\mathbf{w} = \sum_{i=1}^n \alpha_i y_i \mathbf{x}_i.
+\end{equation*}</p>
+<p>Doing the same for the other parameter \(b\) yields</p>
+<p>\[
+0 = \sum_{i=1}^n \alpha_i y_i.
+\]</p>
+<p>We can now simplify our objective function by substituting these results into it:</p>
+<p>\begin{align*}
+L &amp;= \frac{1}{2}\Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i\Big)^2 - \sum_{i=1}^n \alpha_i\Big(y_i\big((\sum_{i=1}^n\alpha_i y_i \mathbf{x}_i)^T\mathbf{x}_i + b \big) - 1 \Big)\\
+&amp;= \frac{1}{2}\Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i\Big)^2 - \Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i \Big)^2 - \sum_{i=1}^n \alpha_i y_i b + \sum_{i=1}^n \alpha_i\\
+&amp;= -\frac{1}{2} \Big(\sum_{i=1}^n \alpha_i y_i \mathbf{x}_i \Big)^2 + \sum_{i=1}^n \alpha_i\\
+&amp;= \sum_{i=1}^n \alpha_i - \frac{1}{2}\sum_{i=1}^n\sum_{j=1}^m \alpha_i \alpha_j y_i y_j \mathbf{x}_i \cdot \mathbf{x}_j
+\end{align*}</p>
+<p>Thus, the objective is dependent on the inner product of samples \(\mathbf{x}_i\) and \(\mathbf{x}_j\). If these were representations in some complex feature space, our problem would remain computationally inefficient. However, we can take advantage of <a href="/notes/kernels/">Kernels</a> for this.</p>
+<p>Note that, in most cases, \(\alpha_i\) will be 0 since we only consider <strong>support vectors</strong>. That is, the points that lie on the margins of the decision boundary.</p>
+<h2 id="overlapping-class-distributions">Overlapping Class Distributions</h2>
+<p>The above formulation is fine and works with datasets that have no overlap in feature space.
+That is, they are completely linearly separable.
+However, it is not always the case that they will be.</p>
+<p>To account for misclassifications while still maximizing a the margin between datasets, we introduce a penalty value for points that are misclassified.
+As long as there aren&rsquo;t too many misclassifications, this penalty will stay relatively low while still allowing us to come up with an optimal solution.</p>
+<p>This penalty comes in the form of a <strong>slack variable</strong> \(\xi_i \geq 0\) for each sample that is \(0\) for points that are on or inside the correct margin and \(\xi_i = |y_i - f(\mathbf{x})|\) for others.
+If the point is misclassified, its slack variable will be \(\xi_i &gt; 1\).</p>
+<h2 id="multiclass-svm">Multiclass SVM</h2>
+<p>Similar to our simple <a href="/notes/logistic_regression/">Logistic Regression</a> method, SVMs are binary classifiers by default. We can take a similar approach to extending them to multiple classes, but there are downsides to each approach.</p>
+<p>The &ldquo;one-vs-all&rdquo; approach entails building \(|K|\) classifiers and choose the classifier which predicts the input with the greatest margin.</p>
+<p>The &ldquo;one-vs-one&rdquo; approach involves building \(|K|\cdot\frac{|K| - 1}{2}\) classifiers. In this case, training each classifer will be more tractable since the amount of data required for each one is less. For example, you would have a model for class 1 vs 2, class 1 vs 3, &hellip;, class 1 vs \(K\). Then repeat for class 2: 2 vs 3, 2 vs 4, &hellip;, 2 vs \(|K|\), and so on.</p>
+<p>A third approach is to construct several models using a feature vector dependent on both the data and class label. When given a new input, the model computes</p>
+<p>\[
+y = \text{arg}\max_{y&rsquo;}\mathbf{w}^T\phi(\mathbf{x},y&rsquo;).
+\]</p>
+<p>The margin for this classifier is the distance between the correct class and the closest data point of any other class.</p>
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><a href="https://web.mit.edu/6.034/wwwbob/svm.pdf">https://web.mit.edu/6.034/wwwbob/svm.pdf</a></li>
+<li><a href="https://see.stanford.edu/materials/aimlcs229/cs229-notes3.pdf">https://see.stanford.edu/materials/aimlcs229/cs229-notes3.pdf</a></li>
+</ul>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/kernels/">Kernels</a></li>
+          
+          <li><a href="/notes/naive_bayes/">Naive Bayes</a></li>
+          
+          <li><a href="/notes/neural_networks/">Neural Networks</a></li>
+          
+          <li><a href="/notes/perceptron/">Perceptron</a></li>
+          
+          <li><a href="/notes/principal_component_analysis/">Principal Component Analysis</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

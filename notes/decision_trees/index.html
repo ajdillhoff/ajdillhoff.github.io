@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Resources Introduction Example: Iris Dataset Growing a Tree Examining the Iris Classification Tree Pruning a Tree The Algorithm Resources https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset Introduction A decision tree, or Classification and Regression Trees (CART), is a model that recursively partitions the input space based on a collection of features. The partitions are split based on very simple binary choices. If yes, branch to the left; if no, branch to the right.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/decision_trees/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/decision_trees/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/decision_trees/">
+  <meta property="og:title" content="Decision Trees | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Resources Introduction Example: Iris Dataset Growing a Tree Examining the Iris Classification Tree Pruning a Tree The Algorithm Resources https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset Introduction A decision tree, or Classification and Regression Trees (CART), is a model that recursively partitions the input space based on a collection of features. The partitions are split based on very simple binary choices. If yes, branch to the left; if no, branch to the right."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-03-18T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2022-03-18T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Decision Trees | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Decision Trees</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-03-18 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2022-03-18 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Mar 18, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/decision_trees/&amp;text=Decision%20Trees" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/decision_trees/&amp;t=Decision%20Trees" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Decision%20Trees&amp;body=https://ajdillhoff.github.io/notes/decision_trees/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/decision_trees/&amp;title=Decision%20Trees" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Decision%20Trees%20https://ajdillhoff.github.io/notes/decision_trees/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/decision_trees/&amp;title=Decision%20Trees" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#example-iris-dataset">Example: Iris Dataset</a></li>
+<li><a href="#growing-a-tree">Growing a Tree</a></li>
+<li><a href="#examining-the-iris-classification-tree">Examining the Iris Classification Tree</a></li>
+<li><a href="#pruning-a-tree">Pruning a Tree</a></li>
+<li><a href="#the-algorithm">The Algorithm</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset">https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>A <strong>decision tree</strong>, or Classification and Regression Trees (CART), is a model that recursively partitions the input space based on a collection of features.
+The partitions are split based on very simple binary choices.
+If yes, branch to the left; if no, branch to the right.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-03-18_13-03-12_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Regression tree (left) and its piecewise constant surface (right) (Source: <em>Machine Learning: A Probabilistic Perspective</em> by Kevin P. Murphy).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To compute the response, we represent each individual decision as a function \(\phi\) and sum the responses:</p>
+<p>\[
+f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
+\]</p>
+<p>where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value.</p>
+<h2 id="example-iris-dataset">Example: Iris Dataset</h2>
+<p>To see this on real data, consider the Iris flower dataset.
+For example, we will look at a decision tree model that classifies each flower into either <strong>setosa</strong>, <strong>versicolor</strong>, or <strong>virginica</strong>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-20_21-04-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Our initial Iris classifier." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Our initial Iris classifier.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>We are given data about a new iris and want to classify it using this tree.
+Our sample has a sepal length of 6.1cm, a sepal width of 2.8cm, a petal length of 4.7cm, and a petal width of 1.2cm.
+The first decision considers the petal width.
+Our sample has a width of 1.2, so it continues down the right branch.</p>
+<p>The second decision consideres petal width again.
+Since our sample does not have a width greater than 1.75, we continue down the left branch.</p>
+<p>At this point, the model was optimized to now consider the petal length.
+Our length comes in at 4.7, just shy of going down the right path.</p>
+<p>We now arrive at the last decision.
+Since our petal length is not greater than 1.65, the model classifies this sample as <strong>versicolor</strong>.</p>
+<h2 id="growing-a-tree">Growing a Tree</h2>
+<p>To grow a tree, a decision needs to be made as to whether or not the current set of data can be split based on some feature.
+As such, there should be a reliable way of determining if a feature provided a good split.
+This is evaluated using a cost function and selecting the feature and value corresponding to the minimum cost:</p>
+<p>\[
+(j^*, t^*) = \text{arg} \min_{j\in\{1, \dots, D\}} \min_{t \in \mathcal{T}_j} \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} \leq t\}) + \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} &gt; t\}).
+\]</p>
+<p>In words, this function finds a value \(t\) such that groups the data with the lowest cost.
+For a regression task, the cost function is typically defined as</p>
+<p>\[
+\text{cost}(\mathcal{D}) = \sum_{i \in \mathcal{D}}(y_i - \bar{y})^2,
+\]</p>
+<p>where</p>
+<p>\[
+\bar{y} = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} y_i.
+\]</p>
+<p>Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.</p>
+<p>As their alternative name implies, decision trees can also be used for classification.
+The splits are still based on features and threshold values at each branch.
+When a split is considered, a class-conditional probability is estimated for that data.
+Given data satisfying \(X_j &lt; t\), the class-conditional probability is</p>
+<p>\[
+\hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
+\]</p>
+<p>The common error functions used for classification are <strong>misclassification rate</strong>, <strong>entropy</strong>, and <strong>Gini index</strong>.
+Misclassification rate is computed by summing the number of misclassifications:</p>
+<p>\[
+\frac{1}{|\mathcal{D}|} \sum_{i \in \mathcal{D}} \mathbb{1}(y_i \neq \hat{y}) = 1 - \hat{\pi}_{\hat{y}}.
+\]</p>
+<p>Entropy is computed as</p>
+<p>\[
+\mathbb{H}(\mathbb{\hat{\pi}}) = -\sum_{c=1}^C \hat{\pi}_c \log \hat{\pi}_c.
+\]</p>
+<p><strong>Gini index</strong> computes the expected error rate.</p>
+<p>\[
+G = \sum_{c=1}^C \hat{\pi}_c (1 - \hat{\pi}_c) = 1 - \sum_{c=1}^C \hat{\pi}_c^2
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-19_17-32-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Impurity measured for binary classification (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Impurity measured for binary classification (Source: <em>Machine Learning: A Probabilistic Perspective</em> by Kevin P. Murphy)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Like entropy, it promotes an equal number of observations across all classes in a node.
+For small values of \(\hat{\pi}\), the error is smaller than that of entropy.
+If the dataset is imbalanced, entropy is typically favored as it penalizes imbalanced datasets more than Gini will.
+Both will favor splits that result in one node being pure.</p>
+<h3 id="stopping-growth">Stopping Growth</h3>
+<p>If left unchecked, the algorithm to grow a tree will continue until the data can no longer be split.
+In the trivial case, this will be when every data point represents a leaf node.
+In order to prevent overfitting, there are several criteria that are considered.</p>
+<h4 id="does-the-split-reduce-the-cost-enough">Does the split reduce the cost enough?</h4>
+<p>It may be ideal to only split the data if the cost is reduced by some acceptable value.
+The reduction can be computed by</p>
+<p>\[
+\Delta = \text{cost}(\mathcal{D}) - \bigg(\frac{|\mathcal{D}_L|}{|\mathcal{D}|}\text{cost}(\mathcal{D}_L) + \frac{|\mathcal{D}_R|}{|\mathcal{D}|} \text{cost}(\mathcal{D}_R)\bigg).
+\]</p>
+<h4 id="has-the-tree-reached-some-maximum-depth">Has the tree reached some maximum depth?</h4>
+<p>The depth of a tree is set as a hyperparameter.
+Later, when we look at an example, we will use cross validation to select the best depth parameter for our model.</p>
+<h4 id="is-the-distribution-of-the-split-pure">Is the distribution of the split <strong>pure</strong>?</h4>
+<p>If either of the splits is fully made up of data with the same label, there is no need to split it any further.</p>
+<h4 id="is-the-split-too-small">Is the split too small?</h4>
+<p>A split that is too small may lead to overfitting.</p>
+<h2 id="examining-the-iris-classification-tree">Examining the Iris Classification Tree</h2>
+<p>How exactly does the earlier example model make its decision at each node?
+The full tree is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-20_21-11-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A detailed view of our Iris classifier." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>A detailed view of our Iris classifier.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The first split is visually very simple to intuit.
+Using petal width can perfectly split all setosa samples into a single leaf node.</p>
+<h2 id="pruning-a-tree">Pruning a Tree</h2>
+<p>Depending on the data, stopping growth based on measuring the relative decrease in error may not result in a model that performs well.
+Image a dataset that requires multiple features to provide a sufficient classification.
+If only one of the features is considered in isolation, it may provide no decrease in error.
+A practical example of this is the XOR problem.
+Splitting on \(x_1\) or \(x_2\) in isolation does not provide any indication about the true output.
+It is only when \(x_1 \neq x_2\) does the output equal to 1.</p>
+<p>To rectify this, a tree can be grown until it is completely full before <strong>pruning</strong> the branches
+that result in the smallest increase in error.</p>
+<h2 id="the-algorithm">The Algorithm</h2>
+<p>The general algorithm is shown in MATLAB below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-matlab" data-lang="matlab"><span style="display:flex;"><span><span style="color:#75715e">% node = fitTree(node, D, depth)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">% Recursive function to learn a decision tree</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">% Returns the index of the current node.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">%   node  - The node index in obj.Nodes.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">%   D     - Indices to the current data.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">%   depth - Current depth of the tree.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">function</span> node = <span style="color:#a6e22e">fitTree</span>(obj, node, D, depth)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">% Determine best split for the data and return the split</span>
+</span></span><span style="display:flex;"><span>    [j, t, dSplit, classDist] = obj.split(D, obj.Nodes(node).features);
+</span></span><span style="display:flex;"><span>    obj.Nodes(node).prediction = classDist;
+</span></span><span style="display:flex;"><span>    disp(classDist);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">% Use heuristic to determine if node is worth splitting</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> obj.splitNode(depth, classDist) <span style="color:#f92672">==</span> true
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">% set the node test, the function that determines the branch</span>
+</span></span><span style="display:flex;"><span>        obj.Nodes(node .test = {j, t};
+</span></span><span style="display:flex;"><span>        newFeatures = obj.Nodes(node).features(obj.Nodes(node).features <span style="color:#f92672">~=</span> j);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">% set the child nodes to the left and right splits</span>
+</span></span><span style="display:flex;"><span>        obj.Nodes(node).children = zeros(size(dSplit, <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>        numNewNodes = size(dSplit, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i = <span style="color:#ae81ff">1</span> : numNewNodes
+</span></span><span style="display:flex;"><span>            obj.Nodes(<span style="color:#66d9ef">end</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) = struct(<span style="color:#e6db74">&#39;prediction&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;test&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#75715e">...</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#39;features&#39;</span>, newFeatures, <span style="color:#e6db74">&#39;children&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;parent&#39;</span>, node);
+</span></span><span style="display:flex;"><span>            obj.Nodes(node).children(i)  = obj.fitTree(length(obj.Nodes), dSplit{i}, depth <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">end</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">end</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span>
+</span></span></code></pre></div>
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/hidden_markov_models/">Hidden Markov Models</a></li>
+          
+          <li><a href="/notes/kernels/">Kernels</a></li>
+          
+          <li><a href="/notes/naive_bayes/">Naive Bayes</a></li>
+          
+          <li><a href="/notes/neural_networks/">Neural Networks</a></li>
+          
+          <li><a href="/notes/perceptron/">Perceptron</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
