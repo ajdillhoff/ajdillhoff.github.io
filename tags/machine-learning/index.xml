@@ -7,10 +7,109 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sat, 15 Jul 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 17 Jul 2023 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Gradient Boosting</title>
+      <link>https://ajdillhoff.github.io/notes/gradient_boosting/</link>
+      <pubDate>Mon, 17 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gradient_boosting/</guid>
+      <description>&lt;h2 id=&#34;notes-from&#34;&gt;Notes from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Friedman 2001&lt;/a&gt;)&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Many machine learning methods are parameterized functions that are optimized using some numerical optimization techniques, notably steepest-descent.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Initial learner is a stump, subsequent learners are trees with depth as some power of 2 (commonly).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Numerical optimization in function space&lt;/strong&gt;
+\[
+g_m(\mathbf{x}) = E_y\Big[\frac{\partial L(y, F(\mathbf{x}))}{\partial F(\mathbf{x})}|\mathbf{x}\Big]_{F(\mathbf{x})=F_{m-1}(\mathbf{x})}
+\]
+The optimal step size found by solving&lt;/p&gt;
+&lt;p&gt;\[
+\rho_m = \mathop{\arg \min}_{\rho} E_{y,\mathbf{x}}L(y,F_{m-1}(\mathbf{x})-\rho g_m(\mathbf{x}))
+\]
+Then the function \(m\) is updated:
+\[
+f_m(\mathbf{x}) = -\rho_m g_m(\mathbf{x})
+\]&lt;/p&gt;
+&lt;p&gt;Walking through it&amp;hellip;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Make an initial guess with \(f_0(\mathbf{x})\)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Evaluate \(L(y, f_0(\mathbf{x}))\)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Improve model by boosting \(f_1(\mathbf{x}) = -\rho_1 g_1(\mathbf{x})\), where \[ g_1(\mathbf{x}) = \frac{\partial L(y, f_0(\mathbf{x}))}{\partial f_0(\mathbf{x})}. \]
+This implies that \(f_1\) is predicting the gradient of the previous function.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;If the model is nonparametric, the expected value of the function conditioned on the input cannot be estimated accurately because we cannot sample the entire distribution of \(\mathbf{x}\). The author&amp;rsquo;s note that &amp;ldquo;&amp;hellip;even if it could, one would like to estimate \(F^*(\mathbf{x})\) at \(\mathbf{x}\) values other than the training sample points.&amp;rdquo;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Smoothness is imposed by approximating the function with a parametric model. I think this means that the distribution is approximated as well.&lt;/p&gt;
+&lt;p&gt;\begin{equation}
+(\beta_m, \mathbf{a}_m) = \mathop{\arg \min}_{\beta, \mathbf{a}}\sum_{i=1}^N L(y_i, F_{m-1}(\mathbf{x}_i) + \beta h(\mathbf{x}_i; \mathbf{a}))
+\end{equation}&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What if a solution to the above equation is difficult to obtain? Instead, view \(\beta_m h(\mathbf{x};\mathbf{a}_m)\) as the best greedy step toward \(F^*(\mathbf{x})\), under the constraint that the step direction, in this case \(h(\mathbf{x};\mathbf{a}_m)\), is a member of the class of functions \(h(\mathbf{x};\mathbf{a})\). The negative gradient can be evaluated at each data point:
+\[
+-g_m(\mathbf{x}_i) = -\frac{\partial L(y_i, F_{m-1}(\mathbf{x}_i))}{\partial F_{m-1}(\mathbf{x}_i)}.
+\]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;This gradient is evaluated at every data point. However, we cannot generalize to new values not in our dataset. The proposed solution comes via \(\mathbf{h}_m = \{h(\mathbf{x}_i;\mathbf{a}_m)\}_{1}^N\) &amp;ldquo;most parallel to&amp;rdquo; \(-\mathbf{g}_m \in \mathbb{R}^N\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;As long as we can compute a derivative for the original loss function, our subsequent boosting problems are solved via least-squared error:
+\[
+\mathbf{a}_m = \mathop{\arg \min}_{\mathbf{a}, \beta} \sum_{i=1}^N \Big(-g_m(\mathbf{x}_i)-\beta h(\mathbf{x}_i;\mathbf{a})\Big)^2
+\]&lt;/p&gt;
+
+        
+        
+        
+        
+        
+        &lt;figure&gt;
+        
+        &lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-07-18_19-43-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Original generic algorithm from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Friedman 2001&amp;lt;/a&amp;gt;).&#34; &gt;
+        
+        
+        
+        &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+          
+          &lt;p&gt;
+            &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Original generic algorithm from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Friedman 2001&lt;/a&gt;).
+            
+            
+            
+          &lt;/p&gt; 
+        &lt;/figcaption&gt;
+        
+        &lt;/figure&gt;
+
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Friedman, Jerome H. 2001. “Greedy Function Approximation: A Gradient Boosting Machine.” &lt;i&gt;The Annals of Statistics&lt;/i&gt; 29 (5): 1189–1232. &lt;a href=&#34;https://www.jstor.org/stable/2699986&#34;&gt;https://www.jstor.org/stable/2699986&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>An Introduction to Hidden Markov Models for Gesture Recognition</title>
@@ -117,14 +216,15 @@ p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
       <pubDate>Wed, 23 Mar 2022 00:00:00 -0500</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/boosting/</guid>
-      <description>&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#todo&#34;&gt;TODO&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#adaboost&#34;&gt;AdaBoost&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
 &lt;h2 id=&#34;todo&#34;&gt;TODO&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;input disabled=&#34;&#34; type=&#34;checkbox&#34;&gt; Gradient Boosting&lt;/li&gt;
@@ -541,8 +641,8 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
       <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/hidden_markov_models/</guid>
-      <description>&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#the-markov-assumption&#34;&gt;The Markov Assumption&lt;/a&gt;&lt;/li&gt;
@@ -552,9 +652,10 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
 &lt;li&gt;&lt;a href=&#34;#estimating-parameters&#34;&gt;Estimating Parameters&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#expectation-maximization&#34;&gt;Expectation Maximization&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;This article is essentially a grok of a tutorial on HMMs by (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;). It will be useful for the reader to reference the &lt;a href=&#34;https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf&#34;&gt;original paper&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This article is essentially a grok of a tutorial on HMMs by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;RABINER 1989&lt;/a&gt;). It will be useful for the reader to reference the &lt;a href=&#34;https://courses.physics.illinois.edu/ece417/fa2017/rabiner89.pdf&#34;&gt;original paper&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Up to this point, we have only explored &amp;ldquo;atomic&amp;rdquo; data points.
 That is, all of the information about a particular sample is encapsulated into one vector.
 Sequential data is easily represented by graphical models.
@@ -595,7 +696,7 @@ p(\mathbf{z}, \mathbf{x}) = p(\mathbf{z})p(\mathbf{x}|\mathbf{z}) = \Big(p(z_1)\
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;!-- raw HTML omitted --&gt;Figure 1: &lt;!-- raw HTML omitted --&gt;The observations y are generated by the latent states x. Source: Wikipedia
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The observations y are generated by the latent states x. Source: Wikipedia
     
     
     
@@ -633,7 +734,7 @@ p(\mathbf{x}_t|z_t=k, \theta) = \mathcal{N}(\mathbf{x}_t|\mathbf{\mu}_k,\mathbf{
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;!-- raw HTML omitted --&gt;Figure 2: &lt;!-- raw HTML omitted --&gt;HMM with observation probabilities and state transition probabilities. Source: Wikipedia
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;HMM with observation probabilities and state transition probabilities. Source: Wikipedia
     
     
     
@@ -661,7 +762,7 @@ This is expressed as \(p(z_t|\mathbf{x}_{1:T})\).&lt;/li&gt;
 &lt;li&gt;We can also compute \(p(\mathbf{x}_{1:T})\) by summing up over all hidden paths. This is useful for classification tasks.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h2&gt;
-&lt;p&gt;We start by solving the first problem posited by (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;).&lt;/p&gt;
+&lt;p&gt;We start by solving the first problem posited by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;RABINER 1989&lt;/a&gt;).&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Given an observation sequence and model parameters, how do we compute the probability of the observation sequence given the parameters?&lt;/li&gt;
 &lt;/ol&gt;
@@ -698,7 +799,7 @@ p(\mathbf{x}_{1:T})  = \sum_{i=1}^N \alpha_T(i).
 &lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;The recursive step is visualized as a lattice structure &lt;a href=&#34;#figure--lattice&#34;&gt;as seen below.&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a id=&#34;figure--lattice&#34;&gt;&lt;/a&gt;&lt;/p&gt;
 
 
 
@@ -714,7 +815,7 @@ p(\mathbf{x}_{1:T})  = \sum_{i=1}^N \alpha_T(i).
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;!-- raw HTML omitted --&gt;Figure 3: &lt;!-- raw HTML omitted --&gt;From Rabiner 1989.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From Rabiner 1989.
     
     
     
@@ -751,7 +852,7 @@ p(z_t=i|\mathbf{x}_{1:t}) &amp;amp;= \frac{p(z_t=i, \mathbf{x}_{1:t})}{p(\mathbf
 &amp;amp;= \frac{\alpha_t(i)}{\sum_{j=1}^N \alpha_t(j)}
 \end{align*}&lt;/p&gt;
 &lt;p&gt;Compared to the complexity of the explicit representation, the forwards pass needs only \(N^2T\) calculations.
-As pointed out in (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;), with 5 hidden states and an observation sequence of length 100, the forwards pass only needs around 3000 computations.
+As pointed out in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;RABINER 1989&lt;/a&gt;), with 5 hidden states and an observation sequence of length 100, the forwards pass only needs around 3000 computations.
 A direct calculation would require \(10^{72}\).&lt;/p&gt;
 &lt;h3 id=&#34;backwards-pass&#34;&gt;Backwards Pass&lt;/h3&gt;
 &lt;p&gt;When updating the parameters of our model, we will need to consider the entire observation sequence.
@@ -896,7 +997,7 @@ Initially, we may randomize our estimates if we have no good heuristic or guess 
 In other words, the expected values of the sufficient statistics can be derived now that the data has been filled in.
 A new set of parameters is found such that it maximizes the likelihood function with respect to the estimated data.&lt;/p&gt;
 &lt;h3 id=&#34;e-step&#34;&gt;E Step&lt;/h3&gt;
-&lt;p&gt;Following (&lt;!-- raw HTML omitted --&gt;RABINER 1989&lt;!-- raw HTML omitted --&gt;), we start with the joint probability of being in state \(i\) at time \(t\) and state \(j\) at time \(t+1\):&lt;/p&gt;
+&lt;p&gt;Following (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;RABINER 1989&lt;/a&gt;), we start with the joint probability of being in state \(i\) at time \(t\) and state \(j\) at time \(t+1\):&lt;/p&gt;
 &lt;p&gt;\[
 \xi_t(i, j) = p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
 \]&lt;/p&gt;
@@ -959,8 +1060,9 @@ Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected v
 &lt;/ol&gt;
 &lt;p&gt;These guarantees are similar to gradient ascent.&lt;/p&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;RABINER, LAWRENCE R. 1989. “A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition.” &lt;i&gt;Proceedings of the Ieee&lt;/i&gt; 77 (2): 30.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
