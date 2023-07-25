@@ -159,7 +159,8 @@
   <script>
   MathJax = {
     tex: {
-      inlineMath: [['$', '$'], ['\\(', '\\)']]
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
     },
     svg: {
       fontCache: 'global'
@@ -326,35 +327,6 @@
         
         
 
-        
-
-        
-        
-        
-          
-        
-
-        
-        
-        
-        
-        
-        
-          
-          
-          
-            
-          
-          
-        
-
-        <li class="nav-item">
-          <a class="nav-link " href="/#contact"><span>Contact</span></a>
-        </li>
-
-        
-        
-
       
 
         
@@ -441,7 +413,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    8 min read
+    11 min read
   </span>
   
 
@@ -586,7 +558,30 @@ p(x_1, x_2, x_3) = p(x_1) p(x_2 | x_1) p(x_3 | x_1, x_2).
 <p>The <strong>Markov</strong> in Hidden Markov Models addresses this complexity. The <strong>Markov Assumption</strong> states that the probability of an event at time \(t\) is conditioned <em>only</em> on the previously observed event: \(p(x_t | x_{t-1})\). This is compactly represented with a graphical model, as seen in figure <strong>TODO</strong>.</p>
 <p><strong>TODO: Figure of basic Markov Chain</strong></p>
 <p>The <strong>hidden</strong> qualifier comes from the fact that the data we wish to model was generated from some underlying process that is not directly observable. A classic example for HMMs uses the weather. Imagine you had a log which had the number of water bottles a person had drank per day over the entire year. To make the problem slightly more difficult, the log entries were not associated with a date. It is reasonable to say that the amount of water a person drinks is influenced by how hot or cold it is on a particular day. So, the <strong>hidden state</strong> in this case is the weather: hot or cold. We can model this with an HMM by establishing that the amount of water (<strong>observed state</strong>) is conditioned on the weather (<strong>hidden state</strong>). Figure <strong>TODO</strong> shows this HMM graphically.</p>
-<p><strong>TODO: Figure of HMM</strong></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-07-20_19-12-54_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An HMM with 4 states and 2 observation symbols (y_1) or (y_2)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>An HMM with 4 states and 2 observation symbols (y_1) or (y_2).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <p>Formally, a Hidden Markov Model is defined by</p>
 <ul>
 <li>The number of hidden states \(N\).</li>
@@ -657,6 +652,82 @@ N_{jk} = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=j, x_{i, t}=k).
 p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
 \]</p>
 <h3 id="forwards-backwards-algorithm">Forwards-Backwards Algorithm</h3>
+<p>Computing joint distribution can be very computationally expensive. Fortunately for us, the Markov assumption along with operations on graphs open the door to a dynamic programming approach named the Forward-Backward algorithm.</p>
+<p>The Forwards-Backwards Algorithm, also known as the <a href="https://en.wikipedia.org/wiki/Baum%E2%80%93Welch_algorithm" target="_blank" rel="noopener noreferrer">Baum-Welch algorithm</a>, provides an effective solution to computing the joint described above. In fact, there are many useful distributions that can be computed with this algorithm such as the <strong>filtering</strong> and <strong>smoothing</strong> tasks.</p>
+<h4 id="forward-probability">Forward Probability</h4>
+<p>The forward probability, often denoted as \(\alpha\), represents the probability of ending up at a particular hidden state \(i\) at time \(t\) having seen the observations up to that time:</p>
+<p>\[
+\alpha_t(i) = p(z_t = i, \mathbf{x}_{1:t} | \lambda).
+\]</p>
+<p>This value is computed recursively starting from \(t=1\) and going forwards to \(t=T\).</p>
+<p><strong>Initialization</strong></p>
+<p>For \(t=1\), we calculate:</p>
+<p>\[
+\alpha_1(i) = \pi_i b_i(x_1),\quad 1 \leq i \leq N,
+\]</p>
+<p>where \(\pi_i\) is the initial probability of state \(i\) and \(b_i(x_1)\) is the emission probability of the first observation \(x_1\) given that we are in state \(i\).</p>
+<p><strong>Recursion</strong></p>
+<p>After that, we calculate the remaining \(\alpha_t(i)\) as follows:</p>
+<p>\[
+\alpha_{t+1}(j) = b_j(x_{t+1}) \sum_{i=1}^{N} \alpha_{t}(i)a_{ij},
+\]</p>
+<p>where \(N\) is the number of hidden states, and \(a_{ij}\) is the transition probability from state \(i\) to state \(j\).</p>
+<h4 id="backward-probability">Backward Probability</h4>
+<p>The backward probability, denoted as \(\beta\), gives the probability of observing the remaining observations from time \(t+1\) to \(T\) given that we are in state \(i\) at time \(t\):</p>
+<p>\[
+\beta_t(i) = p(\mathbf{x}_{t+1:T} | z_t = i, \lambda).
+\]</p>
+<p>Again, this is calculated recursively but this time starting from \(t=T\) and going backwards to \(t=1\).</p>
+<p><strong>Initialization</strong></p>
+<p>For \(t=T\), we initialize:</p>
+<p>\[
+\beta_T(i) = 1, \forall i.
+\]</p>
+<p><strong>Recursion</strong></p>
+<p>Then we calculate the remaining \(\beta_t(i)\) as:</p>
+<p>\[
+\beta_{t}(i) = \sum_{j=1}^{N} a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+\]</p>
+<h4 id="calculating-the-sufficient-statistics">Calculating the Sufficient Statistics</h4>
+<p>With these two sets of probabilities, we can calculate the two required sufficient statistics as follows:</p>
+<ol>
+<li>The expected number of transitions from \(i\) to \(j\):</li>
+</ol>
+<p>\[
+\frac{\sum_{t=1}^{T-1} \alpha_t(i) a_{ij} b_j(x_{t+1}) \beta_{t+1}(j)}{P(X|\lambda)}
+\]</p>
+<ol>
+<li>The expected number of times we are transitioning from \(i\) to any other state:</li>
+</ol>
+<p>\[
+\frac{\sum_{t=1}^{T-1} \alpha_t(i) \beta_t(i)}{P(X|\lambda)}
+\]</p>
+<p>Where \(P(X|\lambda)\) is the total probability of the observations, calculated as:</p>
+<p>\[
+P(X|\lambda) = \sum_{i=1}^{N} \alpha_T(i)
+\]</p>
+<h4 id="how-does-this-give-us-p--z-t-i-z-t-plus-1-j-mathbf-x-1-t">How does this give us \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\)?</h4>
+<p>To understand how the variables of the Forwards-Backwards algorithm relate to the original probabilities, we can express the term \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\) in terms of the original probability distributions in the HMM:</p>
+<ul>
+<li>\(\pi_i\) - the probability of starting in state \(i\),</li>
+<li>\(a_{ij}\) - the probability of transitioning from state \(i\) to state \(j\),</li>
+<li>\(b_j(x_t)\) - the probability that state \(j\) will emit observation \(x_t\).</li>
+</ul>
+<p>The joint probability \(p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T})\) would represent the probability of being in state \(i\) at time \(t\), moving to state \(j\) at time \(t+1\), and observing the sequence of emissions \(\mathbf{x}_{1:T}\). This can be factored as follows due to the Markov property:</p>
+<p>\[
+p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T}) = p(\mathbf{x}_{1:t}, z_t = i)p(z_{t+1} = j| z_t = i)p(\mathbf{x}_{t+1:T} | z_{t+1} = j, \mathbf{x}_{1:t}).
+\]</p>
+<p>Using our definitions of \(\alpha\) and \(\beta\), we can rewrite this in terms of our HMM quantities:</p>
+<p>\[
+p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T}) = \alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+\]</p>
+<p>Here, \(\alpha_t(i)\) represents \(p(\mathbf{x}_{1:t}, z_t = i)\), the joint probability of the observations until time \(t\) and being in state \(i\) at time \(t\), and \(\beta_{t+1}(j)\) represents \(p(\mathbf{x}_{t+1:T} | z_{t+1} = j)\), the probability of the observations from time \(t+1\) to \(T\) given we&rsquo;re in state \(j\) at time \(t+1\).</p>
+<p>Then, to obtain \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\), we divide by \(p(\mathbf{x}_{1:T})\) to normalize the probabilities, which is the sum over all states of \(\alpha_T(i)\), or equivalently, the sum over all states of \(\beta_1(i)\pi_i b_i(x_1)\).</p>
+<p>This gives us:</p>
+<p>\[
+p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}) = \frac{\alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j)}{\sum_{i=1}^{N}\alpha_T(i)}.
+\]</p>
+<p>This is the same expression as before, but broken down in terms of the original HMM quantities and the forward and backward variables. This can also be explained through graph properties and operations. See <a href="https://cedar.buffalo.edu/~srihari/CSE574/Chap13/13.2.2-ForwardBackward.pdf" target="_blank" rel="noopener noreferrer">Sargur Srihari&rsquo;s excellent lecture slides</a> for more details.</p>
 <h2 id="implementation-in-python">Implementation in Python</h2>
 <h2 id="conclusion">Conclusion</h2>
 
@@ -895,7 +966,7 @@ p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
           
           
           <li class="list-inline-item">
-            <a href="https://twitter.com/Twitter" target="_blank" rel="noopener" title="DM Me"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
           </li>
           
           
@@ -908,37 +979,7 @@ p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
           
           
           <li class="list-inline-item">
-            <a href="skype:echo123?call"  title="Skype Me"><i class="fab fa-skype" aria-hidden="true"></i></a>
-          </li>
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          <li class="list-inline-item">
-            <a href="https://keybase.io/" target="_blank" rel="noopener" title="Chat on Keybase"><i class="fab fa-keybase" aria-hidden="true"></i></a>
-          </li>
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          <li class="list-inline-item">
-            <a href="https://discourse.gohugo.io" target="_blank" rel="noopener" title="Discuss on Forum"><i class="fas fa-comments" aria-hidden="true"></i></a>
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
           </li>
           
         </ul>

@@ -7,10 +7,118 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 17 Jul 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 24 Jul 2023 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Markov Decision Processes</title>
+      <link>https://ajdillhoff.github.io/notes/markov_decision_processes/</link>
+      <pubDate>Mon, 24 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/markov_decision_processes/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#key-terms&#34;&gt;Key Terms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#policies-and-values&#34;&gt;Policies and Values&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#policy-iteration&#34;&gt;Policy Iteration&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;key-terms&#34;&gt;Key Terms&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Agent&lt;/strong&gt;: The learner or decision maker.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Environment&lt;/strong&gt;: The world that the agent can interact with.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;State&lt;/strong&gt;: A representation of the agent and environment.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Action&lt;/strong&gt;: The agent can take an action in the environment.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Reward&lt;/strong&gt;: Given to the agent based on actions taken.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Goal&lt;/strong&gt;: Maximize rewards earned over time.&lt;/p&gt;
+&lt;p&gt;At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state.
+At time \(t + 1\), the agent receives a reward \(R_{t+1} \in \mathcal{R}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-15_19-01-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The agent-environment in a Markov decision process (Credit: Sutton &amp;amp;amp; Barto).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The agent-environment in a Markov decision process (Credit: Sutton &amp;amp; Barto).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To improve its knowledge about an environment or increase its performance on a task, an agent must first be able to interpret or make sense of that environment in some way.
+Second, there must be a well defined goal. For an agent playing Super Mario, for example, the goal would be to complete each level while maximizing the score.
+Third, the agent must be able to interact with its environment by taking actions.
+If the Mario-playing agent could not move Mario around, it would never be able to improve.
+If the agent makes a decision which leads to Mario&amp;rsquo;s untimely demise, it would update its knowledge of the world so that it would tend towards a more favorable action.
+These three requirements: sensations, actions, and goals, are encapsulated by &lt;strong&gt;Markov Decision Processes&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;A Markov decision process is defined by&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(\mathcal{S}\) - a set of states,&lt;/li&gt;
+&lt;li&gt;\(\mathcal{A}\) - a set of actions,&lt;/li&gt;
+&lt;li&gt;\(\mathcal{R}\) - a set of rewards,&lt;/li&gt;
+&lt;li&gt;\(P\) - the transition probability function to determine transition between states,&lt;/li&gt;
+&lt;li&gt;\(\gamma\) - discount factor for future rewards.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At time \(t\), an agent in state \(S_t\) selects an action \(A_t\).
+At \(t+1\), it receives a reward \(R_{t+1}\) based on that action.&lt;/p&gt;
+&lt;p&gt;In a finite MDP, the states, actions, and rewards have a finite number of elements.
+Random variables \(R_t\) and \(S_t\) have discrete probability distributions dependent on the preceding state and action.&lt;/p&gt;
+&lt;p&gt;\[
+p(s&amp;rsquo;, r|s, a) = P\{S_t = s&amp;rsquo;, R_t = r|S_{t-1} = s, A_{t-1} = a\}
+\]&lt;/p&gt;
+&lt;p&gt;If we want the state transition probabilities, we can sum over the above distribution:&lt;/p&gt;
+&lt;p&gt;\[
+p(s&amp;rsquo;|s, a) = P\{S_t = s&amp;rsquo;|S_{t-1} = s, A_{t-1}=a\} = \sum_{r\in\mathcal{R}}p(s&amp;rsquo;, r|s, a).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;defining-goals&#34;&gt;Defining Goals&lt;/h3&gt;
+&lt;p&gt;In reinforcement learning, the goal is encoded in the form of a &lt;strong&gt;&lt;strong&gt;reward signal&lt;/strong&gt;&lt;/strong&gt;. The agent sets out to &lt;em&gt;maximize&lt;/em&gt; the total amount of reward it receives over an &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt;. An &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt; is defined dependent on the problem context and ends in a &lt;strong&gt;&lt;strong&gt;terminal state&lt;/strong&gt;&lt;/strong&gt;. It could be a round of game, a single play, or the result of moving a robot. Typically, the rewards come as a single scalar value at teach time step. This implies that an agent might take an action that results in a negative reward if it is optimal in the long run.&lt;/p&gt;
+&lt;p&gt;Formally, the &lt;strong&gt;expected return&lt;/strong&gt; includes a &lt;strong&gt;discount factor&lt;/strong&gt; that allows us to control the trade-off between short-term and long-term rewards:&lt;/p&gt;
+&lt;p&gt;\[
+G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1},
+\]&lt;/p&gt;
+&lt;p&gt;where \(0 \leq \gamma \leq 1\). This can be written in terms of the expected return itself as well:&lt;/p&gt;
+&lt;p&gt;\[
+G_t = R_{t+1} + \gamma G_{t+1}.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;policies-and-values&#34;&gt;Policies and Values&lt;/h2&gt;
+&lt;p&gt;Two important concepts that help our agent make decisions are the policy and value functions. A &lt;strong&gt;policy&lt;/strong&gt;, typically denoted by \(\pi\), maps states to actions. Such a function can be deterministic, \(\pi(s) = a\), or stochastic, \(\pi(a|s)\).&lt;/p&gt;
+&lt;p&gt;The value of a particular state under a policy \(\pi\) is defined as&lt;/p&gt;
+&lt;p&gt;\[
+v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\Bigg[\sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\Bigg|S_t=s\Bigg].
+\]&lt;/p&gt;
+&lt;p&gt;We also must define the value of taking an action \(a\) in state \(s\) following policy \(\pi\):&lt;/p&gt;
+&lt;p&gt;\[
+q_{\pi}(s, a) = \mathbb{E}_{\pi}[G_t|S_t=s, A_t=a] = \mathbb{E}_{\pi}\Bigg[\sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\Bigg|S_t=s, A_t=a\Bigg].
+\]&lt;/p&gt;
+&lt;p&gt;This function defines the expected return of following a particular policy and starting in state \(s\).
+Both the &lt;strong&gt;state-value&lt;/strong&gt; and &lt;strong&gt;action-value&lt;/strong&gt; functions can be updated as a result of the agent&amp;rsquo;s experience. How it is updated is method-dependent. Certain methods will also dictate how the policy itself can be updated.&lt;/p&gt;
+&lt;h2 id=&#34;value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Bellman Equation&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+U(s) = R(s) + \gamma \max_{a \in A(s)}\Big\{\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\Big\}
+\]&lt;/p&gt;
+&lt;p&gt;Take an action \(a\) and compute \(\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\) &amp;ndash; the expected utility of all possible states accessible from the current state (assuming you perform action \(a\)). Then, consider the same thing for all possible actions the agent can take.&lt;/p&gt;
+&lt;h2 id=&#34;policy-iteration&#34;&gt;Policy Iteration&lt;/h2&gt;
+</description>
+    </item>
     
     <item>
       <title>Gradient Boosting</title>
@@ -135,7 +243,30 @@ p(x_1, x_2, x_3) = p(x_1) p(x_2 | x_1) p(x_3 | x_1, x_2).
 &lt;p&gt;The &lt;strong&gt;Markov&lt;/strong&gt; in Hidden Markov Models addresses this complexity. The &lt;strong&gt;Markov Assumption&lt;/strong&gt; states that the probability of an event at time \(t\) is conditioned &lt;em&gt;only&lt;/em&gt; on the previously observed event: \(p(x_t | x_{t-1})\). This is compactly represented with a graphical model, as seen in figure &lt;strong&gt;TODO&lt;/strong&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;TODO: Figure of basic Markov Chain&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;The &lt;strong&gt;hidden&lt;/strong&gt; qualifier comes from the fact that the data we wish to model was generated from some underlying process that is not directly observable. A classic example for HMMs uses the weather. Imagine you had a log which had the number of water bottles a person had drank per day over the entire year. To make the problem slightly more difficult, the log entries were not associated with a date. It is reasonable to say that the amount of water a person drinks is influenced by how hot or cold it is on a particular day. So, the &lt;strong&gt;hidden state&lt;/strong&gt; in this case is the weather: hot or cold. We can model this with an HMM by establishing that the amount of water (&lt;strong&gt;observed state&lt;/strong&gt;) is conditioned on the weather (&lt;strong&gt;hidden state&lt;/strong&gt;). Figure &lt;strong&gt;TODO&lt;/strong&gt; shows this HMM graphically.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Figure of HMM&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-07-20_19-12-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;An HMM with 4 states and 2 observation symbols (y_1) or (y_2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An HMM with 4 states and 2 observation symbols (y_1) or (y_2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;Formally, a Hidden Markov Model is defined by&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;The number of hidden states \(N\).&lt;/li&gt;
@@ -206,6 +337,82 @@ N_{jk} = \sum_{i=1}^N \sum_{t=1}^T \mathbb{1} (z_{i, t}=j, x_{i, t}=k).
 p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}).
 \]&lt;/p&gt;
 &lt;h3 id=&#34;forwards-backwards-algorithm&#34;&gt;Forwards-Backwards Algorithm&lt;/h3&gt;
+&lt;p&gt;Computing joint distribution can be very computationally expensive. Fortunately for us, the Markov assumption along with operations on graphs open the door to a dynamic programming approach named the Forward-Backward algorithm.&lt;/p&gt;
+&lt;p&gt;The Forwards-Backwards Algorithm, also known as the &lt;a href=&#34;https://en.wikipedia.org/wiki/Baum%E2%80%93Welch_algorithm&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Baum-Welch algorithm&lt;/a&gt;, provides an effective solution to computing the joint described above. In fact, there are many useful distributions that can be computed with this algorithm such as the &lt;strong&gt;filtering&lt;/strong&gt; and &lt;strong&gt;smoothing&lt;/strong&gt; tasks.&lt;/p&gt;
+&lt;h4 id=&#34;forward-probability&#34;&gt;Forward Probability&lt;/h4&gt;
+&lt;p&gt;The forward probability, often denoted as \(\alpha\), represents the probability of ending up at a particular hidden state \(i\) at time \(t\) having seen the observations up to that time:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_t(i) = p(z_t = i, \mathbf{x}_{1:t} | \lambda).
+\]&lt;/p&gt;
+&lt;p&gt;This value is computed recursively starting from \(t=1\) and going forwards to \(t=T\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Initialization&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;For \(t=1\), we calculate:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_1(i) = \pi_i b_i(x_1),\quad 1 \leq i \leq N,
+\]&lt;/p&gt;
+&lt;p&gt;where \(\pi_i\) is the initial probability of state \(i\) and \(b_i(x_1)\) is the emission probability of the first observation \(x_1\) given that we are in state \(i\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Recursion&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;After that, we calculate the remaining \(\alpha_t(i)\) as follows:&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_{t+1}(j) = b_j(x_{t+1}) \sum_{i=1}^{N} \alpha_{t}(i)a_{ij},
+\]&lt;/p&gt;
+&lt;p&gt;where \(N\) is the number of hidden states, and \(a_{ij}\) is the transition probability from state \(i\) to state \(j\).&lt;/p&gt;
+&lt;h4 id=&#34;backward-probability&#34;&gt;Backward Probability&lt;/h4&gt;
+&lt;p&gt;The backward probability, denoted as \(\beta\), gives the probability of observing the remaining observations from time \(t+1\) to \(T\) given that we are in state \(i\) at time \(t\):&lt;/p&gt;
+&lt;p&gt;\[
+\beta_t(i) = p(\mathbf{x}_{t+1:T} | z_t = i, \lambda).
+\]&lt;/p&gt;
+&lt;p&gt;Again, this is calculated recursively but this time starting from \(t=T\) and going backwards to \(t=1\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Initialization&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;For \(t=T\), we initialize:&lt;/p&gt;
+&lt;p&gt;\[
+\beta_T(i) = 1, \forall i.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Recursion&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Then we calculate the remaining \(\beta_t(i)\) as:&lt;/p&gt;
+&lt;p&gt;\[
+\beta_{t}(i) = \sum_{j=1}^{N} a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+\]&lt;/p&gt;
+&lt;h4 id=&#34;calculating-the-sufficient-statistics&#34;&gt;Calculating the Sufficient Statistics&lt;/h4&gt;
+&lt;p&gt;With these two sets of probabilities, we can calculate the two required sufficient statistics as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The expected number of transitions from \(i\) to \(j\):&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;\[
+\frac{\sum_{t=1}^{T-1} \alpha_t(i) a_{ij} b_j(x_{t+1}) \beta_{t+1}(j)}{P(X|\lambda)}
+\]&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The expected number of times we are transitioning from \(i\) to any other state:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;\[
+\frac{\sum_{t=1}^{T-1} \alpha_t(i) \beta_t(i)}{P(X|\lambda)}
+\]&lt;/p&gt;
+&lt;p&gt;Where \(P(X|\lambda)\) is the total probability of the observations, calculated as:&lt;/p&gt;
+&lt;p&gt;\[
+P(X|\lambda) = \sum_{i=1}^{N} \alpha_T(i)
+\]&lt;/p&gt;
+&lt;h4 id=&#34;how-does-this-give-us-p--z-t-i-z-t-plus-1-j-mathbf-x-1-t&#34;&gt;How does this give us \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\)?&lt;/h4&gt;
+&lt;p&gt;To understand how the variables of the Forwards-Backwards algorithm relate to the original probabilities, we can express the term \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\) in terms of the original probability distributions in the HMM:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(\pi_i\) - the probability of starting in state \(i\),&lt;/li&gt;
+&lt;li&gt;\(a_{ij}\) - the probability of transitioning from state \(i\) to state \(j\),&lt;/li&gt;
+&lt;li&gt;\(b_j(x_t)\) - the probability that state \(j\) will emit observation \(x_t\).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The joint probability \(p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T})\) would represent the probability of being in state \(i\) at time \(t\), moving to state \(j\) at time \(t+1\), and observing the sequence of emissions \(\mathbf{x}_{1:T}\). This can be factored as follows due to the Markov property:&lt;/p&gt;
+&lt;p&gt;\[
+p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T}) = p(\mathbf{x}_{1:t}, z_t = i)p(z_{t+1} = j| z_t = i)p(\mathbf{x}_{t+1:T} | z_{t+1} = j, \mathbf{x}_{1:t}).
+\]&lt;/p&gt;
+&lt;p&gt;Using our definitions of \(\alpha\) and \(\beta\), we can rewrite this in terms of our HMM quantities:&lt;/p&gt;
+&lt;p&gt;\[
+p(z_t = i, z_{t+1} = j, \mathbf{x}_{1:T}) = \alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(\alpha_t(i)\) represents \(p(\mathbf{x}_{1:t}, z_t = i)\), the joint probability of the observations until time \(t\) and being in state \(i\) at time \(t\), and \(\beta_{t+1}(j)\) represents \(p(\mathbf{x}_{t+1:T} | z_{t+1} = j)\), the probability of the observations from time \(t+1\) to \(T\) given we&amp;rsquo;re in state \(j\) at time \(t+1\).&lt;/p&gt;
+&lt;p&gt;Then, to obtain \(p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T})\), we divide by \(p(\mathbf{x}_{1:T})\) to normalize the probabilities, which is the sum over all states of \(\alpha_T(i)\), or equivalently, the sum over all states of \(\beta_1(i)\pi_i b_i(x_1)\).&lt;/p&gt;
+&lt;p&gt;This gives us:&lt;/p&gt;
+&lt;p&gt;\[
+p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}) = \frac{\alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j)}{\sum_{i=1}^{N}\alpha_T(i)}.
+\]&lt;/p&gt;
+&lt;p&gt;This is the same expression as before, but broken down in terms of the original HMM quantities and the forward and backward variables. This can also be explained through graph properties and operations. See &lt;a href=&#34;https://cedar.buffalo.edu/~srihari/CSE574/Chap13/13.2.2-ForwardBackward.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Sargur Srihari&amp;rsquo;s excellent lecture slides&lt;/a&gt; for more details.&lt;/p&gt;
 &lt;h2 id=&#34;implementation-in-python&#34;&gt;Implementation in Python&lt;/h2&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
 </description>

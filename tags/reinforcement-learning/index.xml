@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>reinforcement learning on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/reinforcement-learning/</link>
+    <description>Recent content in reinforcement learning on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Mon, 24 Jul 2023 00:00:00 -0500</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/reinforcement-learning/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Markov Decision Processes</title>
+      <link>https://ajdillhoff.github.io/notes/markov_decision_processes/</link>
+      <pubDate>Mon, 24 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/markov_decision_processes/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#key-terms&#34;&gt;Key Terms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#policies-and-values&#34;&gt;Policies and Values&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#policy-iteration&#34;&gt;Policy Iteration&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;key-terms&#34;&gt;Key Terms&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Agent&lt;/strong&gt;: The learner or decision maker.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Environment&lt;/strong&gt;: The world that the agent can interact with.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;State&lt;/strong&gt;: A representation of the agent and environment.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Action&lt;/strong&gt;: The agent can take an action in the environment.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Reward&lt;/strong&gt;: Given to the agent based on actions taken.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Goal&lt;/strong&gt;: Maximize rewards earned over time.&lt;/p&gt;
+&lt;p&gt;At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state.
+At time \(t + 1\), the agent receives a reward \(R_{t+1} \in \mathcal{R}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-15_19-01-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The agent-environment in a Markov decision process (Credit: Sutton &amp;amp;amp; Barto).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The agent-environment in a Markov decision process (Credit: Sutton &amp;amp; Barto).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To improve its knowledge about an environment or increase its performance on a task, an agent must first be able to interpret or make sense of that environment in some way.
+Second, there must be a well defined goal. For an agent playing Super Mario, for example, the goal would be to complete each level while maximizing the score.
+Third, the agent must be able to interact with its environment by taking actions.
+If the Mario-playing agent could not move Mario around, it would never be able to improve.
+If the agent makes a decision which leads to Mario&amp;rsquo;s untimely demise, it would update its knowledge of the world so that it would tend towards a more favorable action.
+These three requirements: sensations, actions, and goals, are encapsulated by &lt;strong&gt;Markov Decision Processes&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;A Markov decision process is defined by&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(\mathcal{S}\) - a set of states,&lt;/li&gt;
+&lt;li&gt;\(\mathcal{A}\) - a set of actions,&lt;/li&gt;
+&lt;li&gt;\(\mathcal{R}\) - a set of rewards,&lt;/li&gt;
+&lt;li&gt;\(P\) - the transition probability function to determine transition between states,&lt;/li&gt;
+&lt;li&gt;\(\gamma\) - discount factor for future rewards.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At time \(t\), an agent in state \(S_t\) selects an action \(A_t\).
+At \(t+1\), it receives a reward \(R_{t+1}\) based on that action.&lt;/p&gt;
+&lt;p&gt;In a finite MDP, the states, actions, and rewards have a finite number of elements.
+Random variables \(R_t\) and \(S_t\) have discrete probability distributions dependent on the preceding state and action.&lt;/p&gt;
+&lt;p&gt;\[
+p(s&amp;rsquo;, r|s, a) = P\{S_t = s&amp;rsquo;, R_t = r|S_{t-1} = s, A_{t-1} = a\}
+\]&lt;/p&gt;
+&lt;p&gt;If we want the state transition probabilities, we can sum over the above distribution:&lt;/p&gt;
+&lt;p&gt;\[
+p(s&amp;rsquo;|s, a) = P\{S_t = s&amp;rsquo;|S_{t-1} = s, A_{t-1}=a\} = \sum_{r\in\mathcal{R}}p(s&amp;rsquo;, r|s, a).
+\]&lt;/p&gt;
+&lt;h3 id=&#34;defining-goals&#34;&gt;Defining Goals&lt;/h3&gt;
+&lt;p&gt;In reinforcement learning, the goal is encoded in the form of a &lt;strong&gt;&lt;strong&gt;reward signal&lt;/strong&gt;&lt;/strong&gt;. The agent sets out to &lt;em&gt;maximize&lt;/em&gt; the total amount of reward it receives over an &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt;. An &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt; is defined dependent on the problem context and ends in a &lt;strong&gt;&lt;strong&gt;terminal state&lt;/strong&gt;&lt;/strong&gt;. It could be a round of game, a single play, or the result of moving a robot. Typically, the rewards come as a single scalar value at teach time step. This implies that an agent might take an action that results in a negative reward if it is optimal in the long run.&lt;/p&gt;
+&lt;p&gt;Formally, the &lt;strong&gt;expected return&lt;/strong&gt; includes a &lt;strong&gt;discount factor&lt;/strong&gt; that allows us to control the trade-off between short-term and long-term rewards:&lt;/p&gt;
+&lt;p&gt;\[
+G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1},
+\]&lt;/p&gt;
+&lt;p&gt;where \(0 \leq \gamma \leq 1\). This can be written in terms of the expected return itself as well:&lt;/p&gt;
+&lt;p&gt;\[
+G_t = R_{t+1} + \gamma G_{t+1}.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;policies-and-values&#34;&gt;Policies and Values&lt;/h2&gt;
+&lt;p&gt;Two important concepts that help our agent make decisions are the policy and value functions. A &lt;strong&gt;policy&lt;/strong&gt;, typically denoted by \(\pi\), maps states to actions. Such a function can be deterministic, \(\pi(s) = a\), or stochastic, \(\pi(a|s)\).&lt;/p&gt;
+&lt;p&gt;The value of a particular state under a policy \(\pi\) is defined as&lt;/p&gt;
+&lt;p&gt;\[
+v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\Bigg[\sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\Bigg|S_t=s\Bigg].
+\]&lt;/p&gt;
+&lt;p&gt;We also must define the value of taking an action \(a\) in state \(s\) following policy \(\pi\):&lt;/p&gt;
+&lt;p&gt;\[
+q_{\pi}(s, a) = \mathbb{E}_{\pi}[G_t|S_t=s, A_t=a] = \mathbb{E}_{\pi}\Bigg[\sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\Bigg|S_t=s, A_t=a\Bigg].
+\]&lt;/p&gt;
+&lt;p&gt;This function defines the expected return of following a particular policy and starting in state \(s\).
+Both the &lt;strong&gt;state-value&lt;/strong&gt; and &lt;strong&gt;action-value&lt;/strong&gt; functions can be updated as a result of the agent&amp;rsquo;s experience. How it is updated is method-dependent. Certain methods will also dictate how the policy itself can be updated.&lt;/p&gt;
+&lt;h2 id=&#34;value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Bellman Equation&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+U(s) = R(s) + \gamma \max_{a \in A(s)}\Big\{\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\Big\}
+\]&lt;/p&gt;
+&lt;p&gt;Take an action \(a\) and compute \(\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\) &amp;ndash; the expected utility of all possible states accessible from the current state (assuming you perform action \(a\)). Then, consider the same thing for all possible actions the agent can take.&lt;/p&gt;
+&lt;h2 id=&#34;policy-iteration&#34;&gt;Policy Iteration&lt;/h2&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
