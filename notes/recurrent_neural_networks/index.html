@@ -29,13 +29,11 @@
   
     
   
-  <meta name="description" content="Introduction Let&rsquo;s take a simple constrained problem (from Nocedal and Wright).
-\begin{align*} \min \quad &amp; x_1 &#43; x_2\\ \textrm{s.t.} \quad &amp; x_1^2 &#43; x_2^2 - 2 = 0 \end{align*}
-The set of possible solutions to this problem lie on the boundary of the circle defined by the constraint:
-Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2^2 - 2\), then the gradient vector is \((2x_1, 2x_2)\)">
+  <meta name="description" content="Table of Contents Introduction Definition Bidirectional Recurrent Neural Networks References Introduction Neural networks are an effective tool for regression and classification tasks, but they do not consider the dependencies of information over time. Many tasks have implicit information that is dependent on input that may have already been processed or may not be seen until the future.
+Recurrent Neural Networks (RNN) consider the historical context of time-series data. Bi-directional Recurrent Neural Networks (BRNN) consider both historical and future context.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/lagrangian_multipliers/">
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/recurrent_neural_networks/">
 
   
 
@@ -127,7 +125,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://ajdillhoff.github.io/notes/lagrangian_multipliers/">
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/recurrent_neural_networks/">
 
   
   
@@ -139,29 +137,27 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
   <meta property="twitter:card" content="summary">
   
   <meta property="og:site_name" content="Alex Dillhoff">
-  <meta property="og:url" content="https://ajdillhoff.github.io/notes/lagrangian_multipliers/">
-  <meta property="og:title" content="Lagrangian Multipliers | Alex Dillhoff">
-  <meta property="og:description" content="Introduction Let&rsquo;s take a simple constrained problem (from Nocedal and Wright).
-\begin{align*} \min \quad &amp; x_1 &#43; x_2\\ \textrm{s.t.} \quad &amp; x_1^2 &#43; x_2^2 - 2 = 0 \end{align*}
-The set of possible solutions to this problem lie on the boundary of the circle defined by the constraint:
-Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2^2 - 2\), then the gradient vector is \((2x_1, 2x_2)\)"><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/recurrent_neural_networks/">
+  <meta property="og:title" content="Recurrent Neural Networks | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Definition Bidirectional Recurrent Neural Networks References Introduction Neural networks are an effective tool for regression and classification tasks, but they do not consider the dependencies of information over time. Many tasks have implicit information that is dependent on input that may have already been processed or may not be seen until the future.
+Recurrent Neural Networks (RNN) consider the historical context of time-series data. Bi-directional Recurrent Neural Networks (BRNN) consider both historical and future context."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
-  <meta property="article:published_time" content="2022-02-05T00:00:00-06:00">
+  <meta property="article:published_time" content="2022-04-10T00:00:00-05:00">
   
-  <meta property="article:modified_time" content="2022-02-05T00:00:00-06:00">
+  <meta property="article:modified_time" content="2022-04-10T00:00:00-05:00">
   
-
-  
-
 
   
 
 
+  
 
 
 
-  <title>Lagrangian Multipliers | Alex Dillhoff</title>
+
+
+  <title>Recurrent Neural Networks | Alex Dillhoff</title>
 
   <script>
   MathJax = {
@@ -375,7 +371,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
     
     
     <div class="article-container py-3">
-      <h1 itemprop="name">Lagrangian Multipliers</h1>
+      <h1 itemprop="name">Recurrent Neural Networks</h1>
 
       
 
@@ -384,8 +380,8 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
 
 
 
-<meta content="2022-02-05 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2022-02-05 00:00:00 -0600 CST" itemprop="dateModified">
+<meta content="2022-04-10 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2022-04-10 00:00:00 -0500 CDT" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -410,7 +406,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
     
       
     
-    <time>Feb 5, 2022</time>
+    <time>Apr 10, 2022</time>
   </span>
   
 
@@ -419,7 +415,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    2 min read
+    4 min read
   </span>
   
 
@@ -445,7 +441,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/lagrangian_multipliers/&amp;text=Lagrangian%20Multipliers" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/recurrent_neural_networks/&amp;text=Recurrent%20Neural%20Networks" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -458,7 +454,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/lagrangian_multipliers/&amp;t=Lagrangian%20Multipliers" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/recurrent_neural_networks/&amp;t=Recurrent%20Neural%20Networks" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook-f"></i>
         </a>
       </li>
@@ -471,7 +467,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="mailto:?subject=Lagrangian%20Multipliers&amp;body=https://ajdillhoff.github.io/notes/lagrangian_multipliers/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Recurrent%20Neural%20Networks&amp;body=https://ajdillhoff.github.io/notes/recurrent_neural_networks/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -484,7 +480,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/lagrangian_multipliers/&amp;title=Lagrangian%20Multipliers" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/recurrent_neural_networks/&amp;title=Recurrent%20Neural%20Networks" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -497,7 +493,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="https://web.whatsapp.com/send?text=Lagrangian%20Multipliers%20https://ajdillhoff.github.io/notes/lagrangian_multipliers/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="https://web.whatsapp.com/send?text=Recurrent%20Neural%20Networks%20https://ajdillhoff.github.io/notes/recurrent_neural_networks/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -510,7 +506,7 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/lagrangian_multipliers/&amp;title=Lagrangian%20Multipliers" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/recurrent_neural_networks/&amp;title=Recurrent%20Neural%20Networks" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -547,13 +543,37 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
   <div class="article-container">
 
     <div class="article-style" itemprop="articleBody">
-      <h2 id="introduction">Introduction</h2>
-<p>Let&rsquo;s take a simple constrained problem (from Nocedal and Wright).</p>
-<p>\begin{align*}
-\min \quad &amp; x_1 + x_2\\
-\textrm{s.t.} \quad &amp; x_1^2 + x_2^2 - 2 = 0
-\end{align*}</p>
-<p>The set of possible solutions to this problem lie on the boundary of the circle defined by the constraint:</p>
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#bidirectional-recurrent-neural-networks">Bidirectional Recurrent Neural Networks</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Neural networks are an effective tool for regression and classification tasks, but they do not consider the dependencies of information over time.
+Many tasks have implicit information that is dependent on input that may have already been processed or may not be seen until the future.</p>
+<p>Recurrent Neural Networks (RNN) consider the historical context of time-series data.
+Bi-directional Recurrent Neural Networks (BRNN) consider both historical and future context. This is necessary for tasks like language tanslation.</p>
+<p>Parameter sharing across different parts of the model is key for sequence models.
+Different instances of a particular feature may appear at different time steps.</p>
+<p>&ldquo;I see Naomi there.&rdquo; and &ldquo;Naomi is right there&rdquo; both convey that Naomi is present, but we would not require the model to have separate parameters just because the word position is different between the two.</p>
+<p>Recurrent connections provide a memory of sorts.
+This enables important contextual information to be &ldquo;remembered&rdquo; throughout time.
+These models are not without their limitations.
+When trained with gradient descent, the gradient information passed throughout multiple time steps can become insignificant.
+There are several ways to address the <strong>vanishing gradient</strong> problem which are explored in alternative models such as <a href="/notes/long_short_term_memory/">Long Short-Term Memory</a> and <a href="/notes/transformers/">Transformers</a>.</p>
+<h2 id="definition">Definition</h2>
+<p>The definition of RNNs start with that of <a href="/notes/neural_networks/">Neural Networks</a>.
+One layer of an RNN has some number of hidden units that transforms the input into an intermediate representation.
+In addition to transforming the input, another set of parameters is used to transform the hidden context over time.
+The difference is that the hidden layer is shared over time, as seen in the equation below.</p>
+<p>\[
+\mathbf{h}^{(t)} = f(\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}; \mathbf{\theta})
+\]</p>
 
 
 
@@ -562,14 +582,14 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
 
 <figure>
 
-<img src="/ox-hugo/2021-12-01_18-06-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: Nocedal and Wright" >
+<img src="/ox-hugo/2022-04-09_16-36-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Computation graph of an RNN (By fdeloche - Own work, CC BY-SA 4.0, &lt;https://commons.wikimedia.org/w/index.php?curid=60109157&gt;)" >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 1: </span>Source: Nocedal and Wright
+    <span class="figure-number">Figure 1: </span>Computation graph of an RNN (By fdeloche - Own work, CC BY-SA 4.0, <a href="https://commons.wikimedia.org/w/index.php?curid=60109157" target="_blank" rel="noopener noreferrer">https://commons.wikimedia.org/w/index.php?curid=60109157</a>)
     
     
     
@@ -578,32 +598,74 @@ Figure 1: Source: Nocedal and Wright If we let \(g(\mathbf{x}) = x_1^2 &#43; x_2
 
 </figure>
 
-<p>If we let \(g(\mathbf{x}) = x_1^2 + x_2^2 - 2\), then the gradient vector is \((2x_1, 2x_2)\)</p>
-<p>Our original function \(f(\mathbf{x}) = x_1 + x_2\) has a gradient vector of \((1, 1)\).</p>
-<p>The figure above visualizes these vectors at different points on the constraint boundary.</p>
-<p>Notice that the optimal solution \(\mathbf{x}^* = (-1, -1)\) is at a point where \(\nabla g(\mathbf{x}^*)\) is parallel to \(\nabla f(\mathbf{x}^*)\). However, the gradients of the vectors are not equal. So there must be some scalar \(\lambda\) such that \(\nabla f(\mathbf{x}^*) = \lambda \nabla g(\mathbf{x}^*)\).</p>
-<p>This scalar \(\lambda\) is called a Lagrangian multiplier. We use this and introduce the Lagrangian function:</p>
-<p>\begin{equation*}
-\mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) - \lambda g(\mathbf{x})
-\end{equation*}</p>
-<p>This yields a form for which we can analytically calculate the stationary points. That is,</p>
-<p>\begin{equation*}
-\nabla_{\mathbf{x}} \mathcal{L}(\mathbf{x}^*, \lambda^*) = 0.
-\end{equation*}</p>
-<h2 id="lagrangian-duality">Lagrangian Duality</h2>
-<p>In general, the primal optimization problem is formulated as</p>
-<p>\begin{align*}
-\min_{w} \quad &amp; f(w)\\
-\textrm{s.t.} \quad &amp; g_i(w) \leq 0, \quad i = 1, \dots, k\\
-&amp; h_i(w) = 0, \quad i = 1, \dots, l.
-\end{align*}</p>
-<p>The Lagrangian function is then</p>
+<p>In the computation graph above, a recurrent network has three weight matrices associated with its forward pass.
+An input weight matrix \(U \in \mathbb{R}^{H \times D}\) processes the features for each <em>frame</em> of the input sequence.
+The hidden layer has a weight matrix \(V \in \mathbb{R}^{H \times H}\), where \(H\) is the number of hidden nodes.
+The output layer will have a weight matrix \(W \in \mathbb{R}^{O \times H}\).</p>
+<h3 id="forwards-pass">Forwards Pass</h3>
+<p>To understand the computation graph of an RNN, consider an input of length \(T\) with \(D\) features. That is, each input sample is a sequence of features. This could be represented as encoded video data, text data, or any other sequence signals.
+To compute the output of a hidden layer \(\mathbf{h}\) at time \(t\), take a linear combination of all input feature \(x_i^t\) at time \(t\) in addition to the output of the previous hidden layer and then add the linear combination of output activations for each node in the hidden layer:</p>
 <p>\[
-L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i h_i(w).
+a_h^t = \sum_{d=1}^D w_{dh} x_d^t + \sum_{h&rsquo;=1}^H w_{h&rsquo;h} b_{h&rsquo;}^{t-1},
 \]</p>
-<h2 id="additional-resources">Additional Resources</h2>
+<p>where \(b_h^t = \theta_h(a_h^t)\) and we assume the bias term is concatenated with the weights.</p>
+<p>Weights in the hidden layer are crucial for RNNs to adapt to contextual features based on their occurrence relative to time.
+For example, a character-based language model based on a traditioinal network would produce similar output for consecutive letters that are the same.
+In an RNN, the hidden weights would produce a different output for each consecutive character even if it were the same.</p>
+<p>The hidden layer outputs are used in both the subsequent computations through time as well as the output node for each instance \(t\). The inputs to the output node are computed from the hidden node at the same time as the output to the hidden activation:</p>
+<p>\[
+a_k^t = \sum_{h=1}^H w_{hk}b_h^t.
+\]</p>
+<h3 id="backwards-pass">Backwards Pass</h3>
+<p>The gradients of a recurrent network are computed using backpropagation, similar to neural networks.
+Since the forward pass is over \(t\) time step, the backward pass must consider them as well.
+This variant of backpropagation for recurrent models is calling backpropagation through time (BPTT).</p>
+<p>Like a feed forward network, the output is dependent on the activation of the hidden layer.
+For a recurrent model, its dependence is through the output of the hidden layer as well as the pass to the next hidden time step.</p>
+<p>\[
+\frac{\partial \mathcal{L}}{\partial a_h^t} = \frac{\partial \mathcal{L}}{\partial b_h^t} \frac{\partial b_h^t}{\partial a_h^t}
+\]</p>
+<p>\[
+\frac{\partial \mathcal{L}}{\partial b_h^t} = \sum_{k=1}^K \frac{\partial \mathcal{L}}{\partial a_k^t} \frac{\partial a_k^t}{\partial b_h^t} + \sum_{h&rsquo;=1}^H \frac{\partial \mathcal{L}}{\partial a_{h&rsquo;}^{t+1}} \frac{\partial a_{h&rsquo;}^{t+1}}{\partial a_{h}^t}
+\]</p>
+<p>The derivatives with respect to the weights are given as</p>
+<p>\[
+\frac{\partial \mathcal{L}}{\partial w_{ij}} = \sum_{t=1}^T \frac{\partial \mathcal{L}}{\partial a_j^t} \frac{\partial a_j^t}{\partial w_{ij}}.
+\]</p>
+<h2 id="bidirectional-recurrent-neural-networks">Bidirectional Recurrent Neural Networks</h2>
+<p>Standard RNNs work for many problems with sequential input.
+Training such a model would consider the full input through time \(T\), but inference may only be able to consider the data up to time \(t &lt; T\).
+There are sequential tasks which could leverage from both past and future context, such as language translation.
+For this case, BRNNs were proposed &lt;&amp;schusterBidirectionalRecurrentNeural1997&gt;.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-11-06_15-18-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Diagram of BRNN from Graves et al." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Diagram of BRNN from Graves et al.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="references">References</h2>
 <ul>
-<li><a href="https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf" target="_blank" rel="noopener noreferrer">https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf</a></li>
+<li><a href="https://karpathy.github.io/2015/05/21/rnn-effectiveness/" target="_blank" rel="noopener noreferrer">The Unreasonable Effectiveness of RNNs</a> by Andrej Karpathy</li>
+<li>&lt;&amp;gravesSupervisedSequenceLabelling2012&gt;</li>
+<li><a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank" rel="noopener noreferrer">Understanding LSTM Networks</a> by Christopher Colah</li>
 </ul>
 
     </div>
@@ -612,7 +674,7 @@ L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i 
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tags/optimization/">optimization</a>
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
   
 </div>
 
@@ -709,6 +771,18 @@ L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i 
 
 
       
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a></li>
+          
+          <li><a href="/notes/deep_learning/">Deep Learning</a></li>
+          
+        </ul>
+      </div>
       
     
 

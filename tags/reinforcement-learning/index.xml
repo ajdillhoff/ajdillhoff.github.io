@@ -22,9 +22,10 @@
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#key-terms&#34;&gt;Key Terms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#defining-goals&#34;&gt;Defining Goals&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#policies-and-values&#34;&gt;Policies and Values&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#policy-iteration&#34;&gt;Policy Iteration&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bellman-equations&#34;&gt;Bellman Equations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#optimality&#34;&gt;Optimality&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -88,7 +89,11 @@ p(s&amp;rsquo;, r|s, a) = P\{S_t = s&amp;rsquo;, R_t = r|S_{t-1} = s, A_{t-1} = 
 &lt;p&gt;\[
 p(s&amp;rsquo;|s, a) = P\{S_t = s&amp;rsquo;|S_{t-1} = s, A_{t-1}=a\} = \sum_{r\in\mathcal{R}}p(s&amp;rsquo;, r|s, a).
 \]&lt;/p&gt;
-&lt;h3 id=&#34;defining-goals&#34;&gt;Defining Goals&lt;/h3&gt;
+&lt;p&gt;The &lt;strong&gt;reward function&lt;/strong&gt; \(r\) gives the expected &lt;em&gt;next&lt;/em&gt; reward given some state and action:&lt;/p&gt;
+&lt;p&gt;\[
+r(s, a) = \mathbb{E}[R_{t+1}|S_t=s, A_t=a] = \sum_{r}r \sum_{s&amp;rsquo;}p(s&amp;rsquo;, r|s, a).
+\]&lt;/p&gt;
+&lt;h2 id=&#34;defining-goals&#34;&gt;Defining Goals&lt;/h2&gt;
 &lt;p&gt;In reinforcement learning, the goal is encoded in the form of a &lt;strong&gt;&lt;strong&gt;reward signal&lt;/strong&gt;&lt;/strong&gt;. The agent sets out to &lt;em&gt;maximize&lt;/em&gt; the total amount of reward it receives over an &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt;. An &lt;strong&gt;&lt;strong&gt;episode&lt;/strong&gt;&lt;/strong&gt; is defined dependent on the problem context and ends in a &lt;strong&gt;&lt;strong&gt;terminal state&lt;/strong&gt;&lt;/strong&gt;. It could be a round of game, a single play, or the result of moving a robot. Typically, the rewards come as a single scalar value at teach time step. This implies that an agent might take an action that results in a negative reward if it is optimal in the long run.&lt;/p&gt;
 &lt;p&gt;Formally, the &lt;strong&gt;expected return&lt;/strong&gt; includes a &lt;strong&gt;discount factor&lt;/strong&gt; that allows us to control the trade-off between short-term and long-term rewards:&lt;/p&gt;
 &lt;p&gt;\[
@@ -110,13 +115,51 @@ q_{\pi}(s, a) = \mathbb{E}_{\pi}[G_t|S_t=s, A_t=a] = \mathbb{E}_{\pi}\Bigg[\sum_
 \]&lt;/p&gt;
 &lt;p&gt;This function defines the expected return of following a particular policy and starting in state \(s\).
 Both the &lt;strong&gt;state-value&lt;/strong&gt; and &lt;strong&gt;action-value&lt;/strong&gt; functions can be updated as a result of the agent&amp;rsquo;s experience. How it is updated is method-dependent. Certain methods will also dictate how the policy itself can be updated.&lt;/p&gt;
-&lt;h2 id=&#34;value-iteration-algorithm&#34;&gt;Value Iteration Algorithm&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Bellman Equation&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;bellman-equations&#34;&gt;Bellman Equations&lt;/h2&gt;
+&lt;p&gt;The recursive relationship between the value of a state and its future states can be represented using &lt;strong&gt;&lt;strong&gt;Bellman equations&lt;/strong&gt;&lt;/strong&gt;. In RL, we are interested in the equations for both the state-value and action-value. Given the diagram of an MDP, we can see that they are related to each other. To make the following equations easier to understand, it is important to remember the flow of a Markov decision process:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;take an action,&lt;/li&gt;
+&lt;li&gt;arrive at a state and sense the reward,&lt;/li&gt;
+&lt;li&gt;consult the policy for the next action.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;With that in mind, let&amp;rsquo;s look at the state-value function first. This function considers the expected value of starting in a state \(s\) and following policy \(\pi\). In other words, we must consider all possible actions and their future rewards.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+v_{\pi}(s) &amp;amp;= \mathbb{E}_{\pi}[G_t | S_t = s]\\
+&amp;amp;= \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s]\\
+&amp;amp;= \sum_{a} \pi(a|s) \sum_{s&amp;rsquo;}\sum_{r}p(s&amp;rsquo;, r|s, a)\Big[r + \gamma \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s]\Big]\\
+&amp;amp;= \sum_{a} \pi(a|s) \sum_{s&amp;rsquo;, r}p(s&amp;rsquo;, r|s, a)\Big[r + \gamma v_{\pi}(s&amp;rsquo;)\Big]\\
+&amp;amp;= \sum_{a} \pi(a | s)\big[r(s, a) + \gamma \sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)v_{\pi}(s&amp;rsquo;)\big]\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The first sum over actions considers &lt;em&gt;all possible actions&lt;/em&gt;. This is followed by a transition to possible states \(s&amp;rsquo;\) conditioned on taking each action multiplied by the expected value of being at the new state.&lt;/p&gt;
+&lt;p&gt;The action-value function follows a similar derivation:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+q_{\pi}(s, a) &amp;amp;= \mathbb{E}_{\pi}[G_t|S_t = s, A_t = a]\\
+&amp;amp;= \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s, A_t = a]\\
+&amp;amp;= r(s, a) + \sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a) v_{\pi}(s&amp;rsquo;)
+\end{align*}&lt;/p&gt;
+&lt;p&gt;There is a very similar looking set of terms in the state-value function above, and we should expect that! If we want to evaluate the current state, we need to look ahead at the possible actions and their resulting rewards. Similarly, evaluating the current action requires us to look head at the value of future states.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s expand \(q_{\pi}(s,a)\) once more so that it is written in terms of itself.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+q_{\pi}(s, a) &amp;amp;= r(s, a) + \gamma \sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a) v_{\pi}(s&amp;rsquo;)\\
+&amp;amp;= r(s, a) + \gamma \sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a) \sum_{a&amp;rsquo;} \pi(s&amp;rsquo;, a&amp;rsquo;) \big[r(s&amp;rsquo;, a&amp;rsquo;) + \gamma \sum_{s&amp;rsquo;&amp;rsquo;} p(s&amp;rsquo;&amp;rsquo;|s&amp;rsquo;, a&amp;rsquo;)v_{\pi}(s&amp;rsquo;&amp;rsquo;)]\\
+&amp;amp;= r(s, a) + \gamma \sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a) \sum_{a&amp;rsquo;} \pi(s&amp;rsquo;, a&amp;rsquo;) q_{\pi}(s&amp;rsquo;, a&amp;rsquo;)
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;optimality&#34;&gt;Optimality&lt;/h2&gt;
+&lt;p&gt;To solve a reinforcement learning problem, we are interested in finding the policy \(\pi_{*}\) whose expected return is greater than all other possible policies over all states.
+An &lt;strong&gt;&lt;strong&gt;optimal policy&lt;/strong&gt;&lt;/strong&gt; will use an &lt;strong&gt;*optimal state-value function&lt;/strong&gt; and &lt;strong&gt;&lt;strong&gt;optimal action-value function&lt;/strong&gt;&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+v_{*}(s) &amp;amp;= \max_{\pi}v_{\pi}(s)\\
+q_{*}(s, a) &amp;amp;= \max_{\pi}q_{\pi}(s, a).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The optimal state-value function would select the best possible action instead of summing over all possibley actions starting in state \(s\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+v_{*}(s) &amp;amp;= \max_{a} q_{\pi_*}(s, a)\\
+&amp;amp;= \max_{a}\big[r(s, a) + \gamma \sum_{s&amp;rsquo;} p(s&amp;rsquo;|s, a) v_{*}(s&amp;rsquo;)\big]
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Similarly, the optimal action-value function selects the best possible action from the next state \(s&amp;rsquo;\):&lt;/p&gt;
 &lt;p&gt;\[
-U(s) = R(s) + \gamma \max_{a \in A(s)}\Big\{\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\Big\}
+q_{*}(s) = r(s, a) + \gamma \sum_{s&amp;rsquo;} p(s&amp;rsquo;|s, a) \max_{a} q_{*}(s&amp;rsquo;, a&amp;rsquo;).
 \]&lt;/p&gt;
-&lt;p&gt;Take an action \(a\) and compute \(\sum_{s&amp;rsquo;}p(s&amp;rsquo;|s, a)U(s&amp;rsquo;)\) &amp;ndash; the expected utility of all possible states accessible from the current state (assuming you perform action \(a\)). Then, consider the same thing for all possible actions the agent can take.&lt;/p&gt;
-&lt;h2 id=&#34;policy-iteration&#34;&gt;Policy Iteration&lt;/h2&gt;
 </description>
     </item>
     

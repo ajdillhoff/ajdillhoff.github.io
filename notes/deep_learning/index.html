@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Syllabi Questions Introduction What makes a model deep? Deep Networks Activation Functions Loss Functions A Typical Training Pipeline Bias/Variance Tradeoff Regularization Optimization Algorithms Syllabi https://cs230.stanford.edu/syllabus/ Questions Does backprop give the same result when combining the weights and bias versus separating? Introduction What is deep learning? What problems is it used for? Basic neural nets vs &ldquo;deep&rdquo; nets Structuring a project CNNs Sequence models Geometric Deep Learning Representation of a model in code (vectorization) Deep learning has been employed in many fields from visual recognition to medical diagnosis.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/deep_learning/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/deep_learning/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/deep_learning/">
+  <meta property="og:title" content="Deep Learning | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Syllabi Questions Introduction What makes a model deep? Deep Networks Activation Functions Loss Functions A Typical Training Pipeline Bias/Variance Tradeoff Regularization Optimization Algorithms Syllabi https://cs230.stanford.edu/syllabus/ Questions Does backprop give the same result when combining the weights and bias versus separating? Introduction What is deep learning? What problems is it used for? Basic neural nets vs &ldquo;deep&rdquo; nets Structuring a project CNNs Sequence models Geometric Deep Learning Representation of a model in code (vectorization) Deep learning has been employed in many fields from visual recognition to medical diagnosis."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-03-29T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2022-03-29T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Deep Learning | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Deep Learning</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-03-29 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2022-03-29 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Mar 29, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/deep_learning/&amp;text=Deep%20Learning" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/deep_learning/&amp;t=Deep%20Learning" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Deep%20Learning&amp;body=https://ajdillhoff.github.io/notes/deep_learning/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/deep_learning/&amp;title=Deep%20Learning" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Deep%20Learning%20https://ajdillhoff.github.io/notes/deep_learning/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/deep_learning/&amp;title=Deep%20Learning" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#syllabi">Syllabi</a></li>
+<li><a href="#questions">Questions</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#what-makes-a-model-deep">What makes a model deep?</a></li>
+<li><a href="#deep-networks">Deep Networks</a></li>
+<li><a href="#activation-functions">Activation Functions</a></li>
+<li><a href="#loss-functions">Loss Functions</a></li>
+<li><a href="#a-typical-training-pipeline">A Typical Training Pipeline</a></li>
+<li><a href="#bias-variance-tradeoff">Bias/Variance Tradeoff</a></li>
+<li><a href="#regularization">Regularization</a></li>
+<li><a href="#optimization-algorithms">Optimization Algorithms</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="syllabi">Syllabi</h2>
+<ul>
+<li><a href="https://cs230.stanford.edu/syllabus/" target="_blank" rel="noopener noreferrer">https://cs230.stanford.edu/syllabus/</a></li>
+</ul>
+<h2 id="questions">Questions</h2>
+<ul>
+<li>Does backprop give the same result when combining the weights and bias versus separating?</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>What is deep learning?</li>
+<li>What problems is it used for?</li>
+<li>Basic neural nets vs &ldquo;deep&rdquo; nets</li>
+<li>Structuring a project</li>
+<li>CNNs</li>
+<li>Sequence models</li>
+<li>Geometric Deep Learning</li>
+<li>Representation of a model in code (vectorization)</li>
+</ul>
+<p>Deep learning has been employed in many fields from visual recognition to medical diagnosis.
+Its continued success is impossible to ignore.
+As more and more companies pivot to utilize deep learning in some capacity, it is paramount that any machine learning practitioner or research be well versed in moden practices and frameworks.
+This section will provide a broad overview of deep learning with examples using <a href="https://pytorch.org" target="_blank" rel="noopener noreferrer">PyTorch</a>.</p>
+<p>If you are not yet familiar with <a href="/notes/neural_networks/">neural networks</a>, follow the link to learn about their basics as they are the foundation of deep learning systems.</p>
+<p>We will cover how to implement an array of deep learning models for different tasks.
+Different layers and activation functions will be explored as well as the effect of regularization.
+There will also be a focus on best practices for organizing a machine learning project.</p>
+<h2 id="what-makes-a-model-deep">What makes a model deep?</h2>
+<p>We begin by comparing <em>shallow</em> networks with <em>deep</em> networks.
+What defines a deep network? Is it as simple as crossing a threshold into \(n\) layers?
+As evidenced by &lt;&amp;zeilerVisualizingUnderstandingConvolutional2013&gt;, deeper networks allow for a more robust hierarchy of image features.</p>
+<p>There is work by &lt;&amp;montufarNumberLinearRegions2014&gt; which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
+Additionally, there are many individual results which suggest that deeper networks provide better task generalization.</p>
+<p>As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task.
+That is, our network is not only optimizing the performance of task, but it produces features from the data.
+This is particularly useful for transfer learning, where large pre-trained models can be used as starting points for novel tasks.
+The benefit being that a complete retraining of the model is not necessary.</p>
+<h2 id="deep-networks">Deep Networks</h2>
+<p>Like <a href="/notes/neural_networks/">neural networks</a>, deep networks are defined by the number of layers, nodes per layer, activation functions, and loss functions.
+We now review the forward and backward pass, providing more insight into the structure and usage of deep networks along the way.</p>
+<p>Consider a deep network with \(L\) layers. Layer \(l\) has \(n_{l-1}\) input connections and \(n_l\) output nodes and activation function \(g^{(l)}\).
+The final output is evaluated with some ground truth using a loss function \(\mathcal{L}\).</p>
+<h3 id="forward-pass">Forward Pass</h3>
+<p>\begin{align*}
+\mathbf{a}^{(l)} &amp;= W^{(l)}\mathbf{z}^{(l-1)} + \mathbf{b}^{(l)}\\
+\mathbf{z}^{(l)} &amp;= g^{(l)}(\mathbf{a}^{(l)})\\
+\end{align*}</p>
+<p>This is repeated from the input to the last layer.
+For the first layer \(l=1\), the input \(\mathbf{z}^{(0)} = \mathbf{x}\).
+In practice, the output \(\mathbf{a}^{(l)}\) is cached since it is required for the backward pass.
+This prevents the values from needing to be computed twice.</p>
+<p>It is also worth it to study the sizes of the matrices while performing a forward pass.
+For a layer \(l\), \(W^{(l)} \in \mathbb{R}^{n_l \times n_{l-1}}\) and the input \(\mathbf{z}^{(l-1)} \in \mathbb{R}^{n_{l-1} \times 1}\).
+When training, it is common to perform batch gradient descent with batches of input of size \(B\).
+Then, \(\mathbf{z}^{(l-1)} \in \mathbb{R}^{n_{l-1}\times B}\) and \(\mathbf{a}^{(l)}, \mathbf{b}^{(l)} \in \mathbb{R}^{n_l \times B}\).</p>
+<h3 id="backward-pass">Backward Pass</h3>
+<p>During the backward pass, the gradient is propagated from the last layer to the first.
+Each layer that contains trainable parameters must also compute the gradient of the network output with respect to the weights and biases.
+This can be done in a modular way, as shown next.</p>
+<p>Consider the last layer. The gradients with respect to the weights and biases are</p>
+<p>\begin{align*}
+\frac{d\mathcal{L}}{dW^{(L)}} &amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{dW^{(L)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(L)}} &amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{b}^{(L)}}.
+\end{align*}</p>
+<p>To see how the gradient continues to be propagated backward, compute the same thing for layer \(L-1\)</p>
+<p>\begin{align*}
+\frac{d\mathcal{L}}{dW^{(L-1)}} &amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{z}^{(L-1)}} \frac{d\mathbf{z}^{(L-1)}}{d\mathbf{a}^{(L-1)}} \frac{d\mathbf{a}^{(L-1)}}{dW^{(L-1)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(L-1)}} &amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{z}^{(L-1)}} \frac{d\mathbf{z}^{(L-1)}}{d\mathbf{a}^{(L-1)}} \frac{d\mathbf{a}^{(L-1)}}{d\mathbf{b}^{(L-1)}}.
+\end{align*}</p>
+<p>As seen above, to continue propagating the gradient backward, each layer \(l\) must also compute</p>
+<p>\[
+\frac{d\mathbf{a}^{(l)}}{d\mathbf{z}^{(l-1)}}.
+\]</p>
+<p>To summarize, every layer with trainable parameters will compute</p>
+<p>\begin{align*}
+\frac{d\mathcal{L}}{dW^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{dW^{(l)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{d\mathbf{b}^{(l)}}.
+\end{align*}</p>
+<p>The term \(\frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}}\) is the gradient that is propagated from layer \(l+1\).</p>
+<h2 id="activation-functions">Activation Functions</h2>
+<h3 id="sigmoid">Sigmoid</h3>
+<p><strong>Function</strong></p>
+<p>\[
+\sigma(\mathbf{x}) = \frac{1}{1 + \exp(-\mathbf{x})}
+\]</p>
+<p><strong>Derivative</strong></p>
+<p>\[
+\sigma(\mathbf{x})(1 - \sigma(\mathbf{x}))
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-31_10-04-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Sigmoid non-linearity (Wikipedia)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="loss-functions">Loss Functions</h2>
+<h2 id="a-typical-training-pipeline">A Typical Training Pipeline</h2>
+<p>When training and evaluating models, especially on benchmark datasets, it is important to properly test their generalization performance.
+This test is crucial when comparing the efficacy of your ideas versus baseline evaluations or competing methods.</p>
+<p>To ensure that your model is evaluated in a fair way, it is common to set aside a set of test data that is only used during the final comparison.
+This data is typically annotated so that some metric can be used.</p>
+<p>It is true that the training data drives the parameter tuning during optimization.
+This is most commonly done with gradient descent.
+However, we will also change the hyperparamers such as learning rate, batch size, and data augmentation.
+In this case, we want to evaluate the relative performance of each change.</p>
+<p>If we use the test set to do this, then we are necessarily using the test set for training.
+Our biases and intuitions about the model&rsquo;s performance would be implicitly influenced by that set.
+To track our relative changes without using the test set, we can take a portion of the original training set and label it as our <strong>validation set</strong>.</p>
+<p>The split between training, validation, and test data is relatively small.
+Most modern datasets are large, with millions of samples.
+Consider <a href="https://www.image-net.org/" target="_blank" rel="noopener noreferrer">ImageNet</a>, an image classification dataset with over 14 million samples.
+Taking 10,000 samples to serve as a validation set is only \(~.07\%\) of the dataset.</p>
+<p>Most modern machine learning frameworks have an easy way to split the dataset.
+We can do this in PyTorch using <code>torch.utils.data.random_split</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>train_dataset, val_dataset <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>utils<span style="color:#f92672">.</span>data<span style="color:#f92672">.</span>random_split(dataset, [train_size, val_size])
+</span></span></code></pre></div><h2 id="bias-variance-tradeoff">Bias/Variance Tradeoff</h2>
+<p>Ideally, we want a model that generalizes well to unseen data.
+Being able to evaluate how well our model performs is, in many ways, more important than the model itself.
+A model that shows good generalization performance will have low bias and low variance.
+Bonus points are awarded if the model remains simple.</p>
+<p>During training, we can detect a model that is overfitting the data by also monitoring its performance on a separate validation set.
+If the validation loss diverges from the training loss, the model is beginning to overfit.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-31_22-38-54_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Higher complexity on the dataset leads to higher variance and lower bias." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Higher complexity on the dataset leads to higher variance and lower bias.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="regularization">Regularization</h2>
+<h2 id="optimization-algorithms">Optimization Algorithms</h2>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

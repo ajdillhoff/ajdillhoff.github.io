@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Definition Attention Key-value Store Scaled Dot Product Attention Multi-Head Attention Encoder-Decoder Architecture Encoder Decoder Usage Resources Introduction The story of Transformers begins with &ldquo;Attention Is All You Need&rdquo; (Vaswani et al., n.d.). In this seminal work, the authors describe the current landscape of sequential models, their shortcomings, and the novel ideas that result in their successful application.
+Their first point highlights a fundamental flaw in how Recurrent Neural Networks process sequential data: their output is a function of the previous time step.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/transformers/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/transformers/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/transformers/">
+  <meta property="og:title" content="Transformers | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Definition Attention Key-value Store Scaled Dot Product Attention Multi-Head Attention Encoder-Decoder Architecture Encoder Decoder Usage Resources Introduction The story of Transformers begins with &ldquo;Attention Is All You Need&rdquo; (Vaswani et al., n.d.). In this seminal work, the authors describe the current landscape of sequential models, their shortcomings, and the novel ideas that result in their successful application.
+Their first point highlights a fundamental flaw in how Recurrent Neural Networks process sequential data: their output is a function of the previous time step."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-11-06T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2022-11-06T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Transformers | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Transformers</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-11-06 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2022-11-06 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Nov 6, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/transformers/&amp;text=Transformers" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/transformers/&amp;t=Transformers" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Transformers&amp;body=https://ajdillhoff.github.io/notes/transformers/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/transformers/&amp;title=Transformers" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Transformers%20https://ajdillhoff.github.io/notes/transformers/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/transformers/&amp;title=Transformers" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#attention">Attention</a></li>
+<li><a href="#key-value-store">Key-value Store</a></li>
+<li><a href="#scaled-dot-product-attention">Scaled Dot Product Attention</a></li>
+<li><a href="#multi-head-attention">Multi-Head Attention</a></li>
+<li><a href="#encoder-decoder-architecture">Encoder-Decoder Architecture</a></li>
+<li><a href="#encoder">Encoder</a></li>
+<li><a href="#decoder">Decoder</a></li>
+<li><a href="#usage">Usage</a></li>
+<li><a href="#resources">Resources</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>The story of Transformers begins with &ldquo;Attention Is All You Need&rdquo; (Vaswani et al., n.d.). In this seminal work, the authors describe the current landscape of sequential models, their shortcomings, and the novel ideas that result in their successful application.</p>
+<p>Their first point highlights a fundamental flaw in how <a href="/notes/recurrent_neural_networks/">Recurrent Neural Networks</a> process sequential data: their output is a function of the previous time step. Given the hindsight of 2022, where large language models are crossing the <a href="https://arxiv.org/pdf/2101.03961.pdf" target="_blank" rel="noopener noreferrer">trillion parameter milestone</a>, a model requiring recurrent computation dependent on previous time steps without the possibility of parallelization would be virtually intractable.</p>
+<p>The second observation refers to attention mechanisms, a useful addition to sequential models that enable long-range dependencies focused on specific contextual information. When added to translation models, attention allows the model to focus on particular words (Bahdanau, Cho, and Bengio 2016).</p>
+<p>The Transformer architecture considers the entire sequence using only attention mechanisms.
+There are no recurrence computations in the model, allowing for higher efficiency through parallelization.</p>
+<h2 id="definition">Definition</h2>
+<p>The original architecture consists of an encoder and decoder, each containing one or more attention mechanisms.
+Not every type of model uses both encoders and decoders. This is discussed later [TODO: discuss model types].
+Before diving into the architecture itself, it is important to understand what an attention mechanism is and how it functions.</p>
+<h2 id="attention">Attention</h2>
+<p>Attention mechanisms produce relationships between sequences. When we look at an image of a dog running in a field with the intent of figuring out what the dog is doing in the picture, we pay greater attention to the dog and look at contextual cues in the image that might inform us of their task. This is an automatic process which allows us to efficiently process information.</p>
+<p>Attention mechanisms follow the same concept. Consider a machine translation task in which a sentence in English is translated to French. Certain words between the input and output will have stronger correlations than others.</p>
+<h3 id="soft-attention">Soft Attention</h3>
+<p>Use of context vector that is dependent on a sequence of annotations. These contain information about the input sequence with a focus on the parts surrounding the $i$-th word.</p>
+<p>\[
+c_i = \sum_{j=1}^{T_x}\alpha_{ij}h_j
+\]</p>
+<p>What is \(\alpha_{ij}\) and how is it computed? This comes from an alignment model which assigns a score reflecting how well the inputs around position \(j\) and output at position \(i\) match, given by</p>
+<p>\[
+e_{ij} = a(s_{i-1}, h_j),
+\]</p>
+<p>where \(a\) is a feed-forward neural network and \(h_j\) is an annotation produced by the hidden layer of a BRNN.
+These scores are passed to the softmax function so that \(\alpha_{ij}\) represents the weight of annotation \(h_j\):</p>
+<p>\[
+\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k=1}^{T_x} \exp (e_{ik})}.
+\]</p>
+<p>This weight reflects how important \(h_j\) is at deciding the next state \(s_i\) and generating \(y_i\).</p>
+<h3 id="soft-vs-dot-hard-attention">Soft vs. Hard Attention</h3>
+<p>This mechanism was also described in the context of visual attention as &ldquo;soft&rdquo; attention (Xu et al. 2016).
+The authors also describe an alternative version they call &ldquo;hard&rdquo; attention.
+Instead of providing a probability of where the model should look, hard attention provides a single location that is sampled from a multinoulli distribution parameterized by \(\alpha_i\).</p>
+<p>\[
+p(s_{t,i} = 1 | s_{j&lt;t}, \mathbf{a}) = \alpha_{t,i}
+\]</p>
+<p>Here, \(s_{t,i}\) represents the location \(i\) at time \(t\), \(s_{j&lt;t}\) are the location variables prior to \(t\), and \(\mathbf{a}\) is an image feature vector.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-11-10_12-07-42_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Hard attention for &#34;A man and a woman playing frisbee in a field.&#34; (Xu et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Hard attention for &ldquo;A man and a woman playing frisbee in a field.&rdquo; (Xu et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-11-10_12-08-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Soft attention for &#34;A woman is throwing a frisbee in a park.&#34; (Xu et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Soft attention for &ldquo;A woman is throwing a frisbee in a park.&rdquo; (Xu et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The two figures above show the difference between soft and hard attention.
+Hard attention, while faster at inference time, is non-differentiable and requires more complex methods to train (TODO: cite Luong).</p>
+<h3 id="self-attention">Self-Attention</h3>
+<p>Self attention is particularly useful for determining the relationship between different parts of an input sequence. The figure below demonstrates self-attention given an input sentence (Cheng, Dong, and Lapata 2016).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-11-10_13-11-31_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Line thickness indicates stronger self-attention (Cheng et al.)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Line thickness indicates stronger self-attention (Cheng et al.).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<ul>
+<li>How aligned the two vectors are.</li>
+</ul>
+<h3 id="cross-attention">Cross Attention</h3>
+<p>TODO</p>
+<h2 id="key-value-store">Key-value Store</h2>
+<p>Query, key, and value come from the same input (self-attention).</p>
+<p>Check query against all possible keys in the dictionary. They have the same size.
+The value is the result stored there, not necessarily the same size.
+Each item in the sequence will generate a query, key, and value.</p>
+<p>The attention vector is a function of they keys and the query.</p>
+<p>Hidden representation is a function of the values and the attention vector.</p>
+<p>The Transformer paper talks about queries, keys, and values. This idea comes from retrieval systems.
+If you are searching for something (a video, book, song, etc.), you present a system your query. That system will compare your query against the keys in its database. If there is a key that matches your query, the value is returned.</p>
+<p>\[
+att(q, \mathbf{k}, \mathbf{v}) = \sum_i v_i f(q, k_i),
+\]
+where \(f\) is a similarity function.</p>
+<p>This is an interesting and convenient representation of attention.
+To implement this idea, we need some measure of similarity.
+Why not orthogonality? Two vectors that are orthogonal produce a scalar value of 0.
+The maximum value two vectors will produce as a result of the dot product occurs when the two vectors have the exact same direction.
+This is convenient because the dot product is simple and efficient and we are already performing these calculations in our deep networks in the form of matrix multiplication.</p>
+<h2 id="scaled-dot-product-attention">Scaled Dot Product Attention</h2>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-11-21_18-39-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Scaled dot-product attention ((Vaswani et al., n.d.))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Scaled dot-product attention ((Vaswani et al., n.d.))
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Each <strong>query</strong> vector is multiplied with each <strong>key</strong> using the dot product.
+This is implemented more efficiently via matrix multiplication.
+A few other things are added here to control the output.
+The first is <strong>scaling</strong>.</p>
+<h2 id="multi-head-attention">Multi-Head Attention</h2>
+<p>A single attention head can transform the input into a single representation. Is this analagous to using a single convolutional filter? The benefit of having multiple filters is to create multiple possible representations from the same input.</p>
+<h2 id="encoder-decoder-architecture">Encoder-Decoder Architecture</h2>
+<p>The original architecture of a transformer was defined in the context of sequence transduction tasks, where both the input and output are sequences. The most common task of this type is machine translation.</p>
+<h2 id="encoder">Encoder</h2>
+<p>The encoder layer takes an input sequence \(\{\mathbf{x}_t\}_{t=0}^T\) and transforms it into another sequence \(\{\mathbf{z}_t\}_{t=0}^T\).</p>
+<ul>
+<li>
+<p>What is \(\mathbf{z}_t\)?</p>
+</li>
+<li>
+<p>How is it used?
+Input as key and value into second multi-head attention layer of the <strong>decoder</strong>.</p>
+</li>
+<li>
+<p>Could you create an encoder only model?
+Yes. Suitable for classification tasks &ndash; classify the representation produced by the encoder.
+<strong>How does this representation relate to understanding?</strong></p>
+</li>
+<li>
+<p>It&rsquo;s a transformation to another representation.</p>
+<p>Generated representation also considers the context of other parts of the same sequence (bi-directional).</p>
+</li>
+</ul>
+<h2 id="decoder">Decoder</h2>
+<ul>
+<li>
+<p>Generates an output sequence.</p>
+</li>
+<li>
+<p>Decoder-only models?
+Suitable for text generation.</p>
+</li>
+<li>
+<p>What does the input represent?</p>
+</li>
+<li>
+<p>What does the output represent?</p>
+</li>
+<li>
+<p>What if we don&rsquo;t use an encoder, what information is added in lieu of the encoder output?</p>
+<!-- This HTML table template is generated by emacs/table.el -->
+<table border="1">
+  <tr>
+    <td align="left" valign="top">
+      &nbsp;Model&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Examples&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;Tasks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      &nbsp;Encoder&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;ALBERT,&nbsp;BERT,&nbsp;DistilBERT,<br />
+      ELECTRA,&nbsp;RoBERTa&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;Sentence&nbsp;classification,&nbsp;named&nbsp;entity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      recognition,&nbsp;extractive&nbsp;question&nbsp;answering&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      &nbsp;Decoder&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;CTRL,&nbsp;GPT,&nbsp;GPT-2,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      Transformer&nbsp;XL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;Text&nbsp;generation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      &nbsp;Encoder-decoder&nbsp;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;BART,&nbsp;T5,&nbsp;Marian,&nbsp;mBART&nbsp;&nbsp;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+    <td align="left" valign="top">
+      &nbsp;Summarization,&nbsp;translation,&nbsp;generative&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      question&nbsp;answering&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </td>
+  </tr>
+</table>
+</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<p>TODO</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://twitter.com/labmlai/status/1543159412940242945?s=20&amp;t=EDu5FzDWl92EqnJlWvfAxA" target="_blank" rel="noopener noreferrer">https://twitter.com/labmlai/status/1543159412940242945?s=20&t=EDu5FzDWl92EqnJlWvfAxA</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Transduction_%28machine_learning%29" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/wiki/Transduction_(machine_learning)</a></li>
+<li><a href="https://www.apronus.com/math/transformer-language-model-definition" target="_blank" rel="noopener noreferrer">https://www.apronus.com/math/transformer-language-model-definition</a></li>
+<li><a href="https://lilianweng.github.io/posts/2018-06-24-attention/" target="_blank" rel="noopener noreferrer">https://lilianweng.github.io/posts/2018-06-24-attention/</a></li>
+<li><a href="http://nlp.seas.harvard.edu/annotated-transformer/" target="_blank" rel="noopener noreferrer">http://nlp.seas.harvard.edu/annotated-transformer/</a></li>
+</ul>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
+  
+  <a class="badge badge-light" href="/tags/llms/">llms</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/long_short_term_memory/">Long Short-Term Memory</a></li>
+          
+          <li><a href="/notes/recurrent_neural_networks/">Recurrent Neural Networks</a></li>
+          
+          <li><a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a></li>
+          
+          <li><a href="/notes/deep_learning/">Deep Learning</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

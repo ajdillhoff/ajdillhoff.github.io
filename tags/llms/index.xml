@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>llms on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/llms/</link>
+    <description>Recent content in llms on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Sun, 06 Nov 2022 00:00:00 -0500</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/llms/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Transformers</title>
+      <link>https://ajdillhoff.github.io/notes/transformers/</link>
+      <pubDate>Sun, 06 Nov 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/transformers/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#attention&#34;&gt;Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#key-value-store&#34;&gt;Key-value Store&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#scaled-dot-product-attention&#34;&gt;Scaled Dot Product Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multi-head-attention&#34;&gt;Multi-Head Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#encoder-decoder-architecture&#34;&gt;Encoder-Decoder Architecture&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#encoder&#34;&gt;Encoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#decoder&#34;&gt;Decoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#usage&#34;&gt;Usage&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The story of Transformers begins with &amp;ldquo;Attention Is All You Need&amp;rdquo; (Vaswani et al., n.d.). In this seminal work, the authors describe the current landscape of sequential models, their shortcomings, and the novel ideas that result in their successful application.&lt;/p&gt;
+&lt;p&gt;Their first point highlights a fundamental flaw in how &lt;a href=&#34;https://ajdillhoff.github.io/notes/recurrent_neural_networks/&#34;&gt;Recurrent Neural Networks&lt;/a&gt; process sequential data: their output is a function of the previous time step. Given the hindsight of 2022, where large language models are crossing the &lt;a href=&#34;https://arxiv.org/pdf/2101.03961.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;trillion parameter milestone&lt;/a&gt;, a model requiring recurrent computation dependent on previous time steps without the possibility of parallelization would be virtually intractable.&lt;/p&gt;
+&lt;p&gt;The second observation refers to attention mechanisms, a useful addition to sequential models that enable long-range dependencies focused on specific contextual information. When added to translation models, attention allows the model to focus on particular words (Bahdanau, Cho, and Bengio 2016).&lt;/p&gt;
+&lt;p&gt;The Transformer architecture considers the entire sequence using only attention mechanisms.
+There are no recurrence computations in the model, allowing for higher efficiency through parallelization.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;The original architecture consists of an encoder and decoder, each containing one or more attention mechanisms.
+Not every type of model uses both encoders and decoders. This is discussed later [TODO: discuss model types].
+Before diving into the architecture itself, it is important to understand what an attention mechanism is and how it functions.&lt;/p&gt;
+&lt;h2 id=&#34;attention&#34;&gt;Attention&lt;/h2&gt;
+&lt;p&gt;Attention mechanisms produce relationships between sequences. When we look at an image of a dog running in a field with the intent of figuring out what the dog is doing in the picture, we pay greater attention to the dog and look at contextual cues in the image that might inform us of their task. This is an automatic process which allows us to efficiently process information.&lt;/p&gt;
+&lt;p&gt;Attention mechanisms follow the same concept. Consider a machine translation task in which a sentence in English is translated to French. Certain words between the input and output will have stronger correlations than others.&lt;/p&gt;
+&lt;h3 id=&#34;soft-attention&#34;&gt;Soft Attention&lt;/h3&gt;
+&lt;p&gt;Use of context vector that is dependent on a sequence of annotations. These contain information about the input sequence with a focus on the parts surrounding the $i$-th word.&lt;/p&gt;
+&lt;p&gt;\[
+c_i = \sum_{j=1}^{T_x}\alpha_{ij}h_j
+\]&lt;/p&gt;
+&lt;p&gt;What is \(\alpha_{ij}\) and how is it computed? This comes from an alignment model which assigns a score reflecting how well the inputs around position \(j\) and output at position \(i\) match, given by&lt;/p&gt;
+&lt;p&gt;\[
+e_{ij} = a(s_{i-1}, h_j),
+\]&lt;/p&gt;
+&lt;p&gt;where \(a\) is a feed-forward neural network and \(h_j\) is an annotation produced by the hidden layer of a BRNN.
+These scores are passed to the softmax function so that \(\alpha_{ij}\) represents the weight of annotation \(h_j\):&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k=1}^{T_x} \exp (e_{ik})}.
+\]&lt;/p&gt;
+&lt;p&gt;This weight reflects how important \(h_j\) is at deciding the next state \(s_i\) and generating \(y_i\).&lt;/p&gt;
+&lt;h3 id=&#34;soft-vs-dot-hard-attention&#34;&gt;Soft vs. Hard Attention&lt;/h3&gt;
+&lt;p&gt;This mechanism was also described in the context of visual attention as &amp;ldquo;soft&amp;rdquo; attention (Xu et al. 2016).
+The authors also describe an alternative version they call &amp;ldquo;hard&amp;rdquo; attention.
+Instead of providing a probability of where the model should look, hard attention provides a single location that is sampled from a multinoulli distribution parameterized by \(\alpha_i\).&lt;/p&gt;
+&lt;p&gt;\[
+p(s_{t,i} = 1 | s_{j&amp;lt;t}, \mathbf{a}) = \alpha_{t,i}
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(s_{t,i}\) represents the location \(i\) at time \(t\), \(s_{j&amp;lt;t}\) are the location variables prior to \(t\), and \(\mathbf{a}\) is an image feature vector.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_12-07-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Hard attention for &amp;#34;A man and a woman playing frisbee in a field.&amp;#34; (Xu et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Hard attention for &amp;ldquo;A man and a woman playing frisbee in a field.&amp;rdquo; (Xu et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_12-08-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Soft attention for &amp;#34;A woman is throwing a frisbee in a park.&amp;#34; (Xu et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Soft attention for &amp;ldquo;A woman is throwing a frisbee in a park.&amp;rdquo; (Xu et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The two figures above show the difference between soft and hard attention.
+Hard attention, while faster at inference time, is non-differentiable and requires more complex methods to train (TODO: cite Luong).&lt;/p&gt;
+&lt;h3 id=&#34;self-attention&#34;&gt;Self-Attention&lt;/h3&gt;
+&lt;p&gt;Self attention is particularly useful for determining the relationship between different parts of an input sequence. The figure below demonstrates self-attention given an input sentence (Cheng, Dong, and Lapata 2016).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_13-11-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Line thickness indicates stronger self-attention (Cheng et al.).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Line thickness indicates stronger self-attention (Cheng et al.).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;ul&gt;
+&lt;li&gt;How aligned the two vectors are.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cross-attention&#34;&gt;Cross Attention&lt;/h3&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2 id=&#34;key-value-store&#34;&gt;Key-value Store&lt;/h2&gt;
+&lt;p&gt;Query, key, and value come from the same input (self-attention).&lt;/p&gt;
+&lt;p&gt;Check query against all possible keys in the dictionary. They have the same size.
+The value is the result stored there, not necessarily the same size.
+Each item in the sequence will generate a query, key, and value.&lt;/p&gt;
+&lt;p&gt;The attention vector is a function of they keys and the query.&lt;/p&gt;
+&lt;p&gt;Hidden representation is a function of the values and the attention vector.&lt;/p&gt;
+&lt;p&gt;The Transformer paper talks about queries, keys, and values. This idea comes from retrieval systems.
+If you are searching for something (a video, book, song, etc.), you present a system your query. That system will compare your query against the keys in its database. If there is a key that matches your query, the value is returned.&lt;/p&gt;
+&lt;p&gt;\[
+att(q, \mathbf{k}, \mathbf{v}) = \sum_i v_i f(q, k_i),
+\]
+where \(f\) is a similarity function.&lt;/p&gt;
+&lt;p&gt;This is an interesting and convenient representation of attention.
+To implement this idea, we need some measure of similarity.
+Why not orthogonality? Two vectors that are orthogonal produce a scalar value of 0.
+The maximum value two vectors will produce as a result of the dot product occurs when the two vectors have the exact same direction.
+This is convenient because the dot product is simple and efficient and we are already performing these calculations in our deep networks in the form of matrix multiplication.&lt;/p&gt;
+&lt;h2 id=&#34;scaled-dot-product-attention&#34;&gt;Scaled Dot Product Attention&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-21_18-39-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Scaled dot-product attention ((Vaswani et al., n.d.))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Scaled dot-product attention ((Vaswani et al., n.d.))
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Each &lt;strong&gt;query&lt;/strong&gt; vector is multiplied with each &lt;strong&gt;key&lt;/strong&gt; using the dot product.
+This is implemented more efficiently via matrix multiplication.
+A few other things are added here to control the output.
+The first is &lt;strong&gt;scaling&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;multi-head-attention&#34;&gt;Multi-Head Attention&lt;/h2&gt;
+&lt;p&gt;A single attention head can transform the input into a single representation. Is this analagous to using a single convolutional filter? The benefit of having multiple filters is to create multiple possible representations from the same input.&lt;/p&gt;
+&lt;h2 id=&#34;encoder-decoder-architecture&#34;&gt;Encoder-Decoder Architecture&lt;/h2&gt;
+&lt;p&gt;The original architecture of a transformer was defined in the context of sequence transduction tasks, where both the input and output are sequences. The most common task of this type is machine translation.&lt;/p&gt;
+&lt;h2 id=&#34;encoder&#34;&gt;Encoder&lt;/h2&gt;
+&lt;p&gt;The encoder layer takes an input sequence \(\{\mathbf{x}_t\}_{t=0}^T\) and transforms it into another sequence \(\{\mathbf{z}_t\}_{t=0}^T\).&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;What is \(\mathbf{z}_t\)?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How is it used?
+Input as key and value into second multi-head attention layer of the &lt;strong&gt;decoder&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Could you create an encoder only model?
+Yes. Suitable for classification tasks &amp;ndash; classify the representation produced by the encoder.
+&lt;strong&gt;How does this representation relate to understanding?&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;It&amp;rsquo;s a transformation to another representation.&lt;/p&gt;
+&lt;p&gt;Generated representation also considers the context of other parts of the same sequence (bi-directional).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;decoder&#34;&gt;Decoder&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Generates an output sequence.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Decoder-only models?
+Suitable for text generation.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What does the input represent?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What does the output represent?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What if we don&amp;rsquo;t use an encoder, what information is added in lieu of the encoder output?&lt;/p&gt;
+&lt;!-- This HTML table template is generated by emacs/table.el --&gt;
+&lt;table border=&#34;1&#34;&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Model&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Examples&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Tasks&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Encoder&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;ALBERT,&amp;nbsp;BERT,&amp;nbsp;DistilBERT,&lt;br /&gt;
+      ELECTRA,&amp;nbsp;RoBERTa&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Sentence&amp;nbsp;classification,&amp;nbsp;named&amp;nbsp;entity&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      recognition,&amp;nbsp;extractive&amp;nbsp;question&amp;nbsp;answering&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Decoder&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;CTRL,&amp;nbsp;GPT,&amp;nbsp;GPT-2,&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      Transformer&amp;nbsp;XL&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Text&amp;nbsp;generation&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Encoder-decoder&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;BART,&amp;nbsp;T5,&amp;nbsp;Marian,&amp;nbsp;mBART&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Summarization,&amp;nbsp;translation,&amp;nbsp;generative&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      question&amp;nbsp;answering&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;usage&#34;&gt;Usage&lt;/h2&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://twitter.com/labmlai/status/1543159412940242945?s=20&amp;amp;t=EDu5FzDWl92EqnJlWvfAxA&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://twitter.com/labmlai/status/1543159412940242945?s=20&amp;t=EDu5FzDWl92EqnJlWvfAxA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Transduction_%28machine_learning%29&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://en.wikipedia.org/wiki/Transduction_(machine_learning)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.apronus.com/math/transformer-language-model-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.apronus.com/math/transformer-language-model-definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lilianweng.github.io/posts/2018-06-24-attention/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://lilianweng.github.io/posts/2018-06-24-attention/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://nlp.seas.harvard.edu/annotated-transformer/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;http://nlp.seas.harvard.edu/annotated-transformer/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

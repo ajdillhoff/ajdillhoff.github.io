@@ -1,37 +1,1294 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Deep Learning on Alex Dillhoff</title>
+    <title>deep learning on Alex Dillhoff</title>
     <link>https://ajdillhoff.github.io/tags/deep-learning/</link>
-    <description>Recent content in Deep Learning on Alex Dillhoff</description>
+    <description>Recent content in deep learning on Alex Dillhoff</description>
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Wed, 27 Apr 2016 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Nov 2022 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/deep-learning/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Deep Learning</title>
-      <link>https://ajdillhoff.github.io/project/deep-learning/</link>
-      <pubDate>Wed, 27 Apr 2016 00:00:00 +0000</pubDate>
+      <title>Transformers</title>
+      <link>https://ajdillhoff.github.io/notes/transformers/</link>
+      <pubDate>Sun, 06 Nov 2022 00:00:00 -0500</pubDate>
       
-      <guid>https://ajdillhoff.github.io/project/deep-learning/</guid>
-      <description></description>
+      <guid>https://ajdillhoff.github.io/notes/transformers/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#attention&#34;&gt;Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#key-value-store&#34;&gt;Key-value Store&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#scaled-dot-product-attention&#34;&gt;Scaled Dot Product Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multi-head-attention&#34;&gt;Multi-Head Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#encoder-decoder-architecture&#34;&gt;Encoder-Decoder Architecture&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#encoder&#34;&gt;Encoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#decoder&#34;&gt;Decoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#usage&#34;&gt;Usage&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The story of Transformers begins with &amp;ldquo;Attention Is All You Need&amp;rdquo; (Vaswani et al., n.d.). In this seminal work, the authors describe the current landscape of sequential models, their shortcomings, and the novel ideas that result in their successful application.&lt;/p&gt;
+&lt;p&gt;Their first point highlights a fundamental flaw in how &lt;a href=&#34;https://ajdillhoff.github.io/notes/recurrent_neural_networks/&#34;&gt;Recurrent Neural Networks&lt;/a&gt; process sequential data: their output is a function of the previous time step. Given the hindsight of 2022, where large language models are crossing the &lt;a href=&#34;https://arxiv.org/pdf/2101.03961.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;trillion parameter milestone&lt;/a&gt;, a model requiring recurrent computation dependent on previous time steps without the possibility of parallelization would be virtually intractable.&lt;/p&gt;
+&lt;p&gt;The second observation refers to attention mechanisms, a useful addition to sequential models that enable long-range dependencies focused on specific contextual information. When added to translation models, attention allows the model to focus on particular words (Bahdanau, Cho, and Bengio 2016).&lt;/p&gt;
+&lt;p&gt;The Transformer architecture considers the entire sequence using only attention mechanisms.
+There are no recurrence computations in the model, allowing for higher efficiency through parallelization.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;The original architecture consists of an encoder and decoder, each containing one or more attention mechanisms.
+Not every type of model uses both encoders and decoders. This is discussed later [TODO: discuss model types].
+Before diving into the architecture itself, it is important to understand what an attention mechanism is and how it functions.&lt;/p&gt;
+&lt;h2 id=&#34;attention&#34;&gt;Attention&lt;/h2&gt;
+&lt;p&gt;Attention mechanisms produce relationships between sequences. When we look at an image of a dog running in a field with the intent of figuring out what the dog is doing in the picture, we pay greater attention to the dog and look at contextual cues in the image that might inform us of their task. This is an automatic process which allows us to efficiently process information.&lt;/p&gt;
+&lt;p&gt;Attention mechanisms follow the same concept. Consider a machine translation task in which a sentence in English is translated to French. Certain words between the input and output will have stronger correlations than others.&lt;/p&gt;
+&lt;h3 id=&#34;soft-attention&#34;&gt;Soft Attention&lt;/h3&gt;
+&lt;p&gt;Use of context vector that is dependent on a sequence of annotations. These contain information about the input sequence with a focus on the parts surrounding the $i$-th word.&lt;/p&gt;
+&lt;p&gt;\[
+c_i = \sum_{j=1}^{T_x}\alpha_{ij}h_j
+\]&lt;/p&gt;
+&lt;p&gt;What is \(\alpha_{ij}\) and how is it computed? This comes from an alignment model which assigns a score reflecting how well the inputs around position \(j\) and output at position \(i\) match, given by&lt;/p&gt;
+&lt;p&gt;\[
+e_{ij} = a(s_{i-1}, h_j),
+\]&lt;/p&gt;
+&lt;p&gt;where \(a\) is a feed-forward neural network and \(h_j\) is an annotation produced by the hidden layer of a BRNN.
+These scores are passed to the softmax function so that \(\alpha_{ij}\) represents the weight of annotation \(h_j\):&lt;/p&gt;
+&lt;p&gt;\[
+\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k=1}^{T_x} \exp (e_{ik})}.
+\]&lt;/p&gt;
+&lt;p&gt;This weight reflects how important \(h_j\) is at deciding the next state \(s_i\) and generating \(y_i\).&lt;/p&gt;
+&lt;h3 id=&#34;soft-vs-dot-hard-attention&#34;&gt;Soft vs. Hard Attention&lt;/h3&gt;
+&lt;p&gt;This mechanism was also described in the context of visual attention as &amp;ldquo;soft&amp;rdquo; attention (Xu et al. 2016).
+The authors also describe an alternative version they call &amp;ldquo;hard&amp;rdquo; attention.
+Instead of providing a probability of where the model should look, hard attention provides a single location that is sampled from a multinoulli distribution parameterized by \(\alpha_i\).&lt;/p&gt;
+&lt;p&gt;\[
+p(s_{t,i} = 1 | s_{j&amp;lt;t}, \mathbf{a}) = \alpha_{t,i}
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(s_{t,i}\) represents the location \(i\) at time \(t\), \(s_{j&amp;lt;t}\) are the location variables prior to \(t\), and \(\mathbf{a}\) is an image feature vector.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_12-07-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Hard attention for &amp;#34;A man and a woman playing frisbee in a field.&amp;#34; (Xu et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Hard attention for &amp;ldquo;A man and a woman playing frisbee in a field.&amp;rdquo; (Xu et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_12-08-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Soft attention for &amp;#34;A woman is throwing a frisbee in a park.&amp;#34; (Xu et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Soft attention for &amp;ldquo;A woman is throwing a frisbee in a park.&amp;rdquo; (Xu et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The two figures above show the difference between soft and hard attention.
+Hard attention, while faster at inference time, is non-differentiable and requires more complex methods to train (TODO: cite Luong).&lt;/p&gt;
+&lt;h3 id=&#34;self-attention&#34;&gt;Self-Attention&lt;/h3&gt;
+&lt;p&gt;Self attention is particularly useful for determining the relationship between different parts of an input sequence. The figure below demonstrates self-attention given an input sentence (Cheng, Dong, and Lapata 2016).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-10_13-11-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Line thickness indicates stronger self-attention (Cheng et al.).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Line thickness indicates stronger self-attention (Cheng et al.).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;ul&gt;
+&lt;li&gt;How aligned the two vectors are.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cross-attention&#34;&gt;Cross Attention&lt;/h3&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2 id=&#34;key-value-store&#34;&gt;Key-value Store&lt;/h2&gt;
+&lt;p&gt;Query, key, and value come from the same input (self-attention).&lt;/p&gt;
+&lt;p&gt;Check query against all possible keys in the dictionary. They have the same size.
+The value is the result stored there, not necessarily the same size.
+Each item in the sequence will generate a query, key, and value.&lt;/p&gt;
+&lt;p&gt;The attention vector is a function of they keys and the query.&lt;/p&gt;
+&lt;p&gt;Hidden representation is a function of the values and the attention vector.&lt;/p&gt;
+&lt;p&gt;The Transformer paper talks about queries, keys, and values. This idea comes from retrieval systems.
+If you are searching for something (a video, book, song, etc.), you present a system your query. That system will compare your query against the keys in its database. If there is a key that matches your query, the value is returned.&lt;/p&gt;
+&lt;p&gt;\[
+att(q, \mathbf{k}, \mathbf{v}) = \sum_i v_i f(q, k_i),
+\]
+where \(f\) is a similarity function.&lt;/p&gt;
+&lt;p&gt;This is an interesting and convenient representation of attention.
+To implement this idea, we need some measure of similarity.
+Why not orthogonality? Two vectors that are orthogonal produce a scalar value of 0.
+The maximum value two vectors will produce as a result of the dot product occurs when the two vectors have the exact same direction.
+This is convenient because the dot product is simple and efficient and we are already performing these calculations in our deep networks in the form of matrix multiplication.&lt;/p&gt;
+&lt;h2 id=&#34;scaled-dot-product-attention&#34;&gt;Scaled Dot Product Attention&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-21_18-39-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Scaled dot-product attention ((Vaswani et al., n.d.))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Scaled dot-product attention ((Vaswani et al., n.d.))
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Each &lt;strong&gt;query&lt;/strong&gt; vector is multiplied with each &lt;strong&gt;key&lt;/strong&gt; using the dot product.
+This is implemented more efficiently via matrix multiplication.
+A few other things are added here to control the output.
+The first is &lt;strong&gt;scaling&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;multi-head-attention&#34;&gt;Multi-Head Attention&lt;/h2&gt;
+&lt;p&gt;A single attention head can transform the input into a single representation. Is this analagous to using a single convolutional filter? The benefit of having multiple filters is to create multiple possible representations from the same input.&lt;/p&gt;
+&lt;h2 id=&#34;encoder-decoder-architecture&#34;&gt;Encoder-Decoder Architecture&lt;/h2&gt;
+&lt;p&gt;The original architecture of a transformer was defined in the context of sequence transduction tasks, where both the input and output are sequences. The most common task of this type is machine translation.&lt;/p&gt;
+&lt;h2 id=&#34;encoder&#34;&gt;Encoder&lt;/h2&gt;
+&lt;p&gt;The encoder layer takes an input sequence \(\{\mathbf{x}_t\}_{t=0}^T\) and transforms it into another sequence \(\{\mathbf{z}_t\}_{t=0}^T\).&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;What is \(\mathbf{z}_t\)?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;How is it used?
+Input as key and value into second multi-head attention layer of the &lt;strong&gt;decoder&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Could you create an encoder only model?
+Yes. Suitable for classification tasks &amp;ndash; classify the representation produced by the encoder.
+&lt;strong&gt;How does this representation relate to understanding?&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;It&amp;rsquo;s a transformation to another representation.&lt;/p&gt;
+&lt;p&gt;Generated representation also considers the context of other parts of the same sequence (bi-directional).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;decoder&#34;&gt;Decoder&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Generates an output sequence.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Decoder-only models?
+Suitable for text generation.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What does the input represent?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What does the output represent?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;What if we don&amp;rsquo;t use an encoder, what information is added in lieu of the encoder output?&lt;/p&gt;
+&lt;!-- This HTML table template is generated by emacs/table.el --&gt;
+&lt;table border=&#34;1&#34;&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Model&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Examples&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Tasks&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Encoder&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;ALBERT,&amp;nbsp;BERT,&amp;nbsp;DistilBERT,&lt;br /&gt;
+      ELECTRA,&amp;nbsp;RoBERTa&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Sentence&amp;nbsp;classification,&amp;nbsp;named&amp;nbsp;entity&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      recognition,&amp;nbsp;extractive&amp;nbsp;question&amp;nbsp;answering&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Decoder&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;CTRL,&amp;nbsp;GPT,&amp;nbsp;GPT-2,&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      Transformer&amp;nbsp;XL&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Text&amp;nbsp;generation&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Encoder-decoder&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;BART,&amp;nbsp;T5,&amp;nbsp;Marian,&amp;nbsp;mBART&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+    &lt;td align=&#34;left&#34; valign=&#34;top&#34;&gt;
+      &amp;nbsp;Summarization,&amp;nbsp;translation,&amp;nbsp;generative&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;br /&gt;
+      question&amp;nbsp;answering&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;usage&#34;&gt;Usage&lt;/h2&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://twitter.com/labmlai/status/1543159412940242945?s=20&amp;amp;t=EDu5FzDWl92EqnJlWvfAxA&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://twitter.com/labmlai/status/1543159412940242945?s=20&amp;t=EDu5FzDWl92EqnJlWvfAxA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Transduction_%28machine_learning%29&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://en.wikipedia.org/wiki/Transduction_(machine_learning)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.apronus.com/math/transformer-language-model-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.apronus.com/math/transformer-language-model-definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lilianweng.github.io/posts/2018-06-24-attention/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://lilianweng.github.io/posts/2018-06-24-attention/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://nlp.seas.harvard.edu/annotated-transformer/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;http://nlp.seas.harvard.edu/annotated-transformer/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     
     <item>
-      <title>Internal Project</title>
-      <link>https://ajdillhoff.github.io/project/internal-project/</link>
-      <pubDate>Wed, 27 Apr 2016 00:00:00 +0000</pubDate>
+      <title>Long Short-Term Memory</title>
+      <link>https://ajdillhoff.github.io/notes/long_short_term_memory/</link>
+      <pubDate>Tue, 12 Apr 2022 00:00:00 -0500</pubDate>
       
-      <guid>https://ajdillhoff.github.io/project/internal-project/</guid>
-      <description>&lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum. Sed ac faucibus dolor, scelerisque sollicitudin nisi. Cras purus urna, suscipit quis sapien eu, pulvinar tempor diam. Quisque risus orci, mollis id ante sit amet, gravida egestas nisl. Sed ac tempus magna. Proin in dui enim. Donec condimentum, sem id dapibus fringilla, tellus enim condimentum arcu, nec volutpat est felis vel metus. Vestibulum sit amet erat at nulla eleifend gravida.&lt;/p&gt;
-&lt;p&gt;Nullam vel molestie justo. Curabitur vitae efficitur leo. In hac habitasse platea dictumst. Sed pulvinar mauris dui, eget varius purus congue ac. Nulla euismod, lorem vel elementum dapibus, nunc justo porta mi, sed tempus est est vel tellus. Nam et enim eleifend, laoreet sem sit amet, elementum sem. Morbi ut leo congue, maximus velit ut, finibus arcu. In et libero cursus, rutrum risus non, molestie leo. Nullam congue quam et volutpat malesuada. Sed risus tortor, pulvinar et dictum nec, sodales non mi. Phasellus lacinia commodo laoreet. Nam mollis, erat in feugiat consectetur, purus eros egestas tellus, in auctor urna odio at nibh. Mauris imperdiet nisi ac magna convallis, at rhoncus ligula cursus.&lt;/p&gt;
-&lt;p&gt;Cras aliquam rhoncus ipsum, in hendrerit nunc mattis vitae. Duis vitae efficitur metus, ac tempus leo. Cras nec fringilla lacus. Quisque sit amet risus at ipsum pharetra commodo. Sed aliquam mauris at consequat eleifend. Praesent porta, augue sed viverra bibendum, neque ante euismod ante, in vehicula justo lorem ac eros. Suspendisse augue libero, venenatis eget tincidunt ut, malesuada at lorem. Donec vitae bibendum arcu. Aenean maximus nulla non pretium iaculis. Quisque imperdiet, nulla in pulvinar aliquet, velit quam ultrices quam, sit amet fringilla leo sem vel nunc. Mauris in lacinia lacus.&lt;/p&gt;
-&lt;p&gt;Suspendisse a tincidunt lacus. Curabitur at urna sagittis, dictum ante sit amet, euismod magna. Sed rutrum massa id tortor commodo, vitae elementum turpis tempus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean purus turpis, venenatis a ullamcorper nec, tincidunt et massa. Integer posuere quam rutrum arcu vehicula imperdiet. Mauris ullamcorper quam vitae purus congue, quis euismod magna eleifend. Vestibulum semper vel augue eget tincidunt. Fusce eget justo sodales, dapibus odio eu, ultrices lorem. Duis condimentum lorem id eros commodo, in facilisis mauris scelerisque. Morbi sed auctor leo. Nullam volutpat a lacus quis pharetra. Nulla congue rutrum magna a ornare.&lt;/p&gt;
-&lt;p&gt;Aliquam in turpis accumsan, malesuada nibh ut, hendrerit justo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Quisque sed erat nec justo posuere suscipit. Donec ut efficitur arcu, in malesuada neque. Nunc dignissim nisl massa, id vulputate nunc pretium nec. Quisque eget urna in risus suscipit ultricies. Pellentesque odio odio, tincidunt in eleifend sed, posuere a diam. Nam gravida nisl convallis semper elementum. Morbi vitae felis faucibus, vulputate orci placerat, aliquet nisi. Aliquam erat volutpat. Maecenas sagittis pulvinar purus, sed porta quam laoreet at.&lt;/p&gt;
+      <guid>https://ajdillhoff.github.io/notes/long_short_term_memory/</guid>
+      <description>&lt;p&gt;The recurrent nature of RNNs means that gradients get smaller and smaller as the timesteps increase.
+This is known as the &lt;strong&gt;vanishing gradient problem&lt;/strong&gt;.
+One of the first popular solutions to this problem is called &lt;strong&gt;Long Short-Term Memory&lt;/strong&gt;, a recurrent network architecture by Hochreiter and Schmidhuber.&lt;/p&gt;
+&lt;p&gt;An LSTM is made up of memory blocks as opposed to simple hidden units.
+Each block is differentiable and contains a memory cell along with 3 gates: the input, output, and forget gates.
+These components allow the blocks to maintain some history of information over longer range dependencies.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_13-36-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;LSTM memory block with a single cell (adapted from Andrew Ng&amp;#39;s diagram).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;LSTM memory block with a single cell (adapted from Andrew Ng&amp;rsquo;s diagram).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The original LSTM only had an input and output gate.
+Forget gates were added in 2000 by Gers et al. to control the amount of context that could be reset, if the task called for it.
+Peephole connections were proposed by Gers et al. in 2002.
+These are weights that combine the previous cell state to the gates in order to learn tasks that require precise timing.&lt;/p&gt;
+&lt;p&gt;By controlling when information can either enter or leave the memory cell, LSTM blocks are able to maintain more historical context than RNNs.&lt;/p&gt;
+&lt;h2 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h2&gt;
+&lt;p&gt;The equations listed here follow notation and description from Alex Graves&amp;rsquo; thesis.&lt;/p&gt;
+&lt;p&gt;The weight from unit \(i\) to \(j\) is given as \(w_{ij}\).
+The input to unit \(j\) at time \(t\) is \(a_j^t\) and the result of its activation function is \(b_j^t\).
+Let \(\psi\), \(\phi\), and \(\omega\) be the input, forget, and output gates.
+A memory cell is denoted by \(c \in C\), where \(C\) is the set of cells in the network.
+The activation, or state, of a given cell \(c\) at time \(t\) is \(s_c^t\).
+The output of each gate passes through an activation function \(f\), while the input and output activation functions of a memory block are given by \(g\) and \(h\).&lt;/p&gt;
+&lt;p&gt;The forward pass for the input gates is&lt;/p&gt;
+&lt;p&gt;\[
+a_{\psi}^t = \sum_{i=1}^I w_{i\psi}x_i^t + \sum_{h=1}^H w_{h\psi}b_h^{t-1} + \sum_{c=1}^C w_{c\psi}s_c^{t-1}.
+\]&lt;/p&gt;
+&lt;p&gt;The output of the forget gates is&lt;/p&gt;
+&lt;p&gt;\[
+a_{\phi}^t = \sum_{i=1}^I w_{i\phi}x_i^t + \sum_{h=1}^H w_{h\phi}b_h^{t-1} + \sum_{c=1}^C w_{c\phi}s_c^{t-1}.
+\]&lt;/p&gt;
+&lt;p&gt;The output of the output gates is&lt;/p&gt;
+&lt;p&gt;\[
+a_{\omega}^t = \sum_{i=1}^I w_{i\omega}x_i^t + \sum_{h=1}^H w_{h\omega}b_h^{t-1} + \sum_{c=1}^C w_{c\omega}s_c^{t-1}.
+\]&lt;/p&gt;
+&lt;p&gt;Each of the outputs above is passed through an activation function \(f\).&lt;/p&gt;
+&lt;p&gt;The output of each cell is computed as&lt;/p&gt;
+&lt;p&gt;\[
+a_c^t = \sum_{i=1}^I w_{ic}x_i^t + \sum_{i=1}^H w_{hc}b_h^{t-1}
+\]&lt;/p&gt;
+&lt;p&gt;and the internal state is updated via&lt;/p&gt;
+&lt;p&gt;\[
+s_c^t = b_{\phi}^t s_c^{t-1} + b_{\psi}^t g(a_c^t).
+\]&lt;/p&gt;
+&lt;p&gt;The state update considers the state at the previous timestep multiplied by the output of the forget gate.
+That is, it controls how much of the current memory to keep.&lt;/p&gt;
+&lt;p&gt;The final cell output is given as&lt;/p&gt;
+&lt;p&gt;\[
+b_c^t = b_{\omega}^t h(s_c^t).
+\]&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Recurrent Neural Networks</title>
+      <link>https://ajdillhoff.github.io/notes/recurrent_neural_networks/</link>
+      <pubDate>Sun, 10 Apr 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/recurrent_neural_networks/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bidirectional-recurrent-neural-networks&#34;&gt;Bidirectional Recurrent Neural Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#references&#34;&gt;References&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Neural networks are an effective tool for regression and classification tasks, but they do not consider the dependencies of information over time.
+Many tasks have implicit information that is dependent on input that may have already been processed or may not be seen until the future.&lt;/p&gt;
+&lt;p&gt;Recurrent Neural Networks (RNN) consider the historical context of time-series data.
+Bi-directional Recurrent Neural Networks (BRNN) consider both historical and future context. This is necessary for tasks like language tanslation.&lt;/p&gt;
+&lt;p&gt;Parameter sharing across different parts of the model is key for sequence models.
+Different instances of a particular feature may appear at different time steps.&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;I see Naomi there.&amp;rdquo; and &amp;ldquo;Naomi is right there&amp;rdquo; both convey that Naomi is present, but we would not require the model to have separate parameters just because the word position is different between the two.&lt;/p&gt;
+&lt;p&gt;Recurrent connections provide a memory of sorts.
+This enables important contextual information to be &amp;ldquo;remembered&amp;rdquo; throughout time.
+These models are not without their limitations.
+When trained with gradient descent, the gradient information passed throughout multiple time steps can become insignificant.
+There are several ways to address the &lt;strong&gt;vanishing gradient&lt;/strong&gt; problem which are explored in alternative models such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/long_short_term_memory/&#34;&gt;Long Short-Term Memory&lt;/a&gt; and &lt;a href=&#34;https://ajdillhoff.github.io/notes/transformers/&#34;&gt;Transformers&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;The definition of RNNs start with that of &lt;a href=&#34;https://ajdillhoff.github.io/notes/neural_networks/&#34;&gt;Neural Networks&lt;/a&gt;.
+One layer of an RNN has some number of hidden units that transforms the input into an intermediate representation.
+In addition to transforming the input, another set of parameters is used to transform the hidden context over time.
+The difference is that the hidden layer is shared over time, as seen in the equation below.&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{h}^{(t)} = f(\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}; \mathbf{\theta})
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-09_16-36-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Computation graph of an RNN (By fdeloche - Own work, CC BY-SA 4.0, &amp;lt;https://commons.wikimedia.org/w/index.php?curid=60109157&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Computation graph of an RNN (By fdeloche - Own work, CC BY-SA 4.0, &lt;a href=&#34;https://commons.wikimedia.org/w/index.php?curid=60109157&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://commons.wikimedia.org/w/index.php?curid=60109157&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the computation graph above, a recurrent network has three weight matrices associated with its forward pass.
+An input weight matrix \(U \in \mathbb{R}^{H \times D}\) processes the features for each &lt;em&gt;frame&lt;/em&gt; of the input sequence.
+The hidden layer has a weight matrix \(V \in \mathbb{R}^{H \times H}\), where \(H\) is the number of hidden nodes.
+The output layer will have a weight matrix \(W \in \mathbb{R}^{O \times H}\).&lt;/p&gt;
+&lt;h3 id=&#34;forwards-pass&#34;&gt;Forwards Pass&lt;/h3&gt;
+&lt;p&gt;To understand the computation graph of an RNN, consider an input of length \(T\) with \(D\) features. That is, each input sample is a sequence of features. This could be represented as encoded video data, text data, or any other sequence signals.
+To compute the output of a hidden layer \(\mathbf{h}\) at time \(t\), take a linear combination of all input feature \(x_i^t\) at time \(t\) in addition to the output of the previous hidden layer and then add the linear combination of output activations for each node in the hidden layer:&lt;/p&gt;
+&lt;p&gt;\[
+a_h^t = \sum_{d=1}^D w_{dh} x_d^t + \sum_{h&amp;rsquo;=1}^H w_{h&amp;rsquo;h} b_{h&amp;rsquo;}^{t-1},
+\]&lt;/p&gt;
+&lt;p&gt;where \(b_h^t = \theta_h(a_h^t)\) and we assume the bias term is concatenated with the weights.&lt;/p&gt;
+&lt;p&gt;Weights in the hidden layer are crucial for RNNs to adapt to contextual features based on their occurrence relative to time.
+For example, a character-based language model based on a traditioinal network would produce similar output for consecutive letters that are the same.
+In an RNN, the hidden weights would produce a different output for each consecutive character even if it were the same.&lt;/p&gt;
+&lt;p&gt;The hidden layer outputs are used in both the subsequent computations through time as well as the output node for each instance \(t\). The inputs to the output node are computed from the hidden node at the same time as the output to the hidden activation:&lt;/p&gt;
+&lt;p&gt;\[
+a_k^t = \sum_{h=1}^H w_{hk}b_h^t.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;backwards-pass&#34;&gt;Backwards Pass&lt;/h3&gt;
+&lt;p&gt;The gradients of a recurrent network are computed using backpropagation, similar to neural networks.
+Since the forward pass is over \(t\) time step, the backward pass must consider them as well.
+This variant of backpropagation for recurrent models is calling backpropagation through time (BPTT).&lt;/p&gt;
+&lt;p&gt;Like a feed forward network, the output is dependent on the activation of the hidden layer.
+For a recurrent model, its dependence is through the output of the hidden layer as well as the pass to the next hidden time step.&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathcal{L}}{\partial a_h^t} = \frac{\partial \mathcal{L}}{\partial b_h^t} \frac{\partial b_h^t}{\partial a_h^t}
+\]&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathcal{L}}{\partial b_h^t} = \sum_{k=1}^K \frac{\partial \mathcal{L}}{\partial a_k^t} \frac{\partial a_k^t}{\partial b_h^t} + \sum_{h&amp;rsquo;=1}^H \frac{\partial \mathcal{L}}{\partial a_{h&amp;rsquo;}^{t+1}} \frac{\partial a_{h&amp;rsquo;}^{t+1}}{\partial a_{h}^t}
+\]&lt;/p&gt;
+&lt;p&gt;The derivatives with respect to the weights are given as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathcal{L}}{\partial w_{ij}} = \sum_{t=1}^T \frac{\partial \mathcal{L}}{\partial a_j^t} \frac{\partial a_j^t}{\partial w_{ij}}.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;bidirectional-recurrent-neural-networks&#34;&gt;Bidirectional Recurrent Neural Networks&lt;/h2&gt;
+&lt;p&gt;Standard RNNs work for many problems with sequential input.
+Training such a model would consider the full input through time \(T\), but inference may only be able to consider the data up to time \(t &amp;lt; T\).
+There are sequential tasks which could leverage from both past and future context, such as language translation.
+For this case, BRNNs were proposed &amp;lt;&amp;amp;schusterBidirectionalRecurrentNeural1997&amp;gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-11-06_15-18-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Diagram of BRNN from Graves et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Diagram of BRNN from Graves et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://karpathy.github.io/2015/05/21/rnn-effectiveness/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;The Unreasonable Effectiveness of RNNs&lt;/a&gt; by Andrej Karpathy&lt;/li&gt;
+&lt;li&gt;&amp;lt;&amp;amp;gravesSupervisedSequenceLabelling2012&amp;gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://colah.github.io/posts/2015-08-Understanding-LSTMs/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Understanding LSTM Networks&lt;/a&gt; by Christopher Colah&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Convolutional Neural Networks</title>
+      <link>https://ajdillhoff.github.io/notes/convolutional_neural_networks/</link>
+      <pubDate>Sat, 02 Apr 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/convolutional_neural_networks/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#useful-resources&#34;&gt;Useful Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#convolution-operator&#34;&gt;Convolution Operator&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sizes-and-types&#34;&gt;Sizes and Types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#parameter-sharing&#34;&gt;Parameter Sharing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#pooling&#34;&gt;Pooling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#backwards-pass&#34;&gt;Backwards Pass&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example&#34;&gt;Example&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#neural-networks-for-image-classification&#34;&gt;Neural Networks for Image Classification&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;useful-resources&#34;&gt;Useful Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/vdumoulin/conv_arithmetic&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/vdumoulin/conv_arithmetic&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://cs231n.github.io/convolutional-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs231n.github.io/convolutional-networks/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Early success seen in (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;LeCun et al. 1989&lt;/a&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;convolution-operator&#34;&gt;Convolution Operator&lt;/h2&gt;
+&lt;p&gt;\[
+(f * g)(t) = \int x(a)g(t - a)da
+\]&lt;/p&gt;
+&lt;p&gt;Commonly written in DL papers as&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \int x(a)w(t - a)da,
+\]&lt;/p&gt;
+&lt;p&gt;where \(x\) is the &lt;strong&gt;input&lt;/strong&gt; and \(w\) is the &lt;strong&gt;kernel&lt;/strong&gt;. The result the &lt;strong&gt;feature map&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;In the case of discrete values, the operator is written as&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \sum_{a}x(a)w(t-a).
+\]&lt;/p&gt;
+&lt;p&gt;In machine learning, the kernel \(w\) is usually represented by some set of parameters that is optimized.&lt;/p&gt;
+&lt;p&gt;CNNs for images use a 2D convolution defined as&lt;/p&gt;
+&lt;p&gt;\[
+(I * K)(i, j) = \sum_m \sum_n I(m, n)K(i-m, j-n).
+\]&lt;/p&gt;
+&lt;p&gt;In this formulation, the kernel is effectively flipped across the vertical and horizontal axis.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-05_19-09-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;2D Convolution (Image Credit: Song Ho Ahn (linked above)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;2D Convolution (Image Credit: Song Ho Ahn (linked above)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Convolution is commutative:&lt;/p&gt;
+&lt;p&gt;\[
+(K * I)(i, j) = \sum_m \sum_n I(i-m, j-n)K(m, n).
+\]&lt;/p&gt;
+&lt;p&gt;In practice, most deep learning APIs implement &lt;strong&gt;cross-correlation&lt;/strong&gt;.
+Whether the function is implemented as true convolution makes no difference when it comes to optimizing a deep model since filter weights that are produced with cross-correlation would be produced, albeit flipped, with convolution.&lt;/p&gt;
+&lt;p&gt;\[
+(K * I)(i, j) = \sum_m \sum_n I(i+m, j+n)K(m, n).
+\]&lt;/p&gt;
+&lt;h2 id=&#34;sizes-and-types&#34;&gt;Sizes and Types&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-04-05_17-32-27_full_padding_no_strides.gif&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Convolution with full padding and a stride of 1 (Dumoulin &amp;amp;amp; Visin).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Convolution with full padding and a stride of 1 (Dumoulin &amp;amp; Visin).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;parameter-sharing&#34;&gt;Parameter Sharing&lt;/h2&gt;
+&lt;p&gt;In a densely connected layer, each input has a corresponding weight attached to it.
+For example, we ran a few &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/tree/main/deep_learning&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;introductory experiments&lt;/a&gt; on the CIFAR10 dataset using a deep, densely connected network.
+To reduce the amount of parameters in the first layer, we converted each image to grayscale.
+The input also had to be vectorized in order to be processed.
+With a processed image of size \(32 \times 32\), this resulted in a \(1024\) dimensional vector for each input.
+Our first layer had \(512\) nodes resulting in a parameter matrix of size \(1024 \times 512\).&lt;/p&gt;
+&lt;p&gt;Convolution layers have &lt;strong&gt;shared parameters&lt;/strong&gt;, meaning the same parameters are used for each region on the input.
+A single channel 2D filter of size \(n \times n\) only requires \(n \times n\) parameters.
+Each kernel is applied to every location in the original input using the same parameters.&lt;/p&gt;
+&lt;p&gt;Kernels are &lt;strong&gt;equivariant&lt;/strong&gt; to translation because of their shared parameters.
+That is, as the input changes, the output will change in the same way.
+Formally, two functions \(f\) and \(g\) are equivarient if&lt;/p&gt;
+&lt;p&gt;\[
+f(g(x)) = g(f(x)).
+\]&lt;/p&gt;
+&lt;p&gt;In the context of image features, a kernel applied across an image will produce strong responses in regions that exhibit the same local features.
+For example, a kernel that detects horizontal lines will produce strong responses across all parts of the image that show a large contrast between vertical pixels.&lt;/p&gt;
+&lt;h2 id=&#34;pooling&#34;&gt;Pooling&lt;/h2&gt;
+&lt;p&gt;When a convolution is applied to some input image, the resulting output feature map represents the responses of the kernel applied to each location in the image.
+If this original image were to be shifted by a few pixels, the reponses would also be shifted.
+In order to increase the robustness of a model to small perturbations such as translation, a pooling layer was historically employed after each non-linear activation following a convolutional layer.&lt;/p&gt;
+&lt;p&gt;They effectively provide a summary statistic of a local region by selecting the average or maximum responses in a small window. This provides translation invariance since the maximum response will be the same for a region even if it is translated by a small amount.
+It also acts as a quick way to downsample the image, leading to fewer parameters in the model.&lt;/p&gt;
+&lt;p&gt;Modern works do not employ pooling operations as often. For example (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;He et al. 2016&lt;/a&gt;) perform dimensionality reduction with \(1 \times 1\) convolutions.
+(&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Springenberg et al. 2015&lt;/a&gt;) argue that fully convolutional networks can achieve the same performance without max pooling.&lt;/p&gt;
+&lt;div class=&#34;blockquote&#34;&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;The pooling operation used in convolutional neural networks is a big mistake and the fact that it works so well is a disaster.&amp;rdquo; - Geoffrey Hinton&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;backwards-pass&#34;&gt;Backwards Pass&lt;/h2&gt;
+&lt;p&gt;The parameters of a convolutional layer are updated via backpropagation like any other layer with trainable parameters.
+Given a kernel \(w\), it is necessary to compute \(\frac{\partial \mathcal{L}}{\partial w_{m&amp;rsquo;,n&amp;rsquo;}}\), where \(w_{m&amp;rsquo;, n&amp;rsquo;}\) is the \((m&amp;rsquo;, n&amp;rsquo;)th\) entry of the kernel.
+This entry affects all entries in the feature map, so \(\frac{\partial \mathcal{L}}{\partial w_{m&amp;rsquo;,n&amp;rsquo;}}\) will sum over all such entries.&lt;/p&gt;
+&lt;p&gt;To show the gradient calculation, we will assume a convolutional layer with zero padding and unit stride with a square \(2 \times 2\) kernel applied to a square \(3 \times 3\) input.
+The output map is then \((3 - 2 + 1) \times (3 - 2 + 1) = 2 \times 2\).&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathcal{L}}{\partial w_{m&amp;rsquo;,n&amp;rsquo;}} = \sum_{i=0}^2 \sum_{j=0}^2 \frac{\partial \mathcal{L}}{\partial x_{i, j}} \frac{\partial x_{i,j}}{\partial w_{m&amp;rsquo;, n&amp;rsquo;}}
+\]&lt;/p&gt;
+&lt;p&gt;If \(\mathbf{z}^{(l-1)}\) is the output from the previous layer, then&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{\partial x_{i, j}}{\partial w_{m&amp;rsquo;, n&amp;rsquo;}} &amp;amp;= \frac{\partial}{\partial w_{m&amp;rsquo;, n&amp;rsquo;}} \sum_{m} \sum_{n} w_{m, n} z_{i+m, j+n}^{(l-1)} + b\\
+&amp;amp;= \frac{\partial}{\partial w_{m&amp;rsquo;, n&amp;rsquo;}} w_{m&amp;rsquo;, n&amp;rsquo;}z_{i+m&amp;rsquo;, j+n&amp;rsquo;}^{(l-1)}\\
+&amp;amp;= z_{i+m&amp;rsquo;, j+n&amp;rsquo;}^{(l-1)}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then \(\frac{\partial \mathcal{L}}{\partial w_{m&amp;rsquo;,n&amp;rsquo;}}\) becomes&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{\partial \mathcal{L}}{\partial w_{m&amp;rsquo;,n&amp;rsquo;}} &amp;amp;= \sum_{i=0}^2 \sum_{j=0}^2 \frac{\partial \mathcal{L}}{\partial x_{i, j}} z_{i+m&amp;rsquo;, j+n&amp;rsquo;}^{(l-1)}\\
+&amp;amp;= \frac{\partial \mathcal{L}}{\partial x_{i, j}} * z_{m&amp;rsquo;, n&amp;rsquo;}^{(l-1)}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;\(\frac{\partial \mathcal{L}}{\partial x_{i, j}}\) represent the gradients with respect to the feature maps. To match the flipped kernel used in the forward pass, they are flipped in an opposite manner.&lt;/p&gt;
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s train and evaluate a convolutional neural network on the OG network: LeNet5 (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;LeCun et al. 1989&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 id=&#34;neural-networks-for-image-classification&#34;&gt;Neural Networks for Image Classification&lt;/h2&gt;
+&lt;h3 id=&#34;ilsvrc&#34;&gt;ILSVRC&lt;/h3&gt;
+&lt;p&gt;The ImageNet Large Scale Visual Recognition Challenge (ILSVRC) is the most popular image classification and object detection challenge starting in 2010. It now exists as the ILSVRC 2012-2017 challenge on &lt;a href=&#34;https://www.kaggle.com/c/imagenet-object-localization-challenge/overview/description&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Kaggle&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;alexnet&#34;&gt;AlexNet&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://code.google.com/archive/p/cuda-convnet/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://code.google.com/archive/p/cuda-convnet/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The network that arguably popuarlized deep learning by achieving a 37.5% top-1 and 17% top-5 error rate on the ILSVRC-2010 test set. This model performed significantly better than leading competitors (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-25-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;ILSVRC-2010 results reported by Krizhevsky et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;ILSVRC-2010 results reported by Krizhevsky et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This performance was based on many different insights and techniques including ReLU activations and dropout.
+The authors stated in their original publication that the large capacity of the model is necessary to fully describe the diversity of objects in ImageNet.&lt;/p&gt;
+&lt;h4 id=&#34;architecture&#34;&gt;Architecture&lt;/h4&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-35-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;AlexNet architecture (from Krizhevsky et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;AlexNet architecture (from Krizhevsky et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;AlexNet is made up of 5 convolutional layers followed by 3 fully-connected layers.
+The outputs of the last layer are used as input to the softmax function.&lt;/p&gt;
+&lt;p&gt;Each layer uses the ReLU activation function.&lt;/p&gt;
+&lt;p&gt;\[
+f(x) = \max(0, x)
+\]&lt;/p&gt;
+&lt;p&gt;The justification for switching to ReLU as opposed to sigmoid or tanh is the faster training times.
+Experiments on smaller CNNs show that networks with ReLU reach 25% training error on CIFAR-10 six times faster than those with tanh activations.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-49-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Another benefit of ReLU activations is that they are less reliant on input normalization.
+In a saturating activation function like tanh, large absolute values in the inputs will be clamped to either -1 or 1.
+ReLU is unbounded above 0.
+Networks can still train as long as some input is positive.
+Local response normalization (LRN) is used after the first and second convolutional layers.&lt;/p&gt;
+&lt;p&gt;The motivation behind LRN is taken from &lt;em&gt;lateral inhibition&lt;/em&gt; in neurobiology.
+An overly excited neuron (one with a high response) can subdue or dampen the responses from local neighbors.
+If all responses in a local region are uniformly large, which can happend since ReLU is unbounded, it will dampen them all.&lt;/p&gt;
+&lt;p&gt;In practice, they showed that applying LRNs to their model reduced the top-1 and top-5 error rates by 1.4% and 1.2%, respectively.&lt;/p&gt;
+&lt;h4 id=&#34;regularization&#34;&gt;Regularization&lt;/h4&gt;
+&lt;p&gt;The entire network has 60 million parameters.
+Even with so many parameters and training on a dataset with over 8 million images, their model overfits the training data quickly without the aid of regularization.
+They employ both image translations and horizontal reflections.&lt;/p&gt;
+&lt;p&gt;The use of translations is where the popular \(224 \times 224\) training size originated.
+The original size of the images in the dataset is \(256 \times 256\).
+To work with random translations without worrying about padding, they crop the final output to \(224 \times 224\).
+The final output of the network extracts 5 \(224 \times 224\) patches from the test input and averages the network prediction made on each patch.&lt;/p&gt;
+&lt;p&gt;Additionally, they alter the RGB intensities so that the network is less reliant on specific intensities and illumination for each object.
+The intuition is that the identity of an object is invariant to lighting conditions.&lt;/p&gt;
+&lt;p&gt;As a last form of regularization, they employ dropout in the first two fully-connected layers.&lt;/p&gt;
+&lt;h4 id=&#34;training&#34;&gt;Training&lt;/h4&gt;
+&lt;p&gt;They trained their model on a training set of 1.2 million images using two NVIDIA GTX 580 3GB GPUs.
+They had to write their own optimized CUDA code for this since deep learning frameworks such as Tensorflow and PyTorch did not exist yet.
+The training took ~6 days to pass 90 epochs.&lt;/p&gt;
+&lt;h3 id=&#34;vgg&#34;&gt;VGG&lt;/h3&gt;
+&lt;p&gt;Published in 2015, (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Simonyan and Zisserman 2015&lt;/a&gt;) explore how depth plays a role in convolutional neural networks.
+They systematically increase the depth of the network while keep other hyperparameters fixed.
+The filter sizes are also kept at \(3 \times 3\).&lt;/p&gt;
+&lt;p&gt;Similar to (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;), they use ReLU activations and in only one of their models to they employ Local Response Normalization.
+They found that adding LRN to their model did not increase performance.
+Instead, it only increased computation time and memory consumption.
+Their models are summarized in the table below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-13_07-48-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Model configurations used (Simonyan and Zisserman).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Model configurations used (Simonyan and Zisserman).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The number of parameters for each network is 133 million, 133 million, 134 million, 138 million, and 144 million starting from A to E.&lt;/p&gt;
+&lt;h3 id=&#34;googlenet&#34;&gt;GoogLeNet&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-18-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;The network-in-network architecture pairs perfectly with the Inception meme.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The network-in-network architecture pairs perfectly with the Inception meme.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Proposed a 22-layer network architecture that has \(12 \times\) fewer parameters than (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The authors were already thinking about applications in mobile computing, where hardware limitations would require smaller networks that still perform well.&lt;/p&gt;
+&lt;div class=&#34;blockquote&#34;&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;In this paper, we will focus on an efficient deep neural network architecture for computer vision, codenamed Inception, which derives its name from the Network in network paper by Lin et al. in conjunction with the famous “we need to go deeper” internet meme.&amp;rdquo; - Szegedy et al.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;p&gt;It was apparent at the time that building larger networks would generally lead to better performance.
+Adding more parameters leads to easier overfitting.
+Bigger networks also mean more computation. If the goal is to adapt high quality networks into mobile computing, solutions would have to include more sophistication than simply adding more components.&lt;/p&gt;
+&lt;h4 id=&#34;hebbian-learning&#34;&gt;Hebbian Learning&lt;/h4&gt;
+&lt;p&gt;A linear increase in filters leads to a quadratic increase in computation.
+If most filter parameters end up being close to 0, then this increase in model capacity is wasted.
+One solution is to include sparsity in the network instead of having dense connections.
+Szegedy et al. were motivated by the work of Arora et al., which they summarized as follows.&lt;/p&gt;
+&lt;div class=&#34;blockquote&#34;&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;Their main result states that if the probability distribution of the data-set is representable by a large, very sparse deep neural network, then the optimal network topology can be constructed layer by layer by analyzing the correlation statistics of the activations of the last layer and clustering neurons with highly correlated outputs.&amp;rdquo; - Szegedy et al.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;p&gt;This result relates with &lt;a href=&#34;https://en.wikipedia.org/wiki/Hebbian_theory&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Hebbian theory&lt;/a&gt; on synaptic plasticity which is summarized as &amp;ldquo;neurons that fire together, wire together.&amp;rdquo;&lt;/p&gt;
+&lt;h4 id=&#34;from-theory-to-architecture&#34;&gt;From Theory to Architecture&lt;/h4&gt;
+&lt;p&gt;Motivated by sparse connections, the architecture is designed to approximate sparsity given current dense components like convolutional layers.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-52-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Naive version of the Inception module (Szegedy et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Naive version of the Inception module (Szegedy et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The Inception module design as seen above is motivated as follows.
+In layers closer to the raw input, filters would be grouped into local regions.
+In this case, a \(1 \times 1\) convolution would summarize these groups.&lt;/p&gt;
+&lt;p&gt;For clusters that are spread out, a larger filter would be needed to cover the larger regions.
+This motivates the use of \(3 \times 3\) and \(5 \times 5\) filters.&lt;/p&gt;
+&lt;p&gt;The choice to include a max pooling function in each module is based on previous successes of using max pooling.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-01-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Description of layers from Szegedy et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Description of layers from Szegedy et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;vanishing-gradients&#34;&gt;Vanishing Gradients&lt;/h4&gt;
+&lt;p&gt;Creating a deeper network means that training is more susceptible to the vanishing gradient problem.
+They noted that shallower networks that perform well on image classification would surely provide strong disciminative features.
+They leverage this idea by computing 2 additional intermediate outputs: one in the middle of the network and an additional output 3 layers beyond that one.
+This permits the gradients to be strengthened by intermediate losses when combined with the original gradients.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-07-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;GoogLeNet model (Szegedy et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;GoogLeNet model (Szegedy et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;results&#34;&gt;Results&lt;/h4&gt;
+&lt;p&gt;GoogLeNet took 1st place in the 2014 ILSVRC with a 6.67% top-5 error rate.&lt;/p&gt;
+&lt;h3 id=&#34;resnet&#34;&gt;ResNet&lt;/h3&gt;
+&lt;p&gt;By 2016, it was clear that deeper models could build a richer hierarchy of features leading to better performance on a wide range of computer vision tasks.
+However, with deeper networks comes the vanishing gradient problem.
+Training them remained difficult for a time, but initialization and other normalization techniques found ways to resolve this issue.&lt;/p&gt;
+&lt;p&gt;With deeper networks, a new problem appeared.
+Adding more layers generally results in higher accuracy.
+At a certain point, adding additional layers leads to a decrease in accuracy.
+Many experiments ruled out the possibility of overfitting by observing that the training error was increasing as well.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-19-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Result of experiments showing that decreased accuracy was not a result of overfitting.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Result of experiments showing that decreased accuracy was not a result of overfitting.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;identity-mappings&#34;&gt;Identity Mappings&lt;/h4&gt;
+&lt;p&gt;Consider a shallow network with some measure performance on a task.
+If we were to add additional layers to make this network deeper, but those layers were simply identity mappings, then we should expect an error no greater than the original shallow network.
+However, current solvers are unable to find such a solution in a reasonable amount of time on an equally deep network optimized from a random initialization.&lt;/p&gt;
+&lt;h4 id=&#34;residual-functions&#34;&gt;Residual Functions&lt;/h4&gt;
+&lt;p&gt;The main idea of this paper is to attempt to learn a residual function \(\mathcal{F}(\mathbf{x}) := \mathcal{H}(\mathbf{x}) - \mathbf{x}\) of the desired mapping \(\mathcal{H}(\mathbf{x})\) rather than attempting to learn the mapping directly.
+The desired mapping then given by \(\mathcal{H}(\mathbf{x}) = \mathcal{F}(\mathbf{x}) + \mathbf{x}\).
+If it were optimal to learn an identity mapping, the idea is that it would be simpler to learn by moving towards a 0 residual.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-45-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Residual unit (He et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Residual unit (He et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The function can be implemented into neural networks by using skip connections, as seen in the figure above.
+Adding these identity mappings does not require any additional parameters, as the input is simply passed to the end of the stack.&lt;/p&gt;
+&lt;h4 id=&#34;architecture-complexity&#34;&gt;Architecture Complexity&lt;/h4&gt;
+&lt;p&gt;They compare a 34-layer plain network based on the VGG-19 architecture with a 34-layer residual network.
+They note that VGG-19 has more filters and higher complexity than their residual network.
+Specifically, VGG-19 requires 19.6 billion FLOPs compared to only 3.6 billion for their 34-layer residual network.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-49-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Comparison of architectures and their complexity (He et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of architectures and their complexity (He et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;results&#34;&gt;Results&lt;/h4&gt;
+&lt;p&gt;They evaluate how well the residual networks generalize when adding more layers.
+As mentioned in the introduction, typical models would see an increase in training error as the number of layers were increased.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-53-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 14: &amp;lt;/span&amp;gt;Training comparisons between plain and residual networks (He et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Training comparisons between plain and residual networks (He et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Their ensemble of models achieved 3.57% top-5 error on the ImageNet test set, achieving 1st place in the ILSVRC 2015 classification challenge.
+It additionally was adapted to other challenges and won first place on ImageNet detection, ImageNet localization, COCO detection, and COCO segmentation in both the ILSVRC and COCO 2015 competitions.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2016. “Deep Residual Learning for Image Recognition.” In &lt;i&gt;2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)&lt;/i&gt;, 770–78. Las Vegas, NV, USA: IEEE. &lt;a href=&#34;https://doi.org/10.1109/CVPR.2016.90&#34;&gt;https://doi.org/10.1109/CVPR.2016.90&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2017. “ImageNet Classification with Deep Convolutional Neural Networks.” &lt;i&gt;Communications of the Acm&lt;/i&gt; 60 (6): 84–90. &lt;a href=&#34;https://doi.org/10.1145/3065386&#34;&gt;https://doi.org/10.1145/3065386&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;LeCun, Yann, Bernhard Boser, John Denker, Donnie Henderson, R. Howard, Wayne Hubbard, and Lawrence Jackel. 1989. “Handwritten Digit Recognition with a Back-Propagation Network.” In &lt;i&gt;Advances in Neural Information Processing Systems&lt;/i&gt;. Vol. 2. Morgan-Kaufmann.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Simonyan, Karen, and Andrew Zisserman. 2015. “Very Deep Convolutional Networks for Large-Scale Image Recognition.” &lt;i&gt;Arxiv:1409.1556 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;https://arxiv.org/abs/1409.1556&#34;&gt;https://arxiv.org/abs/1409.1556&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Springenberg, Jost Tobias, Alexey Dosovitskiy, Thomas Brox, and Martin Riedmiller. 2015. “Striving for Simplicity: The All Convolutional Net.” &lt;i&gt;Arxiv:1412.6806 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;https://arxiv.org/abs/1412.6806&#34;&gt;https://arxiv.org/abs/1412.6806&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Deep Learning</title>
+      <link>https://ajdillhoff.github.io/notes/deep_learning/</link>
+      <pubDate>Tue, 29 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/deep_learning/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#syllabi&#34;&gt;Syllabi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#questions&#34;&gt;Questions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#deep-networks&#34;&gt;Deep Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#loss-functions&#34;&gt;Loss Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#regularization&#34;&gt;Regularization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;syllabi&#34;&gt;Syllabi&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://cs230.stanford.edu/syllabus/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs230.stanford.edu/syllabus/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;questions&#34;&gt;Questions&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Does backprop give the same result when combining the weights and bias versus separating?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;What is deep learning?&lt;/li&gt;
+&lt;li&gt;What problems is it used for?&lt;/li&gt;
+&lt;li&gt;Basic neural nets vs &amp;ldquo;deep&amp;rdquo; nets&lt;/li&gt;
+&lt;li&gt;Structuring a project&lt;/li&gt;
+&lt;li&gt;CNNs&lt;/li&gt;
+&lt;li&gt;Sequence models&lt;/li&gt;
+&lt;li&gt;Geometric Deep Learning&lt;/li&gt;
+&lt;li&gt;Representation of a model in code (vectorization)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Deep learning has been employed in many fields from visual recognition to medical diagnosis.
+Its continued success is impossible to ignore.
+As more and more companies pivot to utilize deep learning in some capacity, it is paramount that any machine learning practitioner or research be well versed in moden practices and frameworks.
+This section will provide a broad overview of deep learning with examples using &lt;a href=&#34;https://pytorch.org&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;PyTorch&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you are not yet familiar with &lt;a href=&#34;https://ajdillhoff.github.io/notes/neural_networks/&#34;&gt;neural networks&lt;/a&gt;, follow the link to learn about their basics as they are the foundation of deep learning systems.&lt;/p&gt;
+&lt;p&gt;We will cover how to implement an array of deep learning models for different tasks.
+Different layers and activation functions will be explored as well as the effect of regularization.
+There will also be a focus on best practices for organizing a machine learning project.&lt;/p&gt;
+&lt;h2 id=&#34;what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/h2&gt;
+&lt;p&gt;We begin by comparing &lt;em&gt;shallow&lt;/em&gt; networks with &lt;em&gt;deep&lt;/em&gt; networks.
+What defines a deep network? Is it as simple as crossing a threshold into \(n\) layers?
+As evidenced by &amp;lt;&amp;amp;zeilerVisualizingUnderstandingConvolutional2013&amp;gt;, deeper networks allow for a more robust hierarchy of image features.&lt;/p&gt;
+&lt;p&gt;There is work by &amp;lt;&amp;amp;montufarNumberLinearRegions2014&amp;gt; which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
+Additionally, there are many individual results which suggest that deeper networks provide better task generalization.&lt;/p&gt;
+&lt;p&gt;As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task.
+That is, our network is not only optimizing the performance of task, but it produces features from the data.
+This is particularly useful for transfer learning, where large pre-trained models can be used as starting points for novel tasks.
+The benefit being that a complete retraining of the model is not necessary.&lt;/p&gt;
+&lt;h2 id=&#34;deep-networks&#34;&gt;Deep Networks&lt;/h2&gt;
+&lt;p&gt;Like &lt;a href=&#34;https://ajdillhoff.github.io/notes/neural_networks/&#34;&gt;neural networks&lt;/a&gt;, deep networks are defined by the number of layers, nodes per layer, activation functions, and loss functions.
+We now review the forward and backward pass, providing more insight into the structure and usage of deep networks along the way.&lt;/p&gt;
+&lt;p&gt;Consider a deep network with \(L\) layers. Layer \(l\) has \(n_{l-1}\) input connections and \(n_l\) output nodes and activation function \(g^{(l)}\).
+The final output is evaluated with some ground truth using a loss function \(\mathcal{L}\).&lt;/p&gt;
+&lt;h3 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h3&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{a}^{(l)} &amp;amp;= W^{(l)}\mathbf{z}^{(l-1)} + \mathbf{b}^{(l)}\\
+\mathbf{z}^{(l)} &amp;amp;= g^{(l)}(\mathbf{a}^{(l)})\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This is repeated from the input to the last layer.
+For the first layer \(l=1\), the input \(\mathbf{z}^{(0)} = \mathbf{x}\).
+In practice, the output \(\mathbf{a}^{(l)}\) is cached since it is required for the backward pass.
+This prevents the values from needing to be computed twice.&lt;/p&gt;
+&lt;p&gt;It is also worth it to study the sizes of the matrices while performing a forward pass.
+For a layer \(l\), \(W^{(l)} \in \mathbb{R}^{n_l \times n_{l-1}}\) and the input \(\mathbf{z}^{(l-1)} \in \mathbb{R}^{n_{l-1} \times 1}\).
+When training, it is common to perform batch gradient descent with batches of input of size \(B\).
+Then, \(\mathbf{z}^{(l-1)} \in \mathbb{R}^{n_{l-1}\times B}\) and \(\mathbf{a}^{(l)}, \mathbf{b}^{(l)} \in \mathbb{R}^{n_l \times B}\).&lt;/p&gt;
+&lt;h3 id=&#34;backward-pass&#34;&gt;Backward Pass&lt;/h3&gt;
+&lt;p&gt;During the backward pass, the gradient is propagated from the last layer to the first.
+Each layer that contains trainable parameters must also compute the gradient of the network output with respect to the weights and biases.
+This can be done in a modular way, as shown next.&lt;/p&gt;
+&lt;p&gt;Consider the last layer. The gradients with respect to the weights and biases are&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{d\mathcal{L}}{dW^{(L)}} &amp;amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{dW^{(L)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(L)}} &amp;amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{b}^{(L)}}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;To see how the gradient continues to be propagated backward, compute the same thing for layer \(L-1\)&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{d\mathcal{L}}{dW^{(L-1)}} &amp;amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{z}^{(L-1)}} \frac{d\mathbf{z}^{(L-1)}}{d\mathbf{a}^{(L-1)}} \frac{d\mathbf{a}^{(L-1)}}{dW^{(L-1)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(L-1)}} &amp;amp;= \frac{d\mathcal{L}}{d\mathbf{z}^{(L)}} \frac{d\mathbf{z}^{(L)}}{d\mathbf{a}^{(L)}} \frac{d\mathbf{a}^{(L)}}{d\mathbf{z}^{(L-1)}} \frac{d\mathbf{z}^{(L-1)}}{d\mathbf{a}^{(L-1)}} \frac{d\mathbf{a}^{(L-1)}}{d\mathbf{b}^{(L-1)}}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;As seen above, to continue propagating the gradient backward, each layer \(l\) must also compute&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d\mathbf{a}^{(l)}}{d\mathbf{z}^{(l-1)}}.
+\]&lt;/p&gt;
+&lt;p&gt;To summarize, every layer with trainable parameters will compute&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{d\mathcal{L}}{dW^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{dW^{(l)}}\\
+\frac{d\mathcal{L}}{d\mathbf{b}^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{d\mathbf{b}^{(l)}}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The term \(\frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}}\) is the gradient that is propagated from layer \(l+1\).&lt;/p&gt;
+&lt;h2 id=&#34;activation-functions&#34;&gt;Activation Functions&lt;/h2&gt;
+&lt;h3 id=&#34;sigmoid&#34;&gt;Sigmoid&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Function&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+\sigma(\mathbf{x}) = \frac{1}{1 + \exp(-\mathbf{x})}
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Derivative&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+\sigma(\mathbf{x})(1 - \sigma(\mathbf{x}))
+\]&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_10-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Sigmoid non-linearity (Wikipedia)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;loss-functions&#34;&gt;Loss Functions&lt;/h2&gt;
+&lt;h2 id=&#34;a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/h2&gt;
+&lt;p&gt;When training and evaluating models, especially on benchmark datasets, it is important to properly test their generalization performance.
+This test is crucial when comparing the efficacy of your ideas versus baseline evaluations or competing methods.&lt;/p&gt;
+&lt;p&gt;To ensure that your model is evaluated in a fair way, it is common to set aside a set of test data that is only used during the final comparison.
+This data is typically annotated so that some metric can be used.&lt;/p&gt;
+&lt;p&gt;It is true that the training data drives the parameter tuning during optimization.
+This is most commonly done with gradient descent.
+However, we will also change the hyperparamers such as learning rate, batch size, and data augmentation.
+In this case, we want to evaluate the relative performance of each change.&lt;/p&gt;
+&lt;p&gt;If we use the test set to do this, then we are necessarily using the test set for training.
+Our biases and intuitions about the model&amp;rsquo;s performance would be implicitly influenced by that set.
+To track our relative changes without using the test set, we can take a portion of the original training set and label it as our &lt;strong&gt;validation set&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The split between training, validation, and test data is relatively small.
+Most modern datasets are large, with millions of samples.
+Consider &lt;a href=&#34;https://www.image-net.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;ImageNet&lt;/a&gt;, an image classification dataset with over 14 million samples.
+Taking 10,000 samples to serve as a validation set is only \(~.07\%\) of the dataset.&lt;/p&gt;
+&lt;p&gt;Most modern machine learning frameworks have an easy way to split the dataset.
+We can do this in PyTorch using &lt;code&gt;torch.utils.data.random_split&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;train_dataset, val_dataset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;utils&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;data&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;random_split(dataset, [train_size, val_size])
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/h2&gt;
+&lt;p&gt;Ideally, we want a model that generalizes well to unseen data.
+Being able to evaluate how well our model performs is, in many ways, more important than the model itself.
+A model that shows good generalization performance will have low bias and low variance.
+Bonus points are awarded if the model remains simple.&lt;/p&gt;
+&lt;p&gt;During training, we can detect a model that is overfitting the data by also monitoring its performance on a separate validation set.
+If the validation loss diverges from the training loss, the model is beginning to overfit.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_22-38-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Higher complexity on the dataset leads to higher variance and lower bias.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Higher complexity on the dataset leads to higher variance and lower bias.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;regularization&#34;&gt;Regularization&lt;/h2&gt;
+&lt;h2 id=&#34;optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/h2&gt;
 </description>
     </item>
     

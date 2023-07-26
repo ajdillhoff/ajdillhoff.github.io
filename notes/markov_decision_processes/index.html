@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Key Terms Policies and Values Value Iteration Algorithm Policy Iteration Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
+  <meta name="description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
 At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state.">
 
   
@@ -139,7 +139,7 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/markov_decision_processes/">
   <meta property="og:title" content="Markov Decision Processes | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Key Terms Policies and Values Value Iteration Algorithm Policy Iteration Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
+  <meta property="og:description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
 At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
@@ -415,7 +415,7 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    4 min read
+    6 min read
   </span>
   
 
@@ -547,9 +547,10 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
 <div class="heading">Table of Contents</div>
 <ul>
 <li><a href="#key-terms">Key Terms</a></li>
+<li><a href="#defining-goals">Defining Goals</a></li>
 <li><a href="#policies-and-values">Policies and Values</a></li>
-<li><a href="#value-iteration-algorithm">Value Iteration Algorithm</a></li>
-<li><a href="#policy-iteration">Policy Iteration</a></li>
+<li><a href="#bellman-equations">Bellman Equations</a></li>
+<li><a href="#optimality">Optimality</a></li>
 </ul>
 </div>
 <!--endtoc-->
@@ -613,7 +614,11 @@ p(s&rsquo;, r|s, a) = P\{S_t = s&rsquo;, R_t = r|S_{t-1} = s, A_{t-1} = a\}
 <p>\[
 p(s&rsquo;|s, a) = P\{S_t = s&rsquo;|S_{t-1} = s, A_{t-1}=a\} = \sum_{r\in\mathcal{R}}p(s&rsquo;, r|s, a).
 \]</p>
-<h3 id="defining-goals">Defining Goals</h3>
+<p>The <strong>reward function</strong> \(r\) gives the expected <em>next</em> reward given some state and action:</p>
+<p>\[
+r(s, a) = \mathbb{E}[R_{t+1}|S_t=s, A_t=a] = \sum_{r}r \sum_{s&rsquo;}p(s&rsquo;, r|s, a).
+\]</p>
+<h2 id="defining-goals">Defining Goals</h2>
 <p>In reinforcement learning, the goal is encoded in the form of a <strong><strong>reward signal</strong></strong>. The agent sets out to <em>maximize</em> the total amount of reward it receives over an <strong><strong>episode</strong></strong>. An <strong><strong>episode</strong></strong> is defined dependent on the problem context and ends in a <strong><strong>terminal state</strong></strong>. It could be a round of game, a single play, or the result of moving a robot. Typically, the rewards come as a single scalar value at teach time step. This implies that an agent might take an action that results in a negative reward if it is optimal in the long run.</p>
 <p>Formally, the <strong>expected return</strong> includes a <strong>discount factor</strong> that allows us to control the trade-off between short-term and long-term rewards:</p>
 <p>\[
@@ -635,13 +640,51 @@ q_{\pi}(s, a) = \mathbb{E}_{\pi}[G_t|S_t=s, A_t=a] = \mathbb{E}_{\pi}\Bigg[\sum_
 \]</p>
 <p>This function defines the expected return of following a particular policy and starting in state \(s\).
 Both the <strong>state-value</strong> and <strong>action-value</strong> functions can be updated as a result of the agent&rsquo;s experience. How it is updated is method-dependent. Certain methods will also dictate how the policy itself can be updated.</p>
-<h2 id="value-iteration-algorithm">Value Iteration Algorithm</h2>
-<p><strong>Bellman Equation</strong></p>
+<h2 id="bellman-equations">Bellman Equations</h2>
+<p>The recursive relationship between the value of a state and its future states can be represented using <strong><strong>Bellman equations</strong></strong>. In RL, we are interested in the equations for both the state-value and action-value. Given the diagram of an MDP, we can see that they are related to each other. To make the following equations easier to understand, it is important to remember the flow of a Markov decision process:</p>
+<ol>
+<li>take an action,</li>
+<li>arrive at a state and sense the reward,</li>
+<li>consult the policy for the next action.</li>
+</ol>
+<p>With that in mind, let&rsquo;s look at the state-value function first. This function considers the expected value of starting in a state \(s\) and following policy \(\pi\). In other words, we must consider all possible actions and their future rewards.</p>
+<p>\begin{align*}
+v_{\pi}(s) &amp;= \mathbb{E}_{\pi}[G_t | S_t = s]\\
+&amp;= \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s]\\
+&amp;= \sum_{a} \pi(a|s) \sum_{s&rsquo;}\sum_{r}p(s&rsquo;, r|s, a)\Big[r + \gamma \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s]\Big]\\
+&amp;= \sum_{a} \pi(a|s) \sum_{s&rsquo;, r}p(s&rsquo;, r|s, a)\Big[r + \gamma v_{\pi}(s&rsquo;)\Big]\\
+&amp;= \sum_{a} \pi(a | s)\big[r(s, a) + \gamma \sum_{s&rsquo;}p(s&rsquo;|s, a)v_{\pi}(s&rsquo;)\big]\\
+\end{align*}</p>
+<p>The first sum over actions considers <em>all possible actions</em>. This is followed by a transition to possible states \(s&rsquo;\) conditioned on taking each action multiplied by the expected value of being at the new state.</p>
+<p>The action-value function follows a similar derivation:</p>
+<p>\begin{align*}
+q_{\pi}(s, a) &amp;= \mathbb{E}_{\pi}[G_t|S_t = s, A_t = a]\\
+&amp;= \mathbb{E}_{\pi}[R_{t+1} + \gamma G_{t+1} | S_t = s, A_t = a]\\
+&amp;= r(s, a) + \sum_{s&rsquo;}p(s&rsquo;|s, a) v_{\pi}(s&rsquo;)
+\end{align*}</p>
+<p>There is a very similar looking set of terms in the state-value function above, and we should expect that! If we want to evaluate the current state, we need to look ahead at the possible actions and their resulting rewards. Similarly, evaluating the current action requires us to look head at the value of future states.</p>
+<p>Let&rsquo;s expand \(q_{\pi}(s,a)\) once more so that it is written in terms of itself.</p>
+<p>\begin{align*}
+q_{\pi}(s, a) &amp;= r(s, a) + \gamma \sum_{s&rsquo;}p(s&rsquo;|s, a) v_{\pi}(s&rsquo;)\\
+&amp;= r(s, a) + \gamma \sum_{s&rsquo;}p(s&rsquo;|s, a) \sum_{a&rsquo;} \pi(s&rsquo;, a&rsquo;) \big[r(s&rsquo;, a&rsquo;) + \gamma \sum_{s&rsquo;&rsquo;} p(s&rsquo;&rsquo;|s&rsquo;, a&rsquo;)v_{\pi}(s&rsquo;&rsquo;)]\\
+&amp;= r(s, a) + \gamma \sum_{s&rsquo;}p(s&rsquo;|s, a) \sum_{a&rsquo;} \pi(s&rsquo;, a&rsquo;) q_{\pi}(s&rsquo;, a&rsquo;)
+\end{align*}</p>
+<h2 id="optimality">Optimality</h2>
+<p>To solve a reinforcement learning problem, we are interested in finding the policy \(\pi_{*}\) whose expected return is greater than all other possible policies over all states.
+An <strong><strong>optimal policy</strong></strong> will use an <strong>*optimal state-value function</strong> and <strong><strong>optimal action-value function</strong></strong>:</p>
+<p>\begin{align*}
+v_{*}(s) &amp;= \max_{\pi}v_{\pi}(s)\\
+q_{*}(s, a) &amp;= \max_{\pi}q_{\pi}(s, a).
+\end{align*}</p>
+<p>The optimal state-value function would select the best possible action instead of summing over all possibley actions starting in state \(s\):</p>
+<p>\begin{align*}
+v_{*}(s) &amp;= \max_{a} q_{\pi_*}(s, a)\\
+&amp;= \max_{a}\big[r(s, a) + \gamma \sum_{s&rsquo;} p(s&rsquo;|s, a) v_{*}(s&rsquo;)\big]
+\end{align*}</p>
+<p>Similarly, the optimal action-value function selects the best possible action from the next state \(s&rsquo;\):</p>
 <p>\[
-U(s) = R(s) + \gamma \max_{a \in A(s)}\Big\{\sum_{s&rsquo;}p(s&rsquo;|s, a)U(s&rsquo;)\Big\}
+q_{*}(s) = r(s, a) + \gamma \sum_{s&rsquo;} p(s&rsquo;|s, a) \max_{a} q_{*}(s&rsquo;, a&rsquo;).
 \]</p>
-<p>Take an action \(a\) and compute \(\sum_{s&rsquo;}p(s&rsquo;|s, a)U(s&rsquo;)\) &ndash; the expected utility of all possible states accessible from the current state (assuming you perform action \(a\)). Then, consider the same thing for all possible actions the agent can take.</p>
-<h2 id="policy-iteration">Policy Iteration</h2>
 
     </div>
 
