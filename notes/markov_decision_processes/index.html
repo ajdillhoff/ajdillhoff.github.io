@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
+  <meta name="description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Optimizing the Policy Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
 At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state.">
 
   
@@ -139,7 +139,7 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/markov_decision_processes/">
   <meta property="og:title" content="Markov Decision Processes | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
+  <meta property="og:description" content="Table of Contents Key Terms Defining Goals Policies and Values Bellman Equations Optimality Optimizing the Policy Key Terms Agent: The learner or decision maker. Environment: The world that the agent can interact with. State: A representation of the agent and environment. Action: The agent can take an action in the environment. Reward: Given to the agent based on actions taken. Goal: Maximize rewards earned over time.
 At time \(t\), the agent observes the state of the environment \(S_t \in \mathcal{S}\) and can select an action \(A_t \in \mathcal{A}(s)\), where \(\mathcal{A}(s)\) suggests that the available actions are dependent on the current state."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
@@ -415,7 +415,7 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    6 min read
+    7 min read
   </span>
   
 
@@ -551,6 +551,7 @@ At time \(t\), the agent observes the state of the environment \(S_t \in \mathca
 <li><a href="#policies-and-values">Policies and Values</a></li>
 <li><a href="#bellman-equations">Bellman Equations</a></li>
 <li><a href="#optimality">Optimality</a></li>
+<li><a href="#optimizing-the-policy">Optimizing the Policy</a></li>
 </ul>
 </div>
 <!--endtoc-->
@@ -684,6 +685,17 @@ v_{*}(s) &amp;= \max_{a} q_{\pi_*}(s, a)\\
 <p>Similarly, the optimal action-value function selects the best possible action from the next state \(s&rsquo;\):</p>
 <p>\[
 q_{*}(s) = r(s, a) + \gamma \sum_{s&rsquo;} p(s&rsquo;|s, a) \max_{a} q_{*}(s&rsquo;, a&rsquo;).
+\]</p>
+<h2 id="optimizing-the-policy">Optimizing the Policy</h2>
+<p>For smaller problems with reasonably small state and action spaces, we can use Dynamic Programming to compute the optimal policy. These methods quickly become intractable as the complexity of our problem increases. As is common in machine learning, we would resort to approximation methods for complex spaces.</p>
+<blockquote>
+<p>&ldquo;In fact, all of these methods can be viewed as attempts to achieve much the same effect as DP, only with less computation and without assuming a perfect model of the environment.&rdquo;</p>
+<p>&ndash; Richard S. Sutton and Andrew G. Barto, Reinforcement Learning: An Introduction</p>
+</blockquote>
+<p>Imagine if you had a set policy that dictated the actions you would take from work to home. In this example, assume the policy is not an optimal policy. One day, you decide to take a left at a particular intersection rather than going forward. After that, you follow your policy as described. If this decision ultimately resulted in you arriving home sooner, you would probably update your policy to always take that left. This intuition describes a result of the <strong>policy improvement theorem</strong>.</p>
+<p>Let \(\pi\) and \(\pi&rsquo;\) be two deterministic policies where</p>
+<p>\[
+q_{\pi}(s, \pi&rsquo;(s)) \geq v_{\pi}(s),\quad \forall s.
 \]</p>
 
     </div>
