@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents What is Version Control? What is Git? What is a Repository? Configuring Git Creating a Repository Staging Files Committing Changes Ignoring Files Branching Merging Remotes Cloning an Existing Repository Summary What is Version Control? Version control is a system that records changes to a file or set of files over time so that you can recall specific versions later. This is useful not just for team projects, for for individual projects as well.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/introduction_to_git/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/introduction_to_git/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/introduction_to_git/">
+  <meta property="og:title" content="Introduction to Git | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents What is Version Control? What is Git? What is a Repository? Configuring Git Creating a Repository Staging Files Committing Changes Ignoring Files Branching Merging Remotes Cloning an Existing Repository Summary What is Version Control? Version control is a system that records changes to a file or set of files over time so that you can recall specific versions later. This is useful not just for team projects, for for individual projects as well."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-08-26T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-08-26T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Introduction to Git | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Introduction to Git</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-08-26 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-08-26 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Aug 26, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    17 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/introduction_to_git/&amp;text=Introduction%20to%20Git" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/introduction_to_git/&amp;t=Introduction%20to%20Git" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Introduction%20to%20Git&amp;body=https://ajdillhoff.github.io/notes/introduction_to_git/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/introduction_to_git/&amp;title=Introduction%20to%20Git" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Introduction%20to%20Git%20https://ajdillhoff.github.io/notes/introduction_to_git/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/introduction_to_git/&amp;title=Introduction%20to%20Git" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#what-is-version-control">What is Version Control?</a></li>
+<li><a href="#what-is-git">What is Git?</a></li>
+<li><a href="#what-is-a-repository">What is a Repository?</a></li>
+<li><a href="#configuring-git">Configuring Git</a></li>
+<li><a href="#creating-a-repository">Creating a Repository</a></li>
+<li><a href="#staging-files">Staging Files</a></li>
+<li><a href="#committing-changes">Committing Changes</a></li>
+<li><a href="#ignoring-files">Ignoring Files</a></li>
+<li><a href="#branching">Branching</a></li>
+<li><a href="#merging">Merging</a></li>
+<li><a href="#remotes">Remotes</a></li>
+<li><a href="#cloning-an-existing-repository">Cloning an Existing Repository</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="what-is-version-control">What is Version Control?</h2>
+<p>Version control is a system that records changes to a file or set of files over time so that you can recall specific versions later. This is useful not just for team projects, for for individual projects as well.</p>
+<p>With version control, you can:</p>
+<ul>
+<li>revert files back to a previous state</li>
+<li>revert the entire project back to a previous state</li>
+<li>compare changes over time</li>
+<li>see who last modified something that might be causing a problem</li>
+<li>who introduced an issue and when</li>
+<li>and much more</li>
+</ul>
+<p>When tracking changes to a project over time, the simplest approach is one that you might recognize if you&rsquo;ve ever worked on an essay for class. Imagine you&rsquo;ve just finished the first draft of an assignment. You decide to save this document as <code>essay_first_draft.docx</code>. After working on it a bit more, you choose to save the updated copy to a new file so that you can compare the initial and final draft. This one is then named <code>essay_first_draft_COMPLETE.docx</code>. You end up reading some new information and realize you missed a key requirement of the assignment. After adding in the new information you save it as <code>essay_first_draft_COMPLETE_v2.docx</code>. After many such iterations you end up with a collection of ill-named files.</p>
+<p>Maybe you&rsquo;ve never done this yourself, but this example actually depicts a version control system. Luckily for us, there have been many improvements to this naive method. A more ideal choice, especially in a team environment, would be a Centralized VCS. Project files would be hosted on a server that keeps track of the different changes. Team members can download the latest versions, modify them, and update the server once they are done.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_18-53-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Centralized VCS ([source](&lt;https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Centralized VCS (<a href="https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>This is a welcome improvement over the naive version, but it still has its downsides. What if the server or connection goes down? There are many scenarios that would lead to a catastrophic loss of data. For important projects, you would not want to keep all of your eggs in once basket. A more ideal solution would be a Distributed VCS, this is what Git is.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_18-58-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Distributed VCS ([source](&lt;https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Distributed VCS (<a href="https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In a DVCS, every user has a complete copy of the project. If the server goes down, or a connection is lost, you can still work on the project. Since every user has a complete copy of the project, there is no single point of failure. Another huge advantage is speed. The operations are performed locally. It is only when you want to share your changes that you need to connect to the server. This means that you can commit changes, create branches, and perform other operations without an internet connection.</p>
+<h2 id="what-is-git">What is Git?</h2>
+<p>There are two primary ways of thinking about versioning in general: snapshots and differences. The first starts with your original files and records each change as a delta between the latest version and the previous.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_19-03-32_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Difference-based Version Control ([source](&lt;https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Difference-based Version Control (<a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The second starts with your original files and records each change as a snapshot of the entire project. Files that have not changed will not be duplicated. Instead, Git will create a reference to the previous version of the file. This is the approach that Git uses, and it comes with a great benefit that we will see when we get to branching.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_19-05-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Snapshot-based Version Control ([source](&lt;https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Snapshot-based Version Control (<a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="what-is-a-repository">What is a Repository?</h2>
+<p>A repository is a collection of files and folders that are tracked by Git. It is the project folder that you will be working in. You can create a repository from scratch, or you can clone an existing repository. We will cover examples of both during class. Cloning is the process of copying an existing repository to your local machine. We will start with the first approach: creating a repository from scratch.</p>
+<p>Before starting, it is important to at least know the three major states of Git. Files can be <code>modified</code>, <code>staged</code>, or <code>committed</code>.</p>
+<ul>
+<li>A <code>modified</code> file has been changed locally, but has not been committed to the repository.</li>
+<li>A <code>staged</code> file is a modified file that has been marked to be included in the next commit.</li>
+<li>A <code>committed</code> file is a staged file that has been saved to the repository.</li>
+</ul>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_19-16-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;The main sections of Git. ([source](&lt;https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>The main sections of Git. (<a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The figure above depicts the three major sections of working with a Git repository. Each repository has a <code>.git</code> directory that contains all of the information about the project. The <code>working directory</code> is the root directory where the latest versions of the files exist. Once modifications are made, these changes are sent to the <code>staging area</code>. This is where you can choose which changes to include in the next commit. Once you are happy with the changes, you can commit them to the repository. This will save the changes to the <code>.git</code> directory.</p>
+<h2 id="configuring-git">Configuring Git</h2>
+<p>Once you have installed Git, there are a few important configuration options to get started. If you have already been using Git, you can skip this section. If you are using Git for the first time, you will need to set your name and email address. This information will be used to identify you as the author of the commits that you make.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git config --global user.name <span style="color:#e6db74">&#34;Naomi Nagata&#34;</span>
+</span></span><span style="display:flex;"><span>git config --global user.email <span style="color:#e6db74">&#34;naomi@rocinante.exp&#34;</span>
+</span></span></code></pre></div><p>If you have already used a service like GitHub, note that this name and email does not need to match the one you used to log into that service.</p>
+<p>You can view your current configuration at any time by running the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git config --list --show-origin
+</span></span></code></pre></div><h2 id="creating-a-repository">Creating a Repository</h2>
+<p>For this example, our first project will be a Python program that resizes images to a specified width. This is to ensure that the aspect ratio is maintained.</p>
+<p>Now that we have Git installed and configured, we can create our first repository. First, create a new directory for the project. I will use <code>pyresize</code> in this document. Then, navigate to that directory and run the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir pyresize <span style="color:#f92672">&amp;&amp;</span> cd pyresize
+</span></span><span style="display:flex;"><span>git init
+</span></span></code></pre></div><p>You may see the following warning when creating a new repository:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hint: Using <span style="color:#e6db74">&#39;master&#39;</span> as the name <span style="color:#66d9ef">for</span> the initial branch. This default branch name
+</span></span><span style="display:flex;"><span>hint: is subject to change. To configure the initial branch name to use in all
+</span></span><span style="display:flex;"><span>hint: of your new repositories, which will suppress this warning, call:
+</span></span><span style="display:flex;"><span>hint:
+</span></span><span style="display:flex;"><span>hint: 	git config --global init.defaultBranch &lt;name&gt;
+</span></span><span style="display:flex;"><span>hint:
+</span></span><span style="display:flex;"><span>hint: Names commonly chosen instead of <span style="color:#e6db74">&#39;master&#39;</span> are <span style="color:#e6db74">&#39;main&#39;</span>, <span style="color:#e6db74">&#39;trunk&#39;</span> and
+</span></span><span style="display:flex;"><span>hint: <span style="color:#e6db74">&#39;development&#39;</span>. The just-created branch can be renamed via this command:
+</span></span><span style="display:flex;"><span>hint:
+</span></span><span style="display:flex;"><span>hint: 	git branch -m &lt;name&gt;
+</span></span><span style="display:flex;"><span>Initialized empty Git repository in /home/alex/dev/pyresize/.git/
+</span></span></code></pre></div><p>Let&rsquo;s first set the default branch name to <code>main</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git config --global init.defaultBranch main
+</span></span></code></pre></div><p>Next, we will change the name of the current branch to <code>main</code>. We could also delete the <code>.git</code> directory and start over, but this is a good opportunity to learn how to rename a branch.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git branch -m main
+</span></span></code></pre></div><p>You can view the status of your repository at any time by using the <code>git status</code> command. This will show you the current branch, the files that have been modified, and the files that have been staged. Our newly created repository looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git status
+</span></span><span style="display:flex;"><span>On branch main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>No commits yet
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nothing to commit <span style="color:#f92672">(</span>create/copy files and use <span style="color:#e6db74">&#34;git add&#34;</span> to track<span style="color:#f92672">)</span>
+</span></span></code></pre></div><h2 id="staging-files">Staging Files</h2>
+<p>Let&rsquo;s create our first file and add it to the repository. We will create a file called <code>pyresize.py</code> that contains the following code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> PIL <span style="color:#f92672">import</span> Image
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">resize_image</span>(image_path, width):
+</span></span><span style="display:flex;"><span>    image <span style="color:#f92672">=</span> Image<span style="color:#f92672">.</span>open(image_path)
+</span></span><span style="display:flex;"><span>    wpercent <span style="color:#f92672">=</span> (width <span style="color:#f92672">/</span> float(image<span style="color:#f92672">.</span>size[<span style="color:#ae81ff">0</span>]))
+</span></span><span style="display:flex;"><span>    hsize <span style="color:#f92672">=</span> int((float(image<span style="color:#f92672">.</span>size[<span style="color:#ae81ff">1</span>]) <span style="color:#f92672">*</span> float(wpercent)))
+</span></span><span style="display:flex;"><span>    image <span style="color:#f92672">=</span> image<span style="color:#f92672">.</span>resize((width, hsize), Image<span style="color:#f92672">.</span>LANCZOS)
+</span></span><span style="display:flex;"><span>    image<span style="color:#f92672">.</span>save(image_path)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    resize_image(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>], int(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>]))
+</span></span></code></pre></div><p>At this point, we have a local change that our repository is not aware of. We can see this by running the <code>git status</code> command again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git status
+</span></span><span style="display:flex;"><span>On branch main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>No commits yet
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Untracked files:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git add &lt;file&gt;...&#34;</span> to include in what will be committed<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    pyresize.py
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nothing added to commit but untracked files present <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git add&#34;</span> to track<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>Let&rsquo;s add our file with <code>git add pyresize.py</code> and check the status again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git add pyresize.py
+</span></span><span style="display:flex;"><span>$ git status
+</span></span><span style="display:flex;"><span>On branch main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>No commits yet
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Changes to be committed:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git rm --cached &lt;file&gt;...&#34;</span> to unstage<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    new file:   pyresize.py
+</span></span></code></pre></div><h2 id="committing-changes">Committing Changes</h2>
+<p>Finally, we will <code>commit</code> this change via <code>git commit</code>. There are a few things to note about this command. If you haven&rsquo;t configured your default editor, it might be set to something like <code>nano</code> or <code>vim</code> by default. If you are not familiar with these editors, you can set your default editor to something else by running the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git config --global core.editor <span style="color:#e6db74">&#34;code --wait&#34;</span>
+</span></span></code></pre></div><p>This will set your default editor to Visual Studio Code. Obviously, this should be installed on your system if you are using it. If you are using a different editor, you can replace <code>code</code> with the command that you would use to open a file in that editor. For example, if you are using <code>vim</code>, you would use <code>vim</code>. The <code>--wait</code> flag above will wait for the editor to close before continuing. This is important for Git to know when you are done writing your commit message. <strong>Note that not every application supports this flag.</strong></p>
+<p>Once you have set your default editor, you can run <code>git commit</code> to open the editor and write your commit message. The first line should be a short description of the change. The following lines should be a more detailed description of the change. You can see an example below:</p>
+<pre tabindex="0"><code class="language-git" data-lang="git">Added our first file.
+# Please enter the commit message for your changes. Lines starting
+# with &#39;#&#39; will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+#
+# Initial commit
+#
+# Changes to be committed:
+#	new file:   pyresize.py
+#
+</code></pre><p>Once we save this message, the commit will be complete. You can view the commit history by running <code>git log</code>. This will show you the commit hash, the author, the date, and the commit message. You can also commit changes and add a message in one command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git commit -m <span style="color:#e6db74">&#34;Added our first file.&#34;</span>
+</span></span></code></pre></div><p>We do not yet have a remote repository to <code>push</code> to, so we will save that for later. For now, we will continue to work locally. Let&rsquo;s add an image to our repository so that we can test it. I am going to use the <a href="![]%28https://resources.uta.edu/mme/identity/_images/new-logos/new-initials-logo.jpg%29">UTA Logo</a> for this example. You can download this and variations from the <a href="https://resources.uta.edu/mme/identity/brand/index.php" target="_blank" rel="noopener noreferrer">UTA Branding Resources</a> page.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_20-04-35_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;UTA Logo" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>UTA Logo
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Create a new <code>imgs</code> folder and add your image(s) to it. We can then add the directory along with all of its contents using <code>git add imgs</code>. You can see the status of your repository by running <code>git status</code> again. Let&rsquo;s go ahead and <code>commit</code> these changes.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git commit -am <span style="color:#e6db74">&#34;Added the UTA logo.&#34;</span>
+</span></span></code></pre></div><h3 id="making-a-change">Making a Change</h3>
+<p>For this project, we don&rsquo;t really need to have a bunch of test images. It is sufficient to have one or two. The name of our image folder should probably change to reflect its purpose. Let&rsquo;s start by renaming <code>imgs</code> to <code>test_imgs</code>. We can do this with the <code>mv</code> command in bash. Our repository will now look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git status
+</span></span><span style="display:flex;"><span>On branch main
+</span></span><span style="display:flex;"><span>Changes not staged <span style="color:#66d9ef">for</span> commit:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git add/rm &lt;file&gt;...&#34;</span> to update what will be committed<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git restore &lt;file&gt;...&#34;</span> to discard changes in working directory<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	deleted:    imgs/uta.png
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Untracked files:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git add &lt;file&gt;...&#34;</span> to include in what will be committed<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	test_imgs/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>no changes added to commit <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git add&#34;</span> and/or <span style="color:#e6db74">&#34;git commit -a&#34;</span><span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>This might be a tad unexpected. We renamed the folder, but Git is telling us that we deleted a file. This is because Git is tracking the file <code>imgs/uta.png</code>. When we renamed the folder, Git no longer knew where to find the file. We can fix this by running <code>git rm imgs/uta.png</code>. This will remove the file from the repository. We can then add the new folder with <code>git add test_imgs</code>. However, if we simply use <code>git add test_imgs</code>, Git will not know that we renamed the folder. We can fix this by using the <code>-A</code> flag. This will tell Git to add all changes, including renames. Our repository will now look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git status
+</span></span><span style="display:flex;"><span>On branch main
+</span></span><span style="display:flex;"><span>Changes to be committed:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>use <span style="color:#e6db74">&#34;git restore --staged &lt;file&gt;...&#34;</span> to unstage<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    renamed:    imgs/uta.png -&gt; test_imgs/uta.png
+</span></span></code></pre></div><p>Go ahead and <code>commit</code> these changes.</p>
+<h2 id="ignoring-files">Ignoring Files</h2>
+<p>There are certain files and directories that will end up in our project folder that we do not want to track. For example, we may want to resize images and save them in a local <code>output</code> directory. However, we do not want to track any of these images. We can have Git remember what we want or do <em>not</em> want using an ignore file. This file will contain a list of files and directories that we want to ignore. Let&rsquo;s create a <code>.gitignore</code> file and add the following line:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>output/
+</span></span></code></pre></div><p>Make sure you add and commit the <code>.gitignore</code> file.</p>
+<h2 id="branching">Branching</h2>
+<p>Let&rsquo;s go ahead and test our program by resizing one of our images. I&rsquo;m going to to resize <code>uta.png</code> to have a width of 500 pixels using the following command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python pyresize.py test_imgs/uta.png <span style="color:#ae81ff">500</span>
+</span></span></code></pre></div><p>Our program doesn&rsquo;t support creating a new file when resizing. Instead, it resizes the file and overwrites the original. We should add this feature and modify it without messing up our current code base. This is where branching comes in. We can create a new branch that will contain our new feature. We can then test it and merge it back into the main branch once we are happy with it.</p>
+<p>Every <code>commit</code> that we make is a snapshot of the entire project up to that point. There is a unique identifier attached to each commit. If we want to work on a specific bug or new feature without affecting the current code base, we can create a branch to track those changes independently of the other branches. The main benefits are that we can potentially break the code base without affecting the production-ready code. We can also work on multiple features at the same time without affecting each other.</p>
+<p>Let&rsquo;s create a new branch called <code>output_write</code>. We can do this with the <code>git branch</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git branch output_write
+</span></span></code></pre></div>
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_20-38-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The result of creating a new branch named `testing`. ([source](&lt;https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>The result of creating a new branch named <code>testing</code>. (<a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>This only creates a new branch, but we are still on the <code>main</code> branch. We can see this by running <code>git branch</code>. The current branch will be highlighted with an asterisk. The current branch is pointed to by the <code>HEAD</code> pointer. We can switch to the new branch using <code>git checkout</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git checkout output_write
+</span></span></code></pre></div>
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_20-40-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;The `HEAD` pointer after switching to a new branch. ([source](&lt;https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>The <code>HEAD</code> pointer after switching to a new branch. (<a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="modifying-the-code">Modifying the Code</h3>
+<p>Now that we are on the <code>output_write</code> branch, we can modify the code without affecting the <code>main</code> branch. Let&rsquo;s modify our original function to take in an additional argument: the output path. We can then use this path to save the resized image to a new file. Our new code will look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> PIL <span style="color:#f92672">import</span> Image
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">resize_image</span>(image_path, width, output_path):
+</span></span><span style="display:flex;"><span>    image <span style="color:#f92672">=</span> Image<span style="color:#f92672">.</span>open(image_path)
+</span></span><span style="display:flex;"><span>    wpercent <span style="color:#f92672">=</span> (width <span style="color:#f92672">/</span> float(image<span style="color:#f92672">.</span>size[<span style="color:#ae81ff">0</span>]))
+</span></span><span style="display:flex;"><span>    hsize <span style="color:#f92672">=</span> int((float(image<span style="color:#f92672">.</span>size[<span style="color:#ae81ff">1</span>]) <span style="color:#f92672">*</span> float(wpercent)))
+</span></span><span style="display:flex;"><span>    image <span style="color:#f92672">=</span> image<span style="color:#f92672">.</span>resize((width, hsize), Image<span style="color:#f92672">.</span>LANCZOS)
+</span></span><span style="display:flex;"><span>    image<span style="color:#f92672">.</span>save(output_path)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    resize_image(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>], int(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>]), sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">3</span>])
+</span></span></code></pre></div><p>Go ahead and commit these changes. Since we have already moved the <code>HEAD</code> pointer to the new branch, this change will not affect our <code>main</code> branch. The figure below is analagous to this scenario.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_20-45-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;The result of committing changes to a new branch. ([source](&lt;https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>The result of committing changes to a new branch. (<a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Let&rsquo;s test our program once more by resizing an image and saving it to the <code>output</code> directory. We can do this with the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python pyresize.py test_imgs/uta.png <span style="color:#ae81ff">500</span> output/uta.png
+</span></span></code></pre></div><p>Notice that when you run <code>git status</code> after resizing the image and saving to the <code>output</code> directory, it does not report any changes. Our ignore file is working as intended!</p>
+<h2 id="merging">Merging</h2>
+<p>Now that we have completed our new feature and tested it, we should merge these changes back to the <code>main</code> branch. We can do this with the <code>git merge</code> command. First, we need to switch back to the <code>main</code> branch.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git checkout main
+</span></span></code></pre></div><p>We can then merge the <code>output_write</code> branch into the <code>main</code> branch.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git merge output_write
+</span></span></code></pre></div><p>This will merge the changes from the <code>output_write</code> branch into the <code>main</code> branch. If there are any conflicts, Git will let you know and you can resolve them manually. Once the merge is complete, you can delete the <code>output_write</code> branch.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git branch -d output_write
+</span></span></code></pre></div>
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-08-27_20-51-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;The result of merging a branch into the `master` branch. ([source](&lt;https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell&gt;))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 10: </span>The result of merging a branch into the <code>master</code> branch. (<a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell" target="_blank" rel="noopener noreferrer">source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The figure above shows the history of a repository in which a branch named <code>iss53</code> was created, modified with new commits, and eventually merged back into the <code>master</code> branch.</p>
+<h2 id="remotes">Remotes</h2>
+<p>We have now covered the basics of using Git locally. Eventually, we will want our changes to be backed up on a remote server. This will allow us to collaborate with others and work on our projects from multiple machines. There are many services that provide this functionality. We will use GitHub for this example, but the process is similar for other services.</p>
+<h3 id="creating-a-repository">Creating a Repository</h3>
+<p>First, we need to create a new repository on GitHub. You can do this by clicking the <code>New</code> button on the <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub homepage</a>. I am only going to add a short description of this program. Go ahead and click <code>Create repository</code>.</p>
+<p>GitHub supports both SSH and HTTPS. I already have an SSH key set up. If you haven&rsquo;t configured one yet, check out <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account" target="_blank" rel="noopener noreferrer">Adding a new SSH key to your GitHub account</a> for instructions on how to do so. You can also use HTTPS, this requires a personal access token. More information can be found at <a href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token" target="_blank" rel="noopener noreferrer">Creating a personal access token</a>.</p>
+<p>Once created, we will have the option to use either our HTTPS or SSH URL. Mine is <code>git@github.com:ajdillhoff/pyresize.git</code>. We can add this as a remote repository using the <code>git remote add</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git remote add origin git@github.com:ajdillhoff/pyresize.git
+</span></span></code></pre></div><h3 id="pushing-to-a-remote">Pushing to a Remote</h3>
+<p>Now that we have a remote repository, we can push our changes to it. We can do this with the <code>git push</code> command. However, we need to specify the remote repository and the branch that we want to push. We can do this with the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git push -u origin main
+</span></span></code></pre></div><p>That&rsquo;s it! Our changes are now backed up on GitHub. We can view our repository by navigating to the URL in our browser. We can also view the commit history by clicking the <code>Commits</code> link.</p>
+<h2 id="cloning-an-existing-repository">Cloning an Existing Repository</h2>
+<p>If our repository already exists on GitHub, we can clone it to our local machine. This will create a new directory with the same name as the repository. We can do this with the <code>git clone</code> command. Let&rsquo;s clone the <code>pyresize</code> repository that we just created.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone git@github.com:ajdillhoff/pyresize.git
+</span></span></code></pre></div><p>You can clone using either the HTTPS or SSH URLs. Make sure you have the appropriate key or access token to do so.</p>
+<h3 id="pulling-from-a-remote">Pulling from a Remote</h3>
+<p>Now that we have cloned the repository, we can make changes and push them to the remote. However, if someone else makes changes to the remote repository, we will need to pull those changes to our local repository. We can do this with the <code>git pull</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git pull origin main
+</span></span></code></pre></div><p>Git will always require that we are up-to-date with the remote before we can push our changes. If someone else has made changes to the remote, we will need to pull those changes before we can push our own. This is to prevent conflicts.</p>
+<h2 id="summary">Summary</h2>
+<p>We have covered the basics of using Git. We have created a repository, staged and committed changes, created branches, merged branches, and pushed our changes to a remote repository. There are many more features that we have not covered, but this should be enough to get you started. If you are interested in learning more, check out the <a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener noreferrer">Git Book</a>.</p>
+<p><strong>Command Reference</strong></p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git init</code></td>
+<td>Create a new repository</td>
+</tr>
+<tr>
+<td><code>git config</code></td>
+<td>Configure Git</td>
+</tr>
+<tr>
+<td><code>git status</code></td>
+<td>View the status of your repository</td>
+</tr>
+<tr>
+<td><code>git add</code></td>
+<td>Add files to the staging area</td>
+</tr>
+<tr>
+<td><code>git commit</code></td>
+<td>Commit changes to the repository</td>
+</tr>
+<tr>
+<td><code>git branch</code></td>
+<td>Create, list, or delete branches</td>
+</tr>
+<tr>
+<td><code>git checkout</code></td>
+<td>Switch branches or restore working tree files</td>
+</tr>
+<tr>
+<td><code>git merge</code></td>
+<td>Join two or more development histories together</td>
+</tr>
+<tr>
+<td><code>git remote</code></td>
+<td>Manage set of tracked repositories</td>
+</tr>
+<tr>
+<td><code>git push</code></td>
+<td>Update remote refs along with associated objects</td>
+</tr>
+<tr>
+<td><code>git clone</code></td>
+<td>Clone a repository into a new directory</td>
+</tr>
+<tr>
+<td><code>git pull</code></td>
+<td>Fetch from and integrate with another repository or a local branch</td>
+</tr>
+<tr>
+<td><code>git log</code></td>
+<td>Show commit logs</td>
+</tr>
+<tr>
+<td><code>git rm</code></td>
+<td>Remove files from the working tree and from the index</td>
+</tr>
+<tr>
+<td><code>git mv</code></td>
+<td>Move or rename a file, a directory, or a symlink</td>
+</tr>
+<tr>
+<td><code>git branch -d</code></td>
+<td>Delete a branch</td>
+</tr>
+<tr>
+<td><code>git remote add</code></td>
+<td>Add a remote repository</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/git/">git</a>
+  
+  <a class="badge badge-light" href="/tags/programming/">programming</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

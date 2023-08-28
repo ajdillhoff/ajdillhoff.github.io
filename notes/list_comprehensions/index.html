@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Lists and List Comprehensions List comprehensions provide a concise way to create lists, and are often faster than using a for-loop. They are inspired by set-builder notation in mathematics.
+This notebook demonstrates common list functions as well as the syntax and basic usage of list comprehensions.
+names = [&#34;Naomi&#34;, &#34;James&#34;, &#34;Amos&#34;, &#34;Bobbie&#34;] # Append &#34;Miller&#34; to the end of the list names.append(&#34;Miller&#34;) # This can also be accomplished using the &#43; operator or the extend() method # These are similar, where `&#43;=` is shorthand for `extend` names.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/list_comprehensions/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/list_comprehensions/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/list_comprehensions/">
+  <meta property="og:title" content="Python List Comprehensions | Alex Dillhoff">
+  <meta property="og:description" content="Lists and List Comprehensions List comprehensions provide a concise way to create lists, and are often faster than using a for-loop. They are inspired by set-builder notation in mathematics.
+This notebook demonstrates common list functions as well as the syntax and basic usage of list comprehensions.
+names = [&#34;Naomi&#34;, &#34;James&#34;, &#34;Amos&#34;, &#34;Bobbie&#34;] # Append &#34;Miller&#34; to the end of the list names.append(&#34;Miller&#34;) # This can also be accomplished using the &#43; operator or the extend() method # These are similar, where `&#43;=` is shorthand for `extend` names."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-08-26T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-08-26T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Python List Comprehensions | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Python List Comprehensions</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-08-26 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-08-26 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Aug 26, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/list_comprehensions/&amp;text=Python%20List%20Comprehensions" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/list_comprehensions/&amp;t=Python%20List%20Comprehensions" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Python%20List%20Comprehensions&amp;body=https://ajdillhoff.github.io/notes/list_comprehensions/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/list_comprehensions/&amp;title=Python%20List%20Comprehensions" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Python%20List%20Comprehensions%20https://ajdillhoff.github.io/notes/list_comprehensions/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/list_comprehensions/&amp;title=Python%20List%20Comprehensions" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <a target="_blank" href="https://colab.research.google.com/github/ajdillhoff/python-examples/blob/main/basics/list_comprehensions.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+<h1 id="lists-and-list-comprehensions">Lists and List Comprehensions</h1>
+<p>List comprehensions provide a concise way to create lists, and are often faster than using a for-loop. They are inspired by set-builder notation in mathematics.</p>
+<p>This notebook demonstrates common list functions as well as the syntax and basic usage of list comprehensions.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>names <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;Naomi&#34;</span>, <span style="color:#e6db74">&#34;James&#34;</span>, <span style="color:#e6db74">&#34;Amos&#34;</span>, <span style="color:#e6db74">&#34;Bobbie&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Append &#34;Miller&#34; to the end of the list</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#34;Miller&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># This can also be accomplished using the + operator or the extend() method</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># These are similar, where `+=` is shorthand for `extend`</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>extend([<span style="color:#e6db74">&#34;Chrisjen&#34;</span>])
+</span></span><span style="display:flex;"><span>names <span style="color:#f92672">+=</span> [<span style="color:#e6db74">&#34;Alex&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># `extend()` works on any iterable</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>extend([<span style="color:#e6db74">&#34;Fred&#34;</span>, <span style="color:#e6db74">&#34;Dawes&#34;</span>, <span style="color:#e6db74">&#34;Ashford&#34;</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># This can also be done using slicing</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># names[len(names):] = [&#34;Fred&#34;, &#34;Dawes&#34;, &#34;Ashford&#34;]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Insert &#34;Holden&#34; at the beginning of the list</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>insert(<span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#34;Holden&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can easily remove items</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>remove(<span style="color:#e6db74">&#34;Alex&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can also remove items by value</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>remove(<span style="color:#e6db74">&#34;Ashford&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can also remove items by index. This will return the removed item</span>
+</span></span><span style="display:flex;"><span>eros_passenger <span style="color:#f92672">=</span> names<span style="color:#f92672">.</span>pop(<span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>print(eros_passenger <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; is on his way to Venus&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># If your list has duplicates, you can count the number of times a value appears</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Naomi&#34;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; appears &#34;</span> <span style="color:#f92672">+</span> str(names<span style="color:#f92672">.</span>count(<span style="color:#e6db74">&#34;Naomi&#34;</span>)) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; time(s)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Reversing a list is easy</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>reverse()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can also create a shallow copy of a list</span>
+</span></span><span style="display:flex;"><span>names_copy <span style="color:#f92672">=</span> names<span style="color:#f92672">.</span>copy()
+</span></span></code></pre></div><pre><code>Miller is on his way to Venus
+Naomi appears 1 time(s)
+</code></pre>
+<h2 id="sorting">Sorting</h2>
+<p>A list can be sorted by calling the <code>sort</code> function. The list is sorted in-place, meaning that the original list is modified. Since a list can contain any type of object, the objects must be comparable to each other. For example, a list of strings can be sorted alphabetically, but a list of strings and integers cannot be sorted.</p>
+<p>In cases with mixed types, a custom <code>key</code> function can be passed to the <code>sort</code> function. The <code>key</code> function is called on each element of the list, and the return value is used to sort the list. For example, to sort a list of strings and integers by the length of the string, the <code>key</code> function would transform the integers into strings.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">&gt;&gt;&gt;</span> l <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;abc&#39;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;ab&#39;</span>]
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&gt;&gt;&gt;</span> l<span style="color:#f92672">.</span>sort(key<span style="color:#f92672">=</span>str)
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&gt;&gt;&gt;</span> l
+</span></span><span style="display:flex;"><span>[<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;abc&#39;</span>, <span style="color:#e6db74">&#39;ab&#39;</span>]
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Sorting is a very common operation, and Python gives us some level of control over how the items are sorted.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># The default is to sort in ascending order</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Sort the list in ascending order</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>sort()
+</span></span><span style="display:flex;"><span>print(names)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Sort the list in descending order</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>sort(reverse<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>print(names)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can also sort by a key function, such as the length of each name</span>
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>sort(key<span style="color:#f92672">=</span>len)
+</span></span><span style="display:flex;"><span>print(names)
+</span></span></code></pre></div><pre><code>['Amos', 'Bobbie', 'Chrisjen', 'Dawes', 'Fred', 'Holden', 'James', 'Naomi']
+['Naomi', 'James', 'Holden', 'Fred', 'Dawes', 'Chrisjen', 'Bobbie', 'Amos']
+['Fred', 'Amos', 'Naomi', 'James', 'Dawes', 'Holden', 'Bobbie', 'Chrisjen']
+</code></pre>
+<p>Let&rsquo;s introduce a slightly more complex scenario in which each person in the list rolls a 20-sided die. We&rsquo;ll use the random module to generate a random number between 1 and 20 for each person. Using those values, we can then sort the list by the roll of the die, in descending order.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Roll a 20-sided die for each person using a for loop</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># rolls = []</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># for name in names:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#     rolls.append(random.randint(1, 20))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># The above code is commented out by default because it can be written more succinctly using a list comprehension</span>
+</span></span><span style="display:flex;"><span>rolls <span style="color:#f92672">=</span> [random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> names]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(names)
+</span></span><span style="display:flex;"><span>names<span style="color:#f92672">.</span>index(<span style="color:#e6db74">&#39;Fred&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Sort the names by the roll of the die, in descending order</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># First, create a function that returns the roll based on the name</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_roll</span>(name):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># print(names) # reveals an empty list!</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> rolls[names<span style="color:#f92672">.</span>index(name)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># names.sort(key=get_roll, reverse=True)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># The above will not work because `names` does not exist within the scope of the function.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can instead combine the rolls with the names using the zip() function</span>
+</span></span><span style="display:flex;"><span>names_and_rolls <span style="color:#f92672">=</span> list(zip(names, rolls))
+</span></span><span style="display:flex;"><span>names_and_rolls<span style="color:#f92672">.</span>sort(key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> roll: roll[<span style="color:#ae81ff">1</span>], reverse<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>print(names_and_rolls)
+</span></span></code></pre></div><pre><code>['Fred', 'Amos', 'Naomi', 'James', 'Dawes', 'Holden', 'Bobbie', 'Chrisjen']
+[('Dawes', 19), ('Fred', 18), ('Amos', 12), ('Naomi', 11), ('Bobbie', 10), ('Holden', 8), ('Chrisjen', 7), ('James', 5)]
+</code></pre>
+<h1 id="list-comprehensions">List Comprehensions</h1>
+<p>We can also create nested list comprehensions, which is equivalent to nested for loops. For example, let&rsquo;s create a 3x4 matrix using a nested list comprehension.</p>
+<h2 id="nested-list-comprehension">Nested list comprehension</h2>
+<h2 id="advanced-list-comprehension">Advanced list comprehension</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Nested list comprehension</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Create a 2D list where each row represents the top 5 rolls for each person</span>
+</span></span><span style="display:flex;"><span>top_rolls <span style="color:#f92672">=</span> [[random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">5</span>)] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> names]
+</span></span><span style="display:flex;"><span>print(top_rolls)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># We can create a similar 2D list where each row is a tuple of the name and the top 5 rolls</span>
+</span></span><span style="display:flex;"><span>top_rolls <span style="color:#f92672">=</span> [(name, [random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">5</span>)]) <span style="color:#66d9ef">for</span> name <span style="color:#f92672">in</span> names]
+</span></span><span style="display:flex;"><span>print(top_rolls)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># If we wrote this with loops, it would look like this:</span>
+</span></span><span style="display:flex;"><span>top_rolls <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> name <span style="color:#f92672">in</span> names:
+</span></span><span style="display:flex;"><span>    rolls <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">5</span>):
+</span></span><span style="display:flex;"><span>        rolls<span style="color:#f92672">.</span>append(random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>))
+</span></span><span style="display:flex;"><span>    top_rolls<span style="color:#f92672">.</span>append((name, rolls))
+</span></span></code></pre></div><pre><code>[[7, 1, 11, 15, 14], [3, 14, 15, 10, 9], [7, 16, 17, 15, 19], [12, 6, 10, 17, 19], [10, 4, 7, 17, 11], [16, 1, 14, 2, 12], [3, 10, 2, 12, 13], [7, 17, 16, 3, 6]]
+[('Fred', [15, 7, 1, 3, 16]), ('Amos', [7, 15, 9, 4, 6]), ('Naomi', [19, 7, 12, 5, 6]), ('James', [6, 11, 4, 10, 17]), ('Dawes', [13, 5, 15, 19, 8]), ('Holden', [14, 18, 16, 5, 15]), ('Bobbie', [12, 15, 8, 18, 20]), ('Chrisjen', [18, 16, 19, 10, 11])]
+</code></pre>
+<h1 id="performance-of-list-comprehensions-versus-for-loops">Performance of list comprehensions versus <code>for</code> loops</h1>
+<p>A strong argument for list comprehensions is that they are more elegant and easier to read. However, they are also faster than for loops. Let&rsquo;s compare the performance of list comprehensions and for loops.</p>
+<p>Two common benchmarks to test their performance are to append numbers to a list and to square numbers. Let&rsquo;s compare the performance of list comprehensions and for loops for these two tasks.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> timeit
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Benchmark #1: Append vs. List Comprehension</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Append</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">for_append</span>():
+</span></span><span style="display:flex;"><span>    names <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1000000</span>):
+</span></span><span style="display:flex;"><span>        names<span style="color:#f92672">.</span>append(i)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print the average out of 10 runs (in milliseconds)</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Append: &#34;</span> <span style="color:#f92672">+</span> str(timeit<span style="color:#f92672">.</span>timeit(for_append, number<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># List Comprehension</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">list_comprehension</span>():
+</span></span><span style="display:flex;"><span>    names <span style="color:#f92672">=</span> [i <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1000000</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print the average out of 10 runs (in milliseconds)</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Append: &#34;</span> <span style="color:#f92672">+</span> str(timeit<span style="color:#f92672">.</span>timeit(for_append, number<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>))
+</span></span></code></pre></div><pre><code>Append: 371.44755799999984
+Append: 351.0218179999356
+</code></pre>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Benchmark 2: Squaring Numbers</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For loop</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">for_loop</span>():
+</span></span><span style="display:flex;"><span>    squares <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1000000</span>):
+</span></span><span style="display:flex;"><span>        squares<span style="color:#f92672">.</span>append(i<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print the average out of 10 runs (in milliseconds)</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;For Loop: &#34;</span> <span style="color:#f92672">+</span> str(timeit<span style="color:#f92672">.</span>timeit(for_loop, number<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># List Comprehension</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">list_comprehension</span>():
+</span></span><span style="display:flex;"><span>    squares <span style="color:#f92672">=</span> [i<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span> <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1000000</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print the average out of 10 runs (in milliseconds)</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;List Comprehension: &#34;</span> <span style="color:#f92672">+</span> str(timeit<span style="color:#f92672">.</span>timeit(list_comprehension, number<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>))
+</span></span></code></pre></div><pre><code>For Loop: 593.4785219997138
+List Comprehension: 572.2285600004398
+</code></pre>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/python/">python</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/control_flow_in_python/">Control Flow in Python</a></li>
+          
+          <li><a href="/notes/introduction_to_python/">Introduction to Python</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
