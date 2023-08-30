@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="File I/O in Python This notebook will cover the following topics:
+Opening and closing files Reading and writing text files Reading and writing binary files Using the with statement Using the pickle module Serializing objects with pickle Reading and writing JSON files Opening and closing files Let&rsquo;s start with the basics. To open a file, we use the built-in open() function. The open() function takes two arguments: the name of the file to open and the mode in which to open it.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/file_io/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/file_io/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/file_io/">
+  <meta property="og:title" content="Python File I/O | Alex Dillhoff">
+  <meta property="og:description" content="File I/O in Python This notebook will cover the following topics:
+Opening and closing files Reading and writing text files Reading and writing binary files Using the with statement Using the pickle module Serializing objects with pickle Reading and writing JSON files Opening and closing files Let&rsquo;s start with the basics. To open a file, we use the built-in open() function. The open() function takes two arguments: the name of the file to open and the mode in which to open it."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-08-30T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-08-30T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Python File I/O | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Python File I/O</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-08-30 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-08-30 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Aug 30, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    10 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/file_io/&amp;text=Python%20File%20I/O" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/file_io/&amp;t=Python%20File%20I/O" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Python%20File%20I/O&amp;body=https://ajdillhoff.github.io/notes/file_io/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/file_io/&amp;title=Python%20File%20I/O" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Python%20File%20I/O%20https://ajdillhoff.github.io/notes/file_io/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/file_io/&amp;title=Python%20File%20I/O" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <a target="_blank" href="https://colab.research.google.com/github/ajdillhoff/python-examples/blob/main/basics/file_io.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+<h1 id="file-io-in-python">File I/O in Python</h1>
+<p>This notebook will cover the following topics:</p>
+<ol>
+<li>Opening and closing files</li>
+<li>Reading and writing text files</li>
+<li>Reading and writing binary files</li>
+<li>Using the <code>with</code> statement</li>
+<li>Using the <code>pickle</code> module</li>
+<li>Serializing objects with <code>pickle</code></li>
+<li>Reading and writing JSON files</li>
+</ol>
+<h2 id="opening-and-closing-files">Opening and closing files</h2>
+<p>Let&rsquo;s start with the basics. To open a file, we use the built-in <code>open()</code> function. The <code>open()</code> function takes two arguments: the name of the file to open and the mode in which to open it. The mode can be one of the following:</p>
+<ul>
+<li><code>'r'</code> - open for reading (default)</li>
+<li><code>'w'</code> - open for writing, truncating the file first</li>
+<li><code>'x'</code> - open for exclusive creation, failing if the file already exists</li>
+<li><code>'a'</code> - open for writing, appending to the end of the file if it exists</li>
+<li><code>'b'</code> - binary mode</li>
+<li><code>'t'</code> - text mode (default)</li>
+<li><code>'+'</code> - open a disk file for updating (reading and writing)</li>
+</ul>
+<p>To make this tutorial more interesting, let&rsquo;s create a purpose for our code. Our goal is to create a logging system for players and their rolls. Every time a player rolls, we will add it to our log. We will also add a timestamp to each roll. We will store the log in a file called <code>log.txt</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> datetime
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># First, we&#39;ll open a file</span>
+</span></span><span style="display:flex;"><span>fp <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;log.txt&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Let&#39;s create a list of players</span>
+</span></span><span style="display:flex;"><span>players <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;Naomi&#34;</span>, <span style="color:#e6db74">&#34;James&#34;</span>, <span style="color:#e6db74">&#34;Amos&#34;</span>, <span style="color:#e6db74">&#34;Bobbie&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Let&#39;s roll a d20 for each player and write it in the log, including a timestamp</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> player <span style="color:#f92672">in</span> players:
+</span></span><span style="display:flex;"><span>    roll <span style="color:#f92672">=</span> random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>)
+</span></span><span style="display:flex;"><span>    timestamp <span style="color:#f92672">=</span> datetime<span style="color:#f92672">.</span>datetime<span style="color:#f92672">.</span>now()
+</span></span><span style="display:flex;"><span>    fp<span style="color:#f92672">.</span>write(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>timestamp<span style="color:#e6db74">}</span><span style="color:#e6db74"> - </span><span style="color:#e6db74">{</span>player<span style="color:#e6db74">}</span><span style="color:#e6db74"> rolled a </span><span style="color:#e6db74">{</span>roll<span style="color:#e6db74">}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Finally, let&#39;s close the file</span>
+</span></span><span style="display:flex;"><span>fp<span style="color:#f92672">.</span>close()
+</span></span></code></pre></div><p>It isn&rsquo;t recommended to open and close the file manually like this. Instead, we will use the <code>with</code> statement. This will ensure that the file is closed properly even if an exception is raised.</p>
+<p>Additionally, it is possible that calling <code>write</code> without using <code>with</code> will not write to the file immediately. Instead, it will be buffered and written later. Using <code>with</code> will ensure that the file is written to immediately.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> datetime
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#39;log.txt&#39;</span>, <span style="color:#e6db74">&#39;a&#39;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>    f<span style="color:#f92672">.</span>write(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{</span>datetime<span style="color:#f92672">.</span>datetime<span style="color:#f92672">.</span>now()<span style="color:#e6db74">}</span><span style="color:#e6db74">: </span><span style="color:#e6db74">{</span>player<span style="color:#e6db74">}</span><span style="color:#e6db74"> rolled </span><span style="color:#e6db74">{</span>roll<span style="color:#e6db74">}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>)
+</span></span></code></pre></div><h2 id="reading-and-writing-binary-files">Reading and writing binary files</h2>
+<p>For the next example, we will write the user&rsquo;s rolls as binary. Each user will get their own file so that we can easily read their rolls later.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> player <span style="color:#f92672">in</span> players:
+</span></span><span style="display:flex;"><span>    rolls <span style="color:#f92672">=</span> [random<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">5</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;rolls/&#34;</span> <span style="color:#f92672">+</span> player <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;.bin&#34;</span>, <span style="color:#e6db74">&#34;wb&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>        fp<span style="color:#f92672">.</span>write(bytes(rolls))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># To verify, let&#39;s open the files and print the contents</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> player <span style="color:#f92672">in</span> players:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;rolls/&#34;</span> <span style="color:#f92672">+</span> player <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;.bin&#34;</span>, <span style="color:#e6db74">&#34;rb&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>        print(player, list(fp<span style="color:#f92672">.</span>read()))
+</span></span></code></pre></div><pre><code>Naomi [2, 13, 18, 8, 16]
+James [7, 10, 17, 15, 15]
+Amos [19, 9, 11, 6, 3]
+Bobbie [16, 5, 18, 13, 1]
+</code></pre>
+<h1 id="reading-from-csv-files">Reading from CSV files</h1>
+<p>Python has a built-in module for reading and writing CSV files. CSV stands for comma-separated values. It is a common format for storing tabular data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Load and parse CSV</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> csv
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Store the data in a list of dictionaries</span>
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;../data/musicnet_metadata.csv&#34;</span>, <span style="color:#e6db74">&#34;r&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    reader <span style="color:#f92672">=</span> csv<span style="color:#f92672">.</span>reader(fp)
+</span></span><span style="display:flex;"><span>    keys <span style="color:#f92672">=</span> next(reader)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> reader:
+</span></span><span style="display:flex;"><span>        data<span style="color:#f92672">.</span>append(dict(zip(keys, row)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Let&#39;s print the first 5 rows</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> data[:<span style="color:#ae81ff">5</span>]:
+</span></span><span style="display:flex;"><span>    print(row)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Count the number of Violin pieces are in the dataset</span>
+</span></span><span style="display:flex;"><span>count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;Violin&#34;</span> <span style="color:#f92672">in</span> row[<span style="color:#e6db74">&#34;ensemble&#34;</span>]:
+</span></span><span style="display:flex;"><span>        count <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;There are </span><span style="color:#e6db74">{</span>count<span style="color:#e6db74">}</span><span style="color:#e6db74"> Violin pieces in the dataset&#34;</span>)
+</span></span></code></pre></div><pre><code>{'id': '1727', 'composer': 'Schubert', 'composition': 'Piano Quintet in A major', 'movement': '2. Andante', 'ensemble': 'Piano Quintet', 'source': 'European Archive', 'transcriber': 'http://tirolmusic.blogspot.com/', 'catalog_name': 'OP114', 'seconds': '447'}
+{'id': '1728', 'composer': 'Schubert', 'composition': 'Piano Quintet in A major', 'movement': '3. Scherzo: Presto', 'ensemble': 'Piano Quintet', 'source': 'European Archive', 'transcriber': 'http://tirolmusic.blogspot.com/', 'catalog_name': 'OP114', 'seconds': '251'}
+{'id': '1729', 'composer': 'Schubert', 'composition': 'Piano Quintet in A major', 'movement': '4. Andantino - Allegretto', 'ensemble': 'Piano Quintet', 'source': 'European Archive', 'transcriber': 'http://tirolmusic.blogspot.com/', 'catalog_name': 'OP114', 'seconds': '444'}
+{'id': '1730', 'composer': 'Schubert', 'composition': 'Piano Quintet in A major', 'movement': '5. Allegro giusto', 'ensemble': 'Piano Quintet', 'source': 'European Archive', 'transcriber': 'http://tirolmusic.blogspot.com/', 'catalog_name': 'OP114', 'seconds': '368'}
+{'id': '1733', 'composer': 'Schubert', 'composition': 'Piano Sonata in A major', 'movement': '2. Andantino', 'ensemble': 'Solo Piano', 'source': 'Museopen', 'transcriber': 'Segundo G. Yogore', 'catalog_name': 'D959', 'seconds': '546'}
+There are 35 Violin pieces in the dataset
+</code></pre>
+<h1 id="application-list-all-works-in-the-dataset-by-bach-for-solo-violin">Application: List all works in the dataset by Bach for Solo Violin</h1>
+<p>Now that we have our data loaded. Let&rsquo;s use list comprehensions to print out all the works by Bach for solo violin. Our formatted table should show the following columns:</p>
+<ul>
+<li>id</li>
+<li>composition name</li>
+<li>seconds</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Filter all lines that are written by Bach</span>
+</span></span><span style="display:flex;"><span>bach <span style="color:#f92672">=</span> [row <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> data <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;Bach&#34;</span> <span style="color:#f92672">in</span> row[<span style="color:#e6db74">&#34;composer&#34;</span>] <span style="color:#f92672">and</span> <span style="color:#e6db74">&#34;Solo Violin&#34;</span> <span style="color:#f92672">in</span> row[<span style="color:#e6db74">&#34;ensemble&#34;</span>]]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the number of Bach pieces</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;There are </span><span style="color:#e6db74">{</span>len(bach)<span style="color:#e6db74">}</span><span style="color:#e6db74"> Bach pieces in the dataset&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print them all out</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> bach:
+</span></span><span style="display:flex;"><span>    print(row)
+</span></span></code></pre></div><pre><code>There are 9 Bach pieces in the dataset
+{'id': '2186', 'composer': 'Bach', 'composition': 'Violin Partita No 3 in E major', 'movement': '1. Preludio', 'ensemble': 'Solo Violin', 'source': 'Oliver Colbentston', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1006', 'seconds': '214'}
+{'id': '2191', 'composer': 'Bach', 'composition': 'Violin Partita No 3 in E major', 'movement': '6. Bourree', 'ensemble': 'Solo Violin', 'source': 'Oliver Colbentston', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1006', 'seconds': '102'}
+{'id': '2241', 'composer': 'Bach', 'composition': 'Violin Sonata No 1 in G minor', 'movement': '1. Adagio', 'ensemble': 'Solo Violin', 'source': 'European Archive', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1001', 'seconds': '242'}
+{'id': '2242', 'composer': 'Bach', 'composition': 'Violin Sonata No 1 in G minor', 'movement': '2. Fuga', 'ensemble': 'Solo Violin', 'source': 'European Archive', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1001', 'seconds': '312'}
+{'id': '2243', 'composer': 'Bach', 'composition': 'Violin Sonata No 1 in G minor', 'movement': '3. Siciliana', 'ensemble': 'Solo Violin', 'source': 'European Archive', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1001', 'seconds': '193'}
+{'id': '2244', 'composer': 'Bach', 'composition': 'Violin Sonata No 1 in G minor', 'movement': '4. Presto', 'ensemble': 'Solo Violin', 'source': 'European Archive', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1001', 'seconds': '214'}
+{'id': '2288', 'composer': 'Bach', 'composition': 'Violin Partita No 1 in B minor', 'movement': '2. Corrente', 'ensemble': 'Solo Violin', 'source': 'John Garner', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1002', 'seconds': '191'}
+{'id': '2289', 'composer': 'Bach', 'composition': 'Violin Partita No 1 in B minor', 'movement': '3. Sarabande', 'ensemble': 'Solo Violin', 'source': 'John Garner', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1002', 'seconds': '203'}
+{'id': '2659', 'composer': 'Bach', 'composition': 'Violin Partita No 1 in B minor', 'movement': '6. Double', 'ensemble': 'Solo Violin', 'source': 'John Garner', 'transcriber': 'suzumidi', 'catalog_name': 'BWV1002', 'seconds': '108'}
+</code></pre>
+<p>It looks like this dataset is missing quite a few pieces. Bach wrote 6 sonatas and partitas for solo violin. We only have 3 of them in this dataset. Of the 3 that are included, partitas 1 and 3 are incomplete as well.</p>
+<p>Based on the order of the ids, it looks like this data should be present. Let&rsquo;s see if we can fill some of this in.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># The times are based on Hilary Hahn&#39;s recordings</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>missing_pieces <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;2679&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composer&#34;</span>: <span style="color:#e6db74">&#34;Bach&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composition&#34;</span>: <span style="color:#e6db74">&#34;Violin Partita No 3 in E major&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;movement&#34;</span>: <span style="color:#e6db74">&#34;2. Loure&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ensemble&#34;</span>: <span style="color:#e6db74">&#34;Solo Violin&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;DASC 5300 Fall 2023&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;transcriber&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;catalog_name&#34;</span>: <span style="color:#e6db74">&#34;BWV 1006&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;seconds&#34;</span>: <span style="color:#e6db74">&#34;287&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;2680&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composer&#34;</span>: <span style="color:#e6db74">&#34;Bach&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composition&#34;</span>: <span style="color:#e6db74">&#34;Violin Partita No 3 in E major&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;movement&#34;</span>: <span style="color:#e6db74">&#34;3. Gavotte en Rondeau&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ensemble&#34;</span>: <span style="color:#e6db74">&#34;Solo Violin&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;DASC 5300 Fall 2023&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;transcriber&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;catalog_name&#34;</span>: <span style="color:#e6db74">&#34;BWV 1006&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;seconds&#34;</span>: <span style="color:#e6db74">&#34;196&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;2681&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composer&#34;</span>: <span style="color:#e6db74">&#34;Bach&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composition&#34;</span>: <span style="color:#e6db74">&#34;Violin Partita No 3 in E major&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;movement&#34;</span>: <span style="color:#e6db74">&#34;4. Menuet I&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ensemble&#34;</span>: <span style="color:#e6db74">&#34;Solo Violin&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;DASC 5300 Fall 2023&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;transcriber&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;catalog_name&#34;</span>: <span style="color:#e6db74">&#34;BWV 1006&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;seconds&#34;</span>: <span style="color:#e6db74">&#34;113&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;2682&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composer&#34;</span>: <span style="color:#e6db74">&#34;Bach&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;composition&#34;</span>: <span style="color:#e6db74">&#34;Violin Partita No 3 in E major&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;movement&#34;</span>: <span style="color:#e6db74">&#34;5. Menuet II&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ensemble&#34;</span>: <span style="color:#e6db74">&#34;Solo Violin&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;DASC 5300 Fall 2023&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;transcriber&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;catalog_name&#34;</span>: <span style="color:#e6db74">&#34;BWV 1006&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;seconds&#34;</span>: <span style="color:#e6db74">&#34;183&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><h1 id="formatting-our-output">Formatting Our Output</h1>
+<p>Viewing raw lines of a dictionary or CSV file is less than ideal. Let&rsquo;s format our output to make it easier to read. We will format the filtered Bach data. Since we know that every piece was written by him, we don&rsquo;t need to show that column.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Let&#39;s add the missing pieces to our dataset</span>
+</span></span><span style="display:flex;"><span>data<span style="color:#f92672">.</span>extend(missing_pieces)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Refilter the Bach pieces</span>
+</span></span><span style="display:flex;"><span>bach <span style="color:#f92672">=</span> [row <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> data <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;Bach&#34;</span> <span style="color:#f92672">in</span> row[<span style="color:#e6db74">&#34;composer&#34;</span>] <span style="color:#f92672">and</span> <span style="color:#e6db74">&#34;Solo Violin&#34;</span> <span style="color:#f92672">in</span> row[<span style="color:#e6db74">&#34;ensemble&#34;</span>]]
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;There are </span><span style="color:#e6db74">{</span>len(bach)<span style="color:#e6db74">}</span><span style="color:#e6db74"> Bach pieces in the dataset&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print them all out, sorted by composition then movement</span>
+</span></span><span style="display:flex;"><span>composition_width <span style="color:#f92672">=</span> max(len(row[<span style="color:#e6db74">&#34;composition&#34;</span>]) <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> bach)
+</span></span><span style="display:flex;"><span>movement_width <span style="color:#f92672">=</span> max(len(row[<span style="color:#e6db74">&#34;movement&#34;</span>]) <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> bach)
+</span></span><span style="display:flex;"><span>id_width <span style="color:#f92672">=</span> max(len(row[<span style="color:#e6db74">&#34;id&#34;</span>]) <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> bach)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;{:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">} | {:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">} | {:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">}&#34;</span><span style="color:#f92672">.</span>format(<span style="color:#e6db74">&#34;Composition&#34;</span>, composition_width, <span style="color:#e6db74">&#34;Movement&#34;</span>, movement_width, <span style="color:#e6db74">&#34;ID&#34;</span>, id_width))
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;-&#34;</span> <span style="color:#f92672">*</span> (composition_width <span style="color:#f92672">+</span> movement_width <span style="color:#f92672">+</span> id_width <span style="color:#f92672">+</span> <span style="color:#ae81ff">6</span>))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> sorted(bach, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> x: (x[<span style="color:#e6db74">&#34;composition&#34;</span>], x[<span style="color:#e6db74">&#34;movement&#34;</span>])):
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;{:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">} | {:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">} | {:&lt;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">}&#34;</span><span style="color:#f92672">.</span>format(row[<span style="color:#e6db74">&#34;composition&#34;</span>], composition_width, row[<span style="color:#e6db74">&#34;movement&#34;</span>], movement_width, row[<span style="color:#e6db74">&#34;id&#34;</span>], id_width))
+</span></span></code></pre></div><pre><code>There are 13 Bach pieces in the dataset
+Composition                    | Movement              | ID  
+-------------------------------------------------------------
+Violin Partita No 1 in B minor | 2. Corrente           | 2288
+Violin Partita No 1 in B minor | 3. Sarabande          | 2289
+Violin Partita No 1 in B minor | 6. Double             | 2659
+Violin Partita No 3 in E major | 1. Preludio           | 2186
+Violin Partita No 3 in E major | 2. Loure              | 2679
+Violin Partita No 3 in E major | 3. Gavotte en Rondeau | 2680
+Violin Partita No 3 in E major | 4. Menuet I           | 2681
+Violin Partita No 3 in E major | 5. Menuet II          | 2682
+Violin Partita No 3 in E major | 6. Bourree            | 2191
+Violin Sonata No 1 in G minor  | 1. Adagio             | 2241
+Violin Sonata No 1 in G minor  | 2. Fuga               | 2242
+Violin Sonata No 1 in G minor  | 3. Siciliana          | 2243
+Violin Sonata No 1 in G minor  | 4. Presto             | 2244
+</code></pre>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Now that it looks good, let&#39;s write the updated dataset to a new file</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;../data/musicnet_metadata_updated.csv&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    writer <span style="color:#f92672">=</span> csv<span style="color:#f92672">.</span>DictWriter(fp, fieldnames<span style="color:#f92672">=</span>keys)
+</span></span><span style="display:flex;"><span>    writer<span style="color:#f92672">.</span>writeheader()
+</span></span><span style="display:flex;"><span>    writer<span style="color:#f92672">.</span>writerows(data)
+</span></span></code></pre></div><h1 id="reading-and-writing-json">Reading and Writing JSON</h1>
+<p>JSON stands for JavaScript Object Notation. It is a common format for storing and transmitting data. It is often used for web APIs. Python has a built-in module for reading and writing JSON files.</p>
+<p>Let&rsquo;s open the CSV file from the previous example and write it to JSON.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Load and parse CSV</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> csv
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Store the data in a list of dictionaries</span>
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;../data/musicnet_metadata.csv&#34;</span>, <span style="color:#e6db74">&#34;r&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    reader <span style="color:#f92672">=</span> csv<span style="color:#f92672">.</span>reader(fp)
+</span></span><span style="display:flex;"><span>    keys <span style="color:#f92672">=</span> next(reader)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> reader:
+</span></span><span style="display:flex;"><span>        data<span style="color:#f92672">.</span>append(dict(zip(keys, row)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Write the data to a JSON file</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;musicnet_metadata.json&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    json<span style="color:#f92672">.</span>dump(data, fp)
+</span></span></code></pre></div><h1 id="reading-and-writing-pickle-files">Reading and Writing <code>pickle</code> Files</h1>
+<p>Python has a built-in module for reading and writing <code>pickle</code> files. <code>pickle</code> is a binary format for serializing Python objects. It is not human-readable, but it is very useful for storing and transmitting data. Note that <code>pickle</code> is not secure. It is possible to create malicious <code>pickle</code> files that can execute arbitrary code when loaded. Also, other languages cannot natively read <code>pickle</code> files. However, there are usually libraries available for reading <code>pickle</code> files in other languages.</p>
+<p>Let&rsquo;s start by writing the list from the previous example to a <code>pickle</code> file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Write the data to a pickle file</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> pickle
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;musicnet_metadata.pkl&#34;</span>, <span style="color:#e6db74">&#34;wb&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    pickle<span style="color:#f92672">.</span>dump(data, fp)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Get the file size of the pickle file we just wrote</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>getsize(<span style="color:#e6db74">&#34;musicnet_metadata.pkl&#34;</span>))
+</span></span></code></pre></div><pre><code>52353
+</code></pre>
+<h1 id="serializing-class-objects">Serializing Class Objects</h1>
+<p>Serializing objects is simple with Python. Let&rsquo;s create a simple class to represent the attributes of our dataset. We can then convert our previous list of dictionary data to a list of objects. Finally, we can serialize the list of objects to a <code>pickle</code> file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Create a class for our data</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Piece</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, data):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>id <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>composer <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;composer&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>composition <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;composition&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>movement <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;movement&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>ensemble <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;ensemble&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>source <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;source&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>transcriber <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;transcriber&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>catalog_name <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;catalog_name&#34;</span>]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>seconds <span style="color:#f92672">=</span> data[<span style="color:#e6db74">&#34;seconds&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __repr__(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;&lt;Piece </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>id<span style="color:#e6db74">}</span><span style="color:#e6db74">: </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>composer<span style="color:#e6db74">}</span><span style="color:#e6db74"> - </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>composition<span style="color:#e6db74">}</span><span style="color:#e6db74">&gt;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __str__(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>composer<span style="color:#e6db74">}</span><span style="color:#e6db74"> - </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>composition<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Convert our data into a list of objects and write it to a pickle file</span>
+</span></span><span style="display:flex;"><span>pieces <span style="color:#f92672">=</span> [Piece(d) <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> data]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;musicnet_metadata.pkl&#34;</span>, <span style="color:#e6db74">&#34;wb&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    pickle<span style="color:#f92672">.</span>dump(pieces, fp)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the size of this new file</span>
+</span></span><span style="display:flex;"><span>print(os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>getsize(<span style="color:#e6db74">&#34;musicnet_metadata.pkl&#34;</span>))
+</span></span></code></pre></div><pre><code>54352
+</code></pre>
+<h1 id="bonus-write-the-class-objects-to-json">Bonus: Write the class objects to JSON</h1>
+<p>We can&rsquo;t write the class objects to JSON directly. We need to convert them to a dictionary first. We can do this by implementing the <code>__dict__</code> method. Without explicitly defining <code>__dict__</code>, it will return the default dictionary for the class. However, we can override it to return a custom dictionary. The default version will include all of the class attributes. We can use this to our advantage to convert the class to a dictionary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Bonus: Save the class data as JSON</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Write the list of class objects to a JSON file</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;musicnet_metadata.json&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>) <span style="color:#66d9ef">as</span> fp:
+</span></span><span style="display:flex;"><span>    json<span style="color:#f92672">.</span>dump(pieces, fp, default<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> o: o<span style="color:#f92672">.</span>__dict__)
+</span></span></code></pre></div>
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/python/">python</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/functions/">Python Functions</a></li>
+          
+          <li><a href="/notes/list_comprehensions/">Python List Comprehensions</a></li>
+          
+          <li><a href="/notes/control_flow_in_python/">Control Flow in Python</a></li>
+          
+          <li><a href="/notes/introduction_to_python/">Introduction to Python</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
