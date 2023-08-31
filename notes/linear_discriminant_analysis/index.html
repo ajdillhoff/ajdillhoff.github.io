@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
+  <meta name="description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
 Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\).">
 
   
@@ -139,13 +139,13 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
   <meta property="og:title" content="Linear Discriminant Analysis | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
+  <meta property="og:description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
 Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
   
-  <meta property="article:modified_time" content="2022-01-22T00:00:00-06:00">
+  <meta property="article:modified_time" content="2023-08-31T00:00:00&#43;00:00">
   
 
   
@@ -381,7 +381,7 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
 
 
 <meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="dateModified">
+<meta content="2023-08-31 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -405,8 +405,10 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
     
     
       
+          Last updated on
+      
     
-    <time>Jan 22, 2022</time>
+    <time>Aug 31, 2023</time>
   </span>
   
 
@@ -549,6 +551,7 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#gaussian-class-conditional-densities">Gaussian Class Conditional Densities</a></li>
 <li><a href="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
+<li><a href="#quadratic-descriminant-analysis">Quadratic Descriminant Analysis</a></li>
 <li><a href="#example">Example</a></li>
 </ul>
 </div>
@@ -675,6 +678,18 @@ p(\mathbf{X}|\mathbf{\theta}) = \prod_{i=1}^n \mathcal{M}(y_i|\mathbf{\pi})\prod
 \end{align*}</p>
 <h3 id="the-decision-boundary">The Decision Boundary</h3>
 <p>The decision boundary between two classes can be visualized at the point when \(p(C_k|\mathbf{x};\theta) = 0.5\).</p>
+<h2 id="quadratic-descriminant-analysis">Quadratic Descriminant Analysis</h2>
+<p>Linear Discriminant Analysis is a special case of Quadratic Discriminant Analysis (QDA) where the covariance matrices are shared across all classes. Assuming each class conditional density is Gaussian, the posterior probability is given by</p>
+<p>\begin{equation*}
+p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_k,\Sigma_k).
+\end{equation*}</p>
+<p>Taking the log of this function yields</p>
+<p>\begin{equation*}
+\ln p(C_k|\mathbf{x};\theta) = \ln \pi_k - \frac{1}{2}\ln |\Sigma_k| - \frac{1}{2}(\mathbf{x} - \mathbf{\mu}_k)^T \Sigma_k^{-1}(\mathbf{x} - \mathbf{\mu}_k) + c.
+\end{equation*}</p>
+<p>With LDA, the term \(\frac{1}{2}\ln |\Sigma_k|\) is constant across all classes, so we treat it as another constant. Since QDA considers a different covariance matrix for each class, we must keep this term in the equation.</p>
+<h3 id="quadratic-decision-boundary">Quadratic Decision Boundary</h3>
+<p>In the more general case of QDA, the decision boundary is quadratic, leading to a quadratic discriminant function. As shown above, the posterior probability function for LDA is linear in \(\mathbf{x}\), which leads to a linear discriminant function.</p>
 <h2 id="example">Example</h2>
 <p>See <a href="https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb" target="_blank" rel="noopener noreferrer">here</a> for an example using scikit-learn.</p>
 
