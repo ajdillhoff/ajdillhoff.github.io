@@ -29,13 +29,11 @@
   
     
   
-  <meta name="description" content="Table of Contents Introduction The Perceptron Learning Algorithm Limitations of Single-Layer Perceptrons Introduction A popular example of a Logistic Regression model is the perceptron. Proposed by Frank Rosenblatt in 1962, the perceptron is defined as a generalized linear model:
-\begin{equation*} f(\mathbf{w}^T\mathbf{\phi}(\mathbf{x})), \end{equation*}
-where \(\phi\) is a basis function and \(f\) is a stepwise function with the form
-\begin{equation*} f(a) = \begin{cases} 1, a \geq 0\\ -1, a &lt; 0 \end{cases} \end{equation*}">
+  <meta name="description" content="Table of Contents Introduction Overfitting Penalizing Weights Dataset Augmentation Early Stopping Dropout Introduction Regularization is any modification we make to a learning algorithm that is intended to reduce its generalization error but not its training error. - Goodfellow et al.
+Regularization comes in many forms. Some techniques may add an additional penalty to the loss function. Others, such as data augmentation, add artificial variation to the data. In all cases, regularization aims to improve the generalization performance by preventing the model from overfitting.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/perceptron/">
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/regularization/">
 
   
 
@@ -127,7 +125,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://ajdillhoff.github.io/notes/perceptron/">
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/regularization/">
 
   
   
@@ -139,12 +137,10 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
   <meta property="twitter:card" content="summary">
   
   <meta property="og:site_name" content="Alex Dillhoff">
-  <meta property="og:url" content="https://ajdillhoff.github.io/notes/perceptron/">
-  <meta property="og:title" content="Perceptron | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Introduction The Perceptron Learning Algorithm Limitations of Single-Layer Perceptrons Introduction A popular example of a Logistic Regression model is the perceptron. Proposed by Frank Rosenblatt in 1962, the perceptron is defined as a generalized linear model:
-\begin{equation*} f(\mathbf{w}^T\mathbf{\phi}(\mathbf{x})), \end{equation*}
-where \(\phi\) is a basis function and \(f\) is a stepwise function with the form
-\begin{equation*} f(a) = \begin{cases} 1, a \geq 0\\ -1, a &lt; 0 \end{cases} \end{equation*}"><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/regularization/">
+  <meta property="og:title" content="Regularization | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Overfitting Penalizing Weights Dataset Augmentation Early Stopping Dropout Introduction Regularization is any modification we make to a learning algorithm that is intended to reduce its generalization error but not its training error. - Goodfellow et al.
+Regularization comes in many forms. Some techniques may add an additional penalty to the loss function. Others, such as data augmentation, add artificial variation to the data. In all cases, regularization aims to improve the generalization performance by preventing the model from overfitting."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
@@ -161,7 +157,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
 
 
 
-  <title>Perceptron | Alex Dillhoff</title>
+  <title>Regularization | Alex Dillhoff</title>
 
   <script>
   MathJax = {
@@ -375,7 +371,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
     
     
     <div class="article-container py-3">
-      <h1 itemprop="name">Perceptron</h1>
+      <h1 itemprop="name">Regularization</h1>
 
       
 
@@ -419,7 +415,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    3 min read
+    5 min read
   </span>
   
 
@@ -445,7 +441,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/perceptron/&amp;text=Perceptron" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/regularization/&amp;text=Regularization" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -458,7 +454,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/perceptron/&amp;t=Perceptron" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/regularization/&amp;t=Regularization" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook-f"></i>
         </a>
       </li>
@@ -471,7 +467,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="mailto:?subject=Perceptron&amp;body=https://ajdillhoff.github.io/notes/perceptron/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Regularization&amp;body=https://ajdillhoff.github.io/notes/regularization/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -484,7 +480,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/perceptron/&amp;title=Perceptron" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/regularization/&amp;title=Regularization" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -497,7 +493,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="https://web.whatsapp.com/send?text=Perceptron%20https://ajdillhoff.github.io/notes/perceptron/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="https://web.whatsapp.com/send?text=Regularization%20https://ajdillhoff.github.io/notes/regularization/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -510,7 +506,7 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/perceptron/&amp;title=Perceptron" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/regularization/&amp;title=Regularization" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -551,48 +547,26 @@ where \(\phi\) is a basis function and \(f\) is a stepwise function with the for
 <div class="heading">Table of Contents</div>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#the-perceptron-learning-algorithm">The Perceptron Learning Algorithm</a></li>
-<li><a href="#limitations-of-single-layer-perceptrons">Limitations of Single-Layer Perceptrons</a></li>
+<li><a href="#overfitting">Overfitting</a></li>
+<li><a href="#penalizing-weights">Penalizing Weights</a></li>
+<li><a href="#dataset-augmentation">Dataset Augmentation</a></li>
+<li><a href="#early-stopping">Early Stopping</a></li>
+<li><a href="#dropout">Dropout</a></li>
 </ul>
 </div>
 <!--endtoc-->
 <h2 id="introduction">Introduction</h2>
-<p>A popular example of a <a href="/notes/logistic_regression/">Logistic Regression</a> model is the <strong>perceptron</strong>. Proposed by Frank Rosenblatt in 1962, the perceptron is defined as a generalized linear model:</p>
-<p>\begin{equation*}
-f(\mathbf{w}^T\mathbf{\phi}(\mathbf{x})),
-\end{equation*}</p>
-<p>where \(\phi\) is a basis function and \(f\) is a stepwise function with the form</p>
-<p>\begin{equation*}
-f(a) =
-\begin{cases}
-1, a \geq 0\\
--1, a &lt; 0
-\end{cases}
-\end{equation*}</p>
-<p>To match this, the targets will take on a value of either 1 or -1.</p>
-<h2 id="the-perceptron-learning-algorithm">The Perceptron Learning Algorithm</h2>
-<p>Based on the stepwise function, the parameters \(\mathbf{w}\) should lead to outputs above 0 for one class and outputs below 0 for the other.
-There is 0 error with a correct classification.</p>
-<p>The original formulation does not work well with gradient based optimization methods due to the fact that the derivative of the stepwise function is 0 almost everyone. To get around this, the perceptron criterion is used:</p>
-<p>\begin{equation*}
-E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
-\end{equation*}</p>
-<p>where \(\hat{y}_i\) is the target class (either 1 or -1).</p>
-<p>An incorrect classification will minimize \(\mathbf{w}^T\phi_i y_i\). We can consider this loss only for misclassified patterns.</p>
-<p><strong>Update Steps</strong></p>
-<ul>
-<li>For each input, evaluate \(f(\mathbf{w}^T\phi(\mathbf{x}_i))\).</li>
-<li>For incorrect classifications
-<ul>
-<li>Add \(\phi(\mathbf{x}_i)\) to \(\mathbf{w}\) estimate for class 1</li>
-<li>Subtract \(\phi(\mathbf{x}_i)\) from \(\mathbf{w}\) for class 2.</li>
-</ul>
-</li>
-</ul>
-<p>Does not necessarily get better each step, but guaranteed to converge.</p>
-<h2 id="limitations-of-single-layer-perceptrons">Limitations of Single-Layer Perceptrons</h2>
-<p>Single layer perceptrons are limited to solving linearly separable patterns. As we have seen with a few datasets now, expecting our data to be linearly separable is wishful thinking. Minsky and Papert exposed this limitation in their book <a href="https://en.wikipedia.org/wiki/Perceptrons_%28book%29" target="_blank" rel="noopener noreferrer">Perceptrons: an introduction to computational geometry</a>.</p>
-<p>Consider the example XOR problem. It is a binary classification problem consisting of 4 data points. It is <strong>not</strong> linearly separable as seen in the figure below.</p>
+<div class="blockquote">
+<blockquote>
+<p>Regularization is any modification we make to a learning algorithm that is intended to reduce its generalization error but not its training error. - Goodfellow et al.</p>
+</blockquote>
+</div>
+<p>Regularization comes in many forms.
+Some techniques may add an additional penalty to the loss function.
+Others, such as data augmentation, add artificial variation to the data.
+In all cases, regularization aims to improve the generalization performance by preventing the model from overfitting.</p>
+<h2 id="overfitting">Overfitting</h2>
+<p>What happens when the complexity of our chosen model fits the data <em>too</em> well? Take a look at the following plot of data. The red curve is the true underlying function that generated the data. The blue line represents a polynomial of degree 9 fit via linear regression. It is first necessary to understand what is happening.</p>
 
 
 
@@ -601,14 +575,14 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
 
 <figure>
 
-<img src="/ox-hugo/2023-06-27_21-22-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;XOR cannot be solved with a linear classifier." >
+<img src="/ox-hugo/2022-02-01_10-18-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A polynomial of degree 11 (blue) fit to data generated following the red line." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 1: </span>XOR cannot be solved with a linear classifier.
+    <span class="figure-number">Figure 1: </span>A polynomial of degree 11 (blue) fit to data generated following the red line.
     
     
     
@@ -617,7 +591,28 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
 
 </figure>
 
-<p>This is the result of using only a single Perceptron. What if we added another perceptron? A single perceptron computes \(\mathbf{w}^T + b\). It is important to transform the first perceptron&rsquo;s output using a non-linear activation function, otherwise the output would be similar to that of a logistic regression model. The updated &ldquo;network&rdquo; is shown below.</p>
+<p>The model with more parameters is able to fit some the noisy data slightly better.
+<strong>Does this necessarily mean it will perform better on new samples?</strong>
+No, it will usually perform worse. This is referred to as <strong>overfitting.</strong>
+Overfitting can be identified as the model trains. When the testing loss continues to decrease while the validation loss increases, the model is probably overfitting. It is also evident from looking at the weights.</p>
+<h3 id="identifying-the-cause">Identifying the Cause</h3>
+<p>The goal of training is to modify the weights such that they minimize the loss function. Models with more parameters have the capacity to fit more of their training data. Given the presence of noise, this is not a good thing. A very low loss on the training set may not translate to good performance on the validation set.</p>
+<p>Looking at weights of the trained model is a good way of detecting overfitting. From the model above, the mean of the absolute value of the weights is \(11.1\). Left unchecked, the weights will take on whatever values necessary to meet the objective function.</p>
+<h2 id="penalizing-weights">Penalizing Weights</h2>
+<p>The most common form of regularization is to penalize the weights from taking on a high value. That is, we define a penalty term \(E(\mathbf{w})\) that is added to the loss. The higher the weight values, the higher the total loss. Thus, optimization will also include minimizing the absolute values of the weights. A simple choice for \(E(\mathbf{w})\), especially in the context of least squares, is \(L2\) regularzation:</p>
+<p>\[
+E(\mathbf{w}) = \frac{\lambda}{2}||\mathbf{w}||^2 = \frac{\lambda}{2}\mathbf{w}^T \mathbf{w}.
+\]</p>
+<p>Added to the sum-of-squares error for least squares, the final loss becomes</p>
+<p>\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^n(h(\mathbf{x}_i;\mathbf{w}) - \mathbf{y}_i)^2 + \frac{\lambda}{2} \mathbf{w}^T \mathbf{w}.
+\]</p>
+<p>This choice of regularization also has the benefit of being in a form that can be minimized in closed form via the normal equations. Taking the gradient of \(J(\mathbf{w})\) above with respect to 0 and solving for \(\mathbf{w}\) yields</p>
+<p>\[
+\mathbf{w} = (\lambda I + \mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y},
+\]</p>
+<p>where \(\lambda\) is a regularization hyperparameter.</p>
+<p>Applying this regularization term to the model above with \(\lambda=1\) yields the model shown below.</p>
 
 
 
@@ -626,14 +621,14 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
 
 <figure>
 
-<img src="/ox-hugo/2023-06-27_21-54-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A 2 layer perceptron for which each layer has a single node." >
+<img src="/ox-hugo/2022-02-01_10-45-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Least squares model fit with (L2) regularization ((lambda = 1))." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 2: </span>A 2 layer perceptron for which each layer has a single node.
+    <span class="figure-number">Figure 2: </span>Least squares model fit with (L2) regularization ((lambda = 1)).
     
     
     
@@ -642,81 +637,35 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
 
 </figure>
 
-<p>The result is the same! The original input in 2D is transformed to a single dimensional output. This is then used as input to the second perceptron. The result is a linear decision boundary followed by another linear decision boundary. What if we used 2 perceptrons in the first layer? The idea is that using two linear decision boundaries in a single space would allow our model to create a more complex boundary. The updated network is shown below.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2023-06-27_21-58-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A 2 layer perceptron for which the first layer has 2 nodes." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 3: </span>A 2 layer perceptron for which the first layer has 2 nodes.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<p>This effectively solves the XOR problem! Since each node computes a linear combination of the input, we can visualize two decision boundaries with respect to the input space.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2023-06-27_22-04-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of input space." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 4: </span>Visualization of input space.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<p>Similarly, we can visualize how the data points are transformed by visualizing the space of the output layer.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2023-06-27_22-05-05_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Output space" >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 5: </span>Output space
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
+<p>Inspecting the weights as before, we can see that the mean of the absolute values of \(\mathbf{w}\) is \(0.0938\).</p>
+<h3 id="evaluating-on-the-testing-data">Evaluating on the Testing Data</h3>
+<p>To see which model generalizes better, we set aside some samples from the original dataset to use as testing.</p>
+<p>With regularization, the model error on the test set is \(1.8\). Without regularization, the model error on the test set is \(2.2\).</p>
+<h2 id="dataset-augmentation">Dataset Augmentation</h2>
+<p>The same data augmentation techniques should be applied on both methods being compared.
+Getting a better result on a benchmark because of data augmentation does not mean the method was better suited for the task.
+By controlling these factors, a fair comparison can be made.</p>
+<p>There are many forms of augmentation available for image tasks in particular.
+Rotating, translating, and scaling images are the most common.
+Additionally applying random crops can further augment the dataset.</p>
+<p>The original dataset may only include samples of a class that have similar lighting.
+Color jitter is an effective way of including a broader range of hue or brightness and usually leads to a model that is robust to such changes.ZZ</p>
+<p>It is important to make sure that the crops still contain enough information to properly classify it.
+Common forms of data augmentation are available through APIs like <a href="https://pytorch.org/vision/stable/index.html" target="_blank" rel="noopener noreferrer">torchvision</a>.</p>
+<h2 id="early-stopping">Early Stopping</h2>
+<p>If the validation loss begins to increase while the training loss continues to decrease, this is a clear indication that the model is beginning to overfit the training data.
+Stopping the model in this case is the best way to prevent this.
+Frameworks like <a href="https://www.pytorchlightning.ai/" target="_blank" rel="noopener noreferrer">PyTorch Lightning</a> include features to checkpoing the models based on best validation loss and stop the model whenever the validation loss begins to diverge.</p>
+<h2 id="dropout">Dropout</h2>
+<p>Dropout is a regularization method introduced by &lt;&amp;srivastavaDropoutSimpleWay2014&gt; which is motivated by ensemble methods.
+Ensembles of models are regularized by the fact that many different models are trained on random permutations of the dataset with varying parameters and initializations.
+Using an ensemble of networks is a powerful way of increasing generalization performance.
+However, it requires much more compute due to the fact that several models must be trained.</p>
+<p>Training a single network with dropout approximates training several models in an ensemble.
+It works by randomly removing a node from the network during a forward/backward pass.
+The node is not truly removed. Instead, its output during the forward and backward passes is ignored via a binary mask.</p>
+<p>When training a network with dropout, it will generally take longer for the model to converge to a solution.
+Intuitively, this is because a different subnetwork is being used for each pass.</p>
 
     </div>
 
@@ -833,9 +782,9 @@ E(\mathbf{w}) = -\sum_i \mathbf{w}^T\phi(\mathbf{x}_i)\hat{y}_i,
           
           <li><a href="/notes/neural_networks/">Neural Networks</a></li>
           
-          <li><a href="/notes/principal_component_analysis/">Principal Component Analysis</a></li>
+          <li><a href="/notes/perceptron/">Perceptron</a></li>
           
-          <li><a href="/notes/regularization/">Regularization</a></li>
+          <li><a href="/notes/principal_component_analysis/">Principal Component Analysis</a></li>
           
         </ul>
       </div>

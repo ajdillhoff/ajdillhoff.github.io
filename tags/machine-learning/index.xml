@@ -2000,7 +2000,7 @@ There are several issues with this approach which are addressed by using the ter
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-02-01_18-47-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Samples of the MNIST training dataset.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-01_18-47-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Samples of the MNIST training dataset.&#34; &gt;
 
 
 
@@ -2708,6 +2708,138 @@ Let&amp;rsquo;s say that we want to go from $D$-dimensional space to $M$-dimensi
 PCA can then select the normalized direction in the feature space for which the variance in the data is maximized. This is called the first &lt;em&gt;principal component&lt;/em&gt;. Because we assume \(P\) is orthonormal, the subsequent principal components must be orthogonal to the previously discovered components.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;One more thing&lt;/strong&gt;
 If \(P\) is not orthonormal, then we can simply scale our eigenvectors to maximize variance.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Regularization</title>
+      <link>https://ajdillhoff.github.io/notes/regularization/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/regularization/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#overfitting&#34;&gt;Overfitting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#penalizing-weights&#34;&gt;Penalizing Weights&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dataset-augmentation&#34;&gt;Dataset Augmentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#early-stopping&#34;&gt;Early Stopping&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dropout&#34;&gt;Dropout&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;div class=&#34;blockquote&#34;&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Regularization is any modification we make to a learning algorithm that is intended to reduce its generalization error but not its training error. - Goodfellow et al.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;p&gt;Regularization comes in many forms.
+Some techniques may add an additional penalty to the loss function.
+Others, such as data augmentation, add artificial variation to the data.
+In all cases, regularization aims to improve the generalization performance by preventing the model from overfitting.&lt;/p&gt;
+&lt;h2 id=&#34;overfitting&#34;&gt;Overfitting&lt;/h2&gt;
+&lt;p&gt;What happens when the complexity of our chosen model fits the data &lt;em&gt;too&lt;/em&gt; well? Take a look at the following plot of data. The red curve is the true underlying function that generated the data. The blue line represents a polynomial of degree 9 fit via linear regression. It is first necessary to understand what is happening.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-01_10-18-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A polynomial of degree 11 (blue) fit to data generated following the red line.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A polynomial of degree 11 (blue) fit to data generated following the red line.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The model with more parameters is able to fit some the noisy data slightly better.
+&lt;strong&gt;Does this necessarily mean it will perform better on new samples?&lt;/strong&gt;
+No, it will usually perform worse. This is referred to as &lt;strong&gt;overfitting.&lt;/strong&gt;
+Overfitting can be identified as the model trains. When the testing loss continues to decrease while the validation loss increases, the model is probably overfitting. It is also evident from looking at the weights.&lt;/p&gt;
+&lt;h3 id=&#34;identifying-the-cause&#34;&gt;Identifying the Cause&lt;/h3&gt;
+&lt;p&gt;The goal of training is to modify the weights such that they minimize the loss function. Models with more parameters have the capacity to fit more of their training data. Given the presence of noise, this is not a good thing. A very low loss on the training set may not translate to good performance on the validation set.&lt;/p&gt;
+&lt;p&gt;Looking at weights of the trained model is a good way of detecting overfitting. From the model above, the mean of the absolute value of the weights is \(11.1\). Left unchecked, the weights will take on whatever values necessary to meet the objective function.&lt;/p&gt;
+&lt;h2 id=&#34;penalizing-weights&#34;&gt;Penalizing Weights&lt;/h2&gt;
+&lt;p&gt;The most common form of regularization is to penalize the weights from taking on a high value. That is, we define a penalty term \(E(\mathbf{w})\) that is added to the loss. The higher the weight values, the higher the total loss. Thus, optimization will also include minimizing the absolute values of the weights. A simple choice for \(E(\mathbf{w})\), especially in the context of least squares, is \(L2\) regularzation:&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{w}) = \frac{\lambda}{2}||\mathbf{w}||^2 = \frac{\lambda}{2}\mathbf{w}^T \mathbf{w}.
+\]&lt;/p&gt;
+&lt;p&gt;Added to the sum-of-squares error for least squares, the final loss becomes&lt;/p&gt;
+&lt;p&gt;\[
+J(\mathbf{w}) = \frac{1}{2}\sum_{i=1}^n(h(\mathbf{x}_i;\mathbf{w}) - \mathbf{y}_i)^2 + \frac{\lambda}{2} \mathbf{w}^T \mathbf{w}.
+\]&lt;/p&gt;
+&lt;p&gt;This choice of regularization also has the benefit of being in a form that can be minimized in closed form via the normal equations. Taking the gradient of \(J(\mathbf{w})\) above with respect to 0 and solving for \(\mathbf{w}\) yields&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{w} = (\lambda I + \mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y},
+\]&lt;/p&gt;
+&lt;p&gt;where \(\lambda\) is a regularization hyperparameter.&lt;/p&gt;
+&lt;p&gt;Applying this regularization term to the model above with \(\lambda=1\) yields the model shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-01_10-45-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Least squares model fit with (L2) regularization ((lambda = 1)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Least squares model fit with (L2) regularization ((lambda = 1)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Inspecting the weights as before, we can see that the mean of the absolute values of \(\mathbf{w}\) is \(0.0938\).&lt;/p&gt;
+&lt;h3 id=&#34;evaluating-on-the-testing-data&#34;&gt;Evaluating on the Testing Data&lt;/h3&gt;
+&lt;p&gt;To see which model generalizes better, we set aside some samples from the original dataset to use as testing.&lt;/p&gt;
+&lt;p&gt;With regularization, the model error on the test set is \(1.8\). Without regularization, the model error on the test set is \(2.2\).&lt;/p&gt;
+&lt;h2 id=&#34;dataset-augmentation&#34;&gt;Dataset Augmentation&lt;/h2&gt;
+&lt;p&gt;The same data augmentation techniques should be applied on both methods being compared.
+Getting a better result on a benchmark because of data augmentation does not mean the method was better suited for the task.
+By controlling these factors, a fair comparison can be made.&lt;/p&gt;
+&lt;p&gt;There are many forms of augmentation available for image tasks in particular.
+Rotating, translating, and scaling images are the most common.
+Additionally applying random crops can further augment the dataset.&lt;/p&gt;
+&lt;p&gt;The original dataset may only include samples of a class that have similar lighting.
+Color jitter is an effective way of including a broader range of hue or brightness and usually leads to a model that is robust to such changes.ZZ&lt;/p&gt;
+&lt;p&gt;It is important to make sure that the crops still contain enough information to properly classify it.
+Common forms of data augmentation are available through APIs like &lt;a href=&#34;https://pytorch.org/vision/stable/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;torchvision&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;early-stopping&#34;&gt;Early Stopping&lt;/h2&gt;
+&lt;p&gt;If the validation loss begins to increase while the training loss continues to decrease, this is a clear indication that the model is beginning to overfit the training data.
+Stopping the model in this case is the best way to prevent this.
+Frameworks like &lt;a href=&#34;https://www.pytorchlightning.ai/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;PyTorch Lightning&lt;/a&gt; include features to checkpoing the models based on best validation loss and stop the model whenever the validation loss begins to diverge.&lt;/p&gt;
+&lt;h2 id=&#34;dropout&#34;&gt;Dropout&lt;/h2&gt;
+&lt;p&gt;Dropout is a regularization method introduced by &amp;lt;&amp;amp;srivastavaDropoutSimpleWay2014&amp;gt; which is motivated by ensemble methods.
+Ensembles of models are regularized by the fact that many different models are trained on random permutations of the dataset with varying parameters and initializations.
+Using an ensemble of networks is a powerful way of increasing generalization performance.
+However, it requires much more compute due to the fact that several models must be trained.&lt;/p&gt;
+&lt;p&gt;Training a single network with dropout approximates training several models in an ensemble.
+It works by randomly removing a node from the network during a forward/backward pass.
+The node is not truly removed. Instead, its output during the forward and backward passes is ignored via a binary mask.&lt;/p&gt;
+&lt;p&gt;When training a network with dropout, it will generally take longer for the model to converge to a solution.
+Intuitively, this is because a different subnetwork is being used for each pass.&lt;/p&gt;
 </description>
     </item>
     
