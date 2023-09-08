@@ -1758,6 +1758,7 @@ Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected v
 &lt;li&gt;&lt;a href=&#34;#dual-representation&#34;&gt;Dual Representation&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#relating-back-to-the-original-formulation&#34;&gt;Relating Back to the Original Formulation&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#types-of-kernels&#34;&gt;Types of Kernels&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#constructing-kernels&#34;&gt;Constructing Kernels&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -1777,6 +1778,7 @@ k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \phi(\mathbf{x})^T \phi(\mathbf{x}&amp;rs
 \]&lt;/p&gt;
 &lt;p&gt;where \(\phi\) is some function which transforms the input to a feature space.&lt;/p&gt;
 &lt;p&gt;Methods that require part or all of the training data to make prediction will benefit from using kernel representations, especially when using high dimensional data. Instead of transforming the data into a high dimensional space which may be computationally intractable, a measure of similarity via the &lt;em&gt;inner product&lt;/em&gt; is used. The inner product is not the projection into some space. Instead, it represents the outcome of that projection.&lt;/p&gt;
+&lt;p&gt;If the input vector takes on the form of scalar products, it can be represented as a kernel function.&lt;/p&gt;
 &lt;h2 id=&#34;dual-representation&#34;&gt;Dual Representation&lt;/h2&gt;
 &lt;p&gt;The key to taking advantage of the kernel trick relies on reformulating our linear model into a dual representation.
 In this form, we will establish a dependence on the kernel function.&lt;/p&gt;
@@ -1967,6 +1969,29 @@ k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \frac{\mathbf{x}^T \mathbf{x}&amp;rsquo;}
 &lt;p&gt;Documents that are &lt;strong&gt;orthogonal&lt;/strong&gt;, in the sense that the resulting cosine similarity is 0, are dissimilar.
 The similarity increases as the score approaches 1.
 There are several issues with this approach which are addressed by using the term frequence-inverse document frequency (TF-IDF) score.&lt;/p&gt;
+&lt;h2 id=&#34;constructing-kernels&#34;&gt;Constructing Kernels&lt;/h2&gt;
+&lt;p&gt;A valid kernel function must satisfy the following conditions:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Symmetry: \(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = k(\mathbf{x}&amp;rsquo;, \mathbf{x})\)&lt;/li&gt;
+&lt;li&gt;Positive semi-definite: \(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) \geq 0\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;If the feature space can be represented as a dot product, then it will satisfy the first condition by definition. The second condition can be shown by constructing a Gram matrix \(\mathbf{K}\) and showing that it is positive semi-definite. A matrix \(\mathbf{K}\) is positive semi-definite if and only if \(\mathbf{v}^T\mathbf{K}\mathbf{v} \geq 0\) for all \(\mathbf{v} \in \mathbb{R}^n\).&lt;/p&gt;
+&lt;h3 id=&#34;direct-construction-of-a-kernel&#34;&gt;Direct Construction of a Kernel&lt;/h3&gt;
+&lt;p&gt;In this approach, we define a feature space \(\phi(\mathbf{x})\) and then compute the kernel function as&lt;/p&gt;
+&lt;p&gt;\[
+k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \phi(\mathbf{x})^T \phi(\mathbf{x}&amp;rsquo;).
+\]&lt;/p&gt;
+&lt;p&gt;This is the approach used in the example from above. In that example, we used the kernel function \(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = (\mathbf{x}^T\mathbf{x}&amp;rsquo;)^2\). For our 2D input, the feature space is \(\phi(\mathbf{x}) = (x_1^2, x_2^2, \sqrt{2}x_1x_2)\). It is easy to see that the kernel function is the dot product of the feature space, and its kernel matrix is positive semi-definite.&lt;/p&gt;
+&lt;h3 id=&#34;construction-from-other-valid-kernels&#34;&gt;Construction from other valid kernels&lt;/h3&gt;
+&lt;p&gt;As a more convenient approach, it is possible to construct complex kernels from known kernels. Given valid kernels \(k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;)\) and \(k_2(\mathbf{x}, \mathbf{x}&amp;rsquo;)\), we can construct a new kernel \(k(\mathbf{x}, \mathbf{x}&amp;rsquo;)\) using the following operations:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = ck_1(\mathbf{x}, \mathbf{x}&amp;rsquo;)\) for \(c &amp;gt; 0\)&lt;/li&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = f(\mathbf{x})k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;)f(\mathbf{x}&amp;rsquo;)\) for \(f(\mathbf{x})\)&lt;/li&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;) + k_2(\mathbf{x}, \mathbf{x}&amp;rsquo;)\)&lt;/li&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;)k_2(\mathbf{x}, \mathbf{x}&amp;rsquo;)\)&lt;/li&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \exp(k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;))\)&lt;/li&gt;
+&lt;li&gt;\(k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \tanh(k_1(\mathbf{x}, \mathbf{x}&amp;rsquo;))\)&lt;/li&gt;
+&lt;/ol&gt;
 </description>
     </item>
     
