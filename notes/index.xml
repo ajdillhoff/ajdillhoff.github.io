@@ -7,10 +7,137 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Tue, 12 Sep 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Tue, 19 Sep 2023 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Introduction to Complexity Analysis</title>
+      <link>https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/</link>
+      <pubDate>Tue, 19 Sep 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction-to-algorithms&#34;&gt;Introduction to Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#complexity-analysis&#34;&gt;Complexity Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction-to-algorithms&#34;&gt;Introduction to Algorithms&lt;/h2&gt;
+&lt;p&gt;One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time.&lt;/p&gt;
+&lt;p&gt;There are of course other considerations besides runtime. How much memory does the solution require? Does it require a lot of data to be stored on disk? What about distributed solutions that can be run on multiple machines? Some solutions can be so complex, that we must also consider their environmental impact. For example, Meta&amp;rsquo;s Llama 2 large language models required 3,311,616 combined GPU hours to train. They report that their total carbon emissions from training were 539 tons of CO2 equivalent (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Touvron et al. 2023&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;We begin our algorithmic journey by studying a simple sorting algorithm, insertion sort. First, we need to formally define the problem of sorting. Given a sequence of \(n\) objects \(A = \langle a_1, a_2, \ldots, a_n \rangle\), we want to rearrange the elements such that \(a_1&amp;rsquo; \leq a_2&amp;rsquo; \leq \ldots \leq a_n&amp;rsquo;\). We will assume that the elements are comparable, meaning that we can use the operators \(&amp;lt;\) and \(&amp;gt;\) to compare them. Some sets, such as the set of all real numbers, have a natural ordering. A useful programming language would provide the required comparison operators. For other types of elements, such as strings, this may not be the case. For example, how would you compare the strings &amp;ldquo;apple&amp;rdquo; and &amp;ldquo;banana&amp;rdquo;? In these cases, we will need to define our own comparison operators. Either way, we will assume that the comparison operators are available to us.&lt;/p&gt;
+&lt;p&gt;This example follows the one given in Chapter 2 of Cormen et al. (2009).&lt;/p&gt;
+&lt;h3 id=&#34;insertion-sort&#34;&gt;Insertion Sort&lt;/h3&gt;
+&lt;p&gt;Insertion sort is defined as&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;insertion_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(A)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; key:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[j]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;example-sorting-numbers&#34;&gt;Example: Sorting Numbers&lt;/h3&gt;
+&lt;p&gt;TODO: Add a step-by-step example of sorting a list of numbers.&lt;/p&gt;
+&lt;h3 id=&#34;worst-case-analysis&#34;&gt;Worst-Case Analysis&lt;/h3&gt;
+&lt;p&gt;Given the definition from above, we can compute \(T(n)\), the running time of the algorithm on an input of size \(n\). To do this, we need to sum the products of the cost of each statement and the number of times each statement is executed.&lt;/p&gt;
+&lt;p&gt;At first glance, the first statement &lt;code&gt;for i in range(1, len(A))&lt;/code&gt; appears to execute \(n-1\) times since it starts at 1 and only goes up to, but not including, \(n\). Remember that the &lt;code&gt;for&lt;/code&gt; statement must be checked to see if it should exit, so the test is executed one more time than the number of iterations. Therefore, the first statement is executed \(n\) times. If we say that the cost to execute each check is \(c_1\), then the total cost of the first statement is \(c_1 n\).&lt;/p&gt;
+&lt;p&gt;With the exception of the &lt;code&gt;while&lt;/code&gt; loop, the statement inside the &lt;code&gt;for&lt;/code&gt; loop is executed once per iteration. The cost of executing statement \(i\) is \(c_i\). Therefore, the total cost of the second statement is \(c_2 n\). The costs are updated in the code below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;insertion_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(A)): &lt;span style=&#34;color:#75715e&#34;&gt;# c_1 n&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[i] &lt;span style=&#34;color:#75715e&#34;&gt;# c_2 n&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# c_3 n&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; key:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[j]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key &lt;span style=&#34;color:#75715e&#34;&gt;# c_7 n&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For the &lt;code&gt;while&lt;/code&gt; loop, we can denote the number of times it runs by \(t_i\), where \(i\) is the iteration of the &lt;code&gt;for&lt;/code&gt; loop. If the &lt;code&gt;while&lt;/code&gt; condition check costs \(c_4\) and is executed \(t_i\) times for each &lt;code&gt;for&lt;/code&gt; loop iteration, the total cost is given as \(c_4 \sum_{i=1}^{n-1} t_i\).&lt;/p&gt;
+&lt;p&gt;The statement inside the &lt;code&gt;while&lt;/code&gt; loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the &lt;code&gt;while&lt;/code&gt; loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the &lt;code&gt;while&lt;/code&gt; loop is updated in the code below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;insertion_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(A)): &lt;span style=&#34;color:#75715e&#34;&gt;# c_1 * n&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[i] &lt;span style=&#34;color:#75715e&#34;&gt;# c_2 * (n-1)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# c_3 * (n-1)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; key: &lt;span style=&#34;color:#75715e&#34;&gt;# c_4 * [t_i for i in range(1, len(A))]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[j] &lt;span style=&#34;color:#75715e&#34;&gt;# c_5 * [t_i - 1 for i in range(1, len(A))]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# c_6 * [t_i - 1 for i in range(1, len(A))]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key &lt;span style=&#34;color:#75715e&#34;&gt;# c_7 * (n-1)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;To get the total running time \(T(n)\), we sum up all of the costs.&lt;/p&gt;
+&lt;p&gt;\begin{align}
+T(n) &amp;amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \sum_{i=1}^{n-1} t_i + c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_6 \sum_{i=1}^{n-1} (t_i - 1) + c_7 (n-1) \\
+\end{align}&lt;/p&gt;
+&lt;p&gt;This analysis is a good start, but it doesn&amp;rsquo;t paint the whole picture. The number of actual executions will depend on the input that is given. For example, what if the input is already sorted, or given in reverse order? It is common to express the worst-case runtime for a particular algorithm. For insertion sort, that is when the input is in reverse order. In this case, each element \(A[i]\) is compared to every other element in the sorted subarray. This means that \(t_i = i\) for every iteration of the &lt;code&gt;for&lt;/code&gt; loop. Therefore, the worst-case runtime is given as&lt;/p&gt;
+&lt;p&gt;\begin{align}
+T(n) &amp;amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \sum_{i=1}^{n-1} i + c_5 \sum_{i=1}^{n-1} (i - 1) + c_6 \sum_{i=1}^{n-1} (i - 1) + c_7 (n-1) \\
+\end{align}&lt;/p&gt;
+&lt;p&gt;To express this runtime solely in terms of \(n\), we can use the fact that \(\sum_{i=1}^{n-1} i = (\sum_{i=0}^{n-1} i) - 1 =  \frac{n(n-1)}{2} - 1\) and \(\sum_{i=1}^{n-1} (i - 1) = \sum_{i=0}^{n-2} i = \frac{n(n-1)}{2}\). This gives us&lt;/p&gt;
+&lt;p&gt;\begin{align}
+T(n) &amp;amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \left(\frac{n(n-1)}{2} - 1\right)\\
+&amp;amp;+ c_5 \left(\frac{n(n-1)}{2}\right) + c_6 \left(\frac{n(n-1)}{2}\right) + c_7 (n-1) \\
+&amp;amp;= \left(\frac{c_4}{2} + \frac{c_5}{2} + \frac{c_6}{2}\right)n^2 + \left(c_1 + c_2 + c_3 + \frac{c_4}{2} - \frac{c_5}{2} - \frac{c_6}{2} + c_7\right)n - (c_2 + c_3 + c_4 + c_7) \\
+\end{align}&lt;/p&gt;
+&lt;p&gt;With the appropriate choice of constants, we can express this as a quadratic function \(an^2 + bn + c\).&lt;/p&gt;
+&lt;h3 id=&#34;best-case-analysis&#34;&gt;Best-Case Analysis&lt;/h3&gt;
+&lt;p&gt;The best-case runtime for insertion sort is when the input is already sorted. In this case, the &lt;code&gt;while&lt;/code&gt; check is executed only once per iteration of the &lt;code&gt;for&lt;/code&gt; loop. That is, \(t_i = 1\) for every iteration of the &lt;code&gt;for&lt;/code&gt; loop. Therefore, the best-case runtime is given as&lt;/p&gt;
+&lt;p&gt;\begin{align}
+T(n) &amp;amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 (n-1) + c_7 (n-1) \\
+&amp;amp;= (c_1 + c_2 + c_3 + c_4 + c_7)n - (c_2 + c_3 + c_4 + c_7) \\
+\end{align}&lt;/p&gt;
+&lt;p&gt;Let \(a = c_1 + c_2 + c_3 + c_4 + c_7\) and $b = -(c_2 + c_3 + c_4 + c_7)$Then the best-case runtime is given as \(an + b\), a linear function of \(n\).&lt;/p&gt;
+&lt;h3 id=&#34;rate-of-growth&#34;&gt;Rate of Growth&lt;/h3&gt;
+&lt;p&gt;We can simplify how we express the runtime of both these cases by considering only the highest-order term. Consider the worst-case, \(T(n) = an^2 + bn + c\). As \(n\) grows, the term \(an^2\) will dominate the runtime, rendering the others insignificant by comparison. This simplification is typically expressed using \(\Theta\) notation. For the worst-case, we say that \(T(n) = \Theta(n^2)\). It is a compact way of stating that the runtime is proportional to \(n^2\) for large values of \(n\).&lt;/p&gt;
+&lt;h3 id=&#34;example-analysis-of-selection-sort&#34;&gt;Example: Analysis of Selection Sort&lt;/h3&gt;
+&lt;p&gt;Based on the analysis above, let&amp;rsquo;s check our understanding and see if we can characterize the runtime of another sorting algorithm, selection sort. Selection sort is defined as&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;selection_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, len(A) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        min_index &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(i &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(A)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; A[j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; A[min_index]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                min_index &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[i], A[min_index] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[min_index], A[i]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The first statement &lt;code&gt;for i in range(0, len(A) - 1)&lt;/code&gt; will be evaluated \(n\) times. With the exception of the inner &lt;code&gt;for&lt;/code&gt; loop, the rest of the statements in the scope of the first &lt;code&gt;for&lt;/code&gt; loop are executed once per iteration. Their costs are \(c_2\) and \(c_6\), respectively.&lt;/p&gt;
+&lt;p&gt;The inner &lt;code&gt;for&lt;/code&gt; loop will be checked \(n-i\) times for each iteration of the outer &lt;code&gt;for&lt;/code&gt; loop. The cost of the condition check is \(c_3\). The cost of the statements inside the &lt;code&gt;for&lt;/code&gt; loop are \(c_4\) and \(c_5\). The &lt;code&gt;if&lt;/code&gt; check is evaluated for every iteration of the inner loop, but the statements inside the &lt;code&gt;if&lt;/code&gt; are only executed when the condition is true. We can denote this as \(t_i\), the number of times the &lt;code&gt;if&lt;/code&gt; condition is true for each iteration of the inner &lt;code&gt;for&lt;/code&gt; loop. The cost of the inner loop is given as&lt;/p&gt;
+&lt;p&gt;\begin{align}
+c_3 \sum_{i=0}^{n-1} (n-i) + c_4 \sum_{i=0}^{n-1} (n-i-1) + c_5 \sum_{i=0}^{n-1} t_i\\
+\end{align}&lt;/p&gt;
+&lt;p&gt;Combining this with the cost of the outer &lt;code&gt;for&lt;/code&gt; loop, we get&lt;/p&gt;
+&lt;p&gt;\begin{align}
+T(n) &amp;amp;= c_1 n + c_2 (n-1) + c_6 (n-1) + c_3 \sum_{i=0}^{n-1} (n-i) + c_4 \sum_{i=0}^{n-1} (n-i-1) + c_5 \sum_{i=0}^{n-1} t_i\\
+\end{align}&lt;/p&gt;
+&lt;h2 id=&#34;complexity-analysis&#34;&gt;Complexity Analysis&lt;/h2&gt;
+&lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;What is complexity analysis and why is it important?&lt;/li&gt;
+&lt;li&gt;Types of complexity: Time complexity and Space complexity.&lt;/li&gt;
+&lt;li&gt;Revisit insertion sort example.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;big-o-notation&#34;&gt;Big O Notation&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Definition and significance.&lt;/li&gt;
+&lt;li&gt;Common Big O types: \(O(1)\), \(O(\log n)\), \(O(n)\), \(O(n \log n)\), \(O(n^2)\), etc.&lt;/li&gt;
+&lt;li&gt;Examples of algorithms and their Big O.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;big-omega-notation&#34;&gt;Big Omega Notation&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Definition and significance.&lt;/li&gt;
+&lt;li&gt;Examples of algorithms and their Big Omega.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are certainly examples of input sequences of size \(n\) for which an algorithm like insertion sort will run in \(O(n)\) time. However, there are also plenty of sequences that will cause it to run in \(O(n^2)\) time. If we are evaluating a lower bound on the runtime, we would have to go with \(\Omega(n^2)\) since every input runs &lt;em&gt;at least as fast&lt;/em&gt; as the worst-case.&lt;/p&gt;
+&lt;h3 id=&#34;big-theta-notation&#34;&gt;Big Theta Notation&lt;/h3&gt;
+&lt;h3 id=&#34;analyzing-complexity&#34;&gt;Analyzing Complexity&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Worst-case, average-case, and best-case scenarios.&lt;/li&gt;
+&lt;li&gt;Techniques for analyzing complexity.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. “Llama 2: Open Foundation and Fine-Tuned Chat Models.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2307.09288&#34;&gt;https://doi.org/10.48550/arXiv.2307.09288&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Python Review Questions</title>
@@ -7756,7 +7883,7 @@ f(\mathbf{x};W).
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-02-12_18-08-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;General neural network diagram.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-12_18-08-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;General neural network diagram.&#34; &gt;
 
 
 

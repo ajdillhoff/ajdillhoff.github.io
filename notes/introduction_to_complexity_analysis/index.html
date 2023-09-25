@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction to Algorithms Complexity Analysis Introduction to Algorithms One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/">
+  <meta property="og:title" content="Introduction to Complexity Analysis | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction to Algorithms Complexity Analysis Introduction to Algorithms One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-09-19T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-09-19T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Introduction to Complexity Analysis | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Introduction to Complexity Analysis</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-09-19 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-09-19 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Sep 19, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/&amp;text=Introduction%20to%20Complexity%20Analysis" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/&amp;t=Introduction%20to%20Complexity%20Analysis" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Introduction%20to%20Complexity%20Analysis&amp;body=https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/&amp;title=Introduction%20to%20Complexity%20Analysis" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Introduction%20to%20Complexity%20Analysis%20https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/introduction_to_complexity_analysis/&amp;title=Introduction%20to%20Complexity%20Analysis" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction-to-algorithms">Introduction to Algorithms</a></li>
+<li><a href="#complexity-analysis">Complexity Analysis</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction-to-algorithms">Introduction to Algorithms</h2>
+<p>One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time.</p>
+<p>There are of course other considerations besides runtime. How much memory does the solution require? Does it require a lot of data to be stored on disk? What about distributed solutions that can be run on multiple machines? Some solutions can be so complex, that we must also consider their environmental impact. For example, Meta&rsquo;s Llama 2 large language models required 3,311,616 combined GPU hours to train. They report that their total carbon emissions from training were 539 tons of CO2 equivalent (<a href="#citeproc_bib_item_1">Touvron et al. 2023</a>).</p>
+<p>We begin our algorithmic journey by studying a simple sorting algorithm, insertion sort. First, we need to formally define the problem of sorting. Given a sequence of \(n\) objects \(A = \langle a_1, a_2, \ldots, a_n \rangle\), we want to rearrange the elements such that \(a_1&rsquo; \leq a_2&rsquo; \leq \ldots \leq a_n&rsquo;\). We will assume that the elements are comparable, meaning that we can use the operators \(&lt;\) and \(&gt;\) to compare them. Some sets, such as the set of all real numbers, have a natural ordering. A useful programming language would provide the required comparison operators. For other types of elements, such as strings, this may not be the case. For example, how would you compare the strings &ldquo;apple&rdquo; and &ldquo;banana&rdquo;? In these cases, we will need to define our own comparison operators. Either way, we will assume that the comparison operators are available to us.</p>
+<p>This example follows the one given in Chapter 2 of Cormen et al. (2009).</p>
+<h3 id="insertion-sort">Insertion Sort</h3>
+<p>Insertion sort is defined as</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insertion_sort</span>(A):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, len(A)):
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> A[i]
+</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> j <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> A[j] <span style="color:#f92672">&gt;</span> key:
+</span></span><span style="display:flex;"><span>            A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> A[j]
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> j <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> key
+</span></span></code></pre></div><h3 id="example-sorting-numbers">Example: Sorting Numbers</h3>
+<p>TODO: Add a step-by-step example of sorting a list of numbers.</p>
+<h3 id="worst-case-analysis">Worst-Case Analysis</h3>
+<p>Given the definition from above, we can compute \(T(n)\), the running time of the algorithm on an input of size \(n\). To do this, we need to sum the products of the cost of each statement and the number of times each statement is executed.</p>
+<p>At first glance, the first statement <code>for i in range(1, len(A))</code> appears to execute \(n-1\) times since it starts at 1 and only goes up to, but not including, \(n\). Remember that the <code>for</code> statement must be checked to see if it should exit, so the test is executed one more time than the number of iterations. Therefore, the first statement is executed \(n\) times. If we say that the cost to execute each check is \(c_1\), then the total cost of the first statement is \(c_1 n\).</p>
+<p>With the exception of the <code>while</code> loop, the statement inside the <code>for</code> loop is executed once per iteration. The cost of executing statement \(i\) is \(c_i\). Therefore, the total cost of the second statement is \(c_2 n\). The costs are updated in the code below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insertion_sort</span>(A):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, len(A)): <span style="color:#75715e"># c_1 n</span>
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> A[i] <span style="color:#75715e"># c_2 n</span>
+</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span> <span style="color:#75715e"># c_3 n</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> j <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> A[j] <span style="color:#f92672">&gt;</span> key:
+</span></span><span style="display:flex;"><span>            A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> A[j]
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> j <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> key <span style="color:#75715e"># c_7 n</span>
+</span></span></code></pre></div><p>For the <code>while</code> loop, we can denote the number of times it runs by \(t_i\), where \(i\) is the iteration of the <code>for</code> loop. If the <code>while</code> condition check costs \(c_4\) and is executed \(t_i\) times for each <code>for</code> loop iteration, the total cost is given as \(c_4 \sum_{i=1}^{n-1} t_i\).</p>
+<p>The statement inside the <code>while</code> loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the <code>while</code> loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the <code>while</code> loop is updated in the code below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insertion_sort</span>(A):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, len(A)): <span style="color:#75715e"># c_1 * n</span>
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> A[i] <span style="color:#75715e"># c_2 * (n-1)</span>
+</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span> <span style="color:#75715e"># c_3 * (n-1)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> j <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> A[j] <span style="color:#f92672">&gt;</span> key: <span style="color:#75715e"># c_4 * [t_i for i in range(1, len(A))]</span>
+</span></span><span style="display:flex;"><span>            A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> A[j] <span style="color:#75715e"># c_5 * [t_i - 1 for i in range(1, len(A))]</span>
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> j <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span> <span style="color:#75715e"># c_6 * [t_i - 1 for i in range(1, len(A))]</span>
+</span></span><span style="display:flex;"><span>        A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> key <span style="color:#75715e"># c_7 * (n-1)</span>
+</span></span></code></pre></div><p>To get the total running time \(T(n)\), we sum up all of the costs.</p>
+<p>\begin{align}
+T(n) &amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \sum_{i=1}^{n-1} t_i + c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_6 \sum_{i=1}^{n-1} (t_i - 1) + c_7 (n-1) \\
+\end{align}</p>
+<p>This analysis is a good start, but it doesn&rsquo;t paint the whole picture. The number of actual executions will depend on the input that is given. For example, what if the input is already sorted, or given in reverse order? It is common to express the worst-case runtime for a particular algorithm. For insertion sort, that is when the input is in reverse order. In this case, each element \(A[i]\) is compared to every other element in the sorted subarray. This means that \(t_i = i\) for every iteration of the <code>for</code> loop. Therefore, the worst-case runtime is given as</p>
+<p>\begin{align}
+T(n) &amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \sum_{i=1}^{n-1} i + c_5 \sum_{i=1}^{n-1} (i - 1) + c_6 \sum_{i=1}^{n-1} (i - 1) + c_7 (n-1) \\
+\end{align}</p>
+<p>To express this runtime solely in terms of \(n\), we can use the fact that \(\sum_{i=1}^{n-1} i = (\sum_{i=0}^{n-1} i) - 1 =  \frac{n(n-1)}{2} - 1\) and \(\sum_{i=1}^{n-1} (i - 1) = \sum_{i=0}^{n-2} i = \frac{n(n-1)}{2}\). This gives us</p>
+<p>\begin{align}
+T(n) &amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 \left(\frac{n(n-1)}{2} - 1\right)\\
+&amp;+ c_5 \left(\frac{n(n-1)}{2}\right) + c_6 \left(\frac{n(n-1)}{2}\right) + c_7 (n-1) \\
+&amp;= \left(\frac{c_4}{2} + \frac{c_5}{2} + \frac{c_6}{2}\right)n^2 + \left(c_1 + c_2 + c_3 + \frac{c_4}{2} - \frac{c_5}{2} - \frac{c_6}{2} + c_7\right)n - (c_2 + c_3 + c_4 + c_7) \\
+\end{align}</p>
+<p>With the appropriate choice of constants, we can express this as a quadratic function \(an^2 + bn + c\).</p>
+<h3 id="best-case-analysis">Best-Case Analysis</h3>
+<p>The best-case runtime for insertion sort is when the input is already sorted. In this case, the <code>while</code> check is executed only once per iteration of the <code>for</code> loop. That is, \(t_i = 1\) for every iteration of the <code>for</code> loop. Therefore, the best-case runtime is given as</p>
+<p>\begin{align}
+T(n) &amp;= c_1 n + c_2 (n-1) + c_3 (n-1) + c_4 (n-1) + c_7 (n-1) \\
+&amp;= (c_1 + c_2 + c_3 + c_4 + c_7)n - (c_2 + c_3 + c_4 + c_7) \\
+\end{align}</p>
+<p>Let \(a = c_1 + c_2 + c_3 + c_4 + c_7\) and $b = -(c_2 + c_3 + c_4 + c_7)$Then the best-case runtime is given as \(an + b\), a linear function of \(n\).</p>
+<h3 id="rate-of-growth">Rate of Growth</h3>
+<p>We can simplify how we express the runtime of both these cases by considering only the highest-order term. Consider the worst-case, \(T(n) = an^2 + bn + c\). As \(n\) grows, the term \(an^2\) will dominate the runtime, rendering the others insignificant by comparison. This simplification is typically expressed using \(\Theta\) notation. For the worst-case, we say that \(T(n) = \Theta(n^2)\). It is a compact way of stating that the runtime is proportional to \(n^2\) for large values of \(n\).</p>
+<h3 id="example-analysis-of-selection-sort">Example: Analysis of Selection Sort</h3>
+<p>Based on the analysis above, let&rsquo;s check our understanding and see if we can characterize the runtime of another sorting algorithm, selection sort. Selection sort is defined as</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">selection_sort</span>(A):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">0</span>, len(A) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        min_index <span style="color:#f92672">=</span> i
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, len(A)):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> A[j] <span style="color:#f92672">&lt;</span> A[min_index]:
+</span></span><span style="display:flex;"><span>                min_index <span style="color:#f92672">=</span> j
+</span></span><span style="display:flex;"><span>        A[i], A[min_index] <span style="color:#f92672">=</span> A[min_index], A[i]
+</span></span></code></pre></div><p>The first statement <code>for i in range(0, len(A) - 1)</code> will be evaluated \(n\) times. With the exception of the inner <code>for</code> loop, the rest of the statements in the scope of the first <code>for</code> loop are executed once per iteration. Their costs are \(c_2\) and \(c_6\), respectively.</p>
+<p>The inner <code>for</code> loop will be checked \(n-i\) times for each iteration of the outer <code>for</code> loop. The cost of the condition check is \(c_3\). The cost of the statements inside the <code>for</code> loop are \(c_4\) and \(c_5\). The <code>if</code> check is evaluated for every iteration of the inner loop, but the statements inside the <code>if</code> are only executed when the condition is true. We can denote this as \(t_i\), the number of times the <code>if</code> condition is true for each iteration of the inner <code>for</code> loop. The cost of the inner loop is given as</p>
+<p>\begin{align}
+c_3 \sum_{i=0}^{n-1} (n-i) + c_4 \sum_{i=0}^{n-1} (n-i-1) + c_5 \sum_{i=0}^{n-1} t_i\\
+\end{align}</p>
+<p>Combining this with the cost of the outer <code>for</code> loop, we get</p>
+<p>\begin{align}
+T(n) &amp;= c_1 n + c_2 (n-1) + c_6 (n-1) + c_3 \sum_{i=0}^{n-1} (n-i) + c_4 \sum_{i=0}^{n-1} (n-i-1) + c_5 \sum_{i=0}^{n-1} t_i\\
+\end{align}</p>
+<h2 id="complexity-analysis">Complexity Analysis</h2>
+<h3 id="introduction">Introduction</h3>
+<ul>
+<li>What is complexity analysis and why is it important?</li>
+<li>Types of complexity: Time complexity and Space complexity.</li>
+<li>Revisit insertion sort example.</li>
+</ul>
+<h3 id="big-o-notation">Big O Notation</h3>
+<ul>
+<li>Definition and significance.</li>
+<li>Common Big O types: \(O(1)\), \(O(\log n)\), \(O(n)\), \(O(n \log n)\), \(O(n^2)\), etc.</li>
+<li>Examples of algorithms and their Big O.</li>
+</ul>
+<h3 id="big-omega-notation">Big Omega Notation</h3>
+<ul>
+<li>Definition and significance.</li>
+<li>Examples of algorithms and their Big Omega.</li>
+</ul>
+<p>There are certainly examples of input sequences of size \(n\) for which an algorithm like insertion sort will run in \(O(n)\) time. However, there are also plenty of sequences that will cause it to run in \(O(n^2)\) time. If we are evaluating a lower bound on the runtime, we would have to go with \(\Omega(n^2)\) since every input runs <em>at least as fast</em> as the worst-case.</p>
+<h3 id="big-theta-notation">Big Theta Notation</h3>
+<h3 id="analyzing-complexity">Analyzing Complexity</h3>
+<ul>
+<li>Worst-case, average-case, and best-case scenarios.</li>
+<li>Techniques for analyzing complexity.</li>
+</ul>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. “Llama 2: Open Foundation and Fine-Tuned Chat Models.” arXiv. <a href="https://doi.org/10.48550/arXiv.2307.09288">https://doi.org/10.48550/arXiv.2307.09288</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/algorithms/">algorithms</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
