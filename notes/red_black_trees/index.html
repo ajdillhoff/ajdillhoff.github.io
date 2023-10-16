@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Definition Operations Exercises Red-Black Trees are modified Binary Search Trees that maintain a balanced structure in order to guarantee that operations like search, insert, and delete run in \(O(\log n)\) time.
+Definition A red-black tree is a binary search tree with the following properties:
+Every node is either red or black. The root is black. Every NULL leaf is black. If a node is red, then both its children are black.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/red_black_trees/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/red_black_trees/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/red_black_trees/">
+  <meta property="og:title" content="Red-Black Trees | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Definition Operations Exercises Red-Black Trees are modified Binary Search Trees that maintain a balanced structure in order to guarantee that operations like search, insert, and delete run in \(O(\log n)\) time.
+Definition A red-black tree is a binary search tree with the following properties:
+Every node is either red or black. The root is black. Every NULL leaf is black. If a node is red, then both its children are black."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-10-15T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-10-15T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Red-Black Trees | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Red-Black Trees</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-10-15 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-10-15 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Oct 15, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/red_black_trees/&amp;text=Red-Black%20Trees" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/red_black_trees/&amp;t=Red-Black%20Trees" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Red-Black%20Trees&amp;body=https://ajdillhoff.github.io/notes/red_black_trees/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/red_black_trees/&amp;title=Red-Black%20Trees" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Red-Black%20Trees%20https://ajdillhoff.github.io/notes/red_black_trees/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/red_black_trees/&amp;title=Red-Black%20Trees" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#operations">Operations</a></li>
+<li><a href="#exercises">Exercises</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Red-Black Trees are modified <a href="/notes/binary_search_trees/">Binary Search Trees</a> that maintain a balanced structure in order to guarantee that operations like search, insert, and delete run in \(O(\log n)\) time.</p>
+<h2 id="definition">Definition</h2>
+<p>A red-black tree is a binary search tree with the following properties:</p>
+<ol>
+<li>Every node is either red or black.</li>
+<li>The root is black.</li>
+<li>Every <code>NULL</code> leaf is black.</li>
+<li>If a node is red, then both its children are black.</li>
+<li>For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-15_11-50-31_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Red-Black Tree from CLRS Chapter 13." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Red-Black Tree from CLRS Chapter 13.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The only structural addition we need to make over a BST is the addition of a <code>color</code> attribute to each node. This attribute can be either <code>RED</code> or <code>BLACK</code>.</p>
+<p>Property 5 implies that the <em>black-height</em> of a tree is an important property. This property is used to prove that the height of a red-black tree with \(n\) internal nodes is at most \(2 \log(n + 1)\).</p>
+<h2 id="operations">Operations</h2>
+<h3 id="rotate">Rotate</h3>
+<p>If a <Binary Search Tree> is balanced, then searching for a node takes \(O(\log n)\) time. However, if the tree is unbalanced, then searching can take \(O(n)\) time. When items are inserted or deleted from a tree, it can become unbalanced. Without any way to correct for this, a BST is less desirable unless the data will not change.</p>
+<p>When nodes are inserted or deleted into a red-black tree, the <strong><strong>rotation</strong></strong> operation is used in functions that maintain the red-black properties. This ensures that the tree remains balanced and that operations like search, insert, and delete run in \(O(\log n)\) time. The figure below shows the two types of rotations that can be performed on a red-black tree.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-15_17-28-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Rotations in a red-black tree (CLRS Figure 13.2)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Rotations in a red-black tree (CLRS Figure 13.2).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Python implementations of both left and right rotations are given below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">left_rotate</span>(self, x):
+</span></span><span style="display:flex;"><span>    y <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>    x<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>left <span style="color:#f92672">!=</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">.</span>p <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>root <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> x <span style="color:#f92672">==</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>        x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    x<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">right_rotate</span>(self, y):
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">.</span>right <span style="color:#f92672">!=</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        x<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    x<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>p <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>root <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> y <span style="color:#f92672">==</span> y<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    x<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> x
+</span></span></code></pre></div><p>Cormen et al. Figure 13.3 (below) shows the result of performing a left rotation on node \(x\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-15_18-07-53_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Left rotation on node (x) (CLRS Figure 13.3)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Left rotation on node (x) (CLRS Figure 13.3).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>A rotation only changes pointer assignments, so it takes \(O(1)\) time.</p>
+<h3 id="insert">Insert</h3>
+<p>The <code>insert</code> operation in a red-black tree starts off identically to the <code>insert</code> operation in a BST. The new node is inserted into the tree as a leaf node. Since the <code>NULL</code> leaf nodes must be black by definition, the added node is colored red. The function in Python is shown below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert</span>(self, z):
+</span></span><span style="display:flex;"><span>    y <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>nil
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>root
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> x <span style="color:#f92672">!=</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        y <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> z<span style="color:#f92672">.</span>key <span style="color:#f92672">&lt;</span> x<span style="color:#f92672">.</span>key:
+</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> y <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>root <span style="color:#f92672">=</span> z
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> z<span style="color:#f92672">.</span>key <span style="color:#f92672">&lt;</span> y<span style="color:#f92672">.</span>key:
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> z
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> z
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>nil
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>nil
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>insert_fixup(z)
+</span></span></code></pre></div><p>By adding the node and setting its color to red, we have possibly violated properties 2 and 4. Property 2 is violated if <code>z</code> is the root. Property 4 is violated if the parent of the new node is also red. The final line of the function calls <code>insert_fixup</code> to restore the red-black properties. It is defined as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert_fixup</span>(self, z):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> z<span style="color:#f92672">.</span>p <span style="color:#f92672">==</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>            y <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                y<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> z <span style="color:#f92672">==</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right:
+</span></span><span style="display:flex;"><span>                    z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>                    self<span style="color:#f92672">.</span>left_rotate(z)
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>right_rotate(z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            y <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                y<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> z <span style="color:#f92672">==</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>                    z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>                    self<span style="color:#f92672">.</span>right_rotate(z)
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>left_rotate(z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>root<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span></code></pre></div><h4 id="case-1">Case 1</h4>
+<p>Inside the <code>while</code> loop, the first and second conditions are symmetric. One considers the case where <code>z</code>&rsquo;s parent is a left child, and the other considers the case where <code>z</code>&rsquo;s parent is a right child. Further, if <code>z</code>&rsquo;s parent is a left child, then we start by setting <code>y</code> to <code>z</code>&rsquo;s <em>aunt</em>. Let&rsquo;s investigate the first <code>if</code> statement, where <code>y</code> is <code>RED</code>. In this case, both <code>z</code>&rsquo;s parent and aunt are <code>RED</code>. We can fix this by setting both to <code>BLACK</code> and setting <code>z</code>&rsquo;s grandparent to <code>RED</code>. This may violate property 2, so we set <code>z</code> to its grandparent and repeat the loop.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>    z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p
+</span></span></code></pre></div><h4 id="case-2">Case 2</h4>
+<p>If <code>y</code> is <code>BLACK</code>, then we need to consider the case where <code>z</code> is a right child. In this case, we set <code>z</code> to its parent and perform a left rotation. This automatically results in the third case, where <code>z</code> is a left child.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> z <span style="color:#f92672">==</span> z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right:
+</span></span><span style="display:flex;"><span>    z <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>left_rotate(z)
+</span></span></code></pre></div><h4 id="case-3">Case 3</h4>
+<p>If <code>z</code> is a left child, then we set <code>z</code>&rsquo;s parent to <code>BLACK</code> and its grandparent to <code>RED</code>. Then we perform a right rotation on the grandparent.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>right_rotate(z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p)
+</span></span></code></pre></div><p>Figure 13.4 from Cormen et al. demonstrates the addition of a node to a red-black tree. The node is inserted as a leaf node and colored red. Then <code>insert_fixup</code> is called to restore the red-black properties.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-15_20-41-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Inserting a node into a red-black tree (CLRS Figure 13.4)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Inserting a node into a red-black tree (CLRS Figure 13.4).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The <code>insert</code> operation takes \(O(\log n)\) time since it performs a constant number of rotations.</p>
+<h3 id="delete">Delete</h3>
+<p>Like the <code>delete</code> operation of a BST, the <code>delete</code> operation of a RBT uses a <code>transplant</code> operation to replace the deleted node with its child. The <code>transplant</code> operation is defined as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">transplant</span>(self, u, v):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u<span style="color:#f92672">.</span>p <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>nil:
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>root <span style="color:#f92672">=</span> v
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> u <span style="color:#f92672">==</span> u<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>        u<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> v
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        u<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> v
+</span></span><span style="display:flex;"><span>    v<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> u<span style="color:#f92672">.</span>p
+</span></span></code></pre></div><p>The full <code>delete</code> operation follows a similar structure to that of its BST counterpart. There are a few distinct differences based on the color of the node being deleted. The function begins as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">delete</span>(self, z):
+</span></span><span style="display:flex;"><span>    y <span style="color:#f92672">=</span> z
+</span></span><span style="display:flex;"><span>    y_original_color <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>color
+</span></span></code></pre></div><p>The first line sets <code>y</code> to the node to be deleted. The second line saves the color of <code>y</code>. This is necessary because <code>y</code> will be replaced by another node, and we need to know the color of the replacement node. The first two conditionals check if <code>z</code> has any children. If there is right child, then the <code>z</code> is replaced by the left child. If there is a left child, then <code>z</code> is replaced by the right child. If <code>z</code> has no children, then <code>z</code> is replaced by <code>NULL</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> z<span style="color:#f92672">.</span>left <span style="color:#f92672">==</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>transplant(z, z<span style="color:#f92672">.</span>right)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">elif</span> z<span style="color:#f92672">.</span>right <span style="color:#f92672">==</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>transplant(z, z<span style="color:#f92672">.</span>left)
+</span></span></code></pre></div><p>If <code>z</code> has two children, then we find the successor of <code>z</code> and set <code>y</code> to it. The successor is the node with the smallest key in the right subtree of <code>z</code>. The successor is guaranteed to have at most one child, so we can use the code above to replace <code>y</code> with its child. Then we replace <code>z</code> with <code>y</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>    y <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>minimum(z<span style="color:#f92672">.</span>right)
+</span></span><span style="display:flex;"><span>    y_original_color <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>color
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> y<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> y <span style="color:#f92672">!=</span> z<span style="color:#f92672">.</span>right: <span style="color:#75715e"># y is farther down the tree</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>transplant(y, y<span style="color:#f92672">.</span>right)
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>        y<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        x<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>transplant(z, y)
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>p <span style="color:#f92672">=</span> y
+</span></span><span style="display:flex;"><span>    y<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> z<span style="color:#f92672">.</span>color
+</span></span></code></pre></div><p>The procedure kept track of <code>y_original_color</code> to see if any violations occurred. This would happen if <code>y</code> was originally <code>BLACK</code> because the <code>transplant</code> operation, or the deletion itself, could have violated the red-black properties. If <code>y_original_color</code> is <code>BLACK</code>, then we call <code>delete_fixup</code> to restore the properties.</p>
+<h3 id="delete-fixup">Delete Fixup</h3>
+<p>If the node being deleted is <code>BLACK</code>, then the following scenarios can occur. If <code>y</code> is the root and a <code>RED</code> child of <code>y</code> becomes the new root, property 2 is violated. Let <code>x</code> be a <code>RED</code> child of <code>y</code>, if a new parent of <code>x</code> is <code>RED</code>, then property 4 is violated. Lastly, removing <code>y</code> may have caused a violation of property 5, since any path containing <code>y</code> has 1 less <code>BLACK</code> node in it.</p>
+<p>Correcting violation 5 can be done by <em>transferring</em> the <code>BLACK</code> property from <code>y</code> to <code>x</code>, the node that moves into <code>y</code>&rsquo;s original position. This requires us to allow nodes to take on multiple counts of colors. That is, if <code>x</code> was already <code>BLACK</code>, it becomes double <code>BLACK</code>. If it was <code>RED</code>, it becomes <code>RED-AND-BLACK</code>. There is a good reason to this extension, as it will help us decide which case of <code>delete_fixup</code> to use.</p>
+<p>The <code>delete_fixup</code> function will restore violations of properties 1, 2, and 4. It is called after the <code>delete</code> operation, and it takes a single argument, <code>x</code>, which is the node that replaced the deleted node. It performs a series of rotations and color changes to restore the violated properties.</p>
+<p>Let&rsquo;s look at the <code>delete_fixup</code> function from the ground up. It is a little more complex than <code>insert_fixup</code> because it has to handle the case where the node being deleted is <code>BLACK</code>. In total, there are 4 distinct cases per side. Like <code>insert_fixup</code>, it is enough to understand the first half, as the second is symmetric. The function begins as follows, where <code>x</code> is a left child.</p>
+<h4 id="case-1">Case 1</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">delete_fixup</span>(self, x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> x <span style="color:#f92672">!=</span> self<span style="color:#f92672">.</span>root <span style="color:#f92672">and</span> x<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x <span style="color:#f92672">==</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>            w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>left_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>                w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span></code></pre></div><p>In the first case, <code>x</code>&rsquo;s sibling <code>w</code> is <code>RED</code>. If this is true, then <code>w</code> must have two <code>BLACK</code> subnodes. The colors of <code>w</code> and <code>x</code>&rsquo;s parent are then switched, and a left rotation is performed on <code>x</code>&rsquo;s parent. The result of case 1 converts to one of cases 2, 3, or 4. The figure below shows the result of the first case.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-15_22-07-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Case 1 of `delete_fixup` (CLRS Figure 13.7)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Case 1 of <code>delete_fixup</code> (CLRS Figure 13.7).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="case-2">Case 2</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK <span style="color:#f92672">and</span> w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>    w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p
+</span></span></code></pre></div><p>If both of <code>w</code>&rsquo;s subnodes are <code>BLACK</code> and both <code>w</code> and <code>x</code> are also black (actually, <code>x</code> is doubly <code>BLACK</code>), then there is an extra <code>BLACK</code> node on the path from <code>w</code> to the leaves. The colors of both <code>x</code> and <code>w</code> are switched, which leaves <code>x</code> with a single <code>BLACK</code> count and <code>w</code> as <code>RED</code>. The extra <code>BLACK</code> property is transferred to <code>x</code>&rsquo;s parent. The figure below shows the result of the second case.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-16_07-57-36_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Case 2 of `delete_fixup` (CLRS Figure 13.7)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Case 2 of <code>delete_fixup</code> (CLRS Figure 13.7).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="case-3">Case 3</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>        w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>        w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>right_rotate(w)
+</span></span><span style="display:flex;"><span>        w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span></code></pre></div><p>If <code>w</code> is <code>BLACK</code>, its left child is <code>RED</code>, and its right child is <code>BLACK</code>, then the colors of <code>w</code> and its left child are switched. Then a right rotation is performed on <code>w</code>. This rotation moves the <code>BLACK</code> node to <code>w</code>&rsquo;s position, which is now the new sibling of <code>x</code>. This leads directly to case 4. A visualization of case 3 is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-16_08-01-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Case 3 of `delete_fixup` (CLRS Figure 13.7)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Case 3 of <code>delete_fixup</code> (CLRS Figure 13.7).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="case-4">Case 4</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color
+</span></span><span style="display:flex;"><span>x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>left_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>root
+</span></span></code></pre></div><p>At this point, <code>w</code> is <code>BLACK</code> and its right child is <code>RED</code>. Also remember that <code>x</code> still holds an extra <code>BLACK</code> count. This last case performs color changes and a left rotation which remedy the extra <code>BLACK</code> count. The figure below shows the result of case 4.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-16_08-12-46_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Case 4 of `delete_fixup` (CLRS Figure 13.7)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Case 4 of <code>delete_fixup</code> (CLRS Figure 13.7).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The full <code>delete_fixup</code> function is shown below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">delete_fixup</span>(self, x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> x <span style="color:#f92672">!=</span> self<span style="color:#f92672">.</span>root <span style="color:#f92672">and</span> x<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x <span style="color:#f92672">==</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>            w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>left_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>                w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK <span style="color:#f92672">and</span> w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>                    w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                    w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                    self<span style="color:#f92672">.</span>right_rotate(w)
+</span></span><span style="display:flex;"><span>                    w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color
+</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>left_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>root
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>right_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>                w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK <span style="color:#f92672">and</span> w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> BLACK:
+</span></span><span style="display:flex;"><span>                    w<span style="color:#f92672">.</span>right<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                    w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
+</span></span><span style="display:flex;"><span>                    self<span style="color:#f92672">.</span>left_rotate(w)
+</span></span><span style="display:flex;"><span>                    w <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color
+</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                w<span style="color:#f92672">.</span>left<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>right_rotate(x<span style="color:#f92672">.</span>p)
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>root
+</span></span><span style="display:flex;"><span>    x<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
+</span></span></code></pre></div><p>The <code>delete</code> operation takes \(O(\log n)\) time since it performs a constant number of rotations. The <code>delete_fixup</code> operation also takes \(O(\log n)\) time since it performs a constant number of color changes and at most 3 rotations. Case 2 of <code>delete_fixup</code> could move the violation up the tree, but this would happen no more than \(O(\log n)\) times. In total, the <code>delete</code> operation takes \(O(\log n)\) time.</p>
+<h2 id="exercises">Exercises</h2>
+<ol>
+<li>Create a red-black tree class in Python that supports the operations discussed in these notes.</li>
+<li>Using the created class from exercise 1, implement a Hash Map class that uses a red-black tree for collision resolution via chaining.</li>
+</ol>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/data-structures/">data structures</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/binary_search_trees/">Binary Search Trees</a></li>
+          
+          <li><a href="/notes/introduction_to_data_structures/">Introduction to Data Structures</a></li>
+          
+          <li><a href="/notes/linked_lists/">Linked Lists</a></li>
+          
+          <li><a href="/notes/complexity_analysis/">Complexity Analysis</a></li>
+          
+          <li><a href="/notes/introduction_to_complexity_analysis/">Introduction to Algorithms</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
