@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Definition Finding the Minimum Spanning Tree Kruskal&rsquo;s Algorithm Prim&rsquo;s Algorithm Minimum spanning trees are undirected graphs that connect all of the vertices such that there are no redundant edges and the total weight is minimized. They are useful for finding the shortest path between two points in a graph. Useful application of MSTs include
+network design: it is useful to know the least expensive path with respect to either latency or resource cost for telecommunications networks, transportation networks, or electrical grids.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/minimum_spanning_trees/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/minimum_spanning_trees/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/minimum_spanning_trees/">
+  <meta property="og:title" content="Minimum Spanning Trees | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Definition Finding the Minimum Spanning Tree Kruskal&rsquo;s Algorithm Prim&rsquo;s Algorithm Minimum spanning trees are undirected graphs that connect all of the vertices such that there are no redundant edges and the total weight is minimized. They are useful for finding the shortest path between two points in a graph. Useful application of MSTs include
+network design: it is useful to know the least expensive path with respect to either latency or resource cost for telecommunications networks, transportation networks, or electrical grids."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-10-21T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-10-21T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Minimum Spanning Trees | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Minimum Spanning Trees</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-10-21 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-10-21 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Oct 21, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    7 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/minimum_spanning_trees/&amp;text=Minimum%20Spanning%20Trees" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/minimum_spanning_trees/&amp;t=Minimum%20Spanning%20Trees" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Minimum%20Spanning%20Trees&amp;body=https://ajdillhoff.github.io/notes/minimum_spanning_trees/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/minimum_spanning_trees/&amp;title=Minimum%20Spanning%20Trees" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Minimum%20Spanning%20Trees%20https://ajdillhoff.github.io/notes/minimum_spanning_trees/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/minimum_spanning_trees/&amp;title=Minimum%20Spanning%20Trees" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#definition">Definition</a></li>
+<li><a href="#finding-the-minimum-spanning-tree">Finding the Minimum Spanning Tree</a></li>
+<li><a href="#kruskal-s-algorithm">Kruskal&rsquo;s Algorithm</a></li>
+<li><a href="#prim-s-algorithm">Prim&rsquo;s Algorithm</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Minimum spanning trees are undirected graphs that connect all of the vertices such that there are no redundant edges and the total weight is minimized. They are useful for finding the shortest path between two points in a graph. Useful application of MSTs include</p>
+<ul>
+<li><strong>network design</strong>: it is useful to know the least expensive path with respect to either latency or resource cost for telecommunications networks, transportation networks, or electrical grids.</li>
+<li><strong>approximation algorithms</strong>: MSTs can be used to approximate the solution to the traveling salesman problem.</li>
+<li><strong>clustering</strong>: MSTs can be used to cluster data points in a graph.</li>
+<li><strong>image segmentation</strong>: MSTs can be used to segment images into smaller regions.</li>
+</ul>
+<h2 id="definition">Definition</h2>
+<p>Let \(G\) be a connected, undirected graph with edges \(E\), vertices \(V\), and edge weights \(w\). A <strong>minimum spanning tree</strong> is a subset \(T \subseteq E\) that connects all of the vertices such that the total weight is minimized. The original graph \(G\) is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-21_18-46-30_undirected_original.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An undirected graph with redundant edges." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>An undirected graph with redundant edges.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The minimum spanning tree of the above graph is show below. All of the redundant edges have been removed, but there is still a path between each pair of nodes.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-21_18-56-15_mst.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The minimum spanning tree of (G)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>The minimum spanning tree of (G).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>As described in <em>Introduction to Algorithms</em> there are two greedy algorithms for finding the minimum spanning tree of a graph (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). These notes will review both of these, but first let&rsquo;s look at a general algorithm for finding the minimum spanning tree of a graph.</p>
+<h2 id="finding-the-minimum-spanning-tree">Finding the Minimum Spanning Tree</h2>
+<p>The general algorithm for finding the minimum spanning tree of a graph grows a set of edges \(T\) from an empty set. At each step, the algorithm adds the edge with the smallest weight that does not create a cycle. The algorithm terminates when \(T\) is a complete tree.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>T = {}
+</span></span><span style="display:flex;"><span>while T is not a spaning tree
+</span></span><span style="display:flex;"><span>    find the edge e with the smallest weight that does not create a cycle
+</span></span><span style="display:flex;"><span>    T = T union {e}
+</span></span></code></pre></div><p>Each edge \(e\) that is added must result in a tree that is a subset of the minimum spanning tree. The challenge of this algorithm is actually finding such an edge. How would we know such an edge if we saw it? We first need to define a few properties which will shine light on this.</p>
+<p>A <strong>cut</strong> of a graph \(G\) is a partition of the vertices \(V\) into two disjoint sets \(S\) and \(V - S\). An edge \(e\) <strong>crosses</strong> the cut if one of its endpoints is in \(S\) and the other is in \(V - S\). If no edge in a given set \(E\) crosses the cut, then that cut <strong>respects</strong> \(E\). An edge that is the minimum weight edge that crosses a cut is called a <strong>light edge</strong>. With these definitions, we can now formally define how to find a <strong>safe edge</strong>, which is an edge that can be added to the current set of edges \(T\) without creating a cycle.</p>
+<p><strong><strong>Theorem 21.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>)</strong></strong></p>
+<p>Let \(G = (V, E)\) be a connected, undirected graph with a real-valued weight function \(w\) defined on \(E\). Let \(A\) be a subset of \(E\) that is included in some minimum spanning tree for \(G\), let \((S, V - S)\) be any cut of \(G\) that respects \(A\), and let \(e\) be a light edge crossing \((S, V - S)\). Then, edge \(e\) is safe for \(A\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-22_13-10-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visual proof of Theorem 21.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Visual proof of Theorem 21.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong><strong>Proof</strong></strong></p>
+<p>The two sets in the figure above represent vertices in \(S\) (orange) and vertices in \(V - S\) (tan). \(T\) is the original MST depicted in the figure. The dotted line is the new edge \((u, v)\) to consider. \(A\) is a subset of edges in \(T\) represented by the blue lines. If the safe edge \((u, v)\) is already in the original MST \(T\), then we are done.</p>
+<p>The vertices \(u\) and \(v\) lie on opposite sides of the cut. The edge \((u, v)\) would introduce a cycle since there is already a path from \(u\) to \(v\) in \(T\) that crosses the cut via \((x, y)\). Since both \((u, v)\) and \((x, y)\) are light edges that cross the cut, then it must be that \(w(u, v) \leq w(x, y)\).</p>
+<p>Let \(T&rsquo;\) be the minimum spanning tree with \((x, y)\) replaced by \((u, v)\). That is \(T&rsquo; = T - \{(x, y)\} \cup \{(u, v)\}\). Since \(T\) is a minimum spanning tree, then \(w(T) \leq w(T&rsquo;)\). Since \(w(T) = w(T&rsquo;)\), then \(T&rsquo;\) is also a minimum spanning tree. Therefore, \((u, v)\) is safe for \(A\).</p>
+<p><strong><strong>Corollary 21.2 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>)</strong></strong></p>
+<p>We can also view this in terms of <strong>connected components</strong>, which are subsets of vertices that are connected by a path. If \(C\) and \(C&rsquo;\) are two connected components in \(T\) and \((u, v)\) is a light edge connecting \(C\) and \(C&rsquo;\), then \((u, v)\) is safe for \(T\).</p>
+<p>The figure below shows a graph with two individual components. If the edge \((u, v)\) is a light edge, then it is safe to add it to the set of edges \(T\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-22_15-39-37_connected_components.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Two connected components from a graph (left). Adding a safe edge (right)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Two connected components from a graph (left). Adding a safe edge (right).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="kruskal-s-algorithm">Kruskal&rsquo;s Algorithm</h2>
+<p>The first solution to the minimum spanning tree that we will study is called <strong>Kruskal&rsquo;s algorithm</strong>. This algorithm grows a forest of trees from an empty set. At each step, the algorithm adds the lightest edge that does not create a cycle. The algorithm terminates when the forest is a single tree. This can be viewed as an agglomerative clustering algorithm. The algorithm starts with each vertex in its own cluster. At each step, the algorithm merges the two clusters that are closest together. The algorithm terminates when there is only one cluster.</p>
+<p>The algorithm is given below (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
+<p><strong><strong>Kruskal&rsquo;s Algorithm</strong></strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>A = {}
+</span></span><span style="display:flex;"><span>for each vertex v in G.V
+</span></span><span style="display:flex;"><span>    MAKE-SET(v)
+</span></span><span style="display:flex;"><span>sort the edges of G.E into nondecreasing order by weight w
+</span></span><span style="display:flex;"><span>for each edge (u, v) in G.E, taken in nondecreasing order by weight
+</span></span><span style="display:flex;"><span>    if FIND-SET(u) != FIND-SET(v)
+</span></span><span style="display:flex;"><span>        A = A union {(u, v)}
+</span></span><span style="display:flex;"><span>        UNION(u, v)
+</span></span><span style="display:flex;"><span>return A
+</span></span></code></pre></div><p>A step-by-step example of an implementation in Python is available <a href="https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/kruskals_algorithm.ipynb" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h3 id="analysis">Analysis</h3>
+<p>The running time is dependent on how the disjoint-set of vertices is implemented. In the best known case, a <em>disjoint-set-forest</em> implementation should be used (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). Creating a list of edges takes \(O(E)\) time. Sorting the edges takes \(O(E \log E)\) time. The <code>for</code> loop iterates over each edge, which is \(O(E)\). All disjoin-set operations take \(O((V + E)\alpha(V))\) time. Since the graph is connected, \(E \geq V - 1\), so the total running time is \(O(E \log E + E + E \alpha(V)) = O(E \log E + E \alpha(V)) = O(E \log V)\).</p>
+<h2 id="prim-s-algorithm">Prim&rsquo;s Algorithm</h2>
+<p>The second solution starts at an arbitrary vertex in a set \(A\) and adds a new vertex to \(A\) in a greedy fashion. To efficiently select a new edge to add, Prim&rsquo;s algorithm uses a priority queue to keep track of the lightest edge that crosses the cut. The algorithm terminates when \(A\) is a complete tree. The full algorithm is given below. We will step through it in more detail after.</p>
+<p><strong><strong>Prim&rsquo;s Algorithm</strong></strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>A = {}
+</span></span><span style="display:flex;"><span>for each vertex v in G.V
+</span></span><span style="display:flex;"><span>    key[v] = infinity
+</span></span><span style="display:flex;"><span>    pi[v] = NIL
+</span></span><span style="display:flex;"><span>key[r] = 0
+</span></span><span style="display:flex;"><span>Q = G.V
+</span></span><span style="display:flex;"><span>while Q is not empty
+</span></span><span style="display:flex;"><span>    u = EXTRACT-MIN(Q)
+</span></span><span style="display:flex;"><span>    A = A union {u}
+</span></span><span style="display:flex;"><span>    for each vertex v in G.Adj[u]
+</span></span><span style="display:flex;"><span>        if v in Q and w(u, v) &lt; key[v]
+</span></span><span style="display:flex;"><span>            pi[v] = u
+</span></span><span style="display:flex;"><span>            key[v] = w(u, v)
+</span></span></code></pre></div><p>You might look at this and wonder how the MST is represented. Prim&rsquo;s algorithm implicitly maintains the set \(A = \{(v, v.\pi) : v \in V - \{r\} - Q\}\). When the <code>while</code> loop terminates, \(A = \{(v, v.\pi) : v \in V - \{r\}\}\), since the queue is empty. The critical part of this is to understand how the algorith changes the key values.</p>
+<p>A step-by-step example of an implementation in Python is available <a href="https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/prims_algorithm.ipynb" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h3 id="analysis">Analysis</h3>
+<p>Prim&rsquo;s algorithm uses a priority queue to keep track of the lightest edge that crosses the cut. If the priority queue is implemented as a <a href="https://www.cs.cmu.edu/~tcortina/15-121sp10/Unit06B.pdf" target="_blank" rel="noopener noreferrer">min-heap</a>, which has a worst-case running time of \(O(\log V)\) for both <code>EXTRACT-MIN</code> and <code>DECREASE-KEY</code>. The algorithm calls <code>EXTRACT-MIN</code> once for each vertex, which is \(O(V \log V)\). The algorithm calls <code>DECREASE-KEY</code> once for each edge, which is \(O(E \log V)\). The total running time is \(O(V \log V + E \log V) = O(E \log V)\).</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/algorithms/">algorithms</a>
+  
+  <a class="badge badge-light" href="/tags/graphs/">graphs</a>
+  
+  <a class="badge badge-light" href="/tags/minimum-spanning-trees/">minimum spanning trees</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+          <li><a href="/notes/binary_search_trees/">Binary Search Trees</a></li>
+          
+          <li><a href="/notes/complexity_analysis/">Complexity Analysis</a></li>
+          
+          <li><a href="/notes/introduction_to_complexity_analysis/">Introduction to Algorithms</a></li>
+          
+          <li><a href="/notes/introduction_to_graph_theory/">Introduction to Graph Theory</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

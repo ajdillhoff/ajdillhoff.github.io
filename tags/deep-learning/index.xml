@@ -1109,43 +1109,20 @@ It additionally was adapted to other challenges and won first place on ImageNet 
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#syllabi&#34;&gt;Syllabi&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#questions&#34;&gt;Questions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#deep-networks&#34;&gt;Deep Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#deep-vs-dot-shallow-networks&#34;&gt;Deep vs. Shallow Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#high-dimensional-structured-data&#34;&gt;High Dimensional Structured Data&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#loss-functions&#34;&gt;Loss Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#regularization&#34;&gt;Regularization&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;syllabi&#34;&gt;Syllabi&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://cs230.stanford.edu/syllabus/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs230.stanford.edu/syllabus/&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;questions&#34;&gt;Questions&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Does backprop give the same result when combining the weights and bias versus separating?&lt;/li&gt;
-&lt;/ul&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;What is deep learning?&lt;/li&gt;
-&lt;li&gt;What problems is it used for?&lt;/li&gt;
-&lt;li&gt;Basic neural nets vs &amp;ldquo;deep&amp;rdquo; nets&lt;/li&gt;
-&lt;li&gt;Structuring a project&lt;/li&gt;
-&lt;li&gt;CNNs&lt;/li&gt;
-&lt;li&gt;Sequence models&lt;/li&gt;
-&lt;li&gt;Geometric Deep Learning&lt;/li&gt;
-&lt;li&gt;Representation of a model in code (vectorization)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Deep learning has been employed in many fields from visual recognition to medical diagnosis.
-Its continued success is impossible to ignore.
-As more and more companies pivot to utilize deep learning in some capacity, it is paramount that any machine learning practitioner or research be well versed in moden practices and frameworks.
-This section will provide a broad overview of deep learning with examples using &lt;a href=&#34;https://pytorch.org&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;PyTorch&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Deep learning is a term that you&amp;rsquo;ve probably heard of a million times by now in different contexts. It is an umbrella term that encompasses techniques for computer vision, bioinformatics, natural language processing, and much more. It almost always involves a neural network of some kind that was trained on a large corpus of data.&lt;/p&gt;
+&lt;p&gt;The existence of the word &amp;ldquo;deep&amp;rdquo; implies a contrast to &amp;ldquo;shallow&amp;rdquo; learning. Some definition define a deep network as an artificial neural network with more than 1 layer. Another definition is that a deep model will include a hierarchy of features that are learned from the data. These features are learned as part of the optimization process as opposed to being manually engineered as is required in other machine learning techniques.&lt;/p&gt;
 &lt;p&gt;If you are not yet familiar with &lt;a href=&#34;https://ajdillhoff.github.io/notes/neural_networks/&#34;&gt;neural networks&lt;/a&gt;, follow the link to learn about their basics as they are the foundation of deep learning systems.&lt;/p&gt;
 &lt;p&gt;We will cover how to implement an array of deep learning models for different tasks.
 Different layers and activation functions will be explored as well as the effect of regularization.
@@ -1153,11 +1130,10 @@ There will also be a focus on best practices for organizing a machine learning p
 &lt;h2 id=&#34;what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/h2&gt;
 &lt;p&gt;We begin by comparing &lt;em&gt;shallow&lt;/em&gt; networks with &lt;em&gt;deep&lt;/em&gt; networks.
 What defines a deep network? Is it as simple as crossing a threshold into \(n\) layers?
-As evidenced by &amp;lt;&amp;amp;zeilerVisualizingUnderstandingConvolutional2013&amp;gt;, deeper networks allow for a more robust hierarchy of image features.&lt;/p&gt;
-&lt;p&gt;There is work by &amp;lt;&amp;amp;montufarNumberLinearRegions2014&amp;gt; which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
+As evidenced by (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Zeiler and Fergus 2013&lt;/a&gt;) deeper networks allow for a more robust hierarchy of image features.&lt;/p&gt;
+&lt;p&gt;There is work by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Montúfar et al. 2014&lt;/a&gt;) which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
 Additionally, there are many individual results which suggest that deeper networks provide better task generalization.&lt;/p&gt;
-&lt;p&gt;As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task.
-That is, our network is not only optimizing the performance of task, but it produces features from the data.
+&lt;p&gt;As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task. That is, the network is not only optimizing the overall performance of task, but it produces features from the data that may be useful in other contexts.
 This is particularly useful for transfer learning, where large pre-trained models can be used as starting points for novel tasks.
 The benefit being that a complete retraining of the model is not necessary.&lt;/p&gt;
 &lt;h2 id=&#34;deep-networks&#34;&gt;Deep Networks&lt;/h2&gt;
@@ -1202,6 +1178,35 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 \frac{d\mathcal{L}}{d\mathbf{b}^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{d\mathbf{b}^{(l)}}.
 \end{align*}&lt;/p&gt;
 &lt;p&gt;The term \(\frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}}\) is the gradient that is propagated from layer \(l+1\).&lt;/p&gt;
+&lt;h2 id=&#34;deep-vs-dot-shallow-networks&#34;&gt;Deep vs. Shallow Networks&lt;/h2&gt;
+&lt;p&gt;As mentioned above, a shallow network can approximate any continuous function to arbitrary precision. If a deep network can represent the composition of two shallow networks, then it can also approximate any continuous function to arbitrary precision. Then why are deep networks better than shallow networks when both can approximate any function? There are a few compelling reasons as to why, starting with the &lt;strong&gt;capacity&lt;/strong&gt; of the network and the number of linear regions it can represent per parameter.&lt;/p&gt;
+&lt;p&gt;As discussed in &lt;em&gt;Understanding Deep Learning&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;), a shallow network with 1 input, 1 output, and \(D &amp;gt; 2\) hidden units can create up to \(D + 1\) linear regions using \(3D+1\) parameters. The \(3D + 1\) comes from the fact that the hidden layer requires \(D\) parameters for the weights with an extra \(D\) parameters for the bias terms. To convert from the hidden layer to the output layer, there are \(D\) parameters for the weights and 1 parameter for the bias term. The figure below shows the maximum number of linear regions as a function of the number of parameters for networks that map one input to one output.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-22_21-30-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Maximum number of linear regions as a function of the number of parameters for networks that map one input to one output (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Prince 2023&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Maximum number of linear regions as a function of the number of parameters for networks that map one input to one output (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;high-dimensional-structured-data&#34;&gt;High Dimensional Structured Data&lt;/h2&gt;
+&lt;p&gt;For high dimensional structured data, such as images, deep networks are able to learn a hierarchy of features that are useful for the task at hand while requiring a significantly smaller number of parameters than a shallow network. Consider a \(100\times100\) image used as input to a shallow network with 1 hidden layer. This would require \(10,001\) parameters to represent the weights and biases. If we instead use a deep network with with convolutional layers, we can use significantly fewer parameters. We will see this more closely when we study &lt;a href=&#34;https://ajdillhoff.github.io/notes/convolutional_neural_networks/&#34;&gt;Convolutional Neural Networks&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;activation-functions&#34;&gt;Activation Functions&lt;/h2&gt;
 &lt;h3 id=&#34;sigmoid&#34;&gt;Sigmoid&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;Function&lt;/strong&gt;&lt;/p&gt;
@@ -1220,14 +1225,14 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_10-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Sigmoid non-linearity (Wikipedia)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_10-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Sigmoid non-linearity (Wikipedia)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)
     
     
     
@@ -1237,6 +1242,37 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 &lt;/figure&gt;
 
 &lt;h2 id=&#34;loss-functions&#34;&gt;Loss Functions&lt;/h2&gt;
+&lt;p&gt;Loss functions are used to evaluate the performance of a model. In the context of gradient descent, their gradient with respect to the model parameters is used to update the parameters. Loss functions can be constructed using maximum likelihood estimation over a probability distribution or by using a distance metric between the model output and the ground truth. The table below from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;) shows some common loss functions and their use cases.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Data Type&lt;/th&gt;
+&lt;th&gt;Domain&lt;/th&gt;
+&lt;th&gt;Distribution&lt;/th&gt;
+&lt;th&gt;Use&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, continuous, unbounded&lt;/td&gt;
+&lt;td&gt;\(\mathbb{R}\)&lt;/td&gt;
+&lt;td&gt;univariate normal&lt;/td&gt;
+&lt;td&gt;Regression&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, discrete, binary&lt;/td&gt;
+&lt;td&gt;\(\{0, 1\}\)&lt;/td&gt;
+&lt;td&gt;Bernoulli&lt;/td&gt;
+&lt;td&gt;Binary Classification&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, discrete, bounded&lt;/td&gt;
+&lt;td&gt;\(\{0, 1\}^K\)&lt;/td&gt;
+&lt;td&gt;Multinoulli&lt;/td&gt;
+&lt;td&gt;Multiclass Classification&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 &lt;h2 id=&#34;a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/h2&gt;
 &lt;p&gt;When training and evaluating models, especially on benchmark datasets, it is important to properly test their generalization performance.
 This test is crucial when comparing the efficacy of your ideas versus baseline evaluations or competing methods.&lt;/p&gt;
@@ -1256,39 +1292,12 @@ Taking 10,000 samples to serve as a validation set is only \(~.07\%\) of the dat
 &lt;p&gt;Most modern machine learning frameworks have an easy way to split the dataset.
 We can do this in PyTorch using &lt;code&gt;torch.utils.data.random_split&lt;/code&gt;.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;train_dataset, val_dataset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;utils&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;data&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;random_split(dataset, [train_size, val_size])
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/h2&gt;
-&lt;p&gt;Ideally, we want a model that generalizes well to unseen data.
-Being able to evaluate how well our model performs is, in many ways, more important than the model itself.
-A model that shows good generalization performance will have low bias and low variance.
-Bonus points are awarded if the model remains simple.&lt;/p&gt;
-&lt;p&gt;During training, we can detect a model that is overfitting the data by also monitoring its performance on a separate validation set.
-If the validation loss diverges from the training loss, the model is beginning to overfit.&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_22-38-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Higher complexity on the dataset leads to higher variance and lower bias.&#34; &gt;
-
-
-
-&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
-  
-  &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Higher complexity on the dataset leads to higher variance and lower bias.
-    
-    
-    
-  &lt;/p&gt; 
-&lt;/figcaption&gt;
-
-&lt;/figure&gt;
-
-&lt;h2 id=&#34;regularization&#34;&gt;Regularization&lt;/h2&gt;
-&lt;h2 id=&#34;optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Montúfar, Guido, Razvan Pascanu, Kyunghyun Cho, and Yoshua Bengio. 2014. “On the Number of Linear Regions of Deep Neural Networks.” &lt;i&gt;Arxiv:1402.1869 [Cs, Stat]&lt;/i&gt;, June. &lt;a href=&#34;http://arxiv.org/abs/1402.1869&#34;&gt;http://arxiv.org/abs/1402.1869&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Prince, Simon J.D. 2023. &lt;i&gt;Understanding Deep Learning&lt;/i&gt;. MIT Press. &lt;a href=&#34;https://udlbook.github.io/udlbook/&#34;&gt;https://udlbook.github.io/udlbook/&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Zeiler, Matthew D., and Rob Fergus. 2013. “Visualizing and Understanding Convolutional Networks.” &lt;i&gt;Arxiv:1311.2901 [Cs]&lt;/i&gt;, November. &lt;a href=&#34;http://arxiv.org/abs/1311.2901&#34;&gt;http://arxiv.org/abs/1311.2901&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

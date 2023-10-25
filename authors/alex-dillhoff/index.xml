@@ -7,10 +7,554 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 15 Oct 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Sat, 21 Oct 2023 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Minimum Spanning Trees</title>
+      <link>https://ajdillhoff.github.io/notes/minimum_spanning_trees/</link>
+      <pubDate>Sat, 21 Oct 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/minimum_spanning_trees/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#finding-the-minimum-spanning-tree&#34;&gt;Finding the Minimum Spanning Tree&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#kruskal-s-algorithm&#34;&gt;Kruskal&amp;rsquo;s Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#prim-s-algorithm&#34;&gt;Prim&amp;rsquo;s Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Minimum spanning trees are undirected graphs that connect all of the vertices such that there are no redundant edges and the total weight is minimized. They are useful for finding the shortest path between two points in a graph. Useful application of MSTs include&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;network design&lt;/strong&gt;: it is useful to know the least expensive path with respect to either latency or resource cost for telecommunications networks, transportation networks, or electrical grids.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;approximation algorithms&lt;/strong&gt;: MSTs can be used to approximate the solution to the traveling salesman problem.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;clustering&lt;/strong&gt;: MSTs can be used to cluster data points in a graph.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;image segmentation&lt;/strong&gt;: MSTs can be used to segment images into smaller regions.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;Let \(G\) be a connected, undirected graph with edges \(E\), vertices \(V\), and edge weights \(w\). A &lt;strong&gt;minimum spanning tree&lt;/strong&gt; is a subset \(T \subseteq E\) that connects all of the vertices such that the total weight is minimized. The original graph \(G\) is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-21_18-46-30_undirected_original.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;An undirected graph with redundant edges.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An undirected graph with redundant edges.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The minimum spanning tree of the above graph is show below. All of the redundant edges have been removed, but there is still a path between each pair of nodes.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-21_18-56-15_mst.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The minimum spanning tree of (G).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The minimum spanning tree of (G).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;As described in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; there are two greedy algorithms for finding the minimum spanning tree of a graph (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). These notes will review both of these, but first let&amp;rsquo;s look at a general algorithm for finding the minimum spanning tree of a graph.&lt;/p&gt;
+&lt;h2 id=&#34;finding-the-minimum-spanning-tree&#34;&gt;Finding the Minimum Spanning Tree&lt;/h2&gt;
+&lt;p&gt;The general algorithm for finding the minimum spanning tree of a graph grows a set of edges \(T\) from an empty set. At each step, the algorithm adds the edge with the smallest weight that does not create a cycle. The algorithm terminates when \(T\) is a complete tree.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;T = {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;while T is not a spaning tree
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    find the edge e with the smallest weight that does not create a cycle
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    T = T union {e}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Each edge \(e\) that is added must result in a tree that is a subset of the minimum spanning tree. The challenge of this algorithm is actually finding such an edge. How would we know such an edge if we saw it? We first need to define a few properties which will shine light on this.&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;cut&lt;/strong&gt; of a graph \(G\) is a partition of the vertices \(V\) into two disjoint sets \(S\) and \(V - S\). An edge \(e\) &lt;strong&gt;crosses&lt;/strong&gt; the cut if one of its endpoints is in \(S\) and the other is in \(V - S\). If no edge in a given set \(E\) crosses the cut, then that cut &lt;strong&gt;respects&lt;/strong&gt; \(E\). An edge that is the minimum weight edge that crosses a cut is called a &lt;strong&gt;light edge&lt;/strong&gt;. With these definitions, we can now formally define how to find a &lt;strong&gt;safe edge&lt;/strong&gt;, which is an edge that can be added to the current set of edges \(T\) without creating a cycle.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Theorem 21.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Let \(G = (V, E)\) be a connected, undirected graph with a real-valued weight function \(w\) defined on \(E\). Let \(A\) be a subset of \(E\) that is included in some minimum spanning tree for \(G\), let \((S, V - S)\) be any cut of \(G\) that respects \(A\), and let \(e\) be a light edge crossing \((S, V - S)\). Then, edge \(e\) is safe for \(A\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-22_13-10-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Visual proof of Theorem 21.1 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visual proof of Theorem 21.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Proof&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The two sets in the figure above represent vertices in \(S\) (orange) and vertices in \(V - S\) (tan). \(T\) is the original MST depicted in the figure. The dotted line is the new edge \((u, v)\) to consider. \(A\) is a subset of edges in \(T\) represented by the blue lines. If the safe edge \((u, v)\) is already in the original MST \(T\), then we are done.&lt;/p&gt;
+&lt;p&gt;The vertices \(u\) and \(v\) lie on opposite sides of the cut. The edge \((u, v)\) would introduce a cycle since there is already a path from \(u\) to \(v\) in \(T\) that crosses the cut via \((x, y)\). Since both \((u, v)\) and \((x, y)\) are light edges that cross the cut, then it must be that \(w(u, v) \leq w(x, y)\).&lt;/p&gt;
+&lt;p&gt;Let \(T&amp;rsquo;\) be the minimum spanning tree with \((x, y)\) replaced by \((u, v)\). That is \(T&amp;rsquo; = T - \{(x, y)\} \cup \{(u, v)\}\). Since \(T\) is a minimum spanning tree, then \(w(T) \leq w(T&amp;rsquo;)\). Since \(w(T) = w(T&amp;rsquo;)\), then \(T&amp;rsquo;\) is also a minimum spanning tree. Therefore, \((u, v)\) is safe for \(A\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Corollary 21.2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;We can also view this in terms of &lt;strong&gt;connected components&lt;/strong&gt;, which are subsets of vertices that are connected by a path. If \(C\) and \(C&amp;rsquo;\) are two connected components in \(T\) and \((u, v)\) is a light edge connecting \(C\) and \(C&amp;rsquo;\), then \((u, v)\) is safe for \(T\).&lt;/p&gt;
+&lt;p&gt;The figure below shows a graph with two individual components. If the edge \((u, v)\) is a light edge, then it is safe to add it to the set of edges \(T\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-22_15-39-37_connected_components.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Two connected components from a graph (left). Adding a safe edge (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Two connected components from a graph (left). Adding a safe edge (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;kruskal-s-algorithm&#34;&gt;Kruskal&amp;rsquo;s Algorithm&lt;/h2&gt;
+&lt;p&gt;The first solution to the minimum spanning tree that we will study is called &lt;strong&gt;Kruskal&amp;rsquo;s algorithm&lt;/strong&gt;. This algorithm grows a forest of trees from an empty set. At each step, the algorithm adds the lightest edge that does not create a cycle. The algorithm terminates when the forest is a single tree. This can be viewed as an agglomerative clustering algorithm. The algorithm starts with each vertex in its own cluster. At each step, the algorithm merges the two clusters that are closest together. The algorithm terminates when there is only one cluster.&lt;/p&gt;
+&lt;p&gt;The algorithm is given below (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Kruskal&amp;rsquo;s Algorithm&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;A = {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;for each vertex v in G.V
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    MAKE-SET(v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort the edges of G.E into nondecreasing order by weight w
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;for each edge (u, v) in G.E, taken in nondecreasing order by weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    if FIND-SET(u) != FIND-SET(v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A = A union {(u, v)}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        UNION(u, v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;return A
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A step-by-step example of an implementation in Python is available &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/kruskals_algorithm.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;The running time is dependent on how the disjoint-set of vertices is implemented. In the best known case, a &lt;em&gt;disjoint-set-forest&lt;/em&gt; implementation should be used (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). Creating a list of edges takes \(O(E)\) time. Sorting the edges takes \(O(E \log E)\) time. The &lt;code&gt;for&lt;/code&gt; loop iterates over each edge, which is \(O(E)\). All disjoin-set operations take \(O((V + E)\alpha(V))\) time. Since the graph is connected, \(E \geq V - 1\), so the total running time is \(O(E \log E + E + E \alpha(V)) = O(E \log E + E \alpha(V)) = O(E \log V)\).&lt;/p&gt;
+&lt;h2 id=&#34;prim-s-algorithm&#34;&gt;Prim&amp;rsquo;s Algorithm&lt;/h2&gt;
+&lt;p&gt;The second solution starts at an arbitrary vertex in a set \(A\) and adds a new vertex to \(A\) in a greedy fashion. To efficiently select a new edge to add, Prim&amp;rsquo;s algorithm uses a priority queue to keep track of the lightest edge that crosses the cut. The algorithm terminates when \(A\) is a complete tree. The full algorithm is given below. We will step through it in more detail after.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Prim&amp;rsquo;s Algorithm&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;A = {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;for each vertex v in G.V
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    key[v] = infinity
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    pi[v] = NIL
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;key[r] = 0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Q = G.V
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;while Q is not empty
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u = EXTRACT-MIN(Q)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A = A union {u}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    for each vertex v in G.Adj[u]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        if v in Q and w(u, v) &amp;lt; key[v]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            pi[v] = u
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            key[v] = w(u, v)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You might look at this and wonder how the MST is represented. Prim&amp;rsquo;s algorithm implicitly maintains the set \(A = \{(v, v.\pi) : v \in V - \{r\} - Q\}\). When the &lt;code&gt;while&lt;/code&gt; loop terminates, \(A = \{(v, v.\pi) : v \in V - \{r\}\}\), since the queue is empty. The critical part of this is to understand how the algorith changes the key values.&lt;/p&gt;
+&lt;p&gt;A step-by-step example of an implementation in Python is available &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/prims_algorithm.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Prim&amp;rsquo;s algorithm uses a priority queue to keep track of the lightest edge that crosses the cut. If the priority queue is implemented as a &lt;a href=&#34;https://www.cs.cmu.edu/~tcortina/15-121sp10/Unit06B.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;min-heap&lt;/a&gt;, which has a worst-case running time of \(O(\log V)\) for both &lt;code&gt;EXTRACT-MIN&lt;/code&gt; and &lt;code&gt;DECREASE-KEY&lt;/code&gt;. The algorithm calls &lt;code&gt;EXTRACT-MIN&lt;/code&gt; once for each vertex, which is \(O(V \log V)\). The algorithm calls &lt;code&gt;DECREASE-KEY&lt;/code&gt; once for each edge, which is \(O(E \log V)\). The total running time is \(O(V \log V + E \log V) = O(E \log V)\).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Single-Source Shortest Paths</title>
+      <link>https://ajdillhoff.github.io/notes/single_source_shortest_paths/</link>
+      <pubDate>Sat, 21 Oct 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/single_source_shortest_paths/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bellman-ford&#34;&gt;Bellman-Ford&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;When you hear the term &lt;em&gt;shortest path&lt;/em&gt;, you may think of the shortest physical distance between your current location and wherever it is you&amp;rsquo;re going. Finding the most optimal route via GPS is one of the most widely used mobile applications. Physical paths are not the only types we may wish to find a shortest path for. Other examples include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Network Routing&lt;/strong&gt;: To improve network performance, it is critical to know the shortest path from one system to another in terms of latency.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Puzzle Solving&lt;/strong&gt;: For puzzles such as a Rubik&amp;rsquo;s cube, the vertices could represents states of the cube and edges could correspond to a single move.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Robotics&lt;/strong&gt;: Shortest paths in terms of robotics have a lot to do with physical distances, but it could also relate the completing a task efficiently.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These notes will cover classical single-source shortest path algorithms, but first we must formally define the problem.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;Given a weighted, directed graph \(G = (V, E)\) with weight function \(w: E \rightarrow \mathbb{R}\), a source vertex \(s \in V\), and a destination vertex \(t \in V\), find the shortest path from \(s\) to \(t\). The weight of a path is defined as the sum of the weights of its edges:&lt;/p&gt;
+&lt;p&gt;\[
+w(p) = \sum_{e \in p} w(e).
+\]&lt;/p&gt;
+&lt;p&gt;The shortest-path weight between two vertices \(u\) and \(v\) is given by&lt;/p&gt;
+&lt;p&gt;\[
+\delta(u, v) = \begin{cases}
+\min_{p \in P(u, v)} w(p) &amp;amp; \text{if } P(u, v) \neq \emptyset \\
+\infty &amp;amp; \text{otherwise}
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;where \(P(u, v)\) is the set of all paths from \(u\) to \(v\). The shortest-path weight from \(s\) to \(t\) is given by \(\delta(s, t)\).&lt;/p&gt;
+&lt;p&gt;Shortest-path algorithms rely on an optimal substructure property that is defined by Lemma 22.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Lemma 22.1&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Given a weighted, directed graph \(G = (V,E)\) with weight function \(w: E \rightarrow \mathbb{R}\), let \(p = \langle v_0, v_1, \dots, v_k \rangle\) be a shortest path from vertex \(v_0\) to vertex \(v_k\). For any \(i\) and \(j\) such that \(0 \leq i \leq j \leq k\), let \(p_{ij} = \langle v_i, v_{i+1}, \dots, v_j \rangle\) be the subpath of \(p\) from vertex \(v_i\) to vertex \(v_j\). Then, \(p_{ij}\) is a shortest path from \(v_i\) to \(v_j\).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;It is also imporant to note here that a shortest path should contain no cycles. Some shortest-path algorithms require that the edge weights be strictly positive. For those that do not, they may have some mechanism for detecting negative-weight cycles. In any case, a cycle of any kind cannot be included in a shortest path. This is because if a cycle were included, we could simply traverse the cycle as many times as we wanted to reduce the weight of the path. For positive-weight cycles, if a shortest path included a cycle, then surely we could remove the cycle to get a lower weight.&lt;/p&gt;
+&lt;p&gt;As we build a shortest path, we need to keep track of which vertices lead us from the source to the destination. Some algorithms maintain this by keeping a &lt;strong&gt;predecessor&lt;/strong&gt; attribute for each vertex in the path. Solutions such as the Viterbi algorithm keep an array of indices that correspond to the vertices in the path. In any case, we will need to keep track of the vertices in the path as we build it.&lt;/p&gt;
+&lt;h3 id=&#34;relaxation&#34;&gt;Relaxation&lt;/h3&gt;
+&lt;p&gt;There is one more important property to define before discussing specific algorithms: &lt;strong&gt;relaxation&lt;/strong&gt;. Relaxing an edge \((u, v)\) is to test whether going through vertex \(u\) improves the shortest path to \(v\). If so, we update the shortest-path estimate and predecessor of \(v\) to reflect the new shortest path. Relaxation requires that we maintain the shortest-path estimate and processor for each vertex. This is initialized as follows.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;initialize_single_source&lt;/span&gt;(G, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When the values are changed, we say that the vertex has been &lt;strong&gt;relaxed&lt;/strong&gt;. Relaxing an edge \((u, v)\) is done as follows.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;relax&lt;/span&gt;(u, v, w):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; w(u, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; w(u, v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;properties&#34;&gt;Properties&lt;/h4&gt;
+&lt;p&gt;Relaxation has the following properties.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;If the shortest-path estimate of a vertex is not \(\infty\), then it is always an upper bound on the weight of a shortest path from the source to that vertex.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The shortest-path estimate of a vertex will either stay the same or decrease as the algorithm progresses.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Once a vertex&amp;rsquo;s shortest-path estimate is finalized, it will never change.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The shortest-path estimate of a vertex is always greater than or equal to the actual shortest-path weight.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;After \(i\) iterations of relaxing on all \((u, v)\), if the shortest path to \(v\) has \(i\) edges, then \(v.d = \delta(s, v)\).&lt;/p&gt;
+&lt;p&gt;Following &lt;em&gt;Introduction to Algorithms&lt;/em&gt;, we will first discuss the Bellman-Ford algorithm, which has a higher runtime but works with graphs that have negative edge weights. Then, we will discuss Dijkstra&amp;rsquo;s algorithm, which has a lower runtime but only works with graphs that have non-negative edge weights.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;bellman-ford&#34;&gt;Bellman-Ford&lt;/h2&gt;
+&lt;p&gt;The Bellman-Ford algorithm is a dynamic programming algorithm that solves the single-source shortest-paths problem in the general case in which edge weights may be negative. If a negative-weight cycle is reachable from the source, then the algorithm will report its existence. Otherwise, it will report the shortest-path weights and predecessors. It works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bellman_ford&lt;/span&gt;(G, w, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    initialize_single_source(G, s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (u, v) &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;E:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            relax(u, v, w)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (u, v) &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;E:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; w(u, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;In the figure below, graph (a) shows the original graph before iterating over the edges. Graphs (b)-(e) show the result of looping over both edges originating from \(s\). Depending on the implementation, the first iteration of the vertices would result directly in graph (c). You can find a Python implementation of this example &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/bellman_ford_algorithm.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-24_21-05-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Step-by-step execution of Bellman-Ford on a graph with negative-weight edges (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Step-by-step execution of Bellman-Ford on a graph with negative-weight edges (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Using an adjacency list representation, the runtime of Bellman-Ford is \(O(V^2 + VE)\). The initialization takes \(\Theta(V)\). Each of the \(|V| - 1\) iterations over the edges takes \(\Theta(V + E)\), and the final check for negative-weight cycles takes \(\Theta(V + E)\). If the number of edges and vertices is such that the number of vertices are a lower bound on the edges, then the runtime is \(O(VE)\).&lt;/p&gt;
+&lt;h2 id=&#34;dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/h2&gt;
+&lt;p&gt;Dijkstra&amp;rsquo;s algorithm also solves the single-source shortest path problem on a weighted, directed graph \(G = (V,E)\) but requires nonnegative weights on all edges. It works in a breadth-first manner. A minimum priority queue is utilized to keep track of the vertices that have not been visited based on their current minimum shortest-path estimate. The algorithm works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dijkstra&lt;/span&gt;(G, w, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    initialize_single_source(G, s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    S &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; []
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; Q:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; extract_min(Q)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        S&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(u)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            prev_d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            relax(u, v, w)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; prev_d:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                decrease_key(Q, v)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;A Python example of the figure below is available &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/dijkstras_algorithm.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-25_08-21-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A step-by-step execution of Dijkstra&amp;#39;s algorithm on a graph with non-negative edge weights (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A step-by-step execution of Dijkstra&amp;rsquo;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;See Chapter 22 of &lt;em&gt;Introduction to Algorithms&lt;/em&gt; for a detailed analysis of Dijkstra&amp;rsquo;s algorithm. Inserting the nodes and then extracting them from the queue yields \(O(V \log V)\). After extracting a node, its edges are iterated with a possible update to the queue. This takes \(O(E \log V)\). The total runtime is \(O((V + E) \log V)\).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introduction to Graph Theory</title>
+      <link>https://ajdillhoff.github.io/notes/introduction_to_graph_theory/</link>
+      <pubDate>Tue, 17 Oct 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/introduction_to_graph_theory/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-are-graphs&#34;&gt;What are Graphs?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;what-are-graphs&#34;&gt;What are Graphs?&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;graph&lt;/strong&gt; is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my &lt;em&gt;Foundations of Computing&lt;/em&gt; course at the University of Texas - Arlington.&lt;/p&gt;
+&lt;h3 id=&#34;definitions&#34;&gt;Definitions&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;directed graph&lt;/strong&gt; \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\). Edges are represented as ordered pairs.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;An &lt;strong&gt;undirected graph&lt;/strong&gt; \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\). The edges are represented as unordered pairs, as it does not matter which direction the edge is going.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Let \((u, v)\) be an edge in a graph \(G\). If \(G\) is a directed graph, then the edge is &lt;strong&gt;incident from&lt;/strong&gt; \(u\) and is &lt;strong&gt;incident to&lt;/strong&gt; \(v\). In this case, \(v\) is also &lt;strong&gt;adjacent&lt;/strong&gt; to \(u\). If \(G\) is an undirected graph, then the edge is &lt;strong&gt;incident on&lt;/strong&gt; \(u\) and \(v\). For undirected graphs, the &lt;strong&gt;adjacency&lt;/strong&gt; relation is symmetric.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The &lt;strong&gt;degree&lt;/strong&gt; is a graph is the number of edges incident on a vertex. For directed graphs, the &lt;strong&gt;in-degree&lt;/strong&gt; is the number of edges incident to a vertex, and the &lt;strong&gt;out-degree&lt;/strong&gt; is the number of edges incident from a vertex.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;path&lt;/strong&gt; from a vertex \(u\) to another vertex \(v\) is a sequence of edges that starts at \(u\) and ends at \(v\). This definition can include duplicates. A &lt;strong&gt;simple path&lt;/strong&gt; is a path that does not repeat any vertices. A &lt;strong&gt;cycle&lt;/strong&gt; is a path that starts and ends at the same vertex. If a path exists from \(u\) to \(v\), then \(u\) is &lt;strong&gt;reachable&lt;/strong&gt; from \(v\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;connected graph&lt;/strong&gt; is a graph where there is a path between every pair of vertices. A &lt;strong&gt;strongly connected graph&lt;/strong&gt; is a directed graph where there is a path between every pair of vertices. The &lt;strong&gt;connected components&lt;/strong&gt; of a graph are the subgraphs in which each pair of nodes is connected by a path. In image processing, connected-component labeling is used to find regions of connected pixels in a binary image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Let \(G = (V, E)\) and \(G&amp;rsquo; = (V&amp;rsquo;, E&amp;rsquo;)\). \(G\) and \(G&amp;rsquo;\) are &lt;strong&gt;isomorphic&lt;/strong&gt; if there is a bijection between their vertices such that \((u, v) \in E\) if and only if \((f(u), f(v)) \in E&amp;rsquo;\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;complete graph&lt;/strong&gt; is an undirected graph in which every pair of vertices is adjacent. A &lt;strong&gt;bipartite graph&lt;/strong&gt; is an undirected graph in which the vertices can be partitioned into two sets such that every edge connects a vertex in one set to a vertex in the other set.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;multi-graph&lt;/strong&gt; is a graph that allows multiple edges between the same pair of vertices. These are commonly in social network analysis, where multiple edges between two people can represent different types of relationships.&lt;/p&gt;
+&lt;p&gt;TODO: Add figures demonstrating the above definitions&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;representations&#34;&gt;Representations&lt;/h3&gt;
+&lt;p&gt;Graphs can be represented in many different ways. The most common representations are adjacency lists and adjacency matrices. Adjacency lists are more space-efficient for sparse graphs, while adjacency matrices are more space-efficient for dense graphs. Adjacency lists are also more efficient for finding the neighbors of a vertex, while adjacency matrices are more efficient for checking if an edge exists between two vertices.&lt;/p&gt;
+&lt;h4 id=&#34;example-adjacency-matrix-and-reachability&#34;&gt;Example: Adjacency Matrix and Reachability&lt;/h4&gt;
+&lt;p&gt;Consider the graph in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_21-08-29_directed_graph.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A directed graph&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A directed graph
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The adjacency matrix for this graph is:&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;The rows and columns represent the vertices in the graph. The value at row \(i\) and column \(j\) is 1 if there is an edge from vertex \(i\) to vertex \(j\). Otherwise, the value is 0. Let \(A\) be the adjacency matrix for a graph \(G\). The matrix \(A^k\) represents the number of paths of length \(k\) between each pair of vertices. For example, \(A^2\) for the above graph is:&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;The value at row \(i\) and column \(j\) is the number of paths of length 2 from vertex \(i\) to vertex \(j\). For example, is a path from vertex 0 to vertex 6 via 0 -&amp;gt; 3 -&amp;gt; 6.&lt;/p&gt;
+&lt;h2 id=&#34;graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/h2&gt;
+&lt;h3 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h3&gt;
+&lt;p&gt;We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The algorithm adds a color to each node to keep track of its state. The colors are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
+&lt;li&gt;GRAY: The node has been discovered, but not all of its neighbors have been discovered.&lt;/li&gt;
+&lt;li&gt;BLACK: The node has been discovered, and all of its neighbors have been discovered.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First, every vertex is painted white and the distance is set to \(\infty\). The first node &lt;code&gt;s&lt;/code&gt; is immediately set to have 0 distance. The queue then starts with &lt;code&gt;s&lt;/code&gt;. While there are any grey vertices, dequeue the next available node and add its adjacent vertices to the queue. The distance of each adjacent vertex is set to the distance of the current vertex plus one. Once all of its neighbors have been discovered, the current vertex is painted black.&lt;/p&gt;
+&lt;p&gt;The algorithm and an example run from Cormen et al. are shown below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bfs&lt;/span&gt;(G, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; WHITE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; inf
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Queue()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;enqueue(s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;empty():
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dequeue()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;enqueue(v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; BLACK
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-11-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Breadth First Search from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Breadth First Search from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;p&gt;The running time of BFS is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. Each vertex is queued and dequeued once, so the queue operations take \(O(V)\) time. Each edge is examined once, so the edge operations take \(O(E)\) time. The total running time is \(O(V + E)\).&lt;/p&gt;
+&lt;h3 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h3&gt;
+&lt;p&gt;Like the BFS algorithm presented in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; by Cormen et al., the DFS algorithm also uses colors to keep track of the state of each node. The colors are similar to the BFS algorithm, but the meaning is slightly different:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
+&lt;li&gt;GRAY: The node has been visited for the first time.&lt;/li&gt;
+&lt;li&gt;BLACK: The adjacency list of the node has been examined completely.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First, all vertices are colored white. The time is set to 0. The function &lt;code&gt;dfs_visit&lt;/code&gt; is called on each vertex. The function is defined as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dfs_visit(G, v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; BLACK
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;f &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When a node is discovered via &lt;code&gt;dfs_visit&lt;/code&gt;, the time is recorded and the color is changed to gray. The start and finish times are useful in understanding the structure of the graph. After all of the node&amp;rsquo;s neighbors have been discovered, the color is changed to black and the finish time is recorded. That is, the depth from the current node must be fully explored before it is considered finished. The figure below shows the progress of DFS on a directed graph.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Depth First Search from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
     
     <item>
       <title>Red-Black Trees</title>
@@ -6808,43 +7352,20 @@ It additionally was adapted to other challenges and won first place on ImageNet 
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#syllabi&#34;&gt;Syllabi&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#questions&#34;&gt;Questions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#deep-networks&#34;&gt;Deep Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#deep-vs-dot-shallow-networks&#34;&gt;Deep vs. Shallow Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#high-dimensional-structured-data&#34;&gt;High Dimensional Structured Data&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#loss-functions&#34;&gt;Loss Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#regularization&#34;&gt;Regularization&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;syllabi&#34;&gt;Syllabi&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://cs230.stanford.edu/syllabus/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs230.stanford.edu/syllabus/&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;questions&#34;&gt;Questions&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Does backprop give the same result when combining the weights and bias versus separating?&lt;/li&gt;
-&lt;/ul&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;What is deep learning?&lt;/li&gt;
-&lt;li&gt;What problems is it used for?&lt;/li&gt;
-&lt;li&gt;Basic neural nets vs &amp;ldquo;deep&amp;rdquo; nets&lt;/li&gt;
-&lt;li&gt;Structuring a project&lt;/li&gt;
-&lt;li&gt;CNNs&lt;/li&gt;
-&lt;li&gt;Sequence models&lt;/li&gt;
-&lt;li&gt;Geometric Deep Learning&lt;/li&gt;
-&lt;li&gt;Representation of a model in code (vectorization)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Deep learning has been employed in many fields from visual recognition to medical diagnosis.
-Its continued success is impossible to ignore.
-As more and more companies pivot to utilize deep learning in some capacity, it is paramount that any machine learning practitioner or research be well versed in moden practices and frameworks.
-This section will provide a broad overview of deep learning with examples using &lt;a href=&#34;https://pytorch.org&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;PyTorch&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Deep learning is a term that you&amp;rsquo;ve probably heard of a million times by now in different contexts. It is an umbrella term that encompasses techniques for computer vision, bioinformatics, natural language processing, and much more. It almost always involves a neural network of some kind that was trained on a large corpus of data.&lt;/p&gt;
+&lt;p&gt;The existence of the word &amp;ldquo;deep&amp;rdquo; implies a contrast to &amp;ldquo;shallow&amp;rdquo; learning. Some definition define a deep network as an artificial neural network with more than 1 layer. Another definition is that a deep model will include a hierarchy of features that are learned from the data. These features are learned as part of the optimization process as opposed to being manually engineered as is required in other machine learning techniques.&lt;/p&gt;
 &lt;p&gt;If you are not yet familiar with &lt;a href=&#34;https://ajdillhoff.github.io/notes/neural_networks/&#34;&gt;neural networks&lt;/a&gt;, follow the link to learn about their basics as they are the foundation of deep learning systems.&lt;/p&gt;
 &lt;p&gt;We will cover how to implement an array of deep learning models for different tasks.
 Different layers and activation functions will be explored as well as the effect of regularization.
@@ -6852,11 +7373,10 @@ There will also be a focus on best practices for organizing a machine learning p
 &lt;h2 id=&#34;what-makes-a-model-deep&#34;&gt;What makes a model deep?&lt;/h2&gt;
 &lt;p&gt;We begin by comparing &lt;em&gt;shallow&lt;/em&gt; networks with &lt;em&gt;deep&lt;/em&gt; networks.
 What defines a deep network? Is it as simple as crossing a threshold into \(n\) layers?
-As evidenced by &amp;lt;&amp;amp;zeilerVisualizingUnderstandingConvolutional2013&amp;gt;, deeper networks allow for a more robust hierarchy of image features.&lt;/p&gt;
-&lt;p&gt;There is work by &amp;lt;&amp;amp;montufarNumberLinearRegions2014&amp;gt; which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
+As evidenced by (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Zeiler and Fergus 2013&lt;/a&gt;) deeper networks allow for a more robust hierarchy of image features.&lt;/p&gt;
+&lt;p&gt;There is work by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Montúfar et al. 2014&lt;/a&gt;) which suggests that shallow networks require an exponential amount of nodes as compared to deeper networks.
 Additionally, there are many individual results which suggest that deeper networks provide better task generalization.&lt;/p&gt;
-&lt;p&gt;As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task.
-That is, our network is not only optimizing the performance of task, but it produces features from the data.
+&lt;p&gt;As we will later see when studying Convolutional Neural Networks, the optimization of such deep networks produces features that maximize the performance of a task. That is, the network is not only optimizing the overall performance of task, but it produces features from the data that may be useful in other contexts.
 This is particularly useful for transfer learning, where large pre-trained models can be used as starting points for novel tasks.
 The benefit being that a complete retraining of the model is not necessary.&lt;/p&gt;
 &lt;h2 id=&#34;deep-networks&#34;&gt;Deep Networks&lt;/h2&gt;
@@ -6901,6 +7421,35 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 \frac{d\mathcal{L}}{d\mathbf{b}^{(l)}} = \frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}} \frac{d\mathbf{z}^{(l)}}{d\mathbf{a}^{(l)}} \frac{d\mathbf{a}^{(l)}}{d\mathbf{b}^{(l)}}.
 \end{align*}&lt;/p&gt;
 &lt;p&gt;The term \(\frac{d\mathbf{a}^{(l+1)}}{d\mathbf{z}^{(l)}}\) is the gradient that is propagated from layer \(l+1\).&lt;/p&gt;
+&lt;h2 id=&#34;deep-vs-dot-shallow-networks&#34;&gt;Deep vs. Shallow Networks&lt;/h2&gt;
+&lt;p&gt;As mentioned above, a shallow network can approximate any continuous function to arbitrary precision. If a deep network can represent the composition of two shallow networks, then it can also approximate any continuous function to arbitrary precision. Then why are deep networks better than shallow networks when both can approximate any function? There are a few compelling reasons as to why, starting with the &lt;strong&gt;capacity&lt;/strong&gt; of the network and the number of linear regions it can represent per parameter.&lt;/p&gt;
+&lt;p&gt;As discussed in &lt;em&gt;Understanding Deep Learning&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;), a shallow network with 1 input, 1 output, and \(D &amp;gt; 2\) hidden units can create up to \(D + 1\) linear regions using \(3D+1\) parameters. The \(3D + 1\) comes from the fact that the hidden layer requires \(D\) parameters for the weights with an extra \(D\) parameters for the bias terms. To convert from the hidden layer to the output layer, there are \(D\) parameters for the weights and 1 parameter for the bias term. The figure below shows the maximum number of linear regions as a function of the number of parameters for networks that map one input to one output.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-22_21-30-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Maximum number of linear regions as a function of the number of parameters for networks that map one input to one output (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Prince 2023&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Maximum number of linear regions as a function of the number of parameters for networks that map one input to one output (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;high-dimensional-structured-data&#34;&gt;High Dimensional Structured Data&lt;/h2&gt;
+&lt;p&gt;For high dimensional structured data, such as images, deep networks are able to learn a hierarchy of features that are useful for the task at hand while requiring a significantly smaller number of parameters than a shallow network. Consider a \(100\times100\) image used as input to a shallow network with 1 hidden layer. This would require \(10,001\) parameters to represent the weights and biases. If we instead use a deep network with with convolutional layers, we can use significantly fewer parameters. We will see this more closely when we study &lt;a href=&#34;https://ajdillhoff.github.io/notes/convolutional_neural_networks/&#34;&gt;Convolutional Neural Networks&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;activation-functions&#34;&gt;Activation Functions&lt;/h2&gt;
 &lt;h3 id=&#34;sigmoid&#34;&gt;Sigmoid&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;Function&lt;/strong&gt;&lt;/p&gt;
@@ -6919,14 +7468,14 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_10-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Sigmoid non-linearity (Wikipedia)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_10-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Sigmoid non-linearity (Wikipedia)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Sigmoid non-linearity (Wikipedia)
     
     
     
@@ -6936,6 +7485,37 @@ This can be done in a modular way, as shown next.&lt;/p&gt;
 &lt;/figure&gt;
 
 &lt;h2 id=&#34;loss-functions&#34;&gt;Loss Functions&lt;/h2&gt;
+&lt;p&gt;Loss functions are used to evaluate the performance of a model. In the context of gradient descent, their gradient with respect to the model parameters is used to update the parameters. Loss functions can be constructed using maximum likelihood estimation over a probability distribution or by using a distance metric between the model output and the ground truth. The table below from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Prince 2023&lt;/a&gt;) shows some common loss functions and their use cases.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Data Type&lt;/th&gt;
+&lt;th&gt;Domain&lt;/th&gt;
+&lt;th&gt;Distribution&lt;/th&gt;
+&lt;th&gt;Use&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, continuous, unbounded&lt;/td&gt;
+&lt;td&gt;\(\mathbb{R}\)&lt;/td&gt;
+&lt;td&gt;univariate normal&lt;/td&gt;
+&lt;td&gt;Regression&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, discrete, binary&lt;/td&gt;
+&lt;td&gt;\(\{0, 1\}\)&lt;/td&gt;
+&lt;td&gt;Bernoulli&lt;/td&gt;
+&lt;td&gt;Binary Classification&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Univariate, discrete, bounded&lt;/td&gt;
+&lt;td&gt;\(\{0, 1\}^K\)&lt;/td&gt;
+&lt;td&gt;Multinoulli&lt;/td&gt;
+&lt;td&gt;Multiclass Classification&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 &lt;h2 id=&#34;a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/h2&gt;
 &lt;p&gt;When training and evaluating models, especially on benchmark datasets, it is important to properly test their generalization performance.
 This test is crucial when comparing the efficacy of your ideas versus baseline evaluations or competing methods.&lt;/p&gt;
@@ -6955,39 +7535,12 @@ Taking 10,000 samples to serve as a validation set is only \(~.07\%\) of the dat
 &lt;p&gt;Most modern machine learning frameworks have an easy way to split the dataset.
 We can do this in PyTorch using &lt;code&gt;torch.utils.data.random_split&lt;/code&gt;.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;train_dataset, val_dataset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;utils&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;data&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;random_split(dataset, [train_size, val_size])
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;bias-variance-tradeoff&#34;&gt;Bias/Variance Tradeoff&lt;/h2&gt;
-&lt;p&gt;Ideally, we want a model that generalizes well to unseen data.
-Being able to evaluate how well our model performs is, in many ways, more important than the model itself.
-A model that shows good generalization performance will have low bias and low variance.
-Bonus points are awarded if the model remains simple.&lt;/p&gt;
-&lt;p&gt;During training, we can detect a model that is overfitting the data by also monitoring its performance on a separate validation set.
-If the validation loss diverges from the training loss, the model is beginning to overfit.&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-31_22-38-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Higher complexity on the dataset leads to higher variance and lower bias.&#34; &gt;
-
-
-
-&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
-  
-  &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Higher complexity on the dataset leads to higher variance and lower bias.
-    
-    
-    
-  &lt;/p&gt; 
-&lt;/figcaption&gt;
-
-&lt;/figure&gt;
-
-&lt;h2 id=&#34;regularization&#34;&gt;Regularization&lt;/h2&gt;
-&lt;h2 id=&#34;optimization-algorithms&#34;&gt;Optimization Algorithms&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Montúfar, Guido, Razvan Pascanu, Kyunghyun Cho, and Yoshua Bengio. 2014. “On the Number of Linear Regions of Deep Neural Networks.” &lt;i&gt;Arxiv:1402.1869 [Cs, Stat]&lt;/i&gt;, June. &lt;a href=&#34;http://arxiv.org/abs/1402.1869&#34;&gt;http://arxiv.org/abs/1402.1869&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Prince, Simon J.D. 2023. &lt;i&gt;Understanding Deep Learning&lt;/i&gt;. MIT Press. &lt;a href=&#34;https://udlbook.github.io/udlbook/&#34;&gt;https://udlbook.github.io/udlbook/&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Zeiler, Matthew D., and Rob Fergus. 2013. “Visualizing and Understanding Convolutional Networks.” &lt;i&gt;Arxiv:1311.2901 [Cs]&lt;/i&gt;, November. &lt;a href=&#34;http://arxiv.org/abs/1311.2901&#34;&gt;http://arxiv.org/abs/1311.2901&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

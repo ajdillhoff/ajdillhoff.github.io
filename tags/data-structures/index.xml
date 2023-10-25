@@ -7,10 +7,209 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 15 Oct 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Tue, 17 Oct 2023 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/data-structures/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Introduction to Graph Theory</title>
+      <link>https://ajdillhoff.github.io/notes/introduction_to_graph_theory/</link>
+      <pubDate>Tue, 17 Oct 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/introduction_to_graph_theory/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-are-graphs&#34;&gt;What are Graphs?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;what-are-graphs&#34;&gt;What are Graphs?&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;graph&lt;/strong&gt; is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my &lt;em&gt;Foundations of Computing&lt;/em&gt; course at the University of Texas - Arlington.&lt;/p&gt;
+&lt;h3 id=&#34;definitions&#34;&gt;Definitions&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;directed graph&lt;/strong&gt; \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\). Edges are represented as ordered pairs.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;An &lt;strong&gt;undirected graph&lt;/strong&gt; \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\). The edges are represented as unordered pairs, as it does not matter which direction the edge is going.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Let \((u, v)\) be an edge in a graph \(G\). If \(G\) is a directed graph, then the edge is &lt;strong&gt;incident from&lt;/strong&gt; \(u\) and is &lt;strong&gt;incident to&lt;/strong&gt; \(v\). In this case, \(v\) is also &lt;strong&gt;adjacent&lt;/strong&gt; to \(u\). If \(G\) is an undirected graph, then the edge is &lt;strong&gt;incident on&lt;/strong&gt; \(u\) and \(v\). For undirected graphs, the &lt;strong&gt;adjacency&lt;/strong&gt; relation is symmetric.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The &lt;strong&gt;degree&lt;/strong&gt; is a graph is the number of edges incident on a vertex. For directed graphs, the &lt;strong&gt;in-degree&lt;/strong&gt; is the number of edges incident to a vertex, and the &lt;strong&gt;out-degree&lt;/strong&gt; is the number of edges incident from a vertex.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;path&lt;/strong&gt; from a vertex \(u\) to another vertex \(v\) is a sequence of edges that starts at \(u\) and ends at \(v\). This definition can include duplicates. A &lt;strong&gt;simple path&lt;/strong&gt; is a path that does not repeat any vertices. A &lt;strong&gt;cycle&lt;/strong&gt; is a path that starts and ends at the same vertex. If a path exists from \(u\) to \(v\), then \(u\) is &lt;strong&gt;reachable&lt;/strong&gt; from \(v\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;connected graph&lt;/strong&gt; is a graph where there is a path between every pair of vertices. A &lt;strong&gt;strongly connected graph&lt;/strong&gt; is a directed graph where there is a path between every pair of vertices. The &lt;strong&gt;connected components&lt;/strong&gt; of a graph are the subgraphs in which each pair of nodes is connected by a path. In image processing, connected-component labeling is used to find regions of connected pixels in a binary image.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Let \(G = (V, E)\) and \(G&amp;rsquo; = (V&amp;rsquo;, E&amp;rsquo;)\). \(G\) and \(G&amp;rsquo;\) are &lt;strong&gt;isomorphic&lt;/strong&gt; if there is a bijection between their vertices such that \((u, v) \in E\) if and only if \((f(u), f(v)) \in E&amp;rsquo;\).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;complete graph&lt;/strong&gt; is an undirected graph in which every pair of vertices is adjacent. A &lt;strong&gt;bipartite graph&lt;/strong&gt; is an undirected graph in which the vertices can be partitioned into two sets such that every edge connects a vertex in one set to a vertex in the other set.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A &lt;strong&gt;multi-graph&lt;/strong&gt; is a graph that allows multiple edges between the same pair of vertices. These are commonly in social network analysis, where multiple edges between two people can represent different types of relationships.&lt;/p&gt;
+&lt;p&gt;TODO: Add figures demonstrating the above definitions&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;representations&#34;&gt;Representations&lt;/h3&gt;
+&lt;p&gt;Graphs can be represented in many different ways. The most common representations are adjacency lists and adjacency matrices. Adjacency lists are more space-efficient for sparse graphs, while adjacency matrices are more space-efficient for dense graphs. Adjacency lists are also more efficient for finding the neighbors of a vertex, while adjacency matrices are more efficient for checking if an edge exists between two vertices.&lt;/p&gt;
+&lt;h4 id=&#34;example-adjacency-matrix-and-reachability&#34;&gt;Example: Adjacency Matrix and Reachability&lt;/h4&gt;
+&lt;p&gt;Consider the graph in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_21-08-29_directed_graph.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A directed graph&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A directed graph
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The adjacency matrix for this graph is:&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;The rows and columns represent the vertices in the graph. The value at row \(i\) and column \(j\) is 1 if there is an edge from vertex \(i\) to vertex \(j\). Otherwise, the value is 0. Let \(A\) be the adjacency matrix for a graph \(G\). The matrix \(A^k\) represents the number of paths of length \(k\) between each pair of vertices. For example, \(A^2\) for the above graph is:&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;The value at row \(i\) and column \(j\) is the number of paths of length 2 from vertex \(i\) to vertex \(j\). For example, is a path from vertex 0 to vertex 6 via 0 -&amp;gt; 3 -&amp;gt; 6.&lt;/p&gt;
+&lt;h2 id=&#34;graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/h2&gt;
+&lt;h3 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h3&gt;
+&lt;p&gt;We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The algorithm adds a color to each node to keep track of its state. The colors are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
+&lt;li&gt;GRAY: The node has been discovered, but not all of its neighbors have been discovered.&lt;/li&gt;
+&lt;li&gt;BLACK: The node has been discovered, and all of its neighbors have been discovered.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First, every vertex is painted white and the distance is set to \(\infty\). The first node &lt;code&gt;s&lt;/code&gt; is immediately set to have 0 distance. The queue then starts with &lt;code&gt;s&lt;/code&gt;. While there are any grey vertices, dequeue the next available node and add its adjacent vertices to the queue. The distance of each adjacent vertex is set to the distance of the current vertex plus one. Once all of its neighbors have been discovered, the current vertex is painted black.&lt;/p&gt;
+&lt;p&gt;The algorithm and an example run from Cormen et al. are shown below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bfs&lt;/span&gt;(G, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; WHITE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; inf
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Queue()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;enqueue(s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;empty():
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dequeue()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                Q&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;enqueue(v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; BLACK
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-11-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Breadth First Search from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Breadth First Search from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;p&gt;The running time of BFS is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. Each vertex is queued and dequeued once, so the queue operations take \(O(V)\) time. Each edge is examined once, so the edge operations take \(O(E)\) time. The total running time is \(O(V + E)\).&lt;/p&gt;
+&lt;h3 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h3&gt;
+&lt;p&gt;Like the BFS algorithm presented in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; by Cormen et al., the DFS algorithm also uses colors to keep track of the state of each node. The colors are similar to the BFS algorithm, but the meaning is slightly different:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
+&lt;li&gt;GRAY: The node has been visited for the first time.&lt;/li&gt;
+&lt;li&gt;BLACK: The adjacency list of the node has been examined completely.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First, all vertices are colored white. The time is set to 0. The function &lt;code&gt;dfs_visit&lt;/code&gt; is called on each vertex. The function is defined as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; u
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dfs_visit(G, v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; BLACK
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;f &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When a node is discovered via &lt;code&gt;dfs_visit&lt;/code&gt;, the time is recorded and the color is changed to gray. The start and finish times are useful in understanding the structure of the graph. After all of the node&amp;rsquo;s neighbors have been discovered, the color is changed to black and the finish time is recorded. That is, the depth from the current node must be fully explored before it is considered finished. The figure below shows the progress of DFS on a directed graph.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Depth First Search from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
     
     <item>
       <title>Red-Black Trees</title>
