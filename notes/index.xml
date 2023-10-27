@@ -6890,47 +6890,53 @@ For this case, BRNNs were proposed &amp;lt;&amp;amp;schusterBidirectionalRecurre
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#useful-resources&#34;&gt;Useful Resources&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#convolution-operator&#34;&gt;Convolution Operator&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#sizes-and-types&#34;&gt;Sizes and Types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#parameter-sharing&#34;&gt;Parameter Sharing&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#pooling&#34;&gt;Pooling&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#backwards-pass&#34;&gt;Backwards Pass&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#example&#34;&gt;Example&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#neural-networks-for-image-classification&#34;&gt;Neural Networks for Image Classification&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#useful-resources&#34;&gt;Useful Resources&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;useful-resources&#34;&gt;Useful Resources&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Key Concepts&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/vdumoulin/conv_arithmetic&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/vdumoulin/conv_arithmetic&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://cs231n.github.io/convolutional-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs231n.github.io/convolutional-networks/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Invariance and Equivariance&lt;/li&gt;
+&lt;li&gt;Definition&lt;/li&gt;
+&lt;li&gt;Padding, Stride, Kernel size, dilation&lt;/li&gt;
+&lt;li&gt;Purpose of multiple feature maps&lt;/li&gt;
+&lt;li&gt;Receptive fields and hierarchies of features&lt;/li&gt;
+&lt;li&gt;Downsampling, Upsampling, Examples in research&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Early success seen in (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;LeCun et al. 1989&lt;/a&gt;).&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;Dense neural networks made up of linear layers and a chosen activation function are not practical for image data. Consider an image of size \(224\times224\times3\). The first layer of a dense network would require a \(150,528\times n\) parameter matrix, where \(n\) is the number of nodes in the first layer. It is common to build dense networks where the first layer has more nodes than input features. In this case, we would need a minimum of \(150,528^2\) parameters in the first layer. Even if we chose something much smaller like \(n=1024\), this would require \(154,140,672\) parameters for just the first layer. This is clearly impractical.&lt;/p&gt;
+&lt;p&gt;Aside from requiring a large number of parameters, we might ask whether it is beneficial to feed raw pixel values into a dense network. The network itself would be learning pixel-wise features with no regard to their spatial relationship. This makes our network&amp;rsquo;s job much more difficult because the spatial arrangement of features tells us so much about what we see. In practice, this means that the network would have to learn the same features at every location in the image. We would instead prefer this network to learn features that are &lt;strong&gt;invariant&lt;/strong&gt; to translation. That is, the network should learn features that are the same regardless of where they appear in the image.&lt;/p&gt;
+&lt;p&gt;Invariance to translation is very convenient and can save our network a lot of work in learning the same feature at every point in the input. It is also desirable that our network is invariant to other transformations such as rotation, scaling, skewing, and warping. Formally, a function \(f(\mathbf{x})\) of an image \(\mathbf{x}\) is invariant to a transformation \(t(\mathbf{x})\) if&lt;/p&gt;
+&lt;p&gt;\[
+f(t(\mathbf{x})) = f(\mathbf{x}).
+\]&lt;/p&gt;
+&lt;p&gt;Aside from invariance, some models should be &lt;strong&gt;equivariant&lt;/strong&gt; to certain transformations. That is, the output of the model should change in the same way as the input. Image segmentation models should be equivariant to translation. If we were to shift an image by a few pixels, the output segmentation mask should also shift by the same amount. Convolutional neural networks are equivariant to &lt;em&gt;translation&lt;/em&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;convolution-operator&#34;&gt;Convolution Operator&lt;/h2&gt;
+&lt;p&gt;A convolution is a function that takes two functions as input and produces a third function as output. The first function is the input and the second function is the kernel. The output is called the feature map. The kernel is also sometimes called the filter.&lt;/p&gt;
 &lt;p&gt;\[
-(f * g)(t) = \int x(a)g(t - a)da
+(f * g)(t) = \int f(t-a)g(a)da
 \]&lt;/p&gt;
-&lt;p&gt;Commonly written in DL papers as&lt;/p&gt;
+&lt;p&gt;We can view them more concretely by considering the functions to be vectors. For example, let the function \(f\) be an input vector \(x\) and \(w\) be a kernel representing a filter. The convolution operator is then&lt;/p&gt;
 &lt;p&gt;\[
-(x * w)(t) = \int x(a)w(t - a)da,
+(x * w)(t) = \int x(t-a)w(a)da.
 \]&lt;/p&gt;
-&lt;p&gt;where \(x\) is the &lt;strong&gt;input&lt;/strong&gt; and \(w\) is the &lt;strong&gt;kernel&lt;/strong&gt;. The result the &lt;strong&gt;feature map&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The result the &lt;strong&gt;feature map&lt;/strong&gt; representing the response of the kernel at each location in the input.&lt;/p&gt;
 &lt;p&gt;In the case of discrete values, the operator is written as&lt;/p&gt;
 &lt;p&gt;\[
-(x * w)(t) = \sum_{a}x(a)w(t-a).
+(x * w)(t) = \sum_{a}x(t-a)w(a).
 \]&lt;/p&gt;
 &lt;p&gt;In machine learning, the kernel \(w\) is usually represented by some set of parameters that is optimized.&lt;/p&gt;
 &lt;p&gt;CNNs for images use a 2D convolution defined as&lt;/p&gt;
 &lt;p&gt;\[
-(I * K)(i, j) = \sum_m \sum_n I(m, n)K(i-m, j-n).
+(I * K)(i, j) = \sum_m \sum_n I(i-m, j-n)K(m, n).
 \]&lt;/p&gt;
 &lt;p&gt;In this formulation, the kernel is effectively flipped across the vertical and horizontal axis.&lt;/p&gt;
 
@@ -6957,16 +6963,15 @@ For this case, BRNNs were proposed &amp;lt;&amp;amp;schusterBidirectionalRecurre
 
 &lt;/figure&gt;
 
-&lt;p&gt;Convolution is commutative:&lt;/p&gt;
-&lt;p&gt;\[
-(K * I)(i, j) = \sum_m \sum_n I(i-m, j-n)K(m, n).
-\]&lt;/p&gt;
 &lt;p&gt;In practice, most deep learning APIs implement &lt;strong&gt;cross-correlation&lt;/strong&gt;.
 Whether the function is implemented as true convolution makes no difference when it comes to optimizing a deep model since filter weights that are produced with cross-correlation would be produced, albeit flipped, with convolution.&lt;/p&gt;
 &lt;p&gt;\[
 (K * I)(i, j) = \sum_m \sum_n I(i+m, j+n)K(m, n).
 \]&lt;/p&gt;
-&lt;h2 id=&#34;sizes-and-types&#34;&gt;Sizes and Types&lt;/h2&gt;
+&lt;h2 id=&#34;properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/h2&gt;
+&lt;p&gt;Convolutional networks are commonly built on &lt;em&gt;full&lt;/em&gt; or &lt;em&gt;valid&lt;/em&gt; convolutions. Other variants have also been explored. Here, we will briefly discuss the different properties of this operator. A more detailed treatment can be found in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;padding&#34;&gt;Padding&lt;/h3&gt;
+&lt;p&gt;By definition, a convolution of an input with a filter of size \(n\times n\) will produce an output of size \((m-n+1)\times(m-n+1)\), where \(m\) is the size of the input. This means that the output will be smaller than the input. This is often referred to as a &lt;strong&gt;valid&lt;/strong&gt; convolution. The figure below shows a convolution between a \(3\times3\) kernel and a \(5\times5\) input.&lt;/p&gt;
 
 
 
@@ -6975,14 +6980,14 @@ Whether the function is implemented as true convolution makes no difference when
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-04-05_17-32-27_full_padding_no_strides.gif&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Convolution with full padding and a stride of 1 (Dumoulin &amp;amp;amp; Visin).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-31-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A valid convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Convolution with full padding and a stride of 1 (Dumoulin &amp;amp; Visin).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A valid convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
     
     
     
@@ -6991,6 +6996,100 @@ Whether the function is implemented as true convolution makes no difference when
 
 &lt;/figure&gt;
 
+&lt;p&gt;The output of this convolution is a \(3\times3\) feature map. This is a problem if we want to build a deep network. Each convolution will reduce the size of the input. If we were to stack multiple convolutional layers, the output would eventually be too small to be useful. If we want our output to be same size as the input, we can add padding to the original input image before convolving it. This is often known as a &lt;strong&gt;full&lt;/strong&gt; convolution. An example is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-34-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A full convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A full convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;stride&#34;&gt;Stride&lt;/h3&gt;
+&lt;p&gt;So far, we have only looked at convolutions which step by 1 unit as they shift over the image. We can control the size of this step, or &lt;strong&gt;stride&lt;/strong&gt;, to produce different outcomes. Picking a non-unit stride has a number of effects on the features that are learned in a convolutional neural network.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Dimensionality reduction&lt;/strong&gt;: Skipping over pixels reduces the size of the output feature map. This provides another way of downsampling the input.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Less computation&lt;/strong&gt;: Fewer computations are required to produce the output feature map.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Increased field of view&lt;/strong&gt;: A larger stride increases the field of view of the kernel, leading to larger receptive fields in deeper layers.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Given an input of size \(m\times m\) and a kernel of size \(n\times n\), the output size of a convolution with stride \(s\) is given by&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m-n}{s}\right\rfloor + 1.
+\]&lt;/p&gt;
+&lt;p&gt;The figure below shows a convolution with stride 2 on a \(5\times5\) input.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-45-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A convolution with stride 2 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A convolution with stride 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-size&#34;&gt;Kernel Size&lt;/h3&gt;
+&lt;p&gt;The size of the kernel has a large impact on the features that are learned. A larger kernel will have a larger receptive field. This means that the kernel will be able to capture more information about the input. However, this comes at the cost of increased computation. Common kernel sizes in most CNNs are \(3\times3\), \(5\times5\), and \(7\times7\). It is also convenient to pick an odd kernel size so that the kernel has a center pixel.&lt;/p&gt;
+&lt;h3 id=&#34;dilation&#34;&gt;Dilation&lt;/h3&gt;
+&lt;p&gt;Around 2015, a research trend for CNNs was to find a way to increase the receptive field without adding more parameters. The result is a &lt;strong&gt;dilated&lt;/strong&gt; convolution. The output of a dilated convolution is computed by skipping over pixels in the input. The figure below shows a \(3\times3\) kernel with a dilation of 2.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-27_08-19-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;A dilated convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A dilated convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output size is computed as&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m + 2p - n - (n-1)(d-1)}{s}\right\rfloor + 1,
+\]&lt;/p&gt;
+&lt;p&gt;where \(p\) is the amount of padding and \(d\) is the dilation factor.&lt;/p&gt;
 &lt;h2 id=&#34;parameter-sharing&#34;&gt;Parameter Sharing&lt;/h2&gt;
 &lt;p&gt;In a densely connected layer, each input has a corresponding weight attached to it.
 For example, we ran a few &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/tree/main/deep_learning&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;introductory experiments&lt;/a&gt; on the CIFAR10 dataset using a deep, densely connected network.
@@ -7015,8 +7114,8 @@ If this original image were to be shifted by a few pixels, the reponses would al
 In order to increase the robustness of a model to small perturbations such as translation, a pooling layer was historically employed after each non-linear activation following a convolutional layer.&lt;/p&gt;
 &lt;p&gt;They effectively provide a summary statistic of a local region by selecting the average or maximum responses in a small window. This provides translation invariance since the maximum response will be the same for a region even if it is translated by a small amount.
 It also acts as a quick way to downsample the image, leading to fewer parameters in the model.&lt;/p&gt;
-&lt;p&gt;Modern works do not employ pooling operations as often. For example (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;He et al. 2016&lt;/a&gt;) perform dimensionality reduction with \(1 \times 1\) convolutions.
-(&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Springenberg et al. 2015&lt;/a&gt;) argue that fully convolutional networks can achieve the same performance without max pooling.&lt;/p&gt;
+&lt;p&gt;Modern works do not employ pooling operations as often. For example (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;He et al. 2016&lt;/a&gt;) perform dimensionality reduction with \(1 \times 1\) convolutions.
+(&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Springenberg et al. 2015&lt;/a&gt;) argue that fully convolutional networks can achieve the same performance without max pooling.&lt;/p&gt;
 &lt;div class=&#34;blockquote&#34;&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&amp;ldquo;The pooling operation used in convolutional neural networks is a big mistake and the fact that it works so well is a disaster.&amp;rdquo; - Geoffrey Hinton&lt;/p&gt;
@@ -7044,13 +7143,13 @@ The output map is then \((3 - 2 + 1) \times (3 - 2 + 1) = 2 \times 2\).&lt;/p&gt
 \end{align*}&lt;/p&gt;
 &lt;p&gt;\(\frac{\partial \mathcal{L}}{\partial x_{i, j}}\) represent the gradients with respect to the feature maps. To match the flipped kernel used in the forward pass, they are flipped in an opposite manner.&lt;/p&gt;
 &lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
-&lt;p&gt;Let&amp;rsquo;s train and evaluate a convolutional neural network on the OG network: LeNet5 (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;LeCun et al. 1989&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s train and evaluate a convolutional neural network on the OG network: LeNet5 (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;LeCun et al. 1989&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;neural-networks-for-image-classification&#34;&gt;Neural Networks for Image Classification&lt;/h2&gt;
 &lt;h3 id=&#34;ilsvrc&#34;&gt;ILSVRC&lt;/h3&gt;
 &lt;p&gt;The ImageNet Large Scale Visual Recognition Challenge (ILSVRC) is the most popular image classification and object detection challenge starting in 2010. It now exists as the ILSVRC 2012-2017 challenge on &lt;a href=&#34;https://www.kaggle.com/c/imagenet-object-localization-challenge/overview/description&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Kaggle&lt;/a&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;alexnet&#34;&gt;AlexNet&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&#34;https://code.google.com/archive/p/cuda-convnet/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://code.google.com/archive/p/cuda-convnet/&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;The network that arguably popuarlized deep learning by achieving a 37.5% top-1 and 17% top-5 error rate on the ILSVRC-2010 test set. This model performed significantly better than leading competitors (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The network that arguably popuarlized deep learning by achieving a 37.5% top-1 and 17% top-5 error rate on the ILSVRC-2010 test set. This model performed significantly better than leading competitors (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
 
 
 
@@ -7059,14 +7158,14 @@ The output map is then \((3 - 2 + 1) \times (3 - 2 + 1) = 2 \times 2\).&lt;/p&gt
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-25-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;ILSVRC-2010 results reported by Krizhevsky et al.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-25-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;ILSVRC-2010 results reported by Krizhevsky et al.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;ILSVRC-2010 results reported by Krizhevsky et al.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;ILSVRC-2010 results reported by Krizhevsky et al.
     
     
     
@@ -7086,14 +7185,14 @@ The authors stated in their original publication that the large capacity of the 
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-35-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;AlexNet architecture (from Krizhevsky et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-35-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;AlexNet architecture (from Krizhevsky et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;AlexNet architecture (from Krizhevsky et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;AlexNet architecture (from Krizhevsky et al.)
     
     
     
@@ -7118,14 +7217,14 @@ Experiments on smaller CNNs show that networks with ReLU reach 25% training erro
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-49-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-12_18-49-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Training loss over time using ReLU (solid) versus tanh (dotted) (from Krizhevsky et al.)
     
     
     
@@ -7159,10 +7258,10 @@ The intuition is that the identity of an object is invariant to lighting conditi
 They had to write their own optimized CUDA code for this since deep learning frameworks such as Tensorflow and PyTorch did not exist yet.
 The training took ~6 days to pass 90 epochs.&lt;/p&gt;
 &lt;h3 id=&#34;vgg&#34;&gt;VGG&lt;/h3&gt;
-&lt;p&gt;Published in 2015, (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Simonyan and Zisserman 2015&lt;/a&gt;) explore how depth plays a role in convolutional neural networks.
+&lt;p&gt;Published in 2015, (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Simonyan and Zisserman 2015&lt;/a&gt;) explore how depth plays a role in convolutional neural networks.
 They systematically increase the depth of the network while keep other hyperparameters fixed.
 The filter sizes are also kept at \(3 \times 3\).&lt;/p&gt;
-&lt;p&gt;Similar to (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;), they use ReLU activations and in only one of their models to they employ Local Response Normalization.
+&lt;p&gt;Similar to (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;), they use ReLU activations and in only one of their models to they employ Local Response Normalization.
 They found that adding LRN to their model did not increase performance.
 Instead, it only increased computation time and memory consumption.
 Their models are summarized in the table below.&lt;/p&gt;
@@ -7174,14 +7273,14 @@ Their models are summarized in the table below.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-13_07-48-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Model configurations used (Simonyan and Zisserman).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-13_07-48-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Model configurations used (Simonyan and Zisserman).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Model configurations used (Simonyan and Zisserman).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Model configurations used (Simonyan and Zisserman).
     
     
     
@@ -7200,14 +7299,14 @@ Their models are summarized in the table below.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-18-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;The network-in-network architecture pairs perfectly with the Inception meme.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-18-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;The network-in-network architecture pairs perfectly with the Inception meme.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The network-in-network architecture pairs perfectly with the Inception meme.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;The network-in-network architecture pairs perfectly with the Inception meme.
     
     
     
@@ -7216,7 +7315,7 @@ Their models are summarized in the table below.&lt;/p&gt;
 
 &lt;/figure&gt;
 
-&lt;p&gt;Proposed a 22-layer network architecture that has \(12 \times\) fewer parameters than (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Proposed a 22-layer network architecture that has \(12 \times\) fewer parameters than (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Krizhevsky, Sutskever, and Hinton 2017&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;The authors were already thinking about applications in mobile computing, where hardware limitations would require smaller networks that still perform well.&lt;/p&gt;
 &lt;div class=&#34;blockquote&#34;&gt;
 &lt;blockquote&gt;
@@ -7247,14 +7346,14 @@ Szegedy et al. were motivated by the work of Arora et al., which they summarized
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-52-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Naive version of the Inception module (Szegedy et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_14-52-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Naive version of the Inception module (Szegedy et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Naive version of the Inception module (Szegedy et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Naive version of the Inception module (Szegedy et al.)
     
     
     
@@ -7277,14 +7376,14 @@ This motivates the use of \(3 \times 3\) and \(5 \times 5\) filters.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-01-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Description of layers from Szegedy et al.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-01-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Description of layers from Szegedy et al.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Description of layers from Szegedy et al.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Description of layers from Szegedy et al.
     
     
     
@@ -7306,14 +7405,14 @@ This permits the gradients to be strengthened by intermediate losses when combin
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-07-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;GoogLeNet model (Szegedy et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-07-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;GoogLeNet model (Szegedy et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;GoogLeNet model (Szegedy et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;GoogLeNet model (Szegedy et al.)
     
     
     
@@ -7340,14 +7439,14 @@ Many experiments ruled out the possibility of overfitting by observing that the 
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-19-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Result of experiments showing that decreased accuracy was not a result of overfitting.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-19-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 14: &amp;lt;/span&amp;gt;Result of experiments showing that decreased accuracy was not a result of overfitting.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Result of experiments showing that decreased accuracy was not a result of overfitting.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Result of experiments showing that decreased accuracy was not a result of overfitting.
     
     
     
@@ -7372,14 +7471,14 @@ If it were optimal to learn an identity mapping, the idea is that it would be si
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-45-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Residual unit (He et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-45-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 15: &amp;lt;/span&amp;gt;Residual unit (He et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Residual unit (He et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Residual unit (He et al.)
     
     
     
@@ -7402,14 +7501,14 @@ Specifically, VGG-19 requires 19.6 billion FLOPs compared to only 3.6 billion fo
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-49-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Comparison of architectures and their complexity (He et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-49-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 16: &amp;lt;/span&amp;gt;Comparison of architectures and their complexity (He et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of architectures and their complexity (He et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Comparison of architectures and their complexity (He et al.)
     
     
     
@@ -7429,14 +7528,14 @@ As mentioned in the introduction, typical models would see an increase in traini
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-53-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 14: &amp;lt;/span&amp;gt;Training comparisons between plain and residual networks (He et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-14_15-53-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 17: &amp;lt;/span&amp;gt;Training comparisons between plain and residual networks (He et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Training comparisons between plain and residual networks (He et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Training comparisons between plain and residual networks (He et al.)
     
     
     
@@ -7447,13 +7546,22 @@ As mentioned in the introduction, typical models would see an increase in traini
 
 &lt;p&gt;Their ensemble of models achieved 3.57% top-5 error on the ImageNet test set, achieving 1st place in the ILSVRC 2015 classification challenge.
 It additionally was adapted to other challenges and won first place on ImageNet detection, ImageNet localization, COCO detection, and COCO segmentation in both the ILSVRC and COCO 2015 competitions.&lt;/p&gt;
+&lt;h2 id=&#34;useful-resources&#34;&gt;Useful Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.songho.ca/dsp/convolution/convolution.html#convolution_2d&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/vdumoulin/conv_arithmetic&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/vdumoulin/conv_arithmetic&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://cs231n.github.io/convolutional-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs231n.github.io/convolutional-networks/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://grzegorzgwardys.wordpress.com/2016/04/22/8/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2016. “Deep Residual Learning for Image Recognition.” In &lt;i&gt;2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)&lt;/i&gt;, 770–78. Las Vegas, NV, USA: IEEE. &lt;a href=&#34;https://doi.org/10.1109/CVPR.2016.90&#34;&gt;https://doi.org/10.1109/CVPR.2016.90&lt;/a&gt;.&lt;/div&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2017. “ImageNet Classification with Deep Convolutional Neural Networks.” &lt;i&gt;Communications of the Acm&lt;/i&gt; 60 (6): 84–90. &lt;a href=&#34;https://doi.org/10.1145/3065386&#34;&gt;https://doi.org/10.1145/3065386&lt;/a&gt;.&lt;/div&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;LeCun, Yann, Bernhard Boser, John Denker, Donnie Henderson, R. Howard, Wayne Hubbard, and Lawrence Jackel. 1989. “Handwritten Digit Recognition with a Back-Propagation Network.” In &lt;i&gt;Advances in Neural Information Processing Systems&lt;/i&gt;. Vol. 2. Morgan-Kaufmann.&lt;/div&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Simonyan, Karen, and Andrew Zisserman. 2015. “Very Deep Convolutional Networks for Large-Scale Image Recognition.” &lt;i&gt;Arxiv:1409.1556 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;https://arxiv.org/abs/1409.1556&#34;&gt;https://arxiv.org/abs/1409.1556&lt;/a&gt;.&lt;/div&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Springenberg, Jost Tobias, Alexey Dosovitskiy, Thomas Brox, and Martin Riedmiller. 2015. “Striving for Simplicity: The All Convolutional Net.” &lt;i&gt;Arxiv:1412.6806 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;https://arxiv.org/abs/1412.6806&#34;&gt;https://arxiv.org/abs/1412.6806&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” &lt;i&gt;Arxiv:1603.07285 [Cs, Stat]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1603.07285&#34;&gt;http://arxiv.org/abs/1603.07285&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2016. “Deep Residual Learning for Image Recognition.” In &lt;i&gt;2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)&lt;/i&gt;, 770–78. Las Vegas, NV, USA: IEEE. &lt;a href=&#34;https://doi.org/10.1109/CVPR.2016.90&#34;&gt;https://doi.org/10.1109/CVPR.2016.90&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2017. “ImageNet Classification with Deep Convolutional Neural Networks.” &lt;i&gt;Communications of the Acm&lt;/i&gt; 60 (6): 84–90. &lt;a href=&#34;https://doi.org/10.1145/3065386&#34;&gt;https://doi.org/10.1145/3065386&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;LeCun, Yann, Bernhard Boser, John Denker, Donnie Henderson, R. Howard, Wayne Hubbard, and Lawrence Jackel. 1989. “Handwritten Digit Recognition with a Back-Propagation Network.” In &lt;i&gt;Advances in Neural Information Processing Systems&lt;/i&gt;. Vol. 2. Morgan-Kaufmann. &lt;a href=&#34;https://papers.nips.cc/paper/1989/hash/53c3bce66e43be4f209556518c2fcb54-Abstract.html&#34;&gt;https://papers.nips.cc/paper/1989/hash/53c3bce66e43be4f209556518c2fcb54-Abstract.html&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Simonyan, Karen, and Andrew Zisserman. 2015. “Very Deep Convolutional Networks for Large-Scale Image Recognition.” &lt;i&gt;Arxiv:1409.1556 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;http://arxiv.org/abs/1409.1556&#34;&gt;http://arxiv.org/abs/1409.1556&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_6&#34;&gt;&lt;/a&gt;Springenberg, Jost Tobias, Alexey Dosovitskiy, Thomas Brox, and Martin Riedmiller. 2015. “Striving for Simplicity: The All Convolutional Net.” &lt;i&gt;Arxiv:1412.6806 [Cs]&lt;/i&gt;, April. &lt;a href=&#34;http://arxiv.org/abs/1412.6806&#34;&gt;http://arxiv.org/abs/1412.6806&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
 </description>
     </item>
