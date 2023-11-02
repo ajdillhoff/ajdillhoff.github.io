@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents An Online RPG Database From Schema to Database Database Management Systems Creating our RPG Database Recommended Reading: Chapters 1 and 2 from (Elmasri and Navathe 2015)
+Databases allow us to store, retrieve, and edit different types of data. They should be scalable, secure, and reliable. They should also be able to handle concurrent access and be able to recover from failures. There are multiple types of databases that are optimized for different use cases.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/introduction_to_databases/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/introduction_to_databases/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/introduction_to_databases/">
+  <meta property="og:title" content="Introduction to Databases | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents An Online RPG Database From Schema to Database Database Management Systems Creating our RPG Database Recommended Reading: Chapters 1 and 2 from (Elmasri and Navathe 2015)
+Databases allow us to store, retrieve, and edit different types of data. They should be scalable, secure, and reliable. They should also be able to handle concurrent access and be able to recover from failures. There are multiple types of databases that are optimized for different use cases."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-10-28T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-10-28T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Introduction to Databases | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Introduction to Databases</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-10-28 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-10-28 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Oct 28, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    13 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/introduction_to_databases/&amp;text=Introduction%20to%20Databases" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/introduction_to_databases/&amp;t=Introduction%20to%20Databases" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Introduction%20to%20Databases&amp;body=https://ajdillhoff.github.io/notes/introduction_to_databases/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/introduction_to_databases/&amp;title=Introduction%20to%20Databases" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Introduction%20to%20Databases%20https://ajdillhoff.github.io/notes/introduction_to_databases/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/introduction_to_databases/&amp;title=Introduction%20to%20Databases" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#an-online-rpg-database">An Online RPG Database</a></li>
+<li><a href="#from-schema-to-database">From Schema to Database</a></li>
+<li><a href="#database-management-systems">Database Management Systems</a></li>
+<li><a href="#creating-our-rpg-database">Creating our RPG Database</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p><strong>Recommended Reading: Chapters 1 and 2 from (<a href="#citeproc_bib_item_1">Elmasri and Navathe 2015</a>)</strong></p>
+<p>Databases allow us to store, retrieve, and edit different types of data. They should be scalable, secure, and reliable. They should also be able to handle concurrent access and be able to recover from failures. There are multiple types of databases that are optimized for different use cases. Tabular data, for example, is typically stored in a <strong>relational</strong> database. Large format data such as images, videos, and audio are typically stored in a <strong>non-relational</strong> database.</p>
+<p>Creating, deploying, and maintaining databases is facilitated through a <strong>database management system</strong> (DBMS). A DBMS is a software system that allows us to interact with a database. It provides an interface for us to create, read, update, and delete data. It also provides a way for us to define the structure of our data and the relationships between different pieces of data. Examples of DBMSs include MySQL, PostgreSQL, and MongoDB.</p>
+<p>Once a database is deployed, we can interact with it a number of ways. Most DBMSs include a client which allows us to interact with the database through a command line interface. We can also interact with the database through a programming language such as Python or Java.</p>
+<p>It is important to emphasize that a database is not the same thing as a file system. A file system is a way to store data on a disk, whereas a database is a way to store data in a file system. File systems are good at managing unstructured data with little regard to the relationships inherit in the data itself. What if multiple people working on the same document try to save their changes at the same time? What if a user tries to delete a file that is currently being used by another user? These are problems that a file system is not designed to handle.</p>
+<h2 id="an-online-rpg-database">An Online RPG Database</h2>
+<p>To introduce some foundational terms and concepts of databases, let&rsquo;s design and create a database for an online RPG. In this game, users can create accounts, make multiple characters, store items for their characters, and embark on quests to level up their characters. Even from this simple description, we can start separating our data into different <strong>entities</strong> and <strong>relationships</strong>. Each logical entity in our game will be represented by a <strong>table</strong> in our database. The <strong>attributes</strong> of each table will be represented by columns in our database. For this database, we will need <em>at least</em> the following tables:</p>
+<ul>
+<li><code>Users</code></li>
+<li><code>Characters</code></li>
+<li><code>Items</code></li>
+<li><code>Inventory</code></li>
+<li><code>Quests</code></li>
+</ul>
+<p>We may add or modify these depending on the finer details. If you are not familiar with online RPG games, don&rsquo;t worry. We will be sure to include the necessities to get us started. Let&rsquo;s start with the first table, <code>Users</code>.</p>
+<h3 id="users">Users</h3>
+<p>A <code>User</code> represents an online account that is unique to each person who plays the game. It should contain the <code>username</code>, <code>email</code>, and date that it was created, which we will call <code>created_at</code>. This is enough information for now. Using this, we can create our first <strong>table</strong>. There is one more attribute that wasn&rsquo;t explicitly mentioned. Each <code>User</code> in our table should have a unique identifier. This is called a <strong>primary key</strong>. We will use a sequentially increasing number starting at 1 for our primary key. This is a common practice, but it is not the only way to do it. We will call this column <code>user_id</code>. The full table is showing below.</p>
+<p><strong>Users</strong></p>
+<ul>
+<li><code>user_id</code>: primary key</li>
+<li><code>username</code></li>
+<li><code>email</code></li>
+<li><code>created_at</code></li>
+</ul>
+<h3 id="characters">Characters</h3>
+<p>It is common for users to have multiple characters so they can experience the full range of our game. This table will have more attributes than the <code>Users</code> table since there are a wide range of stats that our characters can have, such as their name, level, experience, and health. We will also need to know which user each character belongs to. We can do this by adding a column called <code>user_id</code> which will be a <strong>foreign key</strong> to the <code>Users</code> table. This will allow us to link each character to the user that created it. The full table is shown below.</p>
+<p><strong>Characters</strong></p>
+<ul>
+<li><code>character_id</code>: primary key</li>
+<li><code>user_id</code>: foreign key</li>
+<li><code>name</code></li>
+<li><code>level</code></li>
+<li><code>experience</code></li>
+<li><code>health</code></li>
+<li><code>created_at</code></li>
+</ul>
+<h3 id="items">Items</h3>
+<p>As our user&rsquo;s play, they will collect items such as weapons, armor, and potions. As our game evolves, our game designers will add more items to the game. A table for our items is shown below.</p>
+<p><strong>Items</strong></p>
+<ul>
+<li><code>item_id</code>: primary key</li>
+<li><code>name</code></li>
+<li><code>value</code></li>
+</ul>
+<h3 id="inventory">Inventory</h3>
+<p>Our users will need a way to store their items. We can do this by creating a table called <code>Inventory</code>. This table will have a foreign key to the <code>Characters</code> table so we can link each item to the character that owns it. It will also have a foreign key to the <code>Items</code> table so we can link each item to the item that it represents. We will also need to know how many of each item our users have. We can do this by adding a column called <code>quantity</code>. The full table is shown below.</p>
+<p><strong>Inventory</strong></p>
+<ul>
+<li><code>inventory_id</code>: primary key</li>
+<li><code>character_id</code>: foreign key</li>
+<li><code>item_id</code>: foreign key</li>
+<li><code>quantity</code></li>
+</ul>
+<h3 id="quests">Quests</h3>
+<p>No RPG would be complete without quests that our player&rsquo;s could embark upon. The <code>Quests</code> table will have a name, description, and a reward. In the case of multiple rewards, we can create a separate table called <code>QuestRewards</code> that will have a foreign key to the <code>Quests</code> table and a foreign key to the <code>Items</code> table. This will allow us to link each quest to the items that it rewards. This means that the <code>Quests</code> table does not need an explicit reference to the reward item. We can look those up separately. The full table is shown below.</p>
+<p><strong>Quests</strong></p>
+<ul>
+<li><code>quest_id</code>: primary key</li>
+<li><code>name</code></li>
+<li><code>description</code></li>
+<li><code>reward_experience</code></li>
+<li><code>min_level</code></li>
+</ul>
+<p><strong>QuestRewards</strong></p>
+<ul>
+<li><code>quest_reward_id</code>: primary key</li>
+<li><code>quest_id</code>: foreign key</li>
+<li><code>item_id</code>: foreign key</li>
+</ul>
+<h3 id="a-few-extras">A Few Extras</h3>
+<p>There are a few more tables we should add to round out our characters. Most RPGs allow the users to create characters of different <strong>races</strong>, such as a human, orc, or elf, as well as the characters <strong>class</strong>, which defines what sort of abilities the character will have.</p>
+<p><strong>Race</strong></p>
+<ul>
+<li><code>race_id</code>: primary key</li>
+<li><code>name</code></li>
+</ul>
+<p><strong>Class</strong></p>
+<ul>
+<li><code>class_id</code>: primary key</li>
+<li><code>name</code></li>
+</ul>
+<p>With the addition of these two tables, let&rsquo;s add <em>foreign keys</em> to our original <code>Characters</code> table. We will add a <code>race_id</code> and a <code>class_id</code>. The full table is shown below.</p>
+<p><strong>Characters</strong></p>
+<ul>
+<li><code>character_id</code>: primary key</li>
+<li><code>user_id</code>: foreign key</li>
+<li><code>name</code></li>
+<li><code>level</code></li>
+<li><code>experience</code></li>
+<li><code>health</code></li>
+<li><code>race_id</code>: foreign key</li>
+<li><code>class_id</code>: foreign key</li>
+<li><code>created_at</code></li>
+</ul>
+<p>That&rsquo;s it! We have all the tables we need to get us started. All tables with example data are shown below. You&rsquo;ll notice that each of the primary IDs in the tables below have been renamed to <code>id</code>. Besides giving us extra room to display the table, the primary key is always unique to the table, so we don&rsquo;t need to include the table name in the column name.</p>
+<p><strong>Users</strong></p>
+<p>\begin{array}{|r|l|l|l|}
+\hline
+\text{id} &amp; \text{username} &amp; \text{email} &amp; \text{created_at} \\
+\hline
+1 &amp; \text{Naomi} &amp; \text{player1@example.com} &amp; \text{2023-01-01 10:00:00} \\
+2 &amp; \text{Clarissa} &amp; \text{player2@example.com} &amp; \text{2023-01-02 11:00:00} \\
+3 &amp; \text{Avasarala} &amp; \text{player3@example.com} &amp; \text{2023-01-03 12:00:00} \\
+\hline
+\end{array}</p>
+<p><strong>Characters</strong></p>
+<p>\begin{array}{|r|r|l|r|r|r|r|r|l|}
+\hline
+\text{id} &amp; \text{user_id} &amp; \text{name} &amp; \text{class_id} &amp; \text{race_id} &amp; \text{level} &amp; \text{experience} &amp; \text{health} &amp; \text{created_at} \\
+\hline
+1 &amp; 1 &amp; \text{Atticus} &amp; 1 &amp; 1 &amp; 10 &amp; 1000 &amp; 100 &amp; \text{2023-01-01 10:10:00} \\
+2 &amp; 1 &amp; \text{Bobbie} &amp; 2 &amp; 2 &amp; 15 &amp; 1500 &amp; 200 &amp; \text{2023-01-01 10:20:00} \\
+3 &amp; 2 &amp; \text{Raimi} &amp; 3 &amp; 3 &amp; 8 &amp; 800 &amp; 90 &amp; \text{2023-01-02 11:10:00} \\
+4 &amp; 3 &amp; \text{Beef} &amp; 4 &amp; 4 &amp; 12 &amp; 1200 &amp; 110 &amp; \text{2023-01-03 12:10:00} \\
+5 &amp; 2 &amp; \text{Demon} &amp; 4 &amp; 4 &amp; 12 &amp; 1200 &amp; 110 &amp; \text{2023-01-05 12:10:00} \\
+\hline
+\end{array}</p>
+<p><strong>Items</strong></p>
+<p>\begin{array}{|r|l|r|r|}
+\hline
+\text{id} &amp; \text{name} &amp; \text{value} \\
+\hline
+1 &amp; \text{Sword} &amp; 100 \\
+2 &amp; \text{Shield} &amp; 150 \\
+3 &amp; \text{Staff} &amp; 200 \\
+4 &amp; \text{Bow} &amp; 250 \\
+\hline
+\end{array}</p>
+<p><strong>Inventory</strong></p>
+<p>\begin{array}{|r|r|r|r|}
+\hline
+\text{id} &amp; \text{character_id} &amp; \text{item_id} &amp; \text{quantity} \\
+\hline
+1 &amp; 1 &amp; 1 &amp; 1 \\
+2 &amp; 2 &amp; 2 &amp; 1 \\
+3 &amp; 3 &amp; 3 &amp; 1 \\
+4 &amp; 4 &amp; 4 &amp; 1 \\
+\hline
+\end{array}</p>
+<p><strong>Quests</strong></p>
+<p>\begin{array}{|r|l|l|r|l|r|}
+\hline
+\text{id} &amp; \text{name} &amp; \text{description} &amp; \text{reward_experience} &amp; \text{min_level} \\
+\hline
+1 &amp; \text{Linken&rsquo;s Sword} &amp; \text{Desc1} &amp; 100 &amp; 5 \\
+2 &amp; \text{Mankrik&rsquo;s Wife} &amp; \text{Desc2} &amp; 200 &amp; 10 \\
+3 &amp; \text{The Hermit} &amp; \text{Desc3} &amp; 300 &amp; 15 \\
+4 &amp; \text{The Great Masquerade} &amp; \text{Desc4} &amp; 400 &amp; 20 \\
+\hline
+\end{array}</p>
+<p><strong>QuestRewards</strong></p>
+<p>\begin{array}{|r|r|r|}
+\hline
+\text{id} &amp; \text{quest_id} &amp; \text{item_id} \\
+\hline
+1 &amp; 1 &amp; 1 \\
+2 &amp; 2 &amp; 2 \\
+3 &amp; 3 &amp; 3 \\
+4 &amp; 4 &amp; 4 \\
+\hline
+\end{array}</p>
+<p><strong>Races</strong></p>
+<p>\begin{array}{|r|l|}
+\hline
+\text{race_id} &amp; \text{name} \\
+\hline
+1 &amp; \text{Human} \\
+2 &amp; \text{Elf} \\
+3 &amp; \text{Dwarf} \\
+4 &amp; \text{Orc} \\
+\hline
+\end{array}</p>
+<p><strong>Classes</strong></p>
+<p>\begin{array}{|r|l|}
+\hline
+\text{class_id} &amp; \text{name} \\
+\hline
+1 &amp; \text{Warrior} \\
+2 &amp; \text{Mage} \\
+3 &amp; \text{Rogue} \\
+4 &amp; \text{Paladin} \\
+\hline
+\end{array}</p>
+<h2 id="from-schema-to-database">From Schema to Database</h2>
+<p>What we did in the previous example is created a database <strong>schema</strong> based on our entities. A schema does not represent the entire picture of our <strong>data model</strong>. Relationships and other constraints are not represented in the schema. The data model itself defines the structure of a database, including data types, relationships, constraints, and a set of operations for performing basic functions like retrieving and updating data.</p>
+<h3 id="the-three-schema-architecture">The Three-Schema Architecture</h3>
+<p>The three-schema architecture is a way to separate the different aspects of a database. The three schemas are the <strong>external schema</strong>, the <strong>conceptual schema</strong>, and the <strong>internal schema</strong>. The internal schema describes how the data is stored on disk. Unless we are working on the backend of the database, we typically do not need to worry about the internal level. The external schema describes how the data is viewed by the user. This is the level that we interact with when we use a DBMS. The conceptual schema is the middle layer that describes the logical structure of the data. This is the level that we are working with when we create a schema.</p>
+<p>Under this architecture, we can modify the internal schema without affecting the external schema. This is important because it allows us to change the way that the data is stored without affecting the applications that use it. We can also modify the external schema without affecting the internal schema. This allows us to change the way that the data is viewed without affecting the applications that use it. This concept of <strong>data independence</strong> is one of the most important features of a DBMS.</p>
+<h2 id="database-management-systems">Database Management Systems</h2>
+<p>With our database defined, we can use it to make <strong>queries</strong> about the records that it stores. How we access that database depends on the DBMS that we are using. The database itself is can be modified and changed without affecting the applications that use it. We can also create multiple <strong>views</strong> of our data dynamically. For example, we can create a view that shows all of the items that a user has in their inventory, or show all of the characters that belong to a specific user. This is all done without modifying the underlying data. This is a powerful feature of databases that allows us to create complex applications that can be easily modified and updated.</p>
+<p>A <strong>transaction</strong> is a set of operations that are performed on a database. Transactions are typically used to ensure that the database is in a consistent state. For example, if we want to transfer money from one account to another, we need to make sure that the money is removed from one account and added to the other. If we fail to do this, we could end up with money that is neither in the original account nor the destination account. Transactions allow us to perform these operations in a way that guarantees that the database is in a consistent state.</p>
+<p>A DBMS must ensure transactional properties such as <strong>isolation</strong>, which ensures that each transaction executes in isolation from others, and <strong>atomicity</strong>, which ensures that either all operations in a transaction are executed or none are.</p>
+<h3 id="dbms-languages">DBMS Languages</h3>
+<p>A DBMS provides a way for us to interact with the database. Depending on the level of abstraction and the DBMS itself, a specific language is used to perform basic operations on the database. The most common languages are <strong>data definition languages</strong> (DDLs) and <strong>data manipulation languages</strong> (DMLs). A DDL is used to define the structure of the database, such as creating tables and defining relationships between them. A DML is used to perform operations on the data itself, such as inserting, updating, and deleting records.</p>
+<p>A common query language called Structured Query Language (SQL) defines both DDLs and DMLs. For example, to create our <code>User</code> table from above, we can use the following SQL statement:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Users (
+</span></span><span style="display:flex;"><span>  user_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  username VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  email VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  created_at DATETIME
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>Note that we must specify a type for each attribute in our table. SQL also provides a DML, we can use to insert records into our table:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> Users (user_id, username, email, created_at)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">VALUES</span> (<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;player1@example.com&#39;</span>, <span style="color:#e6db74">&#39;2023-01-01 10:00:00&#39;</span>);
+</span></span></code></pre></div><h3 id="dbms-interfaces">DBMS Interfaces</h3>
+<p>A DBMS provides an interface for us to interact with the database. This interface can be a command line interface, a graphical user interface, or a programming language interface. Other interfaces using natural language or voice can also be found in the wild. With the rapid advancement of machine learning, these interfaces are becoming more and more common. <a href="https://github.com/kulltc/chatgpt-sql" target="_blank" rel="noopener noreferrer">Here</a> is an example of a chatbot that can be used to query a database.</p>
+<h2 id="creating-our-rpg-database">Creating our RPG Database</h2>
+<p>For this example, we will be using MySQL. We only want to make sure that we have MySQL installed and are able to interface with the command line. You can find a thorough installation guide <a href="https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/" target="_blank" rel="noopener noreferrer">here</a>. Once it is installed and configured, start the MySQL server and log in using the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mysql -u root -p
+</span></span></code></pre></div><p>You should be prompted for a password. If you have not set a password, you can leave it blank. Once you are logged in, you should see a prompt that looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mysql&gt;
+</span></span></code></pre></div><p>Let&rsquo;s create a database for our RPG. We can do this with the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> rpg;
+</span></span></code></pre></div><p>We can verify that the database was created by listing all of the databases on the server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SHOW</span> DATABASES;
+</span></span></code></pre></div><p>You should see the <code>rpg</code> database in the list. We can now use this database to create our tables. We can do this with the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>USE rpg;
+</span></span></code></pre></div><p>This will tell MySQL to use the <code>rpg</code> database for all subsequent commands. We can now create our <code>Users</code> table:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Users (
+</span></span><span style="display:flex;"><span>  user_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  username VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  email VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  created_at DATETIME
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>We can verify that the table was created by listing all of the tables in the database:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SHOW</span> TABLES;
+</span></span></code></pre></div><p>You should see the <code>Users</code> table in the list. We can now insert some data into the table:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> Users (user_id, username, email, created_at)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">VALUES</span>
+</span></span><span style="display:flex;"><span>         (<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;player1@example.com&#39;</span>, <span style="color:#e6db74">&#39;2023-01-01 10:00:00&#39;</span>),
+</span></span><span style="display:flex;"><span>         (<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#39;Clarissa&#39;</span>, <span style="color:#e6db74">&#39;player2@example.com&#39;</span>, <span style="color:#e6db74">&#39;2023-01-02 11:00:00&#39;</span>),
+</span></span><span style="display:flex;"><span>         (<span style="color:#ae81ff">3</span>, <span style="color:#e6db74">&#39;Avasarala&#39;</span>, <span style="color:#e6db74">&#39;player3@example.com&#39;</span>, <span style="color:#e6db74">&#39;2023-01-03 12:00:00&#39;</span>);
+</span></span></code></pre></div><p>We can verify that the data was inserted by querying the table:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> Users;
+</span></span></code></pre></div><p>You should see the data that we inserted in the table. We can now create the rest of our tables:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Characters (
+</span></span><span style="display:flex;"><span>  character_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  user_id INT,
+</span></span><span style="display:flex;"><span>  name VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">level</span> INT,
+</span></span><span style="display:flex;"><span>  experience INT,
+</span></span><span style="display:flex;"><span>  health INT,
+</span></span><span style="display:flex;"><span>  created_at DATETIME
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Items (
+</span></span><span style="display:flex;"><span>  item_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  name VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  value INT
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Inventory (
+</span></span><span style="display:flex;"><span>  inventory_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  character_id INT,
+</span></span><span style="display:flex;"><span>  item_id INT,
+</span></span><span style="display:flex;"><span>  quantity INT
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Quests (
+</span></span><span style="display:flex;"><span>  quest_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  name VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  description VARCHAR(<span style="color:#ae81ff">255</span>),
+</span></span><span style="display:flex;"><span>  reward_experience INT,
+</span></span><span style="display:flex;"><span>  min_level INT
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> QuestRewards (
+</span></span><span style="display:flex;"><span>  quest_reward_id INT <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>,
+</span></span><span style="display:flex;"><span>  quest_id INT,
+</span></span><span style="display:flex;"><span>  item_id INT
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>Try creating the tables for the <code>Races</code> and <code>Classes</code> yourself. Once you are done, you can insert some data into the tables. Use the samples from above or create your own. Once you are done, you can query the tables to verify that the data was inserted correctly.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Elmasri, Ramez, and Shamkant B. Navathe. 2015. <i>Fundamentals of Database Systems</i>. 7th ed. Pearson. <a href="https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523">https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/databases/">databases</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+          <li><a href="/notes/introduction_to_graph_theory/">Introduction to Graph Theory</a></li>
+          
+          <li><a href="/notes/red_black_trees/">Red-Black Trees</a></li>
+          
+          <li><a href="/notes/binary_search_trees/">Binary Search Trees</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

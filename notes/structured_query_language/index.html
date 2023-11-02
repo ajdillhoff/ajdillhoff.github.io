@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents History and Development Schemas Data Types Creation Constraints Retrieving Data Modifying Data History and Development Structured Query Language (SQL) is a database language for managing data in a relation DBMS. Its original inception was based on a paper by Edgar F. Codd in 1970 titled A Relational Model of Data for Large Shared Data Banks (Codd 1970). Two employees working at IBM in the 1970s, Donald D.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/structured_query_language/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/structured_query_language/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/structured_query_language/">
+  <meta property="og:title" content="Structured Query Language | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents History and Development Schemas Data Types Creation Constraints Retrieving Data Modifying Data History and Development Structured Query Language (SQL) is a database language for managing data in a relation DBMS. Its original inception was based on a paper by Edgar F. Codd in 1970 titled A Relational Model of Data for Large Shared Data Banks (Codd 1970). Two employees working at IBM in the 1970s, Donald D."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-10-30T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2023-10-30T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Structured Query Language | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Structured Query Language</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-10-30 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2023-10-30 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Oct 30, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/structured_query_language/&amp;text=Structured%20Query%20Language" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/structured_query_language/&amp;t=Structured%20Query%20Language" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Structured%20Query%20Language&amp;body=https://ajdillhoff.github.io/notes/structured_query_language/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/structured_query_language/&amp;title=Structured%20Query%20Language" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Structured%20Query%20Language%20https://ajdillhoff.github.io/notes/structured_query_language/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/structured_query_language/&amp;title=Structured%20Query%20Language" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#history-and-development">History and Development</a></li>
+<li><a href="#schemas">Schemas</a></li>
+<li><a href="#data-types">Data Types</a></li>
+<li><a href="#creation">Creation</a></li>
+<li><a href="#constraints">Constraints</a></li>
+<li><a href="#retrieving-data">Retrieving Data</a></li>
+<li><a href="#modifying-data">Modifying Data</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="history-and-development">History and Development</h2>
+<p>Structured Query Language (SQL) is a database language for managing data in a relation DBMS. Its original inception was based on a paper by Edgar F. Codd in 1970 titled <em>A Relational Model of Data for Large Shared Data Banks</em> (<a href="#citeproc_bib_item_2">Codd 1970</a>). Two employees working at IBM in the 1970s, Donald D. Chamberlin and Raymond F. Boyce, developed the first version of SQL in 1974 (<a href="#citeproc_bib_item_1">Chamberlin and Boyce 1974</a>).</p>
+<p>The first official standard of SQL was SQL-86, or SQL1, which was published in 1986 by the American National Standards Institute (ANSI). The following table shows the release dates of major SQL standards along with a brief description of the changes made in each version.</p>
+<table>
+<thead>
+<tr>
+<th>Standard</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQL-86</td>
+<td>SQL1</td>
+<td>First official standard of SQL</td>
+</tr>
+<tr>
+<td>SQL-89</td>
+<td>SQL2</td>
+<td>Added support for integrity constraints, views, and assertions</td>
+</tr>
+<tr>
+<td>SQL-92</td>
+<td>SQL2</td>
+<td>Added support for triggers, recursive queries, and support for procedural programming</td>
+</tr>
+<tr>
+<td>SQL:1999</td>
+<td>SQL3</td>
+<td>Added support for object-relational features</td>
+</tr>
+<tr>
+<td>SQL:2003</td>
+<td>SQL3</td>
+<td>Added support for XML, window functions, and support for regular expressions</td>
+</tr>
+<tr>
+<td>SQL:2006</td>
+<td>SQL3</td>
+<td>Added more XML storage features and XQuery support</td>
+</tr>
+<tr>
+<td>SQL:2008</td>
+<td>SQL3</td>
+<td>Added support for TRUNCATE TABLE and enhanced MERGE statements</td>
+</tr>
+<tr>
+<td>SQL:2011</td>
+<td>SQL3</td>
+<td>Added support for temporal data</td>
+</tr>
+<tr>
+<td>SQL:2016</td>
+<td>SQL3</td>
+<td>Added support for JSON</td>
+</tr>
+<tr>
+<td>SQL:2023</td>
+<td>SQL3</td>
+<td>Added support for Propery Graph Queries and new JSON features</td>
+</tr>
+</tbody>
+</table>
+<h2 id="schemas">Schemas</h2>
+<p>In our <a href="/notes/introduction_to_databases/">Introduction to Databases</a> we discussed the concept of a schema as a definition of the structure of a database. In SQL, a schema is a collection of database objects, such as tables, views, and indexes. A schema is owned by a database user and has the same name as the user. A database user can own multiple schemas, and a schema can be owned by multiple users. A schema can also be owned by a role, which is a collection of users. A role can own multiple schemas, and a schema can be owned by multiple roles.</p>
+<p>There are several practical reasons for which we would want to create multiple schemas. For example, a database might be used by both a Human Resources and Healthcare Management application. Creating two separate schemas would ensure that data for each application is kept secure from unauthorized users. Multiple schemas are also used for testing and development processes. Large structural changes to an application may require a new scheme to be created. New features can be developed in the new schema while the old schema is still being used by the application.</p>
+<p>The following command creates a new schema named <code>MedApp</code> and assigns it to the user <code>MedAdmin</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">SCHEMA</span> MedApp <span style="color:#66d9ef">AUTHORIZATION</span> MedAdmin;
+</span></span></code></pre></div><h2 id="data-types">Data Types</h2>
+<p>SQL supports a wide variety of data types. The following table shows the most common data types supported by SQL.</p>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHAR(n)</td>
+<td>Fixed-length character string. The maximum length is <code>n</code> characters.</td>
+</tr>
+<tr>
+<td>VARCHAR(n)</td>
+<td>Variable-length character string. The maximum length is <code>n</code> characters.</td>
+</tr>
+<tr>
+<td>INT</td>
+<td>Integer value. The maximum value is <code>2^31 - 1</code>.</td>
+</tr>
+<tr>
+<td>SMALLINT</td>
+<td>Integer value. The maximum value is <code>2^15 - 1</code>.</td>
+</tr>
+<tr>
+<td>DECIMAL(i,j)</td>
+<td>Fixed-point number. The maximum precision is <code>38</code> digits. The maximum scale is <code>38</code> digits.</td>
+</tr>
+<tr>
+<td>NUMERIC(i,j)</td>
+<td>Fixed-point number. The maximum precision is <code>38</code> digits. The maximum scale is <code>38</code> digits.</td>
+</tr>
+<tr>
+<td>REAL</td>
+<td>Floating-point number. The maximum precision is <code>6</code> digits.</td>
+</tr>
+<tr>
+<td>DOUBLE</td>
+<td>Floating-point number. The maximum precision is <code>15</code> digits.</td>
+</tr>
+<tr>
+<td>DATE</td>
+<td>Date value. The range is <code>1000-01-01</code> to <code>9999-12-31</code>.</td>
+</tr>
+<tr>
+<td>TIME</td>
+<td>Time value. The range is <code>00:00:00</code> to <code>23:59:59</code>.</td>
+</tr>
+<tr>
+<td>TIMESTAMP</td>
+<td>Date and time value. The range is <code>1000-01-01 00:00:00</code> to <code>9999-12-31 23:59:59</code>.</td>
+</tr>
+<tr>
+<td>CLOB(n)</td>
+<td>Specifies columns with large text values. Maximum length specified in kilobytes (K), megabytes (M), or gigabytes (G)</td>
+</tr>
+<tr>
+<td>BIT(n)</td>
+<td>Fixed-length bit string.</td>
+</tr>
+<tr>
+<td>BIT VARYING(n)</td>
+<td>Variable-length bit string.</td>
+</tr>
+<tr>
+<td>BLOB(n)</td>
+<td>Binary Large Object - used for images, video, and other large items.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="creation">Creation</h2>
+<p>Creating schemas, databases, and tables is done with the <code>CREATE</code> command. The following command creates a new database named <code>RPG</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> RPG;
+</span></span></code></pre></div><p>When creating a new table, we must specify the name of the table and the attributes of the table. The following command creates a new table named <code>Users</code> with four attributes.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Users (
+</span></span><span style="display:flex;"><span>    user_id INT,
+</span></span><span style="display:flex;"><span>    username VARCHAR(<span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>    email VARCHAR(<span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>    created_at <span style="color:#66d9ef">TIMESTAMP</span>
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><h2 id="constraints">Constraints</h2>
+<p>Constraints allow us to add rules to our database that ensure the integrity of our data. There are several types of constraints that can be added to a table. For example, if a user is deleted, we may want to delete all of the user&rsquo;s posts as well. This can be accomplished by adding a <code>CASCADE</code> constraint to the <code>DELETE</code> statement. We can also set a default value to each attribute. Constraints such as <code>CHECK</code> and <code>UNIQUE</code> can be added to ensure that the data is valid and unique. The following table shows the most common constraints supported by SQL.</p>
+<table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NOT NULL</td>
+<td>Ensures that a column cannot have a NULL value.</td>
+</tr>
+<tr>
+<td>UNIQUE</td>
+<td>Ensures that all values in a column are unique.</td>
+</tr>
+<tr>
+<td>PRIMARY KEY</td>
+<td>A combination of a NOT NULL and UNIQUE.</td>
+</tr>
+<tr>
+<td>FOREIGN KEY</td>
+<td>Ensures that values in a column match values in another table&rsquo;s column.</td>
+</tr>
+<tr>
+<td>CHECK</td>
+<td>Ensures that all values in a column satisfy a specific condition.</td>
+</tr>
+<tr>
+<td>DEFAULT</td>
+<td>Sets a default value for a column when no value is specified.</td>
+</tr>
+<tr>
+<td>INDEX</td>
+<td>Used to create and retrieve data from the database very quickly.</td>
+</tr>
+<tr>
+<td>AUTO INCREMENT</td>
+<td>Automatically generates a unique number when a new record is inserted into a table.</td>
+</tr>
+</tbody>
+</table>
+<p>When creating the <code>Users</code> table above, we may want to ensure that the <code>user_id</code> attribute is unique. We can do this by adding a <code>UNIQUE</code> constraint to the <code>user_id</code> attribute. It is also possible to have it auto increment so that we do not have to specify a value for it when inserting a new user.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Users (
+</span></span><span style="display:flex;"><span>    user_id INT <span style="color:#66d9ef">UNIQUE</span> AUTO_INCREMENT,
+</span></span><span style="display:flex;"><span>    username VARCHAR(<span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>    email VARCHAR(<span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>    created_at <span style="color:#66d9ef">TIMESTAMP</span>
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>The following command creates a new table named <code>Characters</code> with a <code>VARCHAR</code> attribute named <code>Name</code> which is set to <code>NOT NULL</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Characters (
+</span></span><span style="display:flex;"><span>    Name VARCHAR(<span style="color:#ae81ff">50</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>Constraints can also be added after the initial attribute declaration. When creating the <code>Characters</code> table, if we want to state that the <code>user_id</code> field should be a foreign key, we can add a <code>FOREIGN KEY</code> constraint to the <code>user_id</code> attribute.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> Characters (
+</span></span><span style="display:flex;"><span>    id INT <span style="color:#66d9ef">UNIQUE</span> AUTO_INCREMENT,
+</span></span><span style="display:flex;"><span>    Name VARCHAR(<span style="color:#ae81ff">50</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>    user_id INT,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">CONSTRAINT</span> fk_user_id
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">FOREIGN</span> <span style="color:#66d9ef">KEY</span> (user_id) <span style="color:#66d9ef">REFERENCES</span> Users(user_id)
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>The constraint is given the name <code>fk_user_id</code> and is added to the <code>user_id</code> attribute. The <code>FOREIGN KEY</code> constraint states that the <code>user_id</code> attribute references the <code>user_id</code> attribute in the <code>Users</code> table.</p>
+<h2 id="retrieving-data">Retrieving Data</h2>
+<p>Retrieving data from an SQL database is done with an <code>SFW</code> query, <code>SELECT-FROM-WHERE</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">&lt;</span>attribute list<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> <span style="color:#f92672">&lt;</span><span style="color:#66d9ef">table</span> list<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> <span style="color:#f92672">&lt;</span>condition<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>For example, we can get the experience and level of a character named <code>Atticus</code> from the <code>Characters</code> table with the following query.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> experience, <span style="color:#66d9ef">level</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> Characters
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> Name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Atticus&#39;</span>;
+</span></span></code></pre></div><p>The attributes we retrieve in a query are referred to as the <code>projection attributes</code>. This query <code>SELECT~s a ~Character</code> from all rows of the <code>Character</code> table which satisfy the <strong>selection condition</strong> of the <code>WHERE</code> clause.
+We can also query the e-mail addresses of all users who have a character that is a human.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> email
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> Users, Characters, Races
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> Users.user_id <span style="color:#f92672">=</span> Characters.user_id <span style="color:#66d9ef">AND</span> Characters.race_id <span style="color:#f92672">=</span> Races.id <span style="color:#66d9ef">AND</span> Races.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>;
+</span></span></code></pre></div><p>The <code>WHERE</code> clause in this example is an example of a <strong>join condition</strong> since it combines attributes from multiple tables. Note that there are two tables which have a <code>user_id</code> attribute, so we must differentiate them by prepending the table name before the attribute name. This is how ambiguities are solved in SQL.</p>
+<p>You can also use the <code>AS</code> keyword to shorthand the table names in your query. The previous query can be rewritten as</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> U.username
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>   Users <span style="color:#66d9ef">AS</span> U, Characters <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">AS</span> R
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span>  U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> R.id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>;
+</span></span></code></pre></div><h3 id="duplicate-return-values">Duplicate Return Values</h3>
+<p>The previous query returns the names of all users who have a <code>Human</code> character. If a user has multiple characters that are <code>Human</code>, it will return their name multiple times. If we are instead only interested in the names of users who have a <code>Human</code> character, we can use the <code>DISTINCT</code> keyword to remove duplicate values.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>   Users <span style="color:#66d9ef">AS</span> U, Characters <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">AS</span> R
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span>  U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> R.id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>;
+</span></span></code></pre></div><h3 id="tables-as-sets">Tables as Sets</h3>
+<p>SQL uses some set operations from set theory. It supports the <code>UNION</code>, set difference <code>EXCEPT</code>, and set intersection <code>INTERSECT</code> operations. The following query returns the names of all users who have a <code>Human</code> character or a <code>Gnome</code> character.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>)
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">UNION</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Gnome&#39;</span>);
+</span></span></code></pre></div><p>If we wanted to find the users who had both a <code>Human</code> character and a <code>Gnome</code> character, we could use the <code>INTERSECT</code> operator instead.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>)
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">INTERSECT</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Gnome&#39;</span>);
+</span></span></code></pre></div><p>We can also use the <code>EXCEPT</code> operator to find the users who have a <code>Human</code> character but not a <code>Gnome</code> character.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Human&#39;</span>)
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">EXCEPT</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> U.username
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">FROM</span> Users <span style="color:#66d9ef">as</span> U, Characters <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">C</span>, Races <span style="color:#66d9ef">as</span> R
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">WHERE</span> U.user_id <span style="color:#f92672">=</span> <span style="color:#66d9ef">C</span>.user_id <span style="color:#66d9ef">AND</span> <span style="color:#66d9ef">C</span>.race_id <span style="color:#f92672">=</span> R.id <span style="color:#66d9ef">AND</span> R.name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Gnome&#39;</span>);
+</span></span></code></pre></div><h3 id="pattern-matching">Pattern Matching</h3>
+<p>SQL supports pattern matching with the <code>LIKE</code> operator. The <code>LIKE</code> operator is used in the <code>WHERE</code> clause to search for a specified pattern in a column. This is different from equality operators since it allows us to search for patterns rather than exact matches. The following table shows the most common wildcards used in SQL.</p>
+<table>
+<thead>
+<tr>
+<th>Wildcard</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%</td>
+<td>Matches any string of zero or more characters.</td>
+</tr>
+<tr>
+<td>_</td>
+<td>Matches any single character.</td>
+</tr>
+<tr>
+<td>[]</td>
+<td>Matches any single character within the brackets.</td>
+</tr>
+<tr>
+<td>[^]</td>
+<td>Matches any single character not within the brackets.</td>
+</tr>
+</tbody>
+</table>
+<p>The following query returns the names of all simple items in the <code>Items</code> table. These can be found based on their description, since the term <code>simple</code> is not explicitly mentioned in the name.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span>  name
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>    Items
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span>   description <span style="color:#66d9ef">LIKE</span> <span style="color:#e6db74">&#39;%simple%&#39;</span>;
+</span></span></code></pre></div><p>We can also query based on arithmetic ranges. For example, we might be interested in the items that are less than 100 gold.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span>  name
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>    Items
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span>   value <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">100</span>;
+</span></span></code></pre></div><h3 id="ordering">Ordering</h3>
+<p>SQL allows us to order the results of our query with the <code>ORDER BY</code> clause. The following query returns the names of all items in the <code>Items</code> table ordered by their value.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span>  name
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>    Items
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> value;
+</span></span></code></pre></div><p>We can also order by multiple attributes. The following query returns the names of all items in the <code>Items</code> table ordered by their value and then their name.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span>  name
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span>    Items
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> value, name;
+</span></span></code></pre></div><h2 id="modifying-data">Modifying Data</h2>
+<h3 id="inserting-data">Inserting Data</h3>
+<p>We previously saw an example of inserting new data. Let&rsquo;s insert a new user account to our table. If we are inserting a value for every attribute, we can omit the attribute list.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> Users
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">VALUES</span> (<span style="color:#ae81ff">7</span>, <span style="color:#e6db74">&#39;Alex&#39;</span>, <span style="color:#e6db74">&#39;alex.dillhoff@uta.edu&#39;</span>, <span style="color:#e6db74">&#39;2023-10-31 15:26:17&#39;</span>);
+</span></span></code></pre></div><p>If we are only inserting values for some attributes, we must specify the attribute list.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> Users (user_id, username, email)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">VALUES</span> (<span style="color:#ae81ff">7</span>, <span style="color:#e6db74">&#39;Alex&#39;</span>, <span style="color:#e6db74">&#39;alex.dillhoff@uta.edu&#39;</span>);
+</span></span></code></pre></div><p>If we attempt to leave out a value for an attribute that is not nullable, we will get an error. While working on our database, we may have realized that some of these important attributes should always be specified. We can add a <code>NOT NULL</code> constraint to these attributes to ensure that they are always specified. We will look at ways of modifying tables in the next section.</p>
+<h3 id="updating-data">Updating Data</h3>
+<p>Updating data is a common task and is easily supported by the <code>UPDATE</code> command. In an RPG, players will use items, gain experience, and level up. All of these will require modifications to existing tables. For example, if we wish to update the experience of a character, we can use the following query.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">UPDATE</span> Characters
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SET</span> experience <span style="color:#f92672">=</span> experience <span style="color:#f92672">+</span> <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Atticus&#39;</span>;
+</span></span></code></pre></div><h3 id="deleting-data">Deleting Data</h3>
+<p>Deleting a tuple or several tuples is straightforward in SQL. The following query deletes the user with the <code>user_id</code> of <code>7</code> from the <code>Users</code> table.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">DELETE</span> <span style="color:#66d9ef">FROM</span> Users
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> user_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">7</span>;
+</span></span></code></pre></div><p>If we want to delete all tuples from a table, we can use the <code>TRUNCATE TABLE</code> command. This command is faster than deleting all tuples with the <code>DELETE</code> command since it does not log each deletion. However, it cannot be used if the table is referenced by a foreign key constraint.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">TRUNCATE</span> <span style="color:#66d9ef">TABLE</span> Users;
+</span></span></code></pre></div><p>When deleting tuples from a database, it&rsquo;s important to consider any foreign key constraints that the table may have. If we delete a tuple from a table that is referenced by a foreign key constraint, we may end up with orphaned tuples. For example, if we delete a user from the <code>Users</code> table, we may end up with a character that has no user. We can avoid this by adding a <code>CASCADE</code> constraint to the <code>DELETE</code> statement. This will delete all tuples that reference the tuple we are deleting.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Chamberlin, Donald D., and Raymond F. Boyce. 1974. “SEQUEL: A Structured English Query Language.” In <i>Proceedings of the 1974 ACM SIGFIDET (Now SIGMOD) Workshop on Data Description, Access and Control</i>, 249–64. SIGFIDET ’74. New York, NY, USA: Association for Computing Machinery. <a href="https://doi.org/10.1145/800296.811515">https://doi.org/10.1145/800296.811515</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Codd, E. F. 1970. “A Relational Model of Data for Large Shared Data Banks.” <i>Communications of the Acm</i> 13 (6): 377–87. <a href="https://doi.org/10.1145/362384.362685">https://doi.org/10.1145/362384.362685</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/databases/">databases</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/introduction_to_databases/">Introduction to Databases</a></li>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+          <li><a href="/notes/introduction_to_graph_theory/">Introduction to Graph Theory</a></li>
+          
+          <li><a href="/notes/red_black_trees/">Red-Black Trees</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
