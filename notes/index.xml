@@ -7,10 +7,189 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 30 Oct 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Thu, 16 Nov 2023 00:00:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Pretraining Large Language Models</title>
+      <link>https://ajdillhoff.github.io/notes/pretraining_large_language_models/</link>
+      <pubDate>Thu, 16 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/pretraining_large_language_models/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#unsupervised-pre-training&#34;&gt;Unsupervised Pre-training&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#from-gpt-to-gpt2&#34;&gt;From GPT to GPT2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;These notes provide an overview of pre-training large language models like GPT and Llama.&lt;/p&gt;
+&lt;h2 id=&#34;unsupervised-pre-training&#34;&gt;Unsupervised Pre-training&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s start by reviewing the pre-training procedure detailed in the GPT paper (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Radford et al. 2020&lt;/a&gt;). The &lt;em&gt;Generative&lt;/em&gt; in Generative Pre-Training reveals much about how the network can be trained without direct supervision. It is analogous to how you might have studied definitions as a kid: create some flash cards with the term on the front and the definition on the back. Given the context of the word, you try and recite the definition. For a pre-training language model, it is given a series of tokens and is tasked with generating the next token in the sequence. Since we have access to the original documents, we can easily determine if it was correct.&lt;/p&gt;
+&lt;p&gt;Given a sequence of tokens \(\mathcal{X} = \{x_1, x_2, \ldots, x_n\}\), the model is trained to predict the next token \(x_{n+1}\) in the sequence. The model is trained to maximize the log-likelihood of the next token:&lt;/p&gt;
+&lt;p&gt;\[\mathcal{L}(\mathcal{X}) = \sum_{i=1}^{n} \log p(x_{i+1} \mid x_{i-k}, \ldots, x_i)\]&lt;/p&gt;
+&lt;p&gt;where \(k\) is the size of the context window.&lt;/p&gt;
+&lt;p&gt;Large language models are typically based on the &lt;a href=&#34;https://ajdillhoff.github.io/notes/transformers/&#34;&gt;Transformers&lt;/a&gt; model. The original model was trained for language translation. Depending on the task, different variants are employed. For GPT models, a decoder-only architecture is used, as see below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-16_15-56-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Decoder-only diagram from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Vaswani et al. 2017&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decoder-only diagram from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Vaswani et al. 2017&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The entire input pipeline for GPT can be expressed rather simply. First, the tokenized input is passed through an embedding layer \(W_{e}\). Embedding layers map the tokenized input into a lower-dimensional vector representation. A positional embedding matrix of the same size as \(\mathcal{X} W_{e}\) is added in order to preserve the order of the tokens.&lt;/p&gt;
+&lt;p&gt;The embedded data \(h_0\) is then passed through \(n\) transformer blocks. The output of this is passed through the softmax function in order to produce an output distribution over target tokens.&lt;/p&gt;
+&lt;h2 id=&#34;from-gpt-to-gpt2&#34;&gt;From GPT to GPT2&lt;/h2&gt;
+&lt;p&gt;GPT2 is a larger version of GPT, with an increased context size of 1024 tokens and a vocabulary of 50,257 vocabulary. In this paper, they posit that a system should be able to perform many tasks on the same input. For example, we may want our models to summarize complex texts as well as provide answers to specific questions we have about the content. Instead of training multiple separate models to perform these tasks individually, the model should be able to adapt to these tasks based on the context. In short, it should model \(p(output \mid input, task)\) instead of \(p(output \mid input)\).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2020. “Improving Language Understanding by Generative Pre-Training,” 12.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Distributed Databases</title>
+      <link>https://ajdillhoff.github.io/notes/distributed_databases/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/distributed_databases/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#overview&#34;&gt;Overview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#data-fragmentation&#34;&gt;Data Fragmentation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#data-replication&#34;&gt;Data Replication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#data-concurrency&#34;&gt;Data Concurrency&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Distributed systems excel at partitioning large problems into smaller chunks that can be processed in parallel. This requires parallel thinking instead of serial thinking. Many algorithms and solutions that run serially may be easier to adapt to parallel applications than others.&lt;/p&gt;
+&lt;p&gt;Distributed solutions are the natural next step to scaling up a system. In the context of databases, the main challenges related to distribution, replication, distributed transactions, distributed metadata management, and distributed query processing.&lt;/p&gt;
+&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
+&lt;p&gt;According to Elmasri and Navathe (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Elmasri and Navathe 2015&lt;/a&gt;), a distributed database should satisfy &lt;em&gt;at least&lt;/em&gt; the following conditions:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;database nodes should be connected by a network,&lt;/li&gt;
+&lt;li&gt;the information on each node should be logically related,&lt;/li&gt;
+&lt;li&gt;and each node does not necessarily need to be identicaly in terms of data, hardware, and software.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;transparency&#34;&gt;Transparency&lt;/h3&gt;
+&lt;p&gt;Transparency is the concept of hiding the complex details of a distributed database from the user. There are several types of transparency:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Distribution transparency&lt;/strong&gt;&lt;/strong&gt; - the user does not need to know how the data is distributed across the nodes. This could refer to the location of the data, the replication of the data, or the fragmentation of the data.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Replication transparency&lt;/strong&gt;&lt;/strong&gt; - data may be stored in multiple nodes. This type of transparency improves availability by allowing the system to continue operating even if a node goes down.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Fragmentation transparency&lt;/strong&gt;&lt;/strong&gt; - data is either horizontally or vertically fragmented across nodes. Horizontal fragmentation, also called &lt;strong&gt;&lt;strong&gt;sharding&lt;/strong&gt;&lt;/strong&gt;, refers to decomposing tuples of a table into multiple systems. For example, we could horizontally fragment our &lt;code&gt;Character&lt;/code&gt; table based on the &lt;code&gt;class_id&lt;/code&gt;. Vertical fragmentation refers to decomposing the columns of a table into multiple systems. For example, we could vertically fragment our &lt;code&gt;Character&lt;/code&gt; table into a &lt;code&gt;Character&lt;/code&gt; table and a &lt;code&gt;CharacterStats&lt;/code&gt; table.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;availability-and-reliability&#34;&gt;Availability and Reliability&lt;/h3&gt;
+&lt;p&gt;Having more than one point of failure means that a distributed database is more &lt;strong&gt;reliable&lt;/strong&gt; than a centralized database. With technologies like replication, the &lt;strong&gt;availability&lt;/strong&gt; of the database also increases.&lt;/p&gt;
+&lt;h3 id=&#34;scalability&#34;&gt;Scalability&lt;/h3&gt;
+&lt;p&gt;Scalability in a database that is distributed over multiple nodes can be categorized into two types:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Horizontal scalability&lt;/strong&gt;&lt;/strong&gt; - adding more nodes to the system.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Vertical scalability&lt;/strong&gt;&lt;/strong&gt; - adding more resources to the nodes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A centralized database can only support vertical scalability. If it goes down or is fragmented from a portion of a broader network, the data is no longer accessible. In a distributed system, the nodes can be partitioned into smaller networks that can still operate independently depending on the type of failure. This is called &lt;strong&gt;&lt;strong&gt;partition tolerance&lt;/strong&gt;&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;autonomy&#34;&gt;Autonomy&lt;/h3&gt;
+&lt;p&gt;Autonomy refers to the ability of a node to operate independently of other nodes. This is important for distributed systems because it allows for the system to continue operating even if a node goes down.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Design autonomy&lt;/strong&gt; - Data model usage and transaction managament are independent of other nodes.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Communication autonomy&lt;/strong&gt; - Nodes can communicate with each other without the need for a central coordinator.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Execution autonomy&lt;/strong&gt; - Nodes can execute transactions independently of other nodes. While this type of autonomy leads to more availability and higher performance, it can also create problems with consistency since nodes may not be able to agree on the order of operations.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;data-fragmentation&#34;&gt;Data Fragmentation&lt;/h2&gt;
+&lt;p&gt;As mentioned at the beginning of these notes, breaking up a problem into smaller chunks is the key to parallelism. In the context of databases, this means figuring out which nodes have which portions of the data. We will discuss fragmentation under the assumption that no data replication is being used.&lt;/p&gt;
+&lt;h3 id=&#34;horizontal-fragmentation--sharding&#34;&gt;Horizontal Fragmentation (Sharding)&lt;/h3&gt;
+&lt;p&gt;Imagine a scenario in which we shard our &lt;code&gt;Users&lt;/code&gt; table based on the geographic location of their IP address. If we have 3 nodes in (west coast, central, east coast), then we can separate our table into 3 tables, one for each region. This is called &lt;strong&gt;&lt;strong&gt;horizontal fragmentation&lt;/strong&gt;&lt;/strong&gt; or &lt;strong&gt;&lt;strong&gt;sharding&lt;/strong&gt;&lt;/strong&gt;. The main advantage of sharding is that it allows us to scale horizontally. The main disadvantage is that it makes it more difficult to perform queries that require data from multiple regions.&lt;/p&gt;
+&lt;h3 id=&#34;vertical-fragmentation&#34;&gt;Vertical Fragmentation&lt;/h3&gt;
+&lt;p&gt;Vertical fragmentation can make sense when we have a table with a large number of columns. For example, we could vertically fragment our &lt;code&gt;Users&lt;/code&gt; table into a &lt;code&gt;Users&lt;/code&gt; table and a &lt;code&gt;UserStats&lt;/code&gt; table. When vertically fragmenting data, there should be a common attribute between the two tables. In this case, the &lt;code&gt;user_id&lt;/code&gt; would be the common attribute.&lt;/p&gt;
+&lt;h2 id=&#34;data-replication&#34;&gt;Data Replication&lt;/h2&gt;
+&lt;p&gt;Data replication is the process of storing the same data in multiple nodes. There are obvious tradeoffs when it comes to selecting a replication strategy. First, let&amp;rsquo;s consider the extreme cases. If no replication is used, then the system is more consistent since there is only one copy of the data. The availability suffers, however, since there is only a single copy of the data.&lt;/p&gt;
+&lt;p&gt;If the data is replicated to every single node, then the availability and performance of the system increases. However, the consistency of the system suffers since there are multiple copies of the data that need to be kept in sync. Picking a replication strategy will largely depend on the needs of the application. Deciding how this data is fragmented is the process of &lt;strong&gt;data distribution&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;The following example is from Elmasri and Navathe (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Elmasri and Navathe 2015&lt;/a&gt;). In this example, a company has three nodes for each of its departments. Node 2 stores data for the &lt;code&gt;Research&lt;/code&gt; department and Node 3 stores data for the &lt;code&gt;Administration&lt;/code&gt; department. The idea behind this is that the &lt;code&gt;EMPLOYEE&lt;/code&gt; and &lt;code&gt;PROJECT&lt;/code&gt; information for each department will be frequently accessed by that department. This would be more efficient than having to access the data from a centralized database. Node 1 is located at the company&amp;rsquo;s headquarters and includes data for all departments.&lt;/p&gt;
+&lt;p&gt;The data in the &lt;code&gt;DEPARTMENT&lt;/code&gt; table is horizontally fragmented using the department number &lt;code&gt;Dnumber&lt;/code&gt;. Since there are foreign key relationships in &lt;code&gt;EMPLOYEE&lt;/code&gt;, &lt;code&gt;PROJECT&lt;/code&gt;, and &lt;code&gt;DEPT_LOCATIONS&lt;/code&gt;, they are also fragmented. This is a special type of fragmentation called &lt;strong&gt;derived fragmentation&lt;/strong&gt;. These are easier to fragment since they have a direct foreign key relationship.&lt;/p&gt;
+&lt;p&gt;A more difficulty decision comes with the &lt;code&gt;WORKS_ON&lt;/code&gt; table. It does not have an attribute that indicates which department each tuple belongs to. The authors choose to fragment based on the department that the employee works for. This is further fragmented based on the department that controls the projects that the employee is working on.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-14_18-41-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Fragmentation of `WORKS_ON` table for department 5. &amp;lt;@elmasri_fundamentals_2015&amp;gt;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Fragmentation of &lt;code&gt;WORKS_ON&lt;/code&gt; table for department 5. &amp;lt;@elmasri_fundamentals_2015&amp;gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, all of the fragments include employees of the research department. The first fragment includes employees that work on projects controlled by the research department. The second fragment includes employees that work on projects controlled by the administration department. The third fragment includes employees that work on projects controlled by headquarters.&lt;/p&gt;
+&lt;h2 id=&#34;data-concurrency&#34;&gt;Data Concurrency&lt;/h2&gt;
+&lt;p&gt;Distributed systems that employ data replication or allow for multiple users to access the same data at the same time need to be concerned with data concurrency. This is the process of ensuring that the data remains consistent when multiple users are accessing the same data at the same time. Several problems can occur in a DDBMS, such as&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;inconsistency between multiple copies of the data,&lt;/li&gt;
+&lt;li&gt;failure of a node,&lt;/li&gt;
+&lt;li&gt;network outages that sever the connection between nodes,&lt;/li&gt;
+&lt;li&gt;failure of a transaction that is applied to multiple nodes,&lt;/li&gt;
+&lt;li&gt;and deadlocks between transactions.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;concurrency-control&#34;&gt;Concurrency Control&lt;/h3&gt;
+&lt;p&gt;Many control solutions for distributed systems are based on the idea of a centralized &lt;strong&gt;locking&lt;/strong&gt; authority. This authority is responsible for granting locks to transactions that request them. The authority is also responsible for granting access to data that is locked by other transactions. When an object is locked, it cannot be accessed by other transactions.&lt;/p&gt;
+&lt;p&gt;In this case, the &lt;em&gt;central authority&lt;/em&gt; may be a &lt;strong&gt;distinguished copy&lt;/strong&gt; of the data. All requests to lock or unlock are sent to that copy.&lt;/p&gt;
+&lt;h4 id=&#34;primary-site-technique&#34;&gt;Primary Site Technique&lt;/h4&gt;
+&lt;p&gt;All locks are kept at a primary site. This site is responsible for granting locks to transactions that request them. The primary site is also responsible for granting access to data that is locked by other transactions. This is a simple technique that is easy to implement. However, it is not very scalable since all requests must go through the primary site. Note that this does not prevent transactions with read locks from accessing any copy of the item. If a transaction has a write lock, the primary site must update all copies of the data before releasing the lock.&lt;/p&gt;
+&lt;h4 id=&#34;primary-site-with-backup&#34;&gt;Primary Site with Backup&lt;/h4&gt;
+&lt;p&gt;If the primary site fails in the first approach, the system effectively becomes unavailable. To prevent this, we can have a backup primary site that takes over if the primary site fails. This is a simple solution that is easy to implement. If the primary site fails in this case, a backup takes over and becomes the new primary. A new backup is chosen so that the system can continue to operate. One downside to this approach is that locks must be recorded at both the primary and backup sites.&lt;/p&gt;
+&lt;h4 id=&#34;primary-copy-technique&#34;&gt;Primary Copy Technique&lt;/h4&gt;
+&lt;p&gt;Lock coordination is distributed among various sites. Distinguished copies for different items are distributed to different sites. A failure at one site would only affect the transactions that are accessing its distinguished copies. Other items not on the site would remain functional. In the case of a failure, the sites that are still running can choose a new coordinator based on some strategy. One such strategy is to have all running sites vote on a new coordinator. The site with the most votes becomes the new coordinator.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Elmasri, Ramez, and Shamkant B. Navathe. 2015. &lt;i&gt;Fundamentals of Database Systems&lt;/i&gt;. 7th ed. Pearson. &lt;a href=&#34;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&#34;&gt;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Policy Gradient Methods</title>
+      <link>https://ajdillhoff.github.io/notes/policy_gradient_methods/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/policy_gradient_methods/</guid>
+      <description>&lt;p&gt;When we had full knowledge of the states, we could use &lt;a href=&#34;https://ajdillhoff.github.io/notes/markov_decision_processes/&#34;&gt;Markov Decision Processes&lt;/a&gt; to find the optimal policy. When this assumption breaks down, we need to come up with our best approximation. This is not a far stretch from how we might handle new scenarios in our own lives. When we begin a new task, we are certainly not experts. We may learn from a teacher or set off to explore on our own. As we practice and churn out the seemingly endless variations of our endeavour, we begin to develop a sense of what works and what doesn&amp;rsquo;t. We may not be able to articulate the exact rules that we follow, but we can certainly tell when we are doing well or poorly.&lt;/p&gt;
+&lt;p&gt;In lieu of a conscious agent with human intelligence, we can approximate the policy using a gradient-based approach. We will use the gradient of the expected reward with respect to the policy parameters to update the policy. Methods that use this approach are called &lt;strong&gt;&lt;strong&gt;policy gradient methods&lt;/strong&gt;&lt;/strong&gt;.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Structured Query Language</title>
@@ -6149,6 +6328,90 @@ This implies that \(f_1\) is predicting the gradient of the previous function.&l
     </item>
     
     <item>
+      <title>Reinforcement Learning</title>
+      <link>https://ajdillhoff.github.io/notes/reinforcement_learning/</link>
+      <pubDate>Wed, 12 Jul 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/reinforcement_learning/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#topics&#34;&gt;Topics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#markov-decision-processes&#34;&gt;Markov Decision Processes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#rl-vs-dot-mdp&#34;&gt;RL vs. MDP&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#passive-rl&#34;&gt;Passive RL&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;topics&#34;&gt;Topics&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;What is reinforcement learning?&lt;/li&gt;
+&lt;li&gt;Examples&lt;/li&gt;
+&lt;li&gt;Finite Markov Decision Processes&lt;/li&gt;
+&lt;li&gt;Passive vs. Active Methods&lt;/li&gt;
+&lt;li&gt;Adaptive Dynamic Programming&lt;/li&gt;
+&lt;li&gt;Monte Carlo Methods&lt;/li&gt;
+&lt;li&gt;Temporal-Different Learning&lt;/li&gt;
+&lt;li&gt;Q-Learning&lt;/li&gt;
+&lt;li&gt;Function Approximation&lt;/li&gt;
+&lt;li&gt;Deep Q-Learning&lt;/li&gt;
+&lt;li&gt;Policy and Value Iteration&lt;/li&gt;
+&lt;li&gt;Case Studies&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;When placed in a new environment, we orient and learn about it by interacting with it.
+When given a novel task, we may not be able to explicitly describe the task or even perform well at it, but we can learn a lot about it through trial and error.&lt;/p&gt;
+&lt;p&gt;Image if you were to be thrown into an alien world teaming with unknown life forms.
+You would not be able to identify these life forms, but you would be able to learn about their behaviors, shape, surface anatomy, and other attributes based on perception alone.
+Simply learning about the structure of the environment is the task of unsupervised learning.&lt;/p&gt;
+&lt;p&gt;In supervised machine learning, there is typically some objective function that is minimized based on ground truth or target variables that are known ahead of time.
+In settings like the ones depicted above, there is no form of supervision.
+Instead, a representation of the environment is learned from one&amp;rsquo;s experience and sensory input.&lt;/p&gt;
+&lt;p&gt;Reinforcement learning maps environment input to actions.
+For example, an agent trained to play Chess will evaluate the current board and make a decision based on experience.
+Whether or not that decision was beneficial may not immediately be known.
+If it results in winning against an opponent, the model would strengthen its knowledge of that particular play.
+The concept of trial-and-error and the fact that an agent may not know if the correct decision was made until later are two of the most important concepts of reinforcement learning.&lt;/p&gt;
+&lt;p&gt;There are many challenges present in reinforcement learning.
+The agents consider the entire environment and attempt to maximize some reward value based on a well defined goal.
+There is then a trade off between &lt;strong&gt;exploiting&lt;/strong&gt; actions that are known to give a positive reward and &lt;strong&gt;exploring&lt;/strong&gt; new actions that may lead to a better payoff.&lt;/p&gt;
+&lt;p&gt;Reinforcement learning is the study of goal-seeking agents that can sense some aspect of their environment and can perform actions that directly affect that environment. An agent is not always a robot, although it is a popular use case. Taking from recent popularity, agents such as &lt;a href=&#34;https://www.deepmind.com/research/highlighted-research/alphago&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;AlphaGo&lt;/a&gt; exist within a game playing environment where their goal is win.&lt;/p&gt;
+&lt;h3 id=&#34;examples&#34;&gt;Examples&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Gaming:&lt;/strong&gt; Agents for traditional board games such as Chess and &lt;a href=&#34;https://www.deepmind.com/research/highlighted-research/alphago&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Go&lt;/a&gt; have been implemented, surpassing even the best players in the world. Video games are also a popular environment for constructing complex agents. Developers can use RL to construct sophisticated characters in the game that behave in complex way as well as react more realistically towards the player. DeepMind introduced a powerful agent for &lt;a href=&#34;https://www.deepmind.com/blog/alphastar-mastering-the-real-time-strategy-game-starcraft-ii&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;StarCaft II&lt;/a&gt; which beat some of the best human players in the world. OpenAI debuted &lt;a href=&#34;https://openai.com/research/openai-five-defeats-dota-2-world-champions&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;OpenAI Five&lt;/a&gt; at the 2019 Dota 2 World Championships, defeating the championship team back-to-back.&lt;/p&gt;
+&lt;p&gt;OpenAI released OpenAI gym, now an open source project named &lt;a href=&#34;https://github.com/Farama-Foundation/Gymnasium&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Gymnasium&lt;/a&gt;, which is a library for developing and comparing reinforcement learning algorithms. One of recent interest is &lt;a href=&#34;https://www.twitch.tv/rlgym&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;RLGym&lt;/a&gt;, a Rocket League agent.&lt;/p&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;A reinforcement learning system is identified by the &lt;strong&gt;environment&lt;/strong&gt; and an &lt;strong&gt;agent&lt;/strong&gt; acting in that environment.
+An agent&amp;rsquo;s behavior in the environment is defined by a &lt;strong&gt;policy&lt;/strong&gt;.
+A policy usually describes a set of rules in response to the current state of the environment.&lt;/p&gt;
+&lt;p&gt;In order to improve on some task, a &lt;strong&gt;reward signal&lt;/strong&gt; is defined.
+Over time, an agent should maximize the reward.
+In general, an action leading to a favorable outcome should present a high reward value.&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;value function&lt;/strong&gt; describes the estimated total reward over the long run given the agent&amp;rsquo;s current state.
+Taking an action that results in an immediate reward may lead to a lower payoff in the long run.
+This can be predicted from the value function.&lt;/p&gt;
+&lt;p&gt;Additionally, a &lt;strong&gt;model&lt;/strong&gt; of the environment will include prior knowledge about that environment.
+This allows the agent to act optimally over a longer sequence of states.&lt;/p&gt;
+&lt;h2 id=&#34;markov-decision-processes&#34;&gt;Markov Decision Processes&lt;/h2&gt;
+&lt;h2 id=&#34;rl-vs-dot-mdp&#34;&gt;RL vs. MDP&lt;/h2&gt;
+&lt;p&gt;Reinforcement learning does not assume the &lt;strong&gt;transition model&lt;/strong&gt; or the &lt;strong&gt;reward function&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;passive-rl&#34;&gt;Passive RL&lt;/h2&gt;
+&lt;p&gt;The policy is fixed while the transition model and reward function are learned over time.
+The goal is to compute the utility of each state.&lt;/p&gt;
+&lt;h3 id=&#34;adaptive-dynamic-programming&#34;&gt;Adaptive Dynamic Programming&lt;/h3&gt;
+&lt;p&gt;\(R(s)\) and \(p(s&amp;rsquo;|s,a)\) can be updated at each step based solely on the observations.
+Using these observations, the utility of each state can be estimated following policy evaluation (TODO: link algorithm for policy evaluation).&lt;/p&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://web.stanford.edu/class/cs234/modules.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://web.stanford.edu/class/cs234/modules.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lilianweng.github.io/posts/2018-02-19-rl-overview/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://lilianweng.github.io/posts/2018-02-19-rl-overview/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Bias and Variance</title>
       <link>https://ajdillhoff.github.io/notes/bias_and_variance/</link>
       <pubDate>Tue, 04 Jul 2023 00:00:00 -0500</pubDate>
@@ -6223,6 +6486,128 @@ This implies that \(f_1\) is predicting the gradient of the previous function.&l
 
 &lt;h2 id=&#34;bias-variance-tradeoff&#34;&gt;Bias-Variance Tradeoff&lt;/h2&gt;
 &lt;p&gt;If a model is not complex enough to capture the underlying distribution, it will perform poorly on both the training and test sets. Indeed, the model has low bias. If the model is too complex, it will exhibit low bias and high variance, overfitting the training set while failing to generalize well to unseen data. The solution then is to find a tradeoff between bias and variance with respect to the model complexity.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Natural Language Processing</title>
+      <link>https://ajdillhoff.github.io/notes/natural_language_processing/</link>
+      <pubDate>Sun, 23 Apr 2023 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/natural_language_processing/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#text-preprocessing&#34;&gt;Text Preprocessing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tasks&#34;&gt;Tasks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#models&#34;&gt;Models&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#perplexity&#34;&gt;Perplexity&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Text Preprocessing
+&lt;ul&gt;
+&lt;li&gt;Character-level tokenization&lt;/li&gt;
+&lt;li&gt;Word-level tokenization&lt;/li&gt;
+&lt;li&gt;Subword tokenization&lt;/li&gt;
+&lt;li&gt;Stopwords&lt;/li&gt;
+&lt;li&gt;Batching&lt;/li&gt;
+&lt;li&gt;Padding&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Unsupervised Pre-Training
+&lt;ul&gt;
+&lt;li&gt;Autoregression&lt;/li&gt;
+&lt;li&gt;BERT loss&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Tasks
+&lt;ul&gt;
+&lt;li&gt;Text Classification&lt;/li&gt;
+&lt;li&gt;Named Entity Recognition&lt;/li&gt;
+&lt;li&gt;Question Answering&lt;/li&gt;
+&lt;li&gt;Summarization&lt;/li&gt;
+&lt;li&gt;Translation&lt;/li&gt;
+&lt;li&gt;Text Generation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;text-preprocessing&#34;&gt;Text Preprocessing&lt;/h2&gt;
+&lt;p&gt;Text preprocessing is an essential step in NLP that involves cleaning and transforming unstructured text data to prepare it for analysis. Some common text preprocessing techniques include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Expanding contractions (e.g., &amp;ldquo;don&amp;rsquo;t&amp;rdquo; to &amp;ldquo;do not&amp;rdquo;) [7]&lt;/li&gt;
+&lt;li&gt;Lowercasing text[7]&lt;/li&gt;
+&lt;li&gt;Removing punctuations[7]&lt;/li&gt;
+&lt;li&gt;Removing words and digits containing digits[7]&lt;/li&gt;
+&lt;li&gt;Removing stopwords (common words that do not carry much meaning) [7]&lt;/li&gt;
+&lt;li&gt;Rephrasing text[7]&lt;/li&gt;
+&lt;li&gt;Stemming and Lemmatization (reducing words to their root forms) [7]&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;common-tokenizers&#34;&gt;Common Tokenizers&lt;/h3&gt;
+&lt;p&gt;Tokenization is the process of breaking a stream of textual data into words, terms, sentences, symbols, or other meaningful elements called tokens. Some common tokenizers used in NLP include:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Whitespace Tokenizer&lt;/strong&gt;&lt;/strong&gt;: Splits text based on whitespace characters (e.g., spaces, tabs, and newlines) [2].&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;NLTK Tokenizer&lt;/strong&gt;&lt;/strong&gt;: A popular Python library that provides various tokenization functions, including word and sentence tokenization[1].&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;SpaCy Tokenizer&lt;/strong&gt;&lt;/strong&gt;: Another popular Python library for NLP that offers a fast and efficient tokenizer, which can handle large documents and is customizable[5].&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;WordPiece Tokenizer&lt;/strong&gt;&lt;/strong&gt;: A subword tokenizer used in models like BERT, which breaks text into smaller subword units to handle out-of-vocabulary words more effectively[3].&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Byte Pair Encoding (BPE) Tokenizer&lt;/strong&gt;&lt;/strong&gt;: A subword tokenizer that iteratively merges the most frequent character pairs in the text, resulting in a vocabulary of subword units[12].&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;SentencePiece Tokenizer&lt;/strong&gt;&lt;/strong&gt;: A library that provides both BPE and unigram-based subword tokenization, which can handle multiple languages and does not rely on whitespace for tokenization[6].&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;These tokenizers differ in the way they split text into tokens and handle language-specific considerations, such as handling out-of-vocabulary words, dealing with punctuation, and managing whitespace characters. The choice of tokenizer depends on the specific NLP task and the characteristics of the text data being processed.&lt;/p&gt;
+&lt;p&gt;Citations:
+[1] &lt;a href=&#34;https://www.analyticsvidhya.com/blog/2021/06/text-preprocessing-in-nlp-with-python-codes/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.analyticsvidhya.com/blog/2021/06/text-preprocessing-in-nlp-with-python-codes/&lt;/a&gt;
+[2] &lt;a href=&#34;https://neptune.ai/blog/tokenization-in-nlp&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://neptune.ai/blog/tokenization-in-nlp&lt;/a&gt;
+[3] &lt;a href=&#34;https://towardsdatascience.com/comparing-transformer-tokenizers-686307856955&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://towardsdatascience.com/comparing-transformer-tokenizers-686307856955&lt;/a&gt;
+[4] &lt;a href=&#34;https://www.analyticsvidhya.com/blog/2021/09/essential-text-pre-processing-techniques-for-nlp/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.analyticsvidhya.com/blog/2021/09/essential-text-pre-processing-techniques-for-nlp/&lt;/a&gt;
+[5] &lt;a href=&#34;https://www.analyticsvidhya.com/blog/2019/07/how-get-started-nlp-6-unique-ways-perform-tokenization/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.analyticsvidhya.com/blog/2019/07/how-get-started-nlp-6-unique-ways-perform-tokenization/&lt;/a&gt;
+[6] &lt;a href=&#34;https://www.reddit.com/r/MachineLearning/comments/rprmq3/d_sentencepiece_wordpiece_bpe_which_tokenizer_is/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.reddit.com/r/MachineLearning/comments/rprmq3/d_sentencepiece_wordpiece_bpe_which_tokenizer_is/&lt;/a&gt;
+[7] &lt;a href=&#34;https://www.analyticsvidhya.com/blog/2021/06/must-known-techniques-for-text-preprocessing-in-nlp/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.analyticsvidhya.com/blog/2021/06/must-known-techniques-for-text-preprocessing-in-nlp/&lt;/a&gt;
+[8] &lt;a href=&#34;https://towardsdatascience.com/top-5-word-tokenizers-that-every-nlp-data-scientist-should-know-45cc31f8e8b9&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://towardsdatascience.com/top-5-word-tokenizers-that-every-nlp-data-scientist-should-know-45cc31f8e8b9&lt;/a&gt;
+[9] &lt;a href=&#34;https://www.projectpro.io/recipes/explain-difference-between-word-tokenizer&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.projectpro.io/recipes/explain-difference-between-word-tokenizer&lt;/a&gt;
+[10] &lt;a href=&#34;https://www.telusinternational.com/insights/ai-data/article/what-is-text-mining&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.telusinternational.com/insights/ai-data/article/what-is-text-mining&lt;/a&gt;
+[11] &lt;a href=&#34;https://towardsdatascience.com/tokenization-for-natural-language-processing-a179a891bad4&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://towardsdatascience.com/tokenization-for-natural-language-processing-a179a891bad4&lt;/a&gt;
+[12] &lt;a href=&#34;https://towardsdatascience.com/a-comprehensive-guide-to-subword-tokenisers-4bbd3bad9a7c&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://towardsdatascience.com/a-comprehensive-guide-to-subword-tokenisers-4bbd3bad9a7c&lt;/a&gt;
+[13] &lt;a href=&#34;https://towardsdatascience.com/text-preprocessing-in-natural-language-processing-using-python-6113ff5decd8&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://towardsdatascience.com/text-preprocessing-in-natural-language-processing-using-python-6113ff5decd8&lt;/a&gt;
+[14] &lt;a href=&#34;https://www.analyticsvidhya.com/blog/2020/05/what-is-tokenization-nlp/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.analyticsvidhya.com/blog/2020/05/what-is-tokenization-nlp/&lt;/a&gt;
+[15] &lt;a href=&#34;https://docs.tamr.com/new/docs/tokenizers-and-similarity-functions&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://docs.tamr.com/new/docs/tokenizers-and-similarity-functions&lt;/a&gt;
+[16] &lt;a href=&#34;https://pitt.libguides.com/textmining/preprocessing&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://pitt.libguides.com/textmining/preprocessing&lt;/a&gt;
+[17] &lt;a href=&#34;https://medium.com/@ajay_khanna/tokenization-techniques-in-natural-language-processing-67bb22088c75&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://medium.com/@ajay_khanna/tokenization-techniques-in-natural-language-processing-67bb22088c75&lt;/a&gt;
+[18] &lt;a href=&#34;https://datascience.stackexchange.com/questions/75304/bpe-vs-wordpiece-tokenization-when-to-use-which&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://datascience.stackexchange.com/questions/75304/bpe-vs-wordpiece-tokenization-when-to-use-which&lt;/a&gt;
+[19] &lt;a href=&#34;https://www.kaggle.com/code/sudalairajkumar/getting-started-with-text-preprocessing&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.kaggle.com/code/sudalairajkumar/getting-started-with-text-preprocessing&lt;/a&gt;
+[20] &lt;a href=&#34;https://www.tokenex.com/blog/ab-what-is-nlp-natural-language-processing-tokenization/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.tokenex.com/blog/ab-what-is-nlp-natural-language-processing-tokenization/&lt;/a&gt;
+[21] &lt;a href=&#34;https://hungsblog.de/en/technology/learnings/difference-between-the-tokenizer-and-the-pretrainedtokenizer-class/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://hungsblog.de/en/technology/learnings/difference-between-the-tokenizer-and-the-pretrainedtokenizer-class/&lt;/a&gt;
+[22] &lt;a href=&#34;https://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html&lt;/a&gt;
+[23] &lt;a href=&#34;https://medium.com/nlplanet/two-minutes-nlp-a-taxonomy-of-tokenization-methods-60e330aacad3&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://medium.com/nlplanet/two-minutes-nlp-a-taxonomy-of-tokenization-methods-60e330aacad3&lt;/a&gt;
+[24] &lt;a href=&#34;https://www.geeksforgeeks.org/text-preprocessing-in-python-set-1/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.geeksforgeeks.org/text-preprocessing-in-python-set-1/&lt;/a&gt;
+[25] &lt;a href=&#34;https://medium.com/@utkarsh.kant/tokenization-a-complete-guide-3f2dd56c0682&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://medium.com/@utkarsh.kant/tokenization-a-complete-guide-3f2dd56c0682&lt;/a&gt;
+[26] &lt;a href=&#34;https://stackoverflow.com/questions/380455/looking-for-a-clear-definition-of-what-a-tokenizer-parser-and-lexers-are&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://stackoverflow.com/questions/380455/looking-for-a-clear-definition-of-what-a-tokenizer-parser-and-lexers-are&lt;/a&gt;
+[27] &lt;a href=&#34;https://blog.floydhub.com/tokenization-nlp/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://blog.floydhub.com/tokenization-nlp/&lt;/a&gt;
+[28] &lt;a href=&#34;https://medium.com/product-ai/text-preprocessing-in-python-steps-tools-and-examples-bf025f872908&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://medium.com/product-ai/text-preprocessing-in-python-steps-tools-and-examples-bf025f872908&lt;/a&gt;
+[29] &lt;a href=&#34;https://pub.towardsai.net/in-depth-tokenization-methods-of-14-nlp-libraries-with-python-example-297ecdd14c1&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://pub.towardsai.net/in-depth-tokenization-methods-of-14-nlp-libraries-with-python-example-297ecdd14c1&lt;/a&gt;
+[30] &lt;a href=&#34;https://datascience.stackexchange.com/questions/88680/what-is-the-difference-between-countvectorizer-and-tokenizer-or-are-they-the&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://datascience.stackexchange.com/questions/88680/what-is-the-difference-between-countvectorizer-and-tokenizer-or-are-they-the&lt;/a&gt;
+[31] &lt;a href=&#34;https://www.freecodecamp.org/news/train-algorithms-from-scratch-with-hugging-face/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.freecodecamp.org/news/train-algorithms-from-scratch-with-hugging-face/&lt;/a&gt;
+[32] &lt;a href=&#34;https://exchange.scale.com/public/blogs/preprocessing-techniques-in-nlp-a-guide&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://exchange.scale.com/public/blogs/preprocessing-techniques-in-nlp-a-guide&lt;/a&gt;
+[33] &lt;a href=&#34;https://huggingface.co/docs/transformers/tokenizer_summary&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://huggingface.co/docs/transformers/tokenizer_summary&lt;/a&gt;
+[34] &lt;a href=&#34;https://blog.octanove.org/guide-to-subword-tokenization/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://blog.octanove.org/guide-to-subword-tokenization/&lt;/a&gt;
+[35] &lt;a href=&#34;https://www.enjoyalgorithms.com/blog/text-data-pre-processing-techniques-in-ml/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.enjoyalgorithms.com/blog/text-data-pre-processing-techniques-in-ml/&lt;/a&gt;
+[36] &lt;a href=&#34;https://www.geeksforgeeks.org/nlp-how-tokenizing-text-sentence-words-works/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.geeksforgeeks.org/nlp-how-tokenizing-text-sentence-words-works/&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;tasks&#34;&gt;Tasks&lt;/h2&gt;
+&lt;h3 id=&#34;text-classification&#34;&gt;Text Classification&lt;/h3&gt;
+&lt;p&gt;Commonly seen in the form of sentiment analysis, where the objective is to classify whether some input text is positive or negative. Document classification, in which documents are identified by their content, is also useful.&lt;/p&gt;
+&lt;h3 id=&#34;named-entity-recognition&#34;&gt;Named Entity Recognition&lt;/h3&gt;
+&lt;p&gt;Extract important nouns from a body of text.&lt;/p&gt;
+&lt;h3 id=&#34;question-answering&#34;&gt;Question Answering&lt;/h3&gt;
+&lt;h3 id=&#34;summarization&#34;&gt;Summarization&lt;/h3&gt;
+&lt;h3 id=&#34;translation&#34;&gt;Translation&lt;/h3&gt;
+&lt;h3 id=&#34;text-generation&#34;&gt;Text Generation&lt;/h3&gt;
+&lt;p&gt;Generate text from a prompt. This could be in the form of a simple question or some initial dialog. This is also seen in tools like GitHub Co-Pilot to generate code based on contextual code in the same project.&lt;/p&gt;
+&lt;h2 id=&#34;models&#34;&gt;Models&lt;/h2&gt;
+&lt;p&gt;Discuss GPT2&lt;/p&gt;
+&lt;h2 id=&#34;perplexity&#34;&gt;Perplexity&lt;/h2&gt;
+&lt;p&gt;A measure of confidence of a language model. A naive model may predict a word by randomly selecting any of the \(N\) words in its vocabulary. As the model is optimized and the distribution of possible sequences is acquired, the perplexity decreases.&lt;/p&gt;
 </description>
     </item>
     
@@ -7529,6 +7914,301 @@ For this case, BRNNs were proposed &amp;lt;&amp;amp;schusterBidirectionalRecurre
 &lt;li&gt;&lt;a href=&#34;https://karpathy.github.io/2015/05/21/rnn-effectiveness/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;The Unreasonable Effectiveness of RNNs&lt;/a&gt; by Andrej Karpathy&lt;/li&gt;
 &lt;li&gt;&amp;lt;&amp;amp;gravesSupervisedSequenceLabelling2012&amp;gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;http://colah.github.io/posts/2015-08-Understanding-LSTMs/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Understanding LSTM Networks&lt;/a&gt; by Christopher Colah&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Optimization for Deep Learning</title>
+      <link>https://ajdillhoff.github.io/notes/optimization_for_deep_learning/</link>
+      <pubDate>Thu, 07 Apr 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/optimization_for_deep_learning/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gradient-descent-and-its-variants&#34;&gt;Gradient Descent and its Variants&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#adaptive-learning-rate-methods&#34;&gt;Adaptive Learning Rate Methods&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#parameter-initialization&#34;&gt;Parameter Initialization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ruder.io/optimizing-gradient-descent/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://ruder.io/optimizing-gradient-descent/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.deeplearningbook.org/contents/optimization.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.deeplearningbook.org/contents/optimization.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;empirical risk minimization&lt;/strong&gt; - minimizing over an empirical distribution. Differs from risk minimization which is minimizing over the true distribution. We typically do not know the true distribution.&lt;/p&gt;
+&lt;p&gt;Complex models are able to memorize the dataset.&lt;/p&gt;
+&lt;p&gt;In many applications for training, what we want to optimize is different from what we actually optimize since we need to have useful derivatives for gradient descent. For example, the 0-1 loss&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L(i, j) =
+\begin{cases}
+0 \qquad i = j \\
+1 \qquad i \ne j
+\end{cases}
+\qquad i,j \in M
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;is what we would really want to minimize for classification tasks.
+In practice we use something like &lt;a href=&#34;https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html?highlight=crossentropyloss#torch.nn.CrossEntropyLoss&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Cross Entropy Loss&lt;/a&gt;.
+As pointed out by (Goodfellow et al.), there are sometimes advantages with using &lt;strong&gt;surrogate loss functions&lt;/strong&gt;.
+A 0-1 loss may eventually fit the training set with 100% accuracy.
+At this point, no further optimization could take place as the error would be 0.
+With losses like negative log likelihood, optimization could continue which may result in increasing the margin between classes.&lt;/p&gt;
+&lt;p&gt;Larger batch sizes provide a more accurate estimate of the gradient.&lt;/p&gt;
+&lt;p&gt;Randomly selecting samples is crucial for learning.
+Datasets may be arranged in such a strong bias is present.
+Shuffling once isn&amp;rsquo;t enough because the data is biased after the first iteration.
+We could only get around this if we had the true distribution to generate new samples.&lt;/p&gt;
+&lt;p&gt;If our training set is extremely large, we may converge to a solution without ever having gone through all samples.
+Typically, models are able to train on multiple passes of the dataset to increase their generalization error.
+Each subsequent pass may increase the bias, but not enough to decrease generalization performance.&lt;/p&gt;
+&lt;p&gt;The gradient norm can be monitored while training to see if the issue is local minima or any other critical point &amp;lt;&amp;amp;zhaoPenalizingGradientNorm&amp;gt;.
+If the parameters were to get stuck at a critical point, the gradient norm should shrink over time.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-11-13_15-00-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The gradient norm decreases as it settles into some minima (Zhao et al.).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The gradient norm decreases as it settles into some minima (Zhao et al.).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;gradient-descent-and-its-variants&#34;&gt;Gradient Descent and its Variants&lt;/h2&gt;
+&lt;p&gt;Original gradient descent update:&lt;/p&gt;
+&lt;p&gt;\[
+\theta = \theta - \eta \nabla_{\theta}J(\theta)
+\]&lt;/p&gt;
+&lt;p&gt;Having a constant value for \(\eta\) means that the network will usually be unable to converge to a local minimum.
+As the parameters reach a minimum, the constant learning update means that it will jump around the true minimum point. This is usually remedied in part by setting up a decreasing learning rate schedule.
+This necessarily requires more manual guess work as to what the best annealing schedule would be.&lt;/p&gt;
+&lt;h3 id=&#34;momentum&#34;&gt;Momentum&lt;/h3&gt;
+&lt;p&gt;When the loss surface is more steep in one dimension than others, SGD will move back and forth in the directions of greatest descent while only slowly moving in the direction with a smaller decline. The figure below gives an example.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-07_16-35-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;SGD moves slower towards covergence for non-uniform surfaces.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;SGD moves slower towards covergence for non-uniform surfaces.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If the gradient had some &lt;em&gt;momentum&lt;/em&gt; which built up over time, it would take fewer iterations to converge.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-07_16-38-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;SGD with momentum converges in fewer iterations.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;SGD with momentum converges in fewer iterations.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In practice, this can be implemented by adding some fraction of the previous update to the current step:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{g}_t &amp;amp;= \alpha \mathbf{g}_{t-1} + \eta \nabla_{\theta}J(\theta)\\
+\theta &amp;amp;= \theta - \mathbf{g}_t
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;nesterov-momentum&#34;&gt;Nesterov Momentum&lt;/h3&gt;
+&lt;p&gt;If we allow the momentum to keep increasing, the steps become greater and greater. This could lead to the parameters &amp;ldquo;rolling&amp;rdquo; out of the minimum up a steep incline.
+If our algorithm knew that it was coming up to an incline, it would be smarter to slow down.
+This is essentially what Nesterov momentum does.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-07_17-01-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Nesterov momentum computes the gradient after applying momentum.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Nesterov momentum computes the gradient after applying momentum.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;\begin{align*}
+\mathbf{g}_t &amp;amp;= \alpha \mathbf{g}_{t-1} + \eta \nabla_{\theta}J(\theta - \alpha \mathbf{g}_{t-1})\\
+\theta &amp;amp;= \theta - \mathbf{g}_t
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;adaptive-learning-rate-methods&#34;&gt;Adaptive Learning Rate Methods&lt;/h2&gt;
+&lt;p&gt;The rate at which a model converges to some solution is dependent on many factors. One that we can control is the learning rate.
+If the learning rate is too large, the model may never converge because it jumps too far in each iteration.
+If the learning rate is too small, it may take much longer to converge to any solution.&lt;/p&gt;
+&lt;p&gt;It would be ideal if the optimization algorithm could adapt its learning rate to local changes in the loss landscape.
+In that way, the algorithm would be less dependent on the initial learning rate.&lt;/p&gt;
+&lt;h3 id=&#34;adagrad&#34;&gt;Adagrad&lt;/h3&gt;
+&lt;p&gt;Adagrad adapts the learning rate to the parameters following the idea that parameters associated with salient features should be updated less frequently &amp;lt;&amp;amp;duchiAdaptiveSubgradientMethods2011&amp;gt;. If they occur often, updating them with a larger step would result in a solution that is more dependent on them at the expense of other features.&lt;/p&gt;
+&lt;p&gt;Adagrad uses a different learning rate for every parameter:&lt;/p&gt;
+&lt;p&gt;\[
+\theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t + \epsilon}}g_t
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(g_t = \frac{\partial J(\theta)}{\partial \theta}\). This provides a partial derivative for every parameter \(\theta_i\).
+A history of gradient changes are accumulated in a matrix \(G_t \in \mathbb{R}^{d \times d}\) which is a diagonal matrix containing the sum of squares of the gradients with respect to each \(\theta_i\) up to the current step.&lt;/p&gt;
+&lt;p&gt;In effect, the parameters with larger partial derivatives have a sharper decrease in learning rate.
+The downside to this method is that, as squared gradients are accumulated in \(G_t\), the sum increases causing the learning rate to eventually be too small to learn.&lt;/p&gt;
+&lt;h3 id=&#34;rmsprop&#34;&gt;RMSProp&lt;/h3&gt;
+&lt;p&gt;To remedy the long term issues of Adagrad, Geoffrey Hinton proposed RMSProp.
+There was no formal publication for this. It was discussed and taught in Coursera course on &lt;a href=&#34;https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Neural Networks&lt;/a&gt;.
+Instead of accumulating gradients, RMSProp uses an exponentially weighted moving average:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{s}_t = \rho \mathbf{s} + (1 - \rho)\mathbf{g}_{t-1} \odot \mathbf{g}_t
+\]&lt;/p&gt;
+&lt;p&gt;A new parameter \(\rho\) controls how much of the historical gradient is used. The update is&lt;/p&gt;
+&lt;p&gt;\[
+\theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\mathbf{s}_t + \epsilon}}\mathbf{g}_t.
+\]&lt;/p&gt;
+&lt;p&gt;Hinton proposed that \(\rho=0.9\) in the original lectures.&lt;/p&gt;
+&lt;h3 id=&#34;adam&#34;&gt;Adam&lt;/h3&gt;
+&lt;p&gt;One of the most popular gradient descent variants in used today is Adam &amp;lt;&amp;amp;kingmaAdamMethodStochastic2017&amp;gt;.
+Short for Adaptive Moment Estimation, Adam adapts the learning rate to each parameter.
+Similar to RMSProp, it stores an exponentially moving average of past squared gradients.
+Adam additionally stores first-order moments of the gradients.&lt;/p&gt;
+&lt;p&gt;After calculating the gradients \(g_t\) at time \(t\) the first and second moment estimates are updated as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+m_t &amp;amp;= \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot g_t\\
+v_t &amp;amp;= \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot g_t^2
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The estimates \(m_t\) and \(v_t\) are initialized to zero leading to updated estimates that are biased to zero.
+The authors counteract this by computing &lt;em&gt;bias-corrected estimates&lt;/em&gt;:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\hat{m}_t &amp;amp;= \frac{m_t}{1 - \beta_1^t}\\
+\hat{v}_t &amp;amp;= \frac{v_t}{1 - \beta_2^t}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The final update rule step is&lt;/p&gt;
+&lt;p&gt;\[
+\theta_t = \theta_{t-1} - \alpha \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}} + \epsilon}.
+\]&lt;/p&gt;
+&lt;p&gt;There are several other varients. A good overview of these can be found on &lt;a href=&#34;https://ruder.io/optimizing-gradient-descent/index.html#fn9&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Sebastian Ruder&amp;rsquo;s&lt;/a&gt; blog.
+The figures below provide some visual intuition of the behavior of common gradient descent variants.
+These visualizations were provided by &lt;a href=&#34;https://twitter.com/alecrad&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Alec Radford&lt;/a&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-07_22-14-25_opt1.gif&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Behavior of algorithms at a saddle point (Credit: Alec Radford).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Behavior of algorithms at a saddle point (Credit: Alec Radford).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-07_22-17-24_opt2.gif&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Behavior of each algorithm on a loss surface (Credit: Alec Radford).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Behavior of each algorithm on a loss surface (Credit: Alec Radford).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Additional visualizations can be found &lt;a href=&#34;https://github.com/Jaewan-Yun/optimizer-visualization&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;parameter-initialization&#34;&gt;Parameter Initialization&lt;/h2&gt;
+&lt;p&gt;Due to the complexity of their loss landscapes, the choice of initialization can have a significant impact on the solution. This affects how quickly the model converges. Although &lt;a href=&#34;https://ai.googleblog.com/2022/04/reproducibility-in-deep-learning-and.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;recent work&lt;/a&gt; aims to smooth loss surfaces so that models are easier to train, deep learning models can be tricky to reproduce.&lt;/p&gt;
+&lt;p&gt;There is not much known about what makes the most optimal initialization strategy, but one property is that of weight symmetry. If all weights are initialized to the same value, their update will also be uniform. If two nodes are connected to the same input, there update will be uniform as well. Understanding this, a reasonable initialization strategy would be to ensure that the weights to not permit any symmetry in nodes connected to the same input.&lt;/p&gt;
+&lt;p&gt;Small weights during initialization may lead to vanishing gradients.
+Large weights may lead to exploding gradients as successive multiplications are applied.
+The parameter values should be large enough to propagate information effectively through the network.&lt;/p&gt;
+&lt;h3 id=&#34;normalized-initialization--xavier&#34;&gt;Normalized Initialization (Xavier)&lt;/h3&gt;
+&lt;p&gt;Normalized initialization chooses an initial scale of the weights of a fully connected layer based on the number input and output nodes:&lt;/p&gt;
+&lt;p&gt;\[
+W_{i,j} \sim U\Bigg(-\sqrt{\frac{6}{m + n}}, \sqrt{\frac{6}{m+n}}\Bigg),
+\]&lt;/p&gt;
+&lt;p&gt;where \(m\) and \(n\) are the number of input and output nodes, respectively.
+This initialization was empirically validated by &amp;lt;&amp;amp;glorotUnderstandingDifficultyTraining&amp;gt; with the goal that all layers have the same activation variance and back-propagated gradient variance.&lt;/p&gt;
+&lt;h3 id=&#34;he-initialization&#34;&gt;He Initialization&lt;/h3&gt;
+&lt;p&gt;Xavier initialization is based on successive matrix multiplications without any non-linearities.
+Any deep learning model will surely break this assumption.
+He et al. derive another initialization strategy while considering rectified linear units (ReLU) and parametric rectified linear units (PReLU) &amp;lt;&amp;amp;heDelvingDeepRectifiers2015&amp;gt;.&lt;/p&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Overview Data Fragmentation Data Replication Data Concurrency Distributed systems excel at partitioning large problems into smaller chunks that can be processed in parallel. This requires parallel thinking instead of serial thinking. Many algorithms and solutions that run serially may be easier to adapt to parallel applications than others.
+Distributed solutions are the natural next step to scaling up a system. In the context of databases, the main challenges related to distribution, replication, distributed transactions, distributed metadata management, and distributed query processing.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/distributed_databases/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/distributed_databases/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/distributed_databases/">
+  <meta property="og:title" content="Distributed Databases | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Overview Data Fragmentation Data Replication Data Concurrency Distributed systems excel at partitioning large problems into smaller chunks that can be processed in parallel. This requires parallel thinking instead of serial thinking. Many algorithms and solutions that run serially may be easier to adapt to parallel applications than others.
+Distributed solutions are the natural next step to scaling up a system. In the context of databases, the main challenges related to distribution, replication, distributed transactions, distributed metadata management, and distributed query processing."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-11-14T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-11-14T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Distributed Databases | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Distributed Databases</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-11-14 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-11-14 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Nov 14, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    8 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/distributed_databases/&amp;text=Distributed%20Databases" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/distributed_databases/&amp;t=Distributed%20Databases" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Distributed%20Databases&amp;body=https://ajdillhoff.github.io/notes/distributed_databases/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/distributed_databases/&amp;title=Distributed%20Databases" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Distributed%20Databases%20https://ajdillhoff.github.io/notes/distributed_databases/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/distributed_databases/&amp;title=Distributed%20Databases" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#data-fragmentation">Data Fragmentation</a></li>
+<li><a href="#data-replication">Data Replication</a></li>
+<li><a href="#data-concurrency">Data Concurrency</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Distributed systems excel at partitioning large problems into smaller chunks that can be processed in parallel. This requires parallel thinking instead of serial thinking. Many algorithms and solutions that run serially may be easier to adapt to parallel applications than others.</p>
+<p>Distributed solutions are the natural next step to scaling up a system. In the context of databases, the main challenges related to distribution, replication, distributed transactions, distributed metadata management, and distributed query processing.</p>
+<h2 id="overview">Overview</h2>
+<p>According to Elmasri and Navathe (<a href="#citeproc_bib_item_1">Elmasri and Navathe 2015</a>), a distributed database should satisfy <em>at least</em> the following conditions:</p>
+<ol>
+<li>database nodes should be connected by a network,</li>
+<li>the information on each node should be logically related,</li>
+<li>and each node does not necessarily need to be identicaly in terms of data, hardware, and software.</li>
+</ol>
+<h3 id="transparency">Transparency</h3>
+<p>Transparency is the concept of hiding the complex details of a distributed database from the user. There are several types of transparency:</p>
+<ul>
+<li><strong><strong>Distribution transparency</strong></strong> - the user does not need to know how the data is distributed across the nodes. This could refer to the location of the data, the replication of the data, or the fragmentation of the data.</li>
+<li><strong><strong>Replication transparency</strong></strong> - data may be stored in multiple nodes. This type of transparency improves availability by allowing the system to continue operating even if a node goes down.</li>
+<li><strong><strong>Fragmentation transparency</strong></strong> - data is either horizontally or vertically fragmented across nodes. Horizontal fragmentation, also called <strong><strong>sharding</strong></strong>, refers to decomposing tuples of a table into multiple systems. For example, we could horizontally fragment our <code>Character</code> table based on the <code>class_id</code>. Vertical fragmentation refers to decomposing the columns of a table into multiple systems. For example, we could vertically fragment our <code>Character</code> table into a <code>Character</code> table and a <code>CharacterStats</code> table.</li>
+</ul>
+<h3 id="availability-and-reliability">Availability and Reliability</h3>
+<p>Having more than one point of failure means that a distributed database is more <strong>reliable</strong> than a centralized database. With technologies like replication, the <strong>availability</strong> of the database also increases.</p>
+<h3 id="scalability">Scalability</h3>
+<p>Scalability in a database that is distributed over multiple nodes can be categorized into two types:</p>
+<ul>
+<li><strong><strong>Horizontal scalability</strong></strong> - adding more nodes to the system.</li>
+<li><strong><strong>Vertical scalability</strong></strong> - adding more resources to the nodes.</li>
+</ul>
+<p>A centralized database can only support vertical scalability. If it goes down or is fragmented from a portion of a broader network, the data is no longer accessible. In a distributed system, the nodes can be partitioned into smaller networks that can still operate independently depending on the type of failure. This is called <strong><strong>partition tolerance</strong></strong>.</p>
+<h3 id="autonomy">Autonomy</h3>
+<p>Autonomy refers to the ability of a node to operate independently of other nodes. This is important for distributed systems because it allows for the system to continue operating even if a node goes down.</p>
+<ol>
+<li><strong>Design autonomy</strong> - Data model usage and transaction managament are independent of other nodes.</li>
+<li><strong>Communication autonomy</strong> - Nodes can communicate with each other without the need for a central coordinator.</li>
+<li><strong>Execution autonomy</strong> - Nodes can execute transactions independently of other nodes. While this type of autonomy leads to more availability and higher performance, it can also create problems with consistency since nodes may not be able to agree on the order of operations.</li>
+</ol>
+<h2 id="data-fragmentation">Data Fragmentation</h2>
+<p>As mentioned at the beginning of these notes, breaking up a problem into smaller chunks is the key to parallelism. In the context of databases, this means figuring out which nodes have which portions of the data. We will discuss fragmentation under the assumption that no data replication is being used.</p>
+<h3 id="horizontal-fragmentation--sharding">Horizontal Fragmentation (Sharding)</h3>
+<p>Imagine a scenario in which we shard our <code>Users</code> table based on the geographic location of their IP address. If we have 3 nodes in (west coast, central, east coast), then we can separate our table into 3 tables, one for each region. This is called <strong><strong>horizontal fragmentation</strong></strong> or <strong><strong>sharding</strong></strong>. The main advantage of sharding is that it allows us to scale horizontally. The main disadvantage is that it makes it more difficult to perform queries that require data from multiple regions.</p>
+<h3 id="vertical-fragmentation">Vertical Fragmentation</h3>
+<p>Vertical fragmentation can make sense when we have a table with a large number of columns. For example, we could vertically fragment our <code>Users</code> table into a <code>Users</code> table and a <code>UserStats</code> table. When vertically fragmenting data, there should be a common attribute between the two tables. In this case, the <code>user_id</code> would be the common attribute.</p>
+<h2 id="data-replication">Data Replication</h2>
+<p>Data replication is the process of storing the same data in multiple nodes. There are obvious tradeoffs when it comes to selecting a replication strategy. First, let&rsquo;s consider the extreme cases. If no replication is used, then the system is more consistent since there is only one copy of the data. The availability suffers, however, since there is only a single copy of the data.</p>
+<p>If the data is replicated to every single node, then the availability and performance of the system increases. However, the consistency of the system suffers since there are multiple copies of the data that need to be kept in sync. Picking a replication strategy will largely depend on the needs of the application. Deciding how this data is fragmented is the process of <strong>data distribution</strong>.</p>
+<h3 id="example">Example</h3>
+<p>The following example is from Elmasri and Navathe (<a href="#citeproc_bib_item_1">Elmasri and Navathe 2015</a>). In this example, a company has three nodes for each of its departments. Node 2 stores data for the <code>Research</code> department and Node 3 stores data for the <code>Administration</code> department. The idea behind this is that the <code>EMPLOYEE</code> and <code>PROJECT</code> information for each department will be frequently accessed by that department. This would be more efficient than having to access the data from a centralized database. Node 1 is located at the company&rsquo;s headquarters and includes data for all departments.</p>
+<p>The data in the <code>DEPARTMENT</code> table is horizontally fragmented using the department number <code>Dnumber</code>. Since there are foreign key relationships in <code>EMPLOYEE</code>, <code>PROJECT</code>, and <code>DEPT_LOCATIONS</code>, they are also fragmented. This is a special type of fragmentation called <strong>derived fragmentation</strong>. These are easier to fragment since they have a direct foreign key relationship.</p>
+<p>A more difficulty decision comes with the <code>WORKS_ON</code> table. It does not have an attribute that indicates which department each tuple belongs to. The authors choose to fragment based on the department that the employee works for. This is further fragmented based on the department that controls the projects that the employee is working on.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-11-14_18-41-42_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Fragmentation of `WORKS_ON` table for department 5. &lt;@elmasri_fundamentals_2015&gt;" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Fragmentation of <code>WORKS_ON</code> table for department 5. &lt;@elmasri_fundamentals_2015&gt;
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, all of the fragments include employees of the research department. The first fragment includes employees that work on projects controlled by the research department. The second fragment includes employees that work on projects controlled by the administration department. The third fragment includes employees that work on projects controlled by headquarters.</p>
+<h2 id="data-concurrency">Data Concurrency</h2>
+<p>Distributed systems that employ data replication or allow for multiple users to access the same data at the same time need to be concerned with data concurrency. This is the process of ensuring that the data remains consistent when multiple users are accessing the same data at the same time. Several problems can occur in a DDBMS, such as</p>
+<ul>
+<li>inconsistency between multiple copies of the data,</li>
+<li>failure of a node,</li>
+<li>network outages that sever the connection between nodes,</li>
+<li>failure of a transaction that is applied to multiple nodes,</li>
+<li>and deadlocks between transactions.</li>
+</ul>
+<h3 id="concurrency-control">Concurrency Control</h3>
+<p>Many control solutions for distributed systems are based on the idea of a centralized <strong>locking</strong> authority. This authority is responsible for granting locks to transactions that request them. The authority is also responsible for granting access to data that is locked by other transactions. When an object is locked, it cannot be accessed by other transactions.</p>
+<p>In this case, the <em>central authority</em> may be a <strong>distinguished copy</strong> of the data. All requests to lock or unlock are sent to that copy.</p>
+<h4 id="primary-site-technique">Primary Site Technique</h4>
+<p>All locks are kept at a primary site. This site is responsible for granting locks to transactions that request them. The primary site is also responsible for granting access to data that is locked by other transactions. This is a simple technique that is easy to implement. However, it is not very scalable since all requests must go through the primary site. Note that this does not prevent transactions with read locks from accessing any copy of the item. If a transaction has a write lock, the primary site must update all copies of the data before releasing the lock.</p>
+<h4 id="primary-site-with-backup">Primary Site with Backup</h4>
+<p>If the primary site fails in the first approach, the system effectively becomes unavailable. To prevent this, we can have a backup primary site that takes over if the primary site fails. This is a simple solution that is easy to implement. If the primary site fails in this case, a backup takes over and becomes the new primary. A new backup is chosen so that the system can continue to operate. One downside to this approach is that locks must be recorded at both the primary and backup sites.</p>
+<h4 id="primary-copy-technique">Primary Copy Technique</h4>
+<p>Lock coordination is distributed among various sites. Distinguished copies for different items are distributed to different sites. A failure at one site would only affect the transactions that are accessing its distinguished copies. Other items not on the site would remain functional. In the case of a failure, the sites that are still running can choose a new coordinator based on some strategy. One such strategy is to have all running sites vote on a new coordinator. The site with the most votes becomes the new coordinator.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Elmasri, Ramez, and Shamkant B. Navathe. 2015. <i>Fundamentals of Database Systems</i>. 7th ed. Pearson. <a href="https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523">https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/databases/">databases</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/structured_query_language/">Structured Query Language</a></li>
+          
+          <li><a href="/notes/introduction_to_databases/">Introduction to Databases</a></li>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+          <li><a href="/notes/introduction_to_graph_theory/">Introduction to Graph Theory</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

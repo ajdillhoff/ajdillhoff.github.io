@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Resources Introduction Gradient Descent and its Variants Adaptive Learning Rate Methods Parameter Initialization Resources Resources https://ruder.io/optimizing-gradient-descent/ https://www.deeplearningbook.org/contents/optimization.html Introduction empirical risk minimization - minimizing over an empirical distribution. Differs from risk minimization which is minimizing over the true distribution. We typically do not know the true distribution.
+Complex models are able to memorize the dataset.
+In many applications for training, what we want to optimize is different from what we actually optimize since we need to have useful derivatives for gradient descent.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/optimization_for_deep_learning/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/optimization_for_deep_learning/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/optimization_for_deep_learning/">
+  <meta property="og:title" content="Optimization for Deep Learning | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Resources Introduction Gradient Descent and its Variants Adaptive Learning Rate Methods Parameter Initialization Resources Resources https://ruder.io/optimizing-gradient-descent/ https://www.deeplearningbook.org/contents/optimization.html Introduction empirical risk minimization - minimizing over an empirical distribution. Differs from risk minimization which is minimizing over the true distribution. We typically do not know the true distribution.
+Complex models are able to memorize the dataset.
+In many applications for training, what we want to optimize is different from what we actually optimize since we need to have useful derivatives for gradient descent."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-04-07T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2022-04-07T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Optimization for Deep Learning | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Optimization for Deep Learning</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-04-07 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2022-04-07 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Apr 7, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    7 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/optimization_for_deep_learning/&amp;text=Optimization%20for%20Deep%20Learning" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/optimization_for_deep_learning/&amp;t=Optimization%20for%20Deep%20Learning" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Optimization%20for%20Deep%20Learning&amp;body=https://ajdillhoff.github.io/notes/optimization_for_deep_learning/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/optimization_for_deep_learning/&amp;title=Optimization%20for%20Deep%20Learning" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Optimization%20for%20Deep%20Learning%20https://ajdillhoff.github.io/notes/optimization_for_deep_learning/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/optimization_for_deep_learning/&amp;title=Optimization%20for%20Deep%20Learning" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#gradient-descent-and-its-variants">Gradient Descent and its Variants</a></li>
+<li><a href="#adaptive-learning-rate-methods">Adaptive Learning Rate Methods</a></li>
+<li><a href="#parameter-initialization">Parameter Initialization</a></li>
+<li><a href="#resources">Resources</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://ruder.io/optimizing-gradient-descent/" target="_blank" rel="noopener noreferrer">https://ruder.io/optimizing-gradient-descent/</a></li>
+<li><a href="https://www.deeplearningbook.org/contents/optimization.html" target="_blank" rel="noopener noreferrer">https://www.deeplearningbook.org/contents/optimization.html</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p><strong>empirical risk minimization</strong> - minimizing over an empirical distribution. Differs from risk minimization which is minimizing over the true distribution. We typically do not know the true distribution.</p>
+<p>Complex models are able to memorize the dataset.</p>
+<p>In many applications for training, what we want to optimize is different from what we actually optimize since we need to have useful derivatives for gradient descent. For example, the 0-1 loss</p>
+<p>\begin{equation*}
+L(i, j) =
+\begin{cases}
+0 \qquad i = j \\
+1 \qquad i \ne j
+\end{cases}
+\qquad i,j \in M
+\end{equation*}</p>
+<p>is what we would really want to minimize for classification tasks.
+In practice we use something like <a href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html?highlight=crossentropyloss#torch.nn.CrossEntropyLoss" target="_blank" rel="noopener noreferrer">Cross Entropy Loss</a>.
+As pointed out by (Goodfellow et al.), there are sometimes advantages with using <strong>surrogate loss functions</strong>.
+A 0-1 loss may eventually fit the training set with 100% accuracy.
+At this point, no further optimization could take place as the error would be 0.
+With losses like negative log likelihood, optimization could continue which may result in increasing the margin between classes.</p>
+<p>Larger batch sizes provide a more accurate estimate of the gradient.</p>
+<p>Randomly selecting samples is crucial for learning.
+Datasets may be arranged in such a strong bias is present.
+Shuffling once isn&rsquo;t enough because the data is biased after the first iteration.
+We could only get around this if we had the true distribution to generate new samples.</p>
+<p>If our training set is extremely large, we may converge to a solution without ever having gone through all samples.
+Typically, models are able to train on multiple passes of the dataset to increase their generalization error.
+Each subsequent pass may increase the bias, but not enough to decrease generalization performance.</p>
+<p>The gradient norm can be monitored while training to see if the issue is local minima or any other critical point &lt;&amp;zhaoPenalizingGradientNorm&gt;.
+If the parameters were to get stuck at a critical point, the gradient norm should shrink over time.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-11-13_15-00-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;The gradient norm decreases as it settles into some minima (Zhao et al.)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>The gradient norm decreases as it settles into some minima (Zhao et al.).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="gradient-descent-and-its-variants">Gradient Descent and its Variants</h2>
+<p>Original gradient descent update:</p>
+<p>\[
+\theta = \theta - \eta \nabla_{\theta}J(\theta)
+\]</p>
+<p>Having a constant value for \(\eta\) means that the network will usually be unable to converge to a local minimum.
+As the parameters reach a minimum, the constant learning update means that it will jump around the true minimum point. This is usually remedied in part by setting up a decreasing learning rate schedule.
+This necessarily requires more manual guess work as to what the best annealing schedule would be.</p>
+<h3 id="momentum">Momentum</h3>
+<p>When the loss surface is more steep in one dimension than others, SGD will move back and forth in the directions of greatest descent while only slowly moving in the direction with a smaller decline. The figure below gives an example.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-04-07_16-35-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;SGD moves slower towards covergence for non-uniform surfaces." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>SGD moves slower towards covergence for non-uniform surfaces.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>If the gradient had some <em>momentum</em> which built up over time, it would take fewer iterations to converge.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-04-07_16-38-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;SGD with momentum converges in fewer iterations." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>SGD with momentum converges in fewer iterations.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In practice, this can be implemented by adding some fraction of the previous update to the current step:</p>
+<p>\begin{align*}
+\mathbf{g}_t &amp;= \alpha \mathbf{g}_{t-1} + \eta \nabla_{\theta}J(\theta)\\
+\theta &amp;= \theta - \mathbf{g}_t
+\end{align*}</p>
+<h3 id="nesterov-momentum">Nesterov Momentum</h3>
+<p>If we allow the momentum to keep increasing, the steps become greater and greater. This could lead to the parameters &ldquo;rolling&rdquo; out of the minimum up a steep incline.
+If our algorithm knew that it was coming up to an incline, it would be smarter to slow down.
+This is essentially what Nesterov momentum does.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-04-07_17-01-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Nesterov momentum computes the gradient after applying momentum." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Nesterov momentum computes the gradient after applying momentum.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>\begin{align*}
+\mathbf{g}_t &amp;= \alpha \mathbf{g}_{t-1} + \eta \nabla_{\theta}J(\theta - \alpha \mathbf{g}_{t-1})\\
+\theta &amp;= \theta - \mathbf{g}_t
+\end{align*}</p>
+<h2 id="adaptive-learning-rate-methods">Adaptive Learning Rate Methods</h2>
+<p>The rate at which a model converges to some solution is dependent on many factors. One that we can control is the learning rate.
+If the learning rate is too large, the model may never converge because it jumps too far in each iteration.
+If the learning rate is too small, it may take much longer to converge to any solution.</p>
+<p>It would be ideal if the optimization algorithm could adapt its learning rate to local changes in the loss landscape.
+In that way, the algorithm would be less dependent on the initial learning rate.</p>
+<h3 id="adagrad">Adagrad</h3>
+<p>Adagrad adapts the learning rate to the parameters following the idea that parameters associated with salient features should be updated less frequently &lt;&amp;duchiAdaptiveSubgradientMethods2011&gt;. If they occur often, updating them with a larger step would result in a solution that is more dependent on them at the expense of other features.</p>
+<p>Adagrad uses a different learning rate for every parameter:</p>
+<p>\[
+\theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t + \epsilon}}g_t
+\]</p>
+<p>Here, \(g_t = \frac{\partial J(\theta)}{\partial \theta}\). This provides a partial derivative for every parameter \(\theta_i\).
+A history of gradient changes are accumulated in a matrix \(G_t \in \mathbb{R}^{d \times d}\) which is a diagonal matrix containing the sum of squares of the gradients with respect to each \(\theta_i\) up to the current step.</p>
+<p>In effect, the parameters with larger partial derivatives have a sharper decrease in learning rate.
+The downside to this method is that, as squared gradients are accumulated in \(G_t\), the sum increases causing the learning rate to eventually be too small to learn.</p>
+<h3 id="rmsprop">RMSProp</h3>
+<p>To remedy the long term issues of Adagrad, Geoffrey Hinton proposed RMSProp.
+There was no formal publication for this. It was discussed and taught in Coursera course on <a href="https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf" target="_blank" rel="noopener noreferrer">Neural Networks</a>.
+Instead of accumulating gradients, RMSProp uses an exponentially weighted moving average:</p>
+<p>\[
+\mathbf{s}_t = \rho \mathbf{s} + (1 - \rho)\mathbf{g}_{t-1} \odot \mathbf{g}_t
+\]</p>
+<p>A new parameter \(\rho\) controls how much of the historical gradient is used. The update is</p>
+<p>\[
+\theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\mathbf{s}_t + \epsilon}}\mathbf{g}_t.
+\]</p>
+<p>Hinton proposed that \(\rho=0.9\) in the original lectures.</p>
+<h3 id="adam">Adam</h3>
+<p>One of the most popular gradient descent variants in used today is Adam &lt;&amp;kingmaAdamMethodStochastic2017&gt;.
+Short for Adaptive Moment Estimation, Adam adapts the learning rate to each parameter.
+Similar to RMSProp, it stores an exponentially moving average of past squared gradients.
+Adam additionally stores first-order moments of the gradients.</p>
+<p>After calculating the gradients \(g_t\) at time \(t\) the first and second moment estimates are updated as</p>
+<p>\begin{align*}
+m_t &amp;= \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot g_t\\
+v_t &amp;= \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot g_t^2
+\end{align*}</p>
+<p>The estimates \(m_t\) and \(v_t\) are initialized to zero leading to updated estimates that are biased to zero.
+The authors counteract this by computing <em>bias-corrected estimates</em>:</p>
+<p>\begin{align*}
+\hat{m}_t &amp;= \frac{m_t}{1 - \beta_1^t}\\
+\hat{v}_t &amp;= \frac{v_t}{1 - \beta_2^t}
+\end{align*}</p>
+<p>The final update rule step is</p>
+<p>\[
+\theta_t = \theta_{t-1} - \alpha \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}} + \epsilon}.
+\]</p>
+<p>There are several other varients. A good overview of these can be found on <a href="https://ruder.io/optimizing-gradient-descent/index.html#fn9" target="_blank" rel="noopener noreferrer">Sebastian Ruder&rsquo;s</a> blog.
+The figures below provide some visual intuition of the behavior of common gradient descent variants.
+These visualizations were provided by <a href="https://twitter.com/alecrad" target="_blank" rel="noopener noreferrer">Alec Radford</a>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-04-07_22-14-25_opt1.gif" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Behavior of algorithms at a saddle point (Credit: Alec Radford)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Behavior of algorithms at a saddle point (Credit: Alec Radford).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-04-07_22-17-24_opt2.gif" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Behavior of each algorithm on a loss surface (Credit: Alec Radford)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Behavior of each algorithm on a loss surface (Credit: Alec Radford).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Additional visualizations can be found <a href="https://github.com/Jaewan-Yun/optimizer-visualization" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h2 id="parameter-initialization">Parameter Initialization</h2>
+<p>Due to the complexity of their loss landscapes, the choice of initialization can have a significant impact on the solution. This affects how quickly the model converges. Although <a href="https://ai.googleblog.com/2022/04/reproducibility-in-deep-learning-and.html" target="_blank" rel="noopener noreferrer">recent work</a> aims to smooth loss surfaces so that models are easier to train, deep learning models can be tricky to reproduce.</p>
+<p>There is not much known about what makes the most optimal initialization strategy, but one property is that of weight symmetry. If all weights are initialized to the same value, their update will also be uniform. If two nodes are connected to the same input, there update will be uniform as well. Understanding this, a reasonable initialization strategy would be to ensure that the weights to not permit any symmetry in nodes connected to the same input.</p>
+<p>Small weights during initialization may lead to vanishing gradients.
+Large weights may lead to exploding gradients as successive multiplications are applied.
+The parameter values should be large enough to propagate information effectively through the network.</p>
+<h3 id="normalized-initialization--xavier">Normalized Initialization (Xavier)</h3>
+<p>Normalized initialization chooses an initial scale of the weights of a fully connected layer based on the number input and output nodes:</p>
+<p>\[
+W_{i,j} \sim U\Bigg(-\sqrt{\frac{6}{m + n}}, \sqrt{\frac{6}{m+n}}\Bigg),
+\]</p>
+<p>where \(m\) and \(n\) are the number of input and output nodes, respectively.
+This initialization was empirically validated by &lt;&amp;glorotUnderstandingDifficultyTraining&gt; with the goal that all layers have the same activation variance and back-propagated gradient variance.</p>
+<h3 id="he-initialization">He Initialization</h3>
+<p>Xavier initialization is based on successive matrix multiplications without any non-linearities.
+Any deep learning model will surely break this assumption.
+He et al. derive another initialization strategy while considering rectified linear units (ReLU) and parametric rectified linear units (PReLU) &lt;&amp;heDelvingDeepRectifiers2015&gt;.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F" target="_blank" rel="noopener noreferrer">https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F</a></li>
+</ul>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a></li>
+          
+          <li><a href="/notes/deep_learning/">Deep Learning</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

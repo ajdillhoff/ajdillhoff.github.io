@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>large language models on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/large-language-models/</link>
+    <description>Recent content in large language models on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Thu, 16 Nov 2023 00:00:00 -0600</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/large-language-models/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Pretraining Large Language Models</title>
+      <link>https://ajdillhoff.github.io/notes/pretraining_large_language_models/</link>
+      <pubDate>Thu, 16 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/pretraining_large_language_models/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#unsupervised-pre-training&#34;&gt;Unsupervised Pre-training&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#from-gpt-to-gpt2&#34;&gt;From GPT to GPT2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;These notes provide an overview of pre-training large language models like GPT and Llama.&lt;/p&gt;
+&lt;h2 id=&#34;unsupervised-pre-training&#34;&gt;Unsupervised Pre-training&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s start by reviewing the pre-training procedure detailed in the GPT paper (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Radford et al. 2020&lt;/a&gt;). The &lt;em&gt;Generative&lt;/em&gt; in Generative Pre-Training reveals much about how the network can be trained without direct supervision. It is analogous to how you might have studied definitions as a kid: create some flash cards with the term on the front and the definition on the back. Given the context of the word, you try and recite the definition. For a pre-training language model, it is given a series of tokens and is tasked with generating the next token in the sequence. Since we have access to the original documents, we can easily determine if it was correct.&lt;/p&gt;
+&lt;p&gt;Given a sequence of tokens \(\mathcal{X} = \{x_1, x_2, \ldots, x_n\}\), the model is trained to predict the next token \(x_{n+1}\) in the sequence. The model is trained to maximize the log-likelihood of the next token:&lt;/p&gt;
+&lt;p&gt;\[\mathcal{L}(\mathcal{X}) = \sum_{i=1}^{n} \log p(x_{i+1} \mid x_{i-k}, \ldots, x_i)\]&lt;/p&gt;
+&lt;p&gt;where \(k\) is the size of the context window.&lt;/p&gt;
+&lt;p&gt;Large language models are typically based on the &lt;a href=&#34;https://ajdillhoff.github.io/notes/transformers/&#34;&gt;Transformers&lt;/a&gt; model. The original model was trained for language translation. Depending on the task, different variants are employed. For GPT models, a decoder-only architecture is used, as see below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-16_15-56-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Decoder-only diagram from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Vaswani et al. 2017&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decoder-only diagram from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Vaswani et al. 2017&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The entire input pipeline for GPT can be expressed rather simply. First, the tokenized input is passed through an embedding layer \(W_{e}\). Embedding layers map the tokenized input into a lower-dimensional vector representation. A positional embedding matrix of the same size as \(\mathcal{X} W_{e}\) is added in order to preserve the order of the tokens.&lt;/p&gt;
+&lt;p&gt;The embedded data \(h_0\) is then passed through \(n\) transformer blocks. The output of this is passed through the softmax function in order to produce an output distribution over target tokens.&lt;/p&gt;
+&lt;h2 id=&#34;from-gpt-to-gpt2&#34;&gt;From GPT to GPT2&lt;/h2&gt;
+&lt;p&gt;GPT2 is a larger version of GPT, with an increased context size of 1024 tokens and a vocabulary of 50,257 vocabulary. In this paper, they posit that a system should be able to perform many tasks on the same input. For example, we may want our models to summarize complex texts as well as provide answers to specific questions we have about the content. Instead of training multiple separate models to perform these tasks individually, the model should be able to adapt to these tasks based on the context. In short, it should model \(p(output \mid input, task)\) instead of \(p(output \mid input)\).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2020. “Improving Language Understanding by Generative Pre-Training,” 12.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
