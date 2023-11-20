@@ -181,6 +181,159 @@
     </item>
     
     <item>
+      <title>NOSQL</title>
+      <link>https://ajdillhoff.github.io/notes/nosql/</link>
+      <pubDate>Tue, 14 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/nosql/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#nosql-characteristics-for-distributed-systems&#34;&gt;NOSQL Characteristics for Distributed Systems&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#nosql-data-models&#34;&gt;NOSQL Data Models&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cap-theorem&#34;&gt;CAP Theorem&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#document-based-nosql-systems&#34;&gt;Document-Based NOSQL Systems&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#key-value-nosql-systems&#34;&gt;Key-Value NOSQL Systems&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#column-based-nosql-systems&#34;&gt;Column-Based NOSQL Systems&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#graph-based-nosql-systems&#34;&gt;Graph-Based NOSQL Systems&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;&lt;strong&gt;NOSQL&lt;/strong&gt; refers to Not Only SQL. A NOSQL system is commonly a distributed one that focuses on semi-structured data storage, high performance, availability, replication and scalability. These type of systems developed to meet the needs of large-scale internet applications where a traditional SQL database could not.&lt;/p&gt;
+&lt;p&gt;Consider an application like Amazon which manages a high volume of data and user requests. The application needs to be able to store and retrieve this data quickly and reliably. They created their own database system called DynamoDB which is a key-value store. DynamoDB has been used for many applications that require high performance and availability such as video streaming through services like Disney+.&lt;/p&gt;
+&lt;p&gt;The data that is used in these systems does not usually fit the mold of a traditional SQL database. For example, a relational database might store an object by disassembling it into its components and storing each component in a separate table. This is not ideal for a system that needs to store and retrieve data quickly. A NOSQL system will store the object as a whole and retrieve it as a whole.&lt;/p&gt;
+&lt;h2 id=&#34;nosql-characteristics-for-distributed-systems&#34;&gt;NOSQL Characteristics for Distributed Systems&lt;/h2&gt;
+&lt;p&gt;Given the nature of the applications that utilize NOSQL systems, the most important characteristic is high availability. Of course, performance is also important given the number of users that expect the service to remain responsive at all times.&lt;/p&gt;
+&lt;h3 id=&#34;scalability&#34;&gt;Scalability&lt;/h3&gt;
+&lt;p&gt;NOSQL systems typically aim for horizontal scalability. The applications that use these systems are expected to grow rapidly and the system needs to be able to handle the increased load. This sort of dynamic scaling means that implementations should not rely on a fixed number of nodes.&lt;/p&gt;
+&lt;p&gt;For example, during the holiday season, Amazon will need to rapidly scale up their infrastructure to handle the increased load. Cloud technologies are capable of doing this automatically, but the database system needs to be able to handle the increased load as well.&lt;/p&gt;
+&lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
+&lt;p&gt;NOSQL systems are expected to be highly available. This means that the system should be able to handle failures and continue to operate. Data is typically replicated over multiple nodes. However, this replication comes with increased complexity for writing data. To deal with this, many NOSQL systems implement a relaxed version called &lt;strong&gt;eventual consistency&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;replication-models&#34;&gt;Replication Models&lt;/h3&gt;
+&lt;p&gt;There are two main replication models for NOSQL systems: &lt;strong&gt;primary-replica&lt;/strong&gt; and &lt;strong&gt;primary-primary&lt;/strong&gt;. In primary-replica replication, only one copy is the primary for which all write operations are applied. The write is propagated asynchronously to the replicas.&lt;/p&gt;
+&lt;p&gt;In primary-primary replication, all copies are equal and can accept write operations. This is more complex to implement, but it allows for better performance and availability. If multiple users write to the same object, the system needs to be able to handle the conflict through a reconciliation process.&lt;/p&gt;
+&lt;h3 id=&#34;sharding&#34;&gt;Sharding&lt;/h3&gt;
+&lt;p&gt;Depending on the application, a NOSQL collection could have millions of documents. These may need to be accessed simultaneously by a large number fo users. &lt;strong&gt;Sharding&lt;/strong&gt; is a technique that allows the data to be distributed across multiple nodes. In this way, multiple nodes can work in parallel to handle the load. This has an added benefit of ensuring that no single node is overloaded.&lt;/p&gt;
+&lt;h3 id=&#34;high-performance-data-access&#34;&gt;High-Performance Data Access&lt;/h3&gt;
+&lt;p&gt;In a distributed system with millions upon millions of objects distributed across many nodes, how do you find the object you are looking for? NOSQL systems typically use a &lt;strong&gt;hash-based&lt;/strong&gt; approach to find the object. This is done by hashing the key of the object and using the hash to determine which node the object is stored on. This is a very fast operation and allows for the system to scale to millions of objects.&lt;/p&gt;
+&lt;p&gt;Another solution is called &lt;strong&gt;range partitioning&lt;/strong&gt; in which the location is determined based on a range of key values. Each node would handle a different partition of the keys.&lt;/p&gt;
+&lt;h3 id=&#34;other-characteristics&#34;&gt;Other Characteristics&lt;/h3&gt;
+&lt;p&gt;NOSQL systems do not require a schema. This means that the data does not need to be structured in a specific way. This is useful for applications that need to store a variety of data types. For example, a social media application might need to store user profiles, posts, comments, etc. These are all different types of data that would not fit well into a relational database. Instead of a schema, a language for describing the data is used. A common language is JSON.&lt;/p&gt;
+&lt;p&gt;Given the common application of NOSQL systems, a complex query language is not required. Many of the requests are in the form of a simple read or write operation. This allows for the system to be optimized for these operations. These operations are typically provided by an API and are called &lt;strong&gt;CRUD operations&lt;/strong&gt; (Create, Read, Update, and Delete). Without the full power of SQL, complex operations such as &lt;code&gt;JOIN&lt;/code&gt; or &lt;code&gt;CONSTRAINTS&lt;/code&gt; must be handled by the application.&lt;/p&gt;
+&lt;h2 id=&#34;nosql-data-models&#34;&gt;NOSQL Data Models&lt;/h2&gt;
+&lt;p&gt;There are four main data models used by NOSQL systems: &lt;strong&gt;key-value&lt;/strong&gt;, &lt;strong&gt;column&lt;/strong&gt;, &lt;strong&gt;document&lt;/strong&gt;, and &lt;strong&gt;graph&lt;/strong&gt;. Each of these models has its own advantages and disadvantages. The model that is chosen depends on the application and the type of data that is being stored.&lt;/p&gt;
+&lt;h3 id=&#34;key-value&#34;&gt;Key-Value&lt;/h3&gt;
+&lt;p&gt;The key-value model is the simplest of the four. It is essentially a hash table where the key is used to retrieve the value. The value can be any type of data. This model is very fast and can scale to millions of objects.&lt;/p&gt;
+&lt;h3 id=&#34;column&#34;&gt;Column&lt;/h3&gt;
+&lt;p&gt;Tables are partitioned by columns into column families. Each column family is stored in its own files.&lt;/p&gt;
+&lt;h3 id=&#34;document&#34;&gt;Document&lt;/h3&gt;
+&lt;p&gt;Documents are stored in collections. Each document is stored as a JSON object. This model is very flexible and can store a variety of data types. It is also very fast and can scale to millions of objects. The documents are typically queried using their document ID, but other indices can be created to speed up queries.&lt;/p&gt;
+&lt;h3 id=&#34;graph&#34;&gt;Graph&lt;/h3&gt;
+&lt;p&gt;Graphs are used to represent relationships between objects. Each object is represented as a node and the relationships are represented as edges. This model is useful for applications that need to represent complex relationships between objects.&lt;/p&gt;
+&lt;h2 id=&#34;cap-theorem&#34;&gt;CAP Theorem&lt;/h2&gt;
+&lt;p&gt;The CAP theorem states that a distributed system can only guarantee two of the following three properties: &lt;strong&gt;consistency&lt;/strong&gt;, &lt;strong&gt;availability&lt;/strong&gt;, and &lt;strong&gt;partition tolerance&lt;/strong&gt;. Consistency means that all nodes see the same data at the same time. Availability means that every request receives a response. Partition tolerance means that the system continues to operate despite network failures.&lt;/p&gt;
+&lt;h2 id=&#34;document-based-nosql-systems&#34;&gt;Document-Based NOSQL Systems&lt;/h2&gt;
+&lt;p&gt;In document-based NOSQL systems, the data is &lt;strong&gt;self-describing&lt;/strong&gt; as there is no need for a schema. These sytems store &lt;strong&gt;documents&lt;/strong&gt; which are essentially JSON objects. The documents are stored in &lt;strong&gt;collections&lt;/strong&gt; which are similar to tables in a relational database. The documents are retrieved using their document ID.&lt;/p&gt;
+&lt;h3 id=&#34;mongodb&#34;&gt;MongoDB&lt;/h3&gt;
+&lt;p&gt;MongoDB is a document-based NOSQL database that is flexibile, scalable, and high-performance. It stores data in a JSON-like format called BSON (Binary JSON). Inidividual &lt;strong&gt;documents&lt;/strong&gt; are stored in a &lt;strong&gt;collection&lt;/strong&gt;. No schema is needed to begin storing data. The python code below will create a new collection for our RPG &lt;code&gt;Users&lt;/code&gt; with a simple command in &lt;code&gt;pymongo&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This will create a new collection named &lt;code&gt;users&lt;/code&gt; with the default settings. If you want to specify additional options, call the &lt;code&gt;create_collection&lt;/code&gt; function. Common parameters include determining of a collection is capped by the storage size and maximum number of documents.&lt;/p&gt;
+&lt;h4 id=&#34;representing-data&#34;&gt;Representing Data&lt;/h4&gt;
+&lt;p&gt;Whenever a new item is inserted to a colletion, a unique &lt;code&gt;ObjectId&lt;/code&gt; is created and indexed. If the ID of a document should match a user-defined protocol, it can be set manually. Since there is no schema to specify a relationship, document relationships can be created by including the ~ObjectId~s of objects you wish to reference in your data.&lt;/p&gt;
+&lt;p&gt;There are multiple ways to represent relationships between documents. Consider a &lt;code&gt;Character&lt;/code&gt; that holds multiple items in an &lt;code&gt;Inventory&lt;/code&gt;. The items could be referenced as an array of &lt;code&gt;Item&lt;/code&gt; objects within the &lt;code&gt;Character&lt;/code&gt; object itself. Alternatively, the &lt;code&gt;Character&lt;/code&gt; could hold an array of &lt;code&gt;ObjectId~s that reference the ~Item&lt;/code&gt; objects in the &lt;code&gt;Inventory&lt;/code&gt; collection. A third approach would have each &lt;code&gt;Item&lt;/code&gt; reference the &lt;code&gt;Character&lt;/code&gt; that owns it. The best approach depends on the application and the type of queries that will be performed.&lt;/p&gt;
+&lt;h4 id=&#34;crud-operations&#34;&gt;CRUD Operations&lt;/h4&gt;
+&lt;p&gt;CRUD stands for Create, Read, Update, and Delete. Single or multiple documents can be implemented with the &lt;code&gt;insert&lt;/code&gt; function. In &lt;code&gt;pymongo&lt;/code&gt;, you can use either &lt;code&gt;Collections.insert_one&lt;/code&gt; or &lt;code&gt;Collections.insert_many&lt;/code&gt;. The &lt;code&gt;insert_one&lt;/code&gt; function takes a single document as an argument and returns the &lt;code&gt;ObjectId&lt;/code&gt; of the inserted document. The &lt;code&gt;insert_many&lt;/code&gt; function takes a list of documents as an argument and returns a list of ~ObjectId~s.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;insert_one({&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Naomi&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;age&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;25&lt;/span&gt;})
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;insert_many([{&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Naomi&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;age&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;25&lt;/span&gt;}, {&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;James&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;age&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;}])
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Reading objects is done with the &lt;code&gt;find&lt;/code&gt; function. There are several variants of this available in &lt;code&gt;pymongo&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;find_one&lt;/code&gt; returns a single document that matches the query.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;find&lt;/code&gt; returns a cursor that can be iterated over to retrieve all documents that match the query.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;find_one_and_delete&lt;/code&gt; returns a single document that matches the query and deletes it.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;find_one_and_replace&lt;/code&gt; returns a single document that matches the query and replaces it with the specified document.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;find_one_and_update&lt;/code&gt; returns a single document that matches the query and updates it with the specified document.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!--listend--&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;find_one({&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Naomi&amp;#39;&lt;/span&gt;})
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Print the document&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(val)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Print the name&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(val[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Updating documents is done with the &lt;code&gt;update&lt;/code&gt; function. We saw an updated combined with &lt;code&gt;find&lt;/code&gt; above, but &lt;code&gt;pymongo&lt;/code&gt; also implements &lt;code&gt;update_one&lt;/code&gt; and &lt;code&gt;update_many&lt;/code&gt;. The &lt;code&gt;update_one&lt;/code&gt; function takes a query and an update document as arguments. The &lt;code&gt;update_many&lt;/code&gt; function takes a query and an update document as arguments. Both functions return a &lt;code&gt;UpdateResult&lt;/code&gt; object that contains information about the operation.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;update_one({&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Naomi&amp;#39;&lt;/span&gt;}, {&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;$set&amp;#39;&lt;/span&gt;: {&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;age&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;26&lt;/span&gt;}})
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Deleting documents is done with the &lt;code&gt;delete_one&lt;/code&gt; and &lt;code&gt;delete_many&lt;/code&gt; functions. Both functions take a query as an argument and return a &lt;code&gt;DeleteResult&lt;/code&gt; object that contains information about the operation.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;db[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;users&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;delete_one({&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Naomi&amp;#39;&lt;/span&gt;})
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;characteristics&#34;&gt;Characteristics&lt;/h4&gt;
+&lt;p&gt;MongoDB uses a &lt;strong&gt;two-phase commit&lt;/strong&gt; method to ensure transaction atomicity and consistency. In the first phase of the process, a coordinator sends a message to all nodes to prepare for the transaction. Each node then responds with an acknowledgement. If all nodes respond with an acknowledgement, the coordinator sends a commit message to all nodes. If any node fails to respond with an acknowledgement, the coordinator sends a message to roll back the transaction.&lt;/p&gt;
+&lt;p&gt;For data replication, a variation on the &lt;strong&gt;primary-replica&lt;/strong&gt; model is used. A primary node is chosen with at least one replica. More nodes can be added at the cost of increased time for writes. The total number of nodes for a replica set is at least 3, so if only a primary and one replica are used, an &lt;strong&gt;arbiter&lt;/strong&gt; must be chosen to break ties. In fact, any replica set with an even number of nodes must have an arbiter.&lt;/p&gt;
+&lt;p&gt;All write operations mus be performed on the primary copy before being propagated to the replicas. Users can determine the &lt;strong&gt;read preference&lt;/strong&gt; for their application. The default is to read from the primary copy, but users can choose to read from the nearest copy or a specific copy. If a copy other than the primary is chosen for the read preference, it is not guaranteed that the user will get the lastest version of the data.&lt;/p&gt;
+&lt;h4 id=&#34;sharding&#34;&gt;Sharding&lt;/h4&gt;
+&lt;p&gt;We previously discussed that having all of the data in a single collection can lead to performance issues. Sharding is a technique that allows the data to be distributed across multiple nodes. This allows for multiple nodes to work in parallel to handle the load. Sharding splits the data into disjoint partitions which can then be stored on different nodes.&lt;/p&gt;
+&lt;p&gt;The partitions can be determined via &lt;strong&gt;hash partitioning&lt;/strong&gt; or &lt;strong&gt;range partitioning&lt;/strong&gt;. In either case, a document field must be chosen to determine the partition. This partition field is called the &lt;strong&gt;shard key&lt;/strong&gt;. It must exist in every document and be indexed.&lt;/p&gt;
+&lt;p&gt;When using sharding on MongoDB, a &lt;strong&gt;query router&lt;/strong&gt; keeps tracks of which nodes contain which shards. The actual query is then routed to the node containing the shard. In the event that a query is sent to a node that does not contain the shard, the query router will forward the query to all nodes.&lt;/p&gt;
+&lt;h2 id=&#34;key-value-nosql-systems&#34;&gt;Key-Value NOSQL Systems&lt;/h2&gt;
+&lt;p&gt;Key-value systems use a simple data model and typically do not have a query language. The data is stored as a key-value pair. The key is used to retrieve the value. The value can be any type of data. This model is very fast and can scale to millions of objects. Popular key-value stores include DynamoDB, Voldemort, Redis, and Cassandra. We will briefly discuss each of them below.&lt;/p&gt;
+&lt;h3 id=&#34;dynamodb&#34;&gt;DynamoDB&lt;/h3&gt;
+&lt;p&gt;DynamoDB was developed by Amazon to meet the needs of their large-scale internet applications. It is a key-value store that is highly available and scalable. It is also a managed service which means that Amazon handles the scaling and replication for you. It uses tables, items, and attributes without the need for a schema. The table itself holds multiple items which are self-describing. That is, the items have &lt;code&gt;(attribute, value)&lt;/code&gt; pairs.&lt;/p&gt;
+&lt;p&gt;Tables must have &lt;strong&gt;primary keys&lt;/strong&gt; which can be either a single attribute or pair of attributes. For single attributes, DynamoDB will build a hash index on this attribute. For pairs of attribute, a &lt;strong&gt;hash and range&lt;/strong&gt; primary key is used. The primary key is the pair of attributes and the hash index is built on the first attribute. This allows for fast retrieval of items based on the first attribute. The second attribute can be used to sort the items for which the first attribute is the same.&lt;/p&gt;
+&lt;h3 id=&#34;voldemort&#34;&gt;Voldemort&lt;/h3&gt;
+&lt;p&gt;Voldemort is a distributed key-value store based on DynamoDB and developed by LinkedIn and Microsoft. The distribution of data is handled via &lt;strong&gt;consistent hashing&lt;/strong&gt;. Since Voldemort is based on DynamoDB, many of the characteristics described below also apply to DynamoDB.&lt;/p&gt;
+&lt;h4 id=&#34;operations&#34;&gt;Operations&lt;/h4&gt;
+&lt;p&gt;Like DynamoDB, key-value pairs are the primary data structure. These are kept in a data &lt;code&gt;store&lt;/code&gt;. Three basic operations are implemented: &lt;code&gt;get&lt;/code&gt;, &lt;code&gt;put&lt;/code&gt;, and &lt;code&gt;delete&lt;/code&gt;. Data is stored as a byte array.&lt;/p&gt;
+&lt;h4 id=&#34;formatted-data&#34;&gt;Formatted Data&lt;/h4&gt;
+&lt;p&gt;Voldemort supports multiple formats for the data. The default format is a byte array, but other formats such as JSON and Protocol Buffers are supported. It provides default serializers for these formats, but users can also implement their own. As long as a &lt;code&gt;Serializer&lt;/code&gt; class is implemented, it can be used to serialize and deserialize data.&lt;/p&gt;
+&lt;h4 id=&#34;consistent-hashing&#34;&gt;Consistent Hashing&lt;/h4&gt;
+&lt;p&gt;Voldemort distributes data based on a hash function that is applied to each key. The range of values on which the key is mapped corresponds to a node. The figure below shows an example of 7 regions being mapped to 3 nodes (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Elmasri and Navathe 2015&lt;/a&gt;).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-20_10-49-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Consistent hashing in Voldemort.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Consistent hashing in Voldemort.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Consistent hashing naturally permits data replication and horizontal scaling. As new nodes are added, only a small subset of the data needs to be rehashed to the new node. Replicas are created by mapping the key to multiple nodes.&lt;/p&gt;
+&lt;h4 id=&#34;consistency&#34;&gt;Consistency&lt;/h4&gt;
+&lt;p&gt;Concurrent writes are allowed which means there can exist multiple versions of the same key at different nodes. Consistency occurs when an item is read. If the system can reconcile the different versions of the key to a single value, it will pass that final value on. Otherwise, multiple versions may be sent to the application to be resolved.&lt;/p&gt;
+&lt;h3 id=&#34;redis&#34;&gt;Redis&lt;/h3&gt;
+&lt;p&gt;Redis is an in-memory key-value store. This implies that is basic operations perform very quickly. However, it is not well suited for general purpose applications that require high volumes of data. A typical use-case for Redis would be caching, session management, or real-time analytics.&lt;/p&gt;
+&lt;p&gt;For example, Twitter uses Redis to drive their timeline feature. The posts are indexed using an ID and stored in Redis. When a user requests their timeline, the IDs are retrieved from Redis as a chain of IDs.&lt;/p&gt;
+&lt;h3 id=&#34;cassandra&#34;&gt;Cassandra&lt;/h3&gt;
+&lt;p&gt;Cassandra can be used as a wide-column database (discussed below) or key-value database. It was originally developed at Facebook to handle large amounts of data across multiple commodity servers. It implements the Cassandra Query Language (CQL) which is similar to SQL. The data it partitioned similarly to other NOSQL datastores in that data is distributed in partitions across multiple nodes. CQL does not support cross-partition queries.&lt;/p&gt;
+&lt;h2 id=&#34;column-based-nosql-systems&#34;&gt;Column-Based NOSQL Systems&lt;/h2&gt;
+&lt;p&gt;The largest differentiator of a column-based system and key-value system is the way the key is defined. A popular implementation of this type of system is known as &lt;strong&gt;BigTable&lt;/strong&gt; which was developed by Google. It uses the &lt;strong&gt;Google File System (GFS)&lt;/strong&gt; to store data. There is an open source equivalent named &lt;strong&gt;Apache Hbase&lt;/strong&gt; which we will focus on below.&lt;/p&gt;
+&lt;p&gt;Hbase organizes data using &lt;em&gt;namespaces, tables, column families, column qualifiers, columns, rows&lt;/em&gt;, and &lt;em&gt;data cells&lt;/em&gt;. A column is identified by a family and qualifier. It can store multiple versions of the same data, differentiating each version using a timestamp. Each data cell is identified by a unique key. Tables are associated with column families. When loading data, the column qualifiers must be specified.&lt;/p&gt;
+&lt;p&gt;New column qualifiers can be created as needed, producing new rows of data. However, application developers must keep track of which qualifiers belnog to which family. This is a form of vertical partitioning. Since the columns belong to the same column family, they are stored in the same file.&lt;/p&gt;
+&lt;p&gt;Cells are reference by their key which is a combination of the row key, column family, column qualifier, and timestamp. For relational semantics, namespaces are used to define a collection of tables.&lt;/p&gt;
+&lt;p&gt;Hbase divides tables into &lt;strong&gt;regions&lt;/strong&gt; which hold a range of row keys into the table. It is for this reason that they keys must be sortable lexicographically. Each region has a number of &lt;strong&gt;stores&lt;/strong&gt; for which a column family is assigned. These regions of data are assigned to nodes in the cluster. To manage splitting and merging of regions, a &lt;strong&gt;primary server&lt;/strong&gt; is used.&lt;/p&gt;
+&lt;h2 id=&#34;graph-based-nosql-systems&#34;&gt;Graph-Based NOSQL Systems&lt;/h2&gt;
+&lt;p&gt;The last category of NOSQL databases discussed in these notes are Graph Databases. These databases are used to represent relationships between objects. Each object is represented as a node and the relationships are represented as edges. This model is useful for applications that need to represent complex relationships between objects. A popular implementation of this type of system is known as &lt;strong&gt;Neo4j&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Nodes and relationships can have a unique collection of properties to describe them. Nodes are labeled, and nodes with the same label are grouped into collections for querying. Relationship types are useful for grouping relationships based on a common property.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Paths&lt;/strong&gt; specify a traversal of a subgraph. They are used to specify a query and consist of nodes and relationships. The subgraph is used as a pattern to find other subgraphs that match the pattern. The query can be further refined by specifying constraints on the nodes and relationships.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Elmasri, Ramez, and Shamkant B. Navathe. 2015. &lt;i&gt;Fundamentals of Database Systems&lt;/i&gt;. 7th ed. Pearson. &lt;a href=&#34;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&#34;&gt;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Policy Gradient Methods</title>
       <link>https://ajdillhoff.github.io/notes/policy_gradient_methods/</link>
       <pubDate>Sun, 12 Nov 2023 00:00:00 -0600</pubDate>

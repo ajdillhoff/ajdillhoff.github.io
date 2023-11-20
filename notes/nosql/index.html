@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents NOSQL Characteristics for Distributed Systems NOSQL Data Models CAP Theorem Document-Based NOSQL Systems Key-Value NOSQL Systems Column-Based NOSQL Systems Graph-Based NOSQL Systems NOSQL refers to Not Only SQL. A NOSQL system is commonly a distributed one that focuses on semi-structured data storage, high performance, availability, replication and scalability. These type of systems developed to meet the needs of large-scale internet applications where a traditional SQL database could not.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/nosql/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/nosql/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/nosql/">
+  <meta property="og:title" content="NOSQL | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents NOSQL Characteristics for Distributed Systems NOSQL Data Models CAP Theorem Document-Based NOSQL Systems Key-Value NOSQL Systems Column-Based NOSQL Systems Graph-Based NOSQL Systems NOSQL refers to Not Only SQL. A NOSQL system is commonly a distributed one that focuses on semi-structured data storage, high performance, availability, replication and scalability. These type of systems developed to meet the needs of large-scale internet applications where a traditional SQL database could not."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-11-14T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-11-14T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>NOSQL | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      processEsacpes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">NOSQL</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-11-14 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-11-14 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Nov 14, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    15 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/nosql/&amp;text=NOSQL" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/nosql/&amp;t=NOSQL" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=NOSQL&amp;body=https://ajdillhoff.github.io/notes/nosql/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/nosql/&amp;title=NOSQL" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=NOSQL%20https://ajdillhoff.github.io/notes/nosql/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/nosql/&amp;title=NOSQL" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#nosql-characteristics-for-distributed-systems">NOSQL Characteristics for Distributed Systems</a></li>
+<li><a href="#nosql-data-models">NOSQL Data Models</a></li>
+<li><a href="#cap-theorem">CAP Theorem</a></li>
+<li><a href="#document-based-nosql-systems">Document-Based NOSQL Systems</a></li>
+<li><a href="#key-value-nosql-systems">Key-Value NOSQL Systems</a></li>
+<li><a href="#column-based-nosql-systems">Column-Based NOSQL Systems</a></li>
+<li><a href="#graph-based-nosql-systems">Graph-Based NOSQL Systems</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p><strong>NOSQL</strong> refers to Not Only SQL. A NOSQL system is commonly a distributed one that focuses on semi-structured data storage, high performance, availability, replication and scalability. These type of systems developed to meet the needs of large-scale internet applications where a traditional SQL database could not.</p>
+<p>Consider an application like Amazon which manages a high volume of data and user requests. The application needs to be able to store and retrieve this data quickly and reliably. They created their own database system called DynamoDB which is a key-value store. DynamoDB has been used for many applications that require high performance and availability such as video streaming through services like Disney+.</p>
+<p>The data that is used in these systems does not usually fit the mold of a traditional SQL database. For example, a relational database might store an object by disassembling it into its components and storing each component in a separate table. This is not ideal for a system that needs to store and retrieve data quickly. A NOSQL system will store the object as a whole and retrieve it as a whole.</p>
+<h2 id="nosql-characteristics-for-distributed-systems">NOSQL Characteristics for Distributed Systems</h2>
+<p>Given the nature of the applications that utilize NOSQL systems, the most important characteristic is high availability. Of course, performance is also important given the number of users that expect the service to remain responsive at all times.</p>
+<h3 id="scalability">Scalability</h3>
+<p>NOSQL systems typically aim for horizontal scalability. The applications that use these systems are expected to grow rapidly and the system needs to be able to handle the increased load. This sort of dynamic scaling means that implementations should not rely on a fixed number of nodes.</p>
+<p>For example, during the holiday season, Amazon will need to rapidly scale up their infrastructure to handle the increased load. Cloud technologies are capable of doing this automatically, but the database system needs to be able to handle the increased load as well.</p>
+<h3 id="availability">Availability</h3>
+<p>NOSQL systems are expected to be highly available. This means that the system should be able to handle failures and continue to operate. Data is typically replicated over multiple nodes. However, this replication comes with increased complexity for writing data. To deal with this, many NOSQL systems implement a relaxed version called <strong>eventual consistency</strong>.</p>
+<h3 id="replication-models">Replication Models</h3>
+<p>There are two main replication models for NOSQL systems: <strong>primary-replica</strong> and <strong>primary-primary</strong>. In primary-replica replication, only one copy is the primary for which all write operations are applied. The write is propagated asynchronously to the replicas.</p>
+<p>In primary-primary replication, all copies are equal and can accept write operations. This is more complex to implement, but it allows for better performance and availability. If multiple users write to the same object, the system needs to be able to handle the conflict through a reconciliation process.</p>
+<h3 id="sharding">Sharding</h3>
+<p>Depending on the application, a NOSQL collection could have millions of documents. These may need to be accessed simultaneously by a large number fo users. <strong>Sharding</strong> is a technique that allows the data to be distributed across multiple nodes. In this way, multiple nodes can work in parallel to handle the load. This has an added benefit of ensuring that no single node is overloaded.</p>
+<h3 id="high-performance-data-access">High-Performance Data Access</h3>
+<p>In a distributed system with millions upon millions of objects distributed across many nodes, how do you find the object you are looking for? NOSQL systems typically use a <strong>hash-based</strong> approach to find the object. This is done by hashing the key of the object and using the hash to determine which node the object is stored on. This is a very fast operation and allows for the system to scale to millions of objects.</p>
+<p>Another solution is called <strong>range partitioning</strong> in which the location is determined based on a range of key values. Each node would handle a different partition of the keys.</p>
+<h3 id="other-characteristics">Other Characteristics</h3>
+<p>NOSQL systems do not require a schema. This means that the data does not need to be structured in a specific way. This is useful for applications that need to store a variety of data types. For example, a social media application might need to store user profiles, posts, comments, etc. These are all different types of data that would not fit well into a relational database. Instead of a schema, a language for describing the data is used. A common language is JSON.</p>
+<p>Given the common application of NOSQL systems, a complex query language is not required. Many of the requests are in the form of a simple read or write operation. This allows for the system to be optimized for these operations. These operations are typically provided by an API and are called <strong>CRUD operations</strong> (Create, Read, Update, and Delete). Without the full power of SQL, complex operations such as <code>JOIN</code> or <code>CONSTRAINTS</code> must be handled by the application.</p>
+<h2 id="nosql-data-models">NOSQL Data Models</h2>
+<p>There are four main data models used by NOSQL systems: <strong>key-value</strong>, <strong>column</strong>, <strong>document</strong>, and <strong>graph</strong>. Each of these models has its own advantages and disadvantages. The model that is chosen depends on the application and the type of data that is being stored.</p>
+<h3 id="key-value">Key-Value</h3>
+<p>The key-value model is the simplest of the four. It is essentially a hash table where the key is used to retrieve the value. The value can be any type of data. This model is very fast and can scale to millions of objects.</p>
+<h3 id="column">Column</h3>
+<p>Tables are partitioned by columns into column families. Each column family is stored in its own files.</p>
+<h3 id="document">Document</h3>
+<p>Documents are stored in collections. Each document is stored as a JSON object. This model is very flexible and can store a variety of data types. It is also very fast and can scale to millions of objects. The documents are typically queried using their document ID, but other indices can be created to speed up queries.</p>
+<h3 id="graph">Graph</h3>
+<p>Graphs are used to represent relationships between objects. Each object is represented as a node and the relationships are represented as edges. This model is useful for applications that need to represent complex relationships between objects.</p>
+<h2 id="cap-theorem">CAP Theorem</h2>
+<p>The CAP theorem states that a distributed system can only guarantee two of the following three properties: <strong>consistency</strong>, <strong>availability</strong>, and <strong>partition tolerance</strong>. Consistency means that all nodes see the same data at the same time. Availability means that every request receives a response. Partition tolerance means that the system continues to operate despite network failures.</p>
+<h2 id="document-based-nosql-systems">Document-Based NOSQL Systems</h2>
+<p>In document-based NOSQL systems, the data is <strong>self-describing</strong> as there is no need for a schema. These sytems store <strong>documents</strong> which are essentially JSON objects. The documents are stored in <strong>collections</strong> which are similar to tables in a relational database. The documents are retrieved using their document ID.</p>
+<h3 id="mongodb">MongoDB</h3>
+<p>MongoDB is a document-based NOSQL database that is flexibile, scalable, and high-performance. It stores data in a JSON-like format called BSON (Binary JSON). Inidividual <strong>documents</strong> are stored in a <strong>collection</strong>. No schema is needed to begin storing data. The python code below will create a new collection for our RPG <code>Users</code> with a simple command in <code>pymongo</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]
+</span></span></code></pre></div><p>This will create a new collection named <code>users</code> with the default settings. If you want to specify additional options, call the <code>create_collection</code> function. Common parameters include determining of a collection is capped by the storage size and maximum number of documents.</p>
+<h4 id="representing-data">Representing Data</h4>
+<p>Whenever a new item is inserted to a colletion, a unique <code>ObjectId</code> is created and indexed. If the ID of a document should match a user-defined protocol, it can be set manually. Since there is no schema to specify a relationship, document relationships can be created by including the ~ObjectId~s of objects you wish to reference in your data.</p>
+<p>There are multiple ways to represent relationships between documents. Consider a <code>Character</code> that holds multiple items in an <code>Inventory</code>. The items could be referenced as an array of <code>Item</code> objects within the <code>Character</code> object itself. Alternatively, the <code>Character</code> could hold an array of <code>ObjectId~s that reference the ~Item</code> objects in the <code>Inventory</code> collection. A third approach would have each <code>Item</code> reference the <code>Character</code> that owns it. The best approach depends on the application and the type of queries that will be performed.</p>
+<h4 id="crud-operations">CRUD Operations</h4>
+<p>CRUD stands for Create, Read, Update, and Delete. Single or multiple documents can be implemented with the <code>insert</code> function. In <code>pymongo</code>, you can use either <code>Collections.insert_one</code> or <code>Collections.insert_many</code>. The <code>insert_one</code> function takes a single document as an argument and returns the <code>ObjectId</code> of the inserted document. The <code>insert_many</code> function takes a list of documents as an argument and returns a list of ~ObjectId~s.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>insert_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">25</span>})
+</span></span><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>insert_many([{<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">25</span>}, {<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;James&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">30</span>}])
+</span></span></code></pre></div><p>Reading objects is done with the <code>find</code> function. There are several variants of this available in <code>pymongo</code>.</p>
+<ul>
+<li><code>find_one</code> returns a single document that matches the query.</li>
+<li><code>find</code> returns a cursor that can be iterated over to retrieve all documents that match the query.</li>
+<li><code>find_one_and_delete</code> returns a single document that matches the query and deletes it.</li>
+<li><code>find_one_and_replace</code> returns a single document that matches the query and replaces it with the specified document.</li>
+<li><code>find_one_and_update</code> returns a single document that matches the query and updates it with the specified document.</li>
+</ul>
+<!--listend-->
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>val <span style="color:#f92672">=</span> db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>find_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the document</span>
+</span></span><span style="display:flex;"><span>print(val)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the name</span>
+</span></span><span style="display:flex;"><span>print(val[<span style="color:#e6db74">&#39;name&#39;</span>])
+</span></span></code></pre></div><p>Updating documents is done with the <code>update</code> function. We saw an updated combined with <code>find</code> above, but <code>pymongo</code> also implements <code>update_one</code> and <code>update_many</code>. The <code>update_one</code> function takes a query and an update document as arguments. The <code>update_many</code> function takes a query and an update document as arguments. Both functions return a <code>UpdateResult</code> object that contains information about the operation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>update_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>}, {<span style="color:#e6db74">&#39;$set&#39;</span>: {<span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">26</span>}})
+</span></span></code></pre></div><p>Deleting documents is done with the <code>delete_one</code> and <code>delete_many</code> functions. Both functions take a query as an argument and return a <code>DeleteResult</code> object that contains information about the operation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>delete_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
+</span></span></code></pre></div><h4 id="characteristics">Characteristics</h4>
+<p>MongoDB uses a <strong>two-phase commit</strong> method to ensure transaction atomicity and consistency. In the first phase of the process, a coordinator sends a message to all nodes to prepare for the transaction. Each node then responds with an acknowledgement. If all nodes respond with an acknowledgement, the coordinator sends a commit message to all nodes. If any node fails to respond with an acknowledgement, the coordinator sends a message to roll back the transaction.</p>
+<p>For data replication, a variation on the <strong>primary-replica</strong> model is used. A primary node is chosen with at least one replica. More nodes can be added at the cost of increased time for writes. The total number of nodes for a replica set is at least 3, so if only a primary and one replica are used, an <strong>arbiter</strong> must be chosen to break ties. In fact, any replica set with an even number of nodes must have an arbiter.</p>
+<p>All write operations mus be performed on the primary copy before being propagated to the replicas. Users can determine the <strong>read preference</strong> for their application. The default is to read from the primary copy, but users can choose to read from the nearest copy or a specific copy. If a copy other than the primary is chosen for the read preference, it is not guaranteed that the user will get the lastest version of the data.</p>
+<h4 id="sharding">Sharding</h4>
+<p>We previously discussed that having all of the data in a single collection can lead to performance issues. Sharding is a technique that allows the data to be distributed across multiple nodes. This allows for multiple nodes to work in parallel to handle the load. Sharding splits the data into disjoint partitions which can then be stored on different nodes.</p>
+<p>The partitions can be determined via <strong>hash partitioning</strong> or <strong>range partitioning</strong>. In either case, a document field must be chosen to determine the partition. This partition field is called the <strong>shard key</strong>. It must exist in every document and be indexed.</p>
+<p>When using sharding on MongoDB, a <strong>query router</strong> keeps tracks of which nodes contain which shards. The actual query is then routed to the node containing the shard. In the event that a query is sent to a node that does not contain the shard, the query router will forward the query to all nodes.</p>
+<h2 id="key-value-nosql-systems">Key-Value NOSQL Systems</h2>
+<p>Key-value systems use a simple data model and typically do not have a query language. The data is stored as a key-value pair. The key is used to retrieve the value. The value can be any type of data. This model is very fast and can scale to millions of objects. Popular key-value stores include DynamoDB, Voldemort, Redis, and Cassandra. We will briefly discuss each of them below.</p>
+<h3 id="dynamodb">DynamoDB</h3>
+<p>DynamoDB was developed by Amazon to meet the needs of their large-scale internet applications. It is a key-value store that is highly available and scalable. It is also a managed service which means that Amazon handles the scaling and replication for you. It uses tables, items, and attributes without the need for a schema. The table itself holds multiple items which are self-describing. That is, the items have <code>(attribute, value)</code> pairs.</p>
+<p>Tables must have <strong>primary keys</strong> which can be either a single attribute or pair of attributes. For single attributes, DynamoDB will build a hash index on this attribute. For pairs of attribute, a <strong>hash and range</strong> primary key is used. The primary key is the pair of attributes and the hash index is built on the first attribute. This allows for fast retrieval of items based on the first attribute. The second attribute can be used to sort the items for which the first attribute is the same.</p>
+<h3 id="voldemort">Voldemort</h3>
+<p>Voldemort is a distributed key-value store based on DynamoDB and developed by LinkedIn and Microsoft. The distribution of data is handled via <strong>consistent hashing</strong>. Since Voldemort is based on DynamoDB, many of the characteristics described below also apply to DynamoDB.</p>
+<h4 id="operations">Operations</h4>
+<p>Like DynamoDB, key-value pairs are the primary data structure. These are kept in a data <code>store</code>. Three basic operations are implemented: <code>get</code>, <code>put</code>, and <code>delete</code>. Data is stored as a byte array.</p>
+<h4 id="formatted-data">Formatted Data</h4>
+<p>Voldemort supports multiple formats for the data. The default format is a byte array, but other formats such as JSON and Protocol Buffers are supported. It provides default serializers for these formats, but users can also implement their own. As long as a <code>Serializer</code> class is implemented, it can be used to serialize and deserialize data.</p>
+<h4 id="consistent-hashing">Consistent Hashing</h4>
+<p>Voldemort distributes data based on a hash function that is applied to each key. The range of values on which the key is mapped corresponds to a node. The figure below shows an example of 7 regions being mapped to 3 nodes (<a href="#citeproc_bib_item_1">Elmasri and Navathe 2015</a>).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-11-20_10-49-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Consistent hashing in Voldemort." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Consistent hashing in Voldemort.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Consistent hashing naturally permits data replication and horizontal scaling. As new nodes are added, only a small subset of the data needs to be rehashed to the new node. Replicas are created by mapping the key to multiple nodes.</p>
+<h4 id="consistency">Consistency</h4>
+<p>Concurrent writes are allowed which means there can exist multiple versions of the same key at different nodes. Consistency occurs when an item is read. If the system can reconcile the different versions of the key to a single value, it will pass that final value on. Otherwise, multiple versions may be sent to the application to be resolved.</p>
+<h3 id="redis">Redis</h3>
+<p>Redis is an in-memory key-value store. This implies that is basic operations perform very quickly. However, it is not well suited for general purpose applications that require high volumes of data. A typical use-case for Redis would be caching, session management, or real-time analytics.</p>
+<p>For example, Twitter uses Redis to drive their timeline feature. The posts are indexed using an ID and stored in Redis. When a user requests their timeline, the IDs are retrieved from Redis as a chain of IDs.</p>
+<h3 id="cassandra">Cassandra</h3>
+<p>Cassandra can be used as a wide-column database (discussed below) or key-value database. It was originally developed at Facebook to handle large amounts of data across multiple commodity servers. It implements the Cassandra Query Language (CQL) which is similar to SQL. The data it partitioned similarly to other NOSQL datastores in that data is distributed in partitions across multiple nodes. CQL does not support cross-partition queries.</p>
+<h2 id="column-based-nosql-systems">Column-Based NOSQL Systems</h2>
+<p>The largest differentiator of a column-based system and key-value system is the way the key is defined. A popular implementation of this type of system is known as <strong>BigTable</strong> which was developed by Google. It uses the <strong>Google File System (GFS)</strong> to store data. There is an open source equivalent named <strong>Apache Hbase</strong> which we will focus on below.</p>
+<p>Hbase organizes data using <em>namespaces, tables, column families, column qualifiers, columns, rows</em>, and <em>data cells</em>. A column is identified by a family and qualifier. It can store multiple versions of the same data, differentiating each version using a timestamp. Each data cell is identified by a unique key. Tables are associated with column families. When loading data, the column qualifiers must be specified.</p>
+<p>New column qualifiers can be created as needed, producing new rows of data. However, application developers must keep track of which qualifiers belnog to which family. This is a form of vertical partitioning. Since the columns belong to the same column family, they are stored in the same file.</p>
+<p>Cells are reference by their key which is a combination of the row key, column family, column qualifier, and timestamp. For relational semantics, namespaces are used to define a collection of tables.</p>
+<p>Hbase divides tables into <strong>regions</strong> which hold a range of row keys into the table. It is for this reason that they keys must be sortable lexicographically. Each region has a number of <strong>stores</strong> for which a column family is assigned. These regions of data are assigned to nodes in the cluster. To manage splitting and merging of regions, a <strong>primary server</strong> is used.</p>
+<h2 id="graph-based-nosql-systems">Graph-Based NOSQL Systems</h2>
+<p>The last category of NOSQL databases discussed in these notes are Graph Databases. These databases are used to represent relationships between objects. Each object is represented as a node and the relationships are represented as edges. This model is useful for applications that need to represent complex relationships between objects. A popular implementation of this type of system is known as <strong>Neo4j</strong>.</p>
+<p>Nodes and relationships can have a unique collection of properties to describe them. Nodes are labeled, and nodes with the same label are grouped into collections for querying. Relationship types are useful for grouping relationships based on a common property.</p>
+<p><strong>Paths</strong> specify a traversal of a subgraph. They are used to specify a query and consist of nodes and relationships. The subgraph is used as a pattern to find other subgraphs that match the pattern. The query can be further refined by specifying constraints on the nodes and relationships.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Elmasri, Ramez, and Shamkant B. Navathe. 2015. <i>Fundamentals of Database Systems</i>. 7th ed. Pearson. <a href="https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523">https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/databases/">databases</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/distributed_databases/">Distributed Databases</a></li>
+          
+          <li><a href="/notes/structured_query_language/">Structured Query Language</a></li>
+          
+          <li><a href="/notes/introduction_to_databases/">Introduction to Databases</a></li>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
