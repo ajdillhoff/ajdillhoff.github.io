@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Structure of the Course Heterogeneous Parallel Computing Measuring Speedup GPU Programming History Applications What to expect from this course Structure of the Course The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are embarrassingly parallel and then move on to more complex problems that require synchronization.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/">
+  <meta property="og:title" content="Introduction to GPGPU Programming | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Structure of the Course Heterogeneous Parallel Computing Measuring Speedup GPU Programming History Applications What to expect from this course Structure of the Course The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are embarrassingly parallel and then move on to more complex problems that require synchronization."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-12-20T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-12-20T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Introduction to GPGPU Programming | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Introduction to GPGPU Programming</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-12-20 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-12-20 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Dec 20, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    10 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/&amp;text=Introduction%20to%20GPGPU%20Programming" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/&amp;t=Introduction%20to%20GPGPU%20Programming" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Introduction%20to%20GPGPU%20Programming&amp;body=https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/&amp;title=Introduction%20to%20GPGPU%20Programming" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Introduction%20to%20GPGPU%20Programming%20https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/&amp;title=Introduction%20to%20GPGPU%20Programming" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#structure-of-the-course">Structure of the Course</a></li>
+<li><a href="#heterogeneous-parallel-computing">Heterogeneous Parallel Computing</a></li>
+<li><a href="#measuring-speedup">Measuring Speedup</a></li>
+<li><a href="#gpu-programming-history">GPU Programming History</a></li>
+<li><a href="#applications">Applications</a></li>
+<li><a href="#what-to-expect-from-this-course">What to expect from this course</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="structure-of-the-course">Structure of the Course</h2>
+<p>The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are <em>embarrassingly parallel</em> and then move on to more complex problems that require synchronization. One of the biggest challenges will be in converting processes that are simple to reason about in serial to parallel processes.</p>
+<p>The course is divided into three parts. The first part will cover the fundamentals of heterogeneous parallel computing and the CUDA programming model. We will focus on problems that are mostly embarrassingly parallel, but will also step into more complicated problems.</p>
+<p>The second part will cover primitive parallel patterns. These are patterns from well-known algorithms that can be used to solve a wide variety of problems. Think of these as useful blueprints for solving problems in parallel. During the second part, we will also dive into more advanced usages of CUDA.</p>
+<p>Part three will cover advanced patterns from more specific applications, such as iterative MRI reconstruction. The course will conclude with expert practices.</p>
+<p>There will be regular assignments that focus on the concepts learned throughout the course. These will typically be accompanied by a series of questions to reinforce and verify that you are successful in each step. Quizzes will be given after each assignment to serve as a checkpoint.</p>
+<h2 id="heterogeneous-parallel-computing">Heterogeneous Parallel Computing</h2>
+<p>Heterogeneous computing refers to systems that use more than one kind of processor or core. One common theme in the course will be to focus on a perfect union between the CPU and GPU. Not every task can be fully parallelized. Many tasks are well suited for sequential processing and others are better suited for parallel processing. Parallelism can be further broken down into data parallelism and task parallelism. The majority of our time will be focused on data parallelism, but it is important to keep in mind that not everything fits into this category. Over time, you will develop a sense for what fits this paradigm and what does not.</p>
+<p>The idea of parallelism is certainly not new, but it has become ubiquitous in the computing space. Consider 30 years ago, when most consumer computers had a single core. The race between chip designers resulted in increasing single-core performance year after year in the form of increased clock speeds. This was a great way to increase performance, but it came at the cost of increased power consumption and heat. Scaling down transistors has also be a tried and true way of decreasing processor size and increasing performance. However, we are quickly reaching a physical limit on the size of a transistor.</p>
+<p>The solution to these problems is the same solution seen in scaling up large systems: horizontal scaling. The intuition is straightforward: many things can do the work faster than a single thing. For large-scale systems, the answer is distributed systems in which no single unit needs to be overly powerful or complicated. For consumer processors, this comes in the form of additional cores on a chip.</p>
+<p>In the context of CPUs, adding multiple cores means that we have a multi-core homogeneous system. These are general-purpose processors that can complete any computational task. The cores are identical and can be used interchangeably. The cores are also tightly coupled, meaning that they share memory and can communicate with each other. A similar statement can be made for GPUs. Let&rsquo;s take a look at the differences between them.</p>
+<h3 id="latency-vs-dot-throughput">Latency vs. Throughput</h3>
+<p>CPUs follow a latency-first design. The space on the chip itself is not fully dedicated to the processing units. Instead, space is reserved for things like cache, branch prediction, and other features that reduce latency. All computational tasks can be completed on a CPU, but the throughput may be lower than a GPU.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-12-21_15-33-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;CPU Architecture from CUDA C&#43;&#43; Programming Guide." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>CPU Architecture from CUDA C++ Programming Guide.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>GPUs follow a throughput-first design. The space on the chip is dedicated to processing units such as ALUs. The cores themselves are not as sophisticated as those found on a CPU. Communication between cores takes more time and is more difficult, but having more of them means that the raw throughput of the chip is higher.</p>
+<p>The development of GPUs was driven by the gaming industry, specifically with rendering, where many vertices and pixels need to be processed in parallel. As we explore GPU solutions to different problems, we will see that data delivery is a key bottleneck. There are techniques available to get around this, which we will need to study closely.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-12-21_15-34-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GPU Architecture from CUDA C&#43;&#43; Programming Guide." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>GPU Architecture from CUDA C++ Programming Guide.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="gpus-and-supercomputing">GPUs and Supercomputing</h3>
+<p>GPUs are featured in many of the top 500 supercomputers. This goes to show that they are a powerful and cost-efficient tool for solving problems. The table below shows the top 5 supercomputers as of November 2023. 4 of them utilize some form of GPU acceleration.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>CPUs</th>
+<th>GPUs</th>
+<th>Peak PFlop/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontier (Oak Ridge NL)</td>
+<td>606,208 cores</td>
+<td>37,888 AMD MI250X</td>
+<td>1,679.72</td>
+</tr>
+<tr>
+<td>Aurora (Argonne NL)</td>
+<td>1,100,000 cores (est.)</td>
+<td>63,744 Intel GPU Max</td>
+<td>1,059.33</td>
+</tr>
+<tr>
+<td>Eagle (Microsoft Azure)</td>
+<td>1,123,200 cores (combined)</td>
+<td>Unknown Split (NVIDIA H100)</td>
+<td>846.74</td>
+</tr>
+<tr>
+<td>Fugaku</td>
+<td>7,630,848 cores</td>
+<td>None</td>
+<td>537.21</td>
+</tr>
+<tr>
+<td>LUMI</td>
+<td>362,496 cores</td>
+<td>11,712 AMD MI250X</td>
+<td>531.51</td>
+</tr>
+</tbody>
+</table>
+<p>The results are clear: heterogeneous parallel computing is a powerful tool for solving problems. Learning how to use these tools will be a valuable skill for the future.</p>
+<h2 id="measuring-speedup">Measuring Speedup</h2>
+<p>In general, if system A takes \(T_A\) time to complete a task and system B takes \(T_B\) time to complete the same task, then the speedup of system B over system A is given by \(S = \frac{T_A}{T_B}\).</p>
+<p>Amdahl&rsquo;s law is defined as follows:</p>
+<p>\[S(s) = \frac{1}{(1 - p) + \frac{p}{s}}\]</p>
+<p>where \(p\) is the fraction of the task that can be parallelized and \(s\) is the speedup of the part of the task that can be parallelized.</p>
+<p>It is not common that 100% of a task can be parallelized. Amdah&rsquo;s law takes this into account. Suppose that 40% of a given task can benefit from parallelization. If that part of the task can be sped up by a factor of 10, then the overall speedup is given by:</p>
+<p>\[S = \frac{1}{(1 - 0.4) + \frac{0.4}{10}} = 1.56\]</p>
+<p>In virtually every lab that you will do in this course, you will be asked to measure the speedup of your solution. This is a good way to verify that your solution is correct and that it is actually faster than the serial version. This will also be a critical part of your project, where you will first need to create a serial version of your solution and then parallelize it.</p>
+<h2 id="gpu-programming-history">GPU Programming History</h2>
+<p>Early GPU programming was done using OpenGL and DirectX. These were graphics APIs, so everything had to be done in terms of pixel shaders. Researchers found ways to use these APIs to do general purpose computing, but it was very difficult since one could not easily debug the code. Essentially, the input had to be encoded as a texture or color. The GPU would then process the texture and output the result as a texture. The output would then have to be decoded to get the result.</p>
+<p>In 2006, NVIDIA unveiled the GeForce 8800 GTX, which was the first DirectX 10 GPU. More importantly, it was the first GPU built using the CUDA architecture. CUDA also refers to the programming model that NVIDIA developed to facilitate general purpose GPU programming. A key piece of the CUDA architecture is the unified shader pipepline, which allows each ALU to be utilized for general purpose computations.</p>
+<p>The different ALUs have access to a global memory space as well as a shared memory space managed by software. We will explore the specifics of this architecture in part 1 of this course. Since that time, many major changes have been made to the CUDA architecture. Additionally, many other standards have been developed to facilitate GPU programming and parallel computing in general.</p>
+<p>One of the most important standards, which we also study in this course, is OpenCL. OpenCL is an open standard that allows for heterogeneous parallel computing. It is supported by many different vendors, including NVIDIA, AMD, and Intel. OpenCL is a C-like language that allows for the creation of kernels that can be executed on a variety of devices. The OpenCL standard is maintained by the Khronos Group, which also maintains the OpenGL standard.</p>
+<h2 id="applications">Applications</h2>
+<p>We are currently in the midst of a data explosion. Vertical scaling, the idea of improving a single system, cannot meet the demands of modern challenges. Horizontal scaling is the most sure solution for now. Distributed systems utilize cheap, commodity servers in lieu of complex supercomputers to distribute applications to mass markets. Parallel computation has applications in just about every field imaginable. We will try to cover a wide variety of applications, as many of them feature parallel solutions that are helpful in other domains.</p>
+<h3 id="linear-algebra-libraries">Linear Algebra Libraries</h3>
+<p>One of the most widely utilized applications of data parallelism is in linear algebra libraries. Common matrix operations such as matrix multiplication and matrix inversion are highly parallelizable. The <a href="https://developer.nvidia.com/cublas" target="_blank" rel="noopener noreferrer">cuBLAS</a> library is a highly optimized implementation of these operations.</p>
+<p>For a great overview of the evolution of linear algebra libraries and the impact of GPUs, see Jack Dongarra&rsquo;s keynote speech at the <a href="https://youtu.be/8TyyCWuquI0?si=DkPEDPWp7_n8GnVe" target="_blank" rel="noopener noreferrer">50 Years of Computing at UTA</a> event.</p>
+<h3 id="machine-learning">Machine Learning</h3>
+<p>Model training and optimization in machine learning is a perfect candidate for data parallelism. Large models such as Llama2 require a massive amount of data to train (<a href="#citeproc_bib_item_3">Touvron et al. 2023</a>). Deep learning models such as this are trained on many GPUs that can execute functions on independent data points in parallel.</p>
+<p>NVIDIA has developed a useful library, which we will study in this course, called <a href="https://developer.nvidia.com/cudnn" target="_blank" rel="noopener noreferrer">cuDNN</a> that implements highly optimized implementations of common functions used in a deep learning pipeline. High level frameworks build off of this library to provide easier development interfaces for machine learning practitioners. Popular examples include <a href="https://pytorch.org" target="_blank" rel="noopener noreferrer">PyTorch</a>, <a href="https://www.tensorflow.org" target="_blank" rel="noopener noreferrer">TensorFlow</a>, and <a href="https://github.com/google/jax" target="_blank" rel="noopener noreferrer">JAX</a>.</p>
+<h3 id="computer-vision">Computer Vision</h3>
+<p>Most of the current state-of-the-art computer vision methods are driven by deep learning, so they also benefit greatly from data parallelism. <a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a> (CNN) have been the driving force behind machine-learning based computer vision methods. They are parameter efficient and take advantage of data parallelism. We will study the core operation behind this model, the convolutional opreator.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-12-21_15-02-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;2D Convolution on a 4x4 grid using a 3x3 filter with unit stride (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>2D Convolution on a 4x4 grid using a 3x3 filter with unit stride (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="computational-chemistry">Computational Chemistry</h3>
+<p>CUDA has been utilized for computing heat transfer calculations efficiently (<a href="#citeproc_bib_item_2">Sosutha and Mohana 2015</a>). The authors found that the computations could be computed independently, which is perfect for a parallel architecture like a GPU, where throughput is preferred to latency.</p>
+<h3 id="other-applications">Other Applications</h3>
+<p>There are many other applications of data parallelism, some of which we will explore and learn from in this course. Examples include the following.</p>
+<ul>
+<li>Financial Analysis</li>
+<li>Scientific Simulation</li>
+<li>Engineering Simulation</li>
+<li>Data Intensive Analytics</li>
+<li>Medical Imaging</li>
+<li>Digital Audio Processing</li>
+<li>Digital Video Processing</li>
+<li>Biomedical Informatics</li>
+<li>Electronic Design Automation</li>
+<li>Statistical Modeling</li>
+<li>Numerical Methods</li>
+<li>Ray Tracing Rendering</li>
+<li>Interactive Physics</li>
+</ul>
+<h2 id="what-to-expect-from-this-course">What to expect from this course</h2>
+<p>This course is extremely hands-on. Almost every topic we cover will have an associated programming exercise. Some of these exercises will be integrated into assignments, other will be presented as in-class demonstrations. The fact that there are so many applications means you will need to be able to adapt to new domains quickly. By the end of this course, you should have acquired the following skills:</p>
+<ul>
+<li>Advanced familiarity with the CUDA programming model</li>
+<li>Ability to think in parallel</li>
+<li>Identify sections of code that can be parallelized</li>
+<li>Implementation of parallel solutions</li>
+<li>Debugging parallel code</li>
+<li>Measuring performance increase from parallelization</li>
+</ul>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” <i>Arxiv:1603.07285 [Cs, Stat]</i>, January. <a href="http://arxiv.org/abs/1603.07285">http://arxiv.org/abs/1603.07285</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Sosutha, S., and D. Mohana. 2015. “Heterogeneous Parallel Computing Using Cuda for Chemical Process.” <i>Procedia Computer Science</i>, Graph Algorithms, High Performance Implementations and Its Applications ( ICGHIA 2014 ), 47 (January): 237–46. <a href="https://doi.org/10.1016/j.procs.2015.03.203">https://doi.org/10.1016/j.procs.2015.03.203</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. “Llama 2: Open Foundation and Fine-Tuned Chat Models.” arXiv. <a href="https://doi.org/10.48550/arXiv.2307.09288">https://doi.org/10.48550/arXiv.2307.09288</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/cuda/">cuda</a>
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

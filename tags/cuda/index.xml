@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cuda on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/cuda/</link>
+    <description>Recent content in cuda on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Wed, 20 Dec 2023 00:00:00 -0600</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/cuda/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Introduction to GPGPU Programming</title>
+      <link>https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/</link>
+      <pubDate>Wed, 20 Dec 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/introduction_to_gpgpu_programming/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#structure-of-the-course&#34;&gt;Structure of the Course&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#heterogeneous-parallel-computing&#34;&gt;Heterogeneous Parallel Computing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#measuring-speedup&#34;&gt;Measuring Speedup&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gpu-programming-history&#34;&gt;GPU Programming History&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#applications&#34;&gt;Applications&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#what-to-expect-from-this-course&#34;&gt;What to expect from this course&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;structure-of-the-course&#34;&gt;Structure of the Course&lt;/h2&gt;
+&lt;p&gt;The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are &lt;em&gt;embarrassingly parallel&lt;/em&gt; and then move on to more complex problems that require synchronization. One of the biggest challenges will be in converting processes that are simple to reason about in serial to parallel processes.&lt;/p&gt;
+&lt;p&gt;The course is divided into three parts. The first part will cover the fundamentals of heterogeneous parallel computing and the CUDA programming model. We will focus on problems that are mostly embarrassingly parallel, but will also step into more complicated problems.&lt;/p&gt;
+&lt;p&gt;The second part will cover primitive parallel patterns. These are patterns from well-known algorithms that can be used to solve a wide variety of problems. Think of these as useful blueprints for solving problems in parallel. During the second part, we will also dive into more advanced usages of CUDA.&lt;/p&gt;
+&lt;p&gt;Part three will cover advanced patterns from more specific applications, such as iterative MRI reconstruction. The course will conclude with expert practices.&lt;/p&gt;
+&lt;p&gt;There will be regular assignments that focus on the concepts learned throughout the course. These will typically be accompanied by a series of questions to reinforce and verify that you are successful in each step. Quizzes will be given after each assignment to serve as a checkpoint.&lt;/p&gt;
+&lt;h2 id=&#34;heterogeneous-parallel-computing&#34;&gt;Heterogeneous Parallel Computing&lt;/h2&gt;
+&lt;p&gt;Heterogeneous computing refers to systems that use more than one kind of processor or core. One common theme in the course will be to focus on a perfect union between the CPU and GPU. Not every task can be fully parallelized. Many tasks are well suited for sequential processing and others are better suited for parallel processing. Parallelism can be further broken down into data parallelism and task parallelism. The majority of our time will be focused on data parallelism, but it is important to keep in mind that not everything fits into this category. Over time, you will develop a sense for what fits this paradigm and what does not.&lt;/p&gt;
+&lt;p&gt;The idea of parallelism is certainly not new, but it has become ubiquitous in the computing space. Consider 30 years ago, when most consumer computers had a single core. The race between chip designers resulted in increasing single-core performance year after year in the form of increased clock speeds. This was a great way to increase performance, but it came at the cost of increased power consumption and heat. Scaling down transistors has also be a tried and true way of decreasing processor size and increasing performance. However, we are quickly reaching a physical limit on the size of a transistor.&lt;/p&gt;
+&lt;p&gt;The solution to these problems is the same solution seen in scaling up large systems: horizontal scaling. The intuition is straightforward: many things can do the work faster than a single thing. For large-scale systems, the answer is distributed systems in which no single unit needs to be overly powerful or complicated. For consumer processors, this comes in the form of additional cores on a chip.&lt;/p&gt;
+&lt;p&gt;In the context of CPUs, adding multiple cores means that we have a multi-core homogeneous system. These are general-purpose processors that can complete any computational task. The cores are identical and can be used interchangeably. The cores are also tightly coupled, meaning that they share memory and can communicate with each other. A similar statement can be made for GPUs. Let&amp;rsquo;s take a look at the differences between them.&lt;/p&gt;
+&lt;h3 id=&#34;latency-vs-dot-throughput&#34;&gt;Latency vs. Throughput&lt;/h3&gt;
+&lt;p&gt;CPUs follow a latency-first design. The space on the chip itself is not fully dedicated to the processing units. Instead, space is reserved for things like cache, branch prediction, and other features that reduce latency. All computational tasks can be completed on a CPU, but the throughput may be lower than a GPU.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-12-21_15-33-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;CPU Architecture from CUDA C&amp;#43;&amp;#43; Programming Guide.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;CPU Architecture from CUDA C++ Programming Guide.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;GPUs follow a throughput-first design. The space on the chip is dedicated to processing units such as ALUs. The cores themselves are not as sophisticated as those found on a CPU. Communication between cores takes more time and is more difficult, but having more of them means that the raw throughput of the chip is higher.&lt;/p&gt;
+&lt;p&gt;The development of GPUs was driven by the gaming industry, specifically with rendering, where many vertices and pixels need to be processed in parallel. As we explore GPU solutions to different problems, we will see that data delivery is a key bottleneck. There are techniques available to get around this, which we will need to study closely.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-12-21_15-34-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;GPU Architecture from CUDA C&amp;#43;&amp;#43; Programming Guide.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GPU Architecture from CUDA C++ Programming Guide.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;gpus-and-supercomputing&#34;&gt;GPUs and Supercomputing&lt;/h3&gt;
+&lt;p&gt;GPUs are featured in many of the top 500 supercomputers. This goes to show that they are a powerful and cost-efficient tool for solving problems. The table below shows the top 5 supercomputers as of November 2023. 4 of them utilize some form of GPU acceleration.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Name&lt;/th&gt;
+&lt;th&gt;CPUs&lt;/th&gt;
+&lt;th&gt;GPUs&lt;/th&gt;
+&lt;th&gt;Peak PFlop/s&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Frontier (Oak Ridge NL)&lt;/td&gt;
+&lt;td&gt;606,208 cores&lt;/td&gt;
+&lt;td&gt;37,888 AMD MI250X&lt;/td&gt;
+&lt;td&gt;1,679.72&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Aurora (Argonne NL)&lt;/td&gt;
+&lt;td&gt;1,100,000 cores (est.)&lt;/td&gt;
+&lt;td&gt;63,744 Intel GPU Max&lt;/td&gt;
+&lt;td&gt;1,059.33&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Eagle (Microsoft Azure)&lt;/td&gt;
+&lt;td&gt;1,123,200 cores (combined)&lt;/td&gt;
+&lt;td&gt;Unknown Split (NVIDIA H100)&lt;/td&gt;
+&lt;td&gt;846.74&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Fugaku&lt;/td&gt;
+&lt;td&gt;7,630,848 cores&lt;/td&gt;
+&lt;td&gt;None&lt;/td&gt;
+&lt;td&gt;537.21&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;LUMI&lt;/td&gt;
+&lt;td&gt;362,496 cores&lt;/td&gt;
+&lt;td&gt;11,712 AMD MI250X&lt;/td&gt;
+&lt;td&gt;531.51&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The results are clear: heterogeneous parallel computing is a powerful tool for solving problems. Learning how to use these tools will be a valuable skill for the future.&lt;/p&gt;
+&lt;h2 id=&#34;measuring-speedup&#34;&gt;Measuring Speedup&lt;/h2&gt;
+&lt;p&gt;In general, if system A takes \(T_A\) time to complete a task and system B takes \(T_B\) time to complete the same task, then the speedup of system B over system A is given by \(S = \frac{T_A}{T_B}\).&lt;/p&gt;
+&lt;p&gt;Amdahl&amp;rsquo;s law is defined as follows:&lt;/p&gt;
+&lt;p&gt;\[S(s) = \frac{1}{(1 - p) + \frac{p}{s}}\]&lt;/p&gt;
+&lt;p&gt;where \(p\) is the fraction of the task that can be parallelized and \(s\) is the speedup of the part of the task that can be parallelized.&lt;/p&gt;
+&lt;p&gt;It is not common that 100% of a task can be parallelized. Amdah&amp;rsquo;s law takes this into account. Suppose that 40% of a given task can benefit from parallelization. If that part of the task can be sped up by a factor of 10, then the overall speedup is given by:&lt;/p&gt;
+&lt;p&gt;\[S = \frac{1}{(1 - 0.4) + \frac{0.4}{10}} = 1.56\]&lt;/p&gt;
+&lt;p&gt;In virtually every lab that you will do in this course, you will be asked to measure the speedup of your solution. This is a good way to verify that your solution is correct and that it is actually faster than the serial version. This will also be a critical part of your project, where you will first need to create a serial version of your solution and then parallelize it.&lt;/p&gt;
+&lt;h2 id=&#34;gpu-programming-history&#34;&gt;GPU Programming History&lt;/h2&gt;
+&lt;p&gt;Early GPU programming was done using OpenGL and DirectX. These were graphics APIs, so everything had to be done in terms of pixel shaders. Researchers found ways to use these APIs to do general purpose computing, but it was very difficult since one could not easily debug the code. Essentially, the input had to be encoded as a texture or color. The GPU would then process the texture and output the result as a texture. The output would then have to be decoded to get the result.&lt;/p&gt;
+&lt;p&gt;In 2006, NVIDIA unveiled the GeForce 8800 GTX, which was the first DirectX 10 GPU. More importantly, it was the first GPU built using the CUDA architecture. CUDA also refers to the programming model that NVIDIA developed to facilitate general purpose GPU programming. A key piece of the CUDA architecture is the unified shader pipepline, which allows each ALU to be utilized for general purpose computations.&lt;/p&gt;
+&lt;p&gt;The different ALUs have access to a global memory space as well as a shared memory space managed by software. We will explore the specifics of this architecture in part 1 of this course. Since that time, many major changes have been made to the CUDA architecture. Additionally, many other standards have been developed to facilitate GPU programming and parallel computing in general.&lt;/p&gt;
+&lt;p&gt;One of the most important standards, which we also study in this course, is OpenCL. OpenCL is an open standard that allows for heterogeneous parallel computing. It is supported by many different vendors, including NVIDIA, AMD, and Intel. OpenCL is a C-like language that allows for the creation of kernels that can be executed on a variety of devices. The OpenCL standard is maintained by the Khronos Group, which also maintains the OpenGL standard.&lt;/p&gt;
+&lt;h2 id=&#34;applications&#34;&gt;Applications&lt;/h2&gt;
+&lt;p&gt;We are currently in the midst of a data explosion. Vertical scaling, the idea of improving a single system, cannot meet the demands of modern challenges. Horizontal scaling is the most sure solution for now. Distributed systems utilize cheap, commodity servers in lieu of complex supercomputers to distribute applications to mass markets. Parallel computation has applications in just about every field imaginable. We will try to cover a wide variety of applications, as many of them feature parallel solutions that are helpful in other domains.&lt;/p&gt;
+&lt;h3 id=&#34;linear-algebra-libraries&#34;&gt;Linear Algebra Libraries&lt;/h3&gt;
+&lt;p&gt;One of the most widely utilized applications of data parallelism is in linear algebra libraries. Common matrix operations such as matrix multiplication and matrix inversion are highly parallelizable. The &lt;a href=&#34;https://developer.nvidia.com/cublas&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;cuBLAS&lt;/a&gt; library is a highly optimized implementation of these operations.&lt;/p&gt;
+&lt;p&gt;For a great overview of the evolution of linear algebra libraries and the impact of GPUs, see Jack Dongarra&amp;rsquo;s keynote speech at the &lt;a href=&#34;https://youtu.be/8TyyCWuquI0?si=DkPEDPWp7_n8GnVe&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;50 Years of Computing at UTA&lt;/a&gt; event.&lt;/p&gt;
+&lt;h3 id=&#34;machine-learning&#34;&gt;Machine Learning&lt;/h3&gt;
+&lt;p&gt;Model training and optimization in machine learning is a perfect candidate for data parallelism. Large models such as Llama2 require a massive amount of data to train (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Touvron et al. 2023&lt;/a&gt;). Deep learning models such as this are trained on many GPUs that can execute functions on independent data points in parallel.&lt;/p&gt;
+&lt;p&gt;NVIDIA has developed a useful library, which we will study in this course, called &lt;a href=&#34;https://developer.nvidia.com/cudnn&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;cuDNN&lt;/a&gt; that implements highly optimized implementations of common functions used in a deep learning pipeline. High level frameworks build off of this library to provide easier development interfaces for machine learning practitioners. Popular examples include &lt;a href=&#34;https://pytorch.org&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;PyTorch&lt;/a&gt;, &lt;a href=&#34;https://www.tensorflow.org&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;TensorFlow&lt;/a&gt;, and &lt;a href=&#34;https://github.com/google/jax&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;JAX&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;computer-vision&#34;&gt;Computer Vision&lt;/h3&gt;
+&lt;p&gt;Most of the current state-of-the-art computer vision methods are driven by deep learning, so they also benefit greatly from data parallelism. &lt;a href=&#34;https://ajdillhoff.github.io/notes/convolutional_neural_networks/&#34;&gt;Convolutional Neural Networks&lt;/a&gt; (CNN) have been the driving force behind machine-learning based computer vision methods. They are parameter efficient and take advantage of data parallelism. We will study the core operation behind this model, the convolutional opreator.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-12-21_15-02-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;2D Convolution on a 4x4 grid using a 3x3 filter with unit stride (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;2D Convolution on a 4x4 grid using a 3x3 filter with unit stride (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;computational-chemistry&#34;&gt;Computational Chemistry&lt;/h3&gt;
+&lt;p&gt;CUDA has been utilized for computing heat transfer calculations efficiently (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Sosutha and Mohana 2015&lt;/a&gt;). The authors found that the computations could be computed independently, which is perfect for a parallel architecture like a GPU, where throughput is preferred to latency.&lt;/p&gt;
+&lt;h3 id=&#34;other-applications&#34;&gt;Other Applications&lt;/h3&gt;
+&lt;p&gt;There are many other applications of data parallelism, some of which we will explore and learn from in this course. Examples include the following.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Financial Analysis&lt;/li&gt;
+&lt;li&gt;Scientific Simulation&lt;/li&gt;
+&lt;li&gt;Engineering Simulation&lt;/li&gt;
+&lt;li&gt;Data Intensive Analytics&lt;/li&gt;
+&lt;li&gt;Medical Imaging&lt;/li&gt;
+&lt;li&gt;Digital Audio Processing&lt;/li&gt;
+&lt;li&gt;Digital Video Processing&lt;/li&gt;
+&lt;li&gt;Biomedical Informatics&lt;/li&gt;
+&lt;li&gt;Electronic Design Automation&lt;/li&gt;
+&lt;li&gt;Statistical Modeling&lt;/li&gt;
+&lt;li&gt;Numerical Methods&lt;/li&gt;
+&lt;li&gt;Ray Tracing Rendering&lt;/li&gt;
+&lt;li&gt;Interactive Physics&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;what-to-expect-from-this-course&#34;&gt;What to expect from this course&lt;/h2&gt;
+&lt;p&gt;This course is extremely hands-on. Almost every topic we cover will have an associated programming exercise. Some of these exercises will be integrated into assignments, other will be presented as in-class demonstrations. The fact that there are so many applications means you will need to be able to adapt to new domains quickly. By the end of this course, you should have acquired the following skills:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Advanced familiarity with the CUDA programming model&lt;/li&gt;
+&lt;li&gt;Ability to think in parallel&lt;/li&gt;
+&lt;li&gt;Identify sections of code that can be parallelized&lt;/li&gt;
+&lt;li&gt;Implementation of parallel solutions&lt;/li&gt;
+&lt;li&gt;Debugging parallel code&lt;/li&gt;
+&lt;li&gt;Measuring performance increase from parallelization&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” &lt;i&gt;Arxiv:1603.07285 [Cs, Stat]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1603.07285&#34;&gt;http://arxiv.org/abs/1603.07285&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Sosutha, S., and D. Mohana. 2015. “Heterogeneous Parallel Computing Using Cuda for Chemical Process.” &lt;i&gt;Procedia Computer Science&lt;/i&gt;, Graph Algorithms, High Performance Implementations and Its Applications ( ICGHIA 2014 ), 47 (January): 237–46. &lt;a href=&#34;https://doi.org/10.1016/j.procs.2015.03.203&#34;&gt;https://doi.org/10.1016/j.procs.2015.03.203&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. “Llama 2: Open Foundation and Fine-Tuned Chat Models.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2307.09288&#34;&gt;https://doi.org/10.48550/arXiv.2307.09288&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

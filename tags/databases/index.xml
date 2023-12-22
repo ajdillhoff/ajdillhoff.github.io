@@ -7,10 +7,253 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Tue, 14 Nov 2023 00:00:00 -0600</lastBuildDate>
+    <lastBuildDate>Fri, 24 Nov 2023 00:00:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/databases/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>MapReduce</title>
+      <link>https://ajdillhoff.github.io/notes/mapreduce/</link>
+      <pubDate>Fri, 24 Nov 2023 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/mapreduce/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-is-mapreduce&#34;&gt;What is MapReduce?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#hadoop-distributed-file-system--hdfs&#34;&gt;Hadoop Distributed File System (HDFS)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#mapreduce-overview&#34;&gt;MapReduce Overview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#hadoop-v2-aka-yarn&#34;&gt;Hadoop v2 AKA YARN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;These are my personal notes from the book &lt;em&gt;Fundamentals of Database Systems&lt;/em&gt; by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Elmasri and Navathe 2015&lt;/a&gt;). I highly recommend reading the original source material. The contents of the article should only serve as a brief overview of the topic.&lt;/p&gt;
+&lt;h2 id=&#34;what-is-mapreduce&#34;&gt;What is MapReduce?&lt;/h2&gt;
+&lt;p&gt;MapReduce is a programming model for processing large datasets in parallel. It was originally developed by Jeffrey Dean and Sanjay Ghemawat at Google in 2004 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dean and Ghemawat 2008&lt;/a&gt;). It is based on the functional programming paradigm and is inspired by the map and reduce functions in Lisp and other functional languages. The MapReduce programming model is implemented in the Hadoop framework.&lt;/p&gt;
+&lt;p&gt;Hadoop is made up of&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Hadoop Distributed File System (HDFS)&lt;/li&gt;
+&lt;li&gt;Yet Another Resource Negotiator (YARN)&lt;/li&gt;
+&lt;li&gt;MapReduce&lt;/li&gt;
+&lt;li&gt;Hadoop Common&lt;/li&gt;
+&lt;/ul&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-26_20-32-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Diagram of MapReduce execution (Elmasri and Navathe).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Diagram of MapReduce execution (Elmasri and Navathe).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;example-word-count&#34;&gt;Example: Word Count&lt;/h3&gt;
+&lt;p&gt;The classic introductory example for MapReduce is word count, as described in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dean and Ghemawat 2008&lt;/a&gt;). Let&amp;rsquo;s say we have a collection of text documents that we want to preprocess for a Natural Language Processing pipeline. One of the first steps is to count the number of times each word appears in the corpus. This is a simple task that can be done in a single machine, but let&amp;rsquo;s assume that the corpus is too large to fit in memory on a single machine. We can use MapReduce to distribute the work across multiple machines.&lt;/p&gt;
+&lt;p&gt;The problem is split into two steps: map and reduce. Each step is represented as a function that can run on any arbitrary number of nodes. For now, we will not worry about how the original data is split up efficiently. Instead, assume that each machine gets a single document.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;map&lt;/span&gt;(doc):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; word &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; doc:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        emit(word, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;reduce&lt;/span&gt;(word, counts):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    emit(word, sum(counts))
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The map function takes a document and emits a key-value pair for each word in the document. The key is the word and the value is 1. The reduce function takes a word and a list of counts and emits a key-value pair with the word and the sum of the counts. The output of the map function is a list of key-value pairs that are grouped by key. The reduce function is then applied to each group of key-value pairs.&lt;/p&gt;
+&lt;h2 id=&#34;hadoop-distributed-file-system--hdfs&#34;&gt;Hadoop Distributed File System (HDFS)&lt;/h2&gt;
+&lt;p&gt;Store metadata and application data on different nodes.
+Metadata is stored on the NameNode.
+Application data is stored on DataNodes. This data is replicated across multiple DataNodes.
+HDFS uses primary-secondary architecture. The NameNode is the primary and the DataNodes are the secondaries.
+DataNodes are typically partitioned into 1 node per machine.
+NameNodes maintain inodes about file and directories. These inodes are used to map file blocks to DataNodes.
+NameNodes instruct the DataNodes to create, delete, and replicate blocks.
+Data is retrieved by contacting the NameNode to get the block locations and then contacting the DataNodes directly.&lt;/p&gt;
+&lt;h3 id=&#34;namenode&#34;&gt;NameNode&lt;/h3&gt;
+&lt;p&gt;Maintain an image of the file system.
+Maintain a journal of changes to the file system.&lt;/p&gt;
+&lt;p&gt;Secondary NameNodes are used to create checkpoints of the NameNode&amp;rsquo;s state.&lt;/p&gt;
+&lt;h3 id=&#34;datanode&#34;&gt;DataNode&lt;/h3&gt;
+&lt;p&gt;Periodically send heartbeats to the NameNode to indicate their current state (BlockReport).
+Block locations are not part of the namespace image.
+BlockReports are used by services like the MapReduce JobTracker to determine where to schedule tasks.&lt;/p&gt;
+&lt;h3 id=&#34;file-i-o-operations&#34;&gt;File I/O Operations&lt;/h3&gt;
+&lt;p&gt;HDFS is single-writer, multiple-reader.
+A file consists of blocks.
+Data that is written on the last block becomes available after an hflush operation.&lt;/p&gt;
+&lt;h2 id=&#34;mapreduce-overview&#34;&gt;MapReduce Overview&lt;/h2&gt;
+&lt;p&gt;MapReduce is also a primary-secondary architecture.
+The JobTracker is the primary process and the TaskTrackers are the secondaries.&lt;/p&gt;
+&lt;h3 id=&#34;jobtracker&#34;&gt;JobTracker&lt;/h3&gt;
+&lt;p&gt;Manages life cycles of jobs and schedules tasks on the cluster.&lt;/p&gt;
+&lt;h4 id=&#34;job-submission&#34;&gt;Job Submission&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Gets a new ID from the job tracker.&lt;/li&gt;
+&lt;li&gt;Verifies output specifications.&lt;/li&gt;
+&lt;li&gt;Computes input splits for the job.&lt;/li&gt;
+&lt;li&gt;Copies any resources needed to run the job.&lt;/li&gt;
+&lt;li&gt;Informs the job tracker that it is ready for execution.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;job-initialization&#34;&gt;Job Initialization&lt;/h4&gt;
+&lt;p&gt;When a job is initialized, it is placed in a queue with all information related to executing and tracking the job. A map task is created for each of the input splits. Further, a job setup and cleanup task are created.&lt;/p&gt;
+&lt;h4 id=&#34;task-assignment&#34;&gt;Task Assignment&lt;/h4&gt;
+&lt;p&gt;Each TaskTracker periodically sends a &lt;em&gt;heartbeat&lt;/em&gt; to the JobTracker with status updates. These inform the JobTracker that it is alive or is able to run a new task. When a TaskTracker is ready to run a new task, the JobTracker will allocate a new one by selecting it using some defined scheduler. There is a default scheduler that will pick based on priority, but a custom scheduler can be given to the job.&lt;/p&gt;
+&lt;p&gt;Another consideration for assigning is a map task is &lt;strong&gt;data locality&lt;/strong&gt;. Map tasks are based on the input splits, so the JobTracker will try to run the task on the same node that the data is located. If this is not possible, it will prioritize based on the distance between the node and the data. For reduce tasks, there are no locality considerations.&lt;/p&gt;
+&lt;h4 id=&#34;task-execution&#34;&gt;Task Execution&lt;/h4&gt;
+&lt;p&gt;When a task is executed, any pertinent information is copied from the shared filesystem to a local filesystem. A JVM is launched to run each task so that any errors will only affect the JVM and not the entire TaskTracker. The JVM will run the task and then report back to the JobTracker with status updates.&lt;/p&gt;
+&lt;h4 id=&#34;job-completion&#34;&gt;Job Completion&lt;/h4&gt;
+&lt;p&gt;A job is completed once the last task is finished. In this case, a job cleanup task is run to clean up any resources used by the job.&lt;/p&gt;
+&lt;h3 id=&#34;tasktracker&#34;&gt;TaskTracker&lt;/h3&gt;
+&lt;p&gt;TaskTrackers run one per worker node on a cluster. Both map and reduce tasks run on Worker nodes. When a TaskTracker is started, it registers with the JobTracker so that the JobTracker can assign tasks to it. The actual task is run in a separate process on the Worker node which is managed by the TaskTracker.&lt;/p&gt;
+&lt;h3 id=&#34;fault-tolerance&#34;&gt;Fault Tolerance&lt;/h3&gt;
+&lt;p&gt;In Hadoop v1, three types of failures must be considered. The first two are the TaskTracker and JobTracker. The third is the spawned process that runs the task on the TaskTracker.&lt;/p&gt;
+&lt;h4 id=&#34;task-failure&#34;&gt;Task Failure&lt;/h4&gt;
+&lt;p&gt;Tasks can fail due to bad input, faulty code, hardware failure, or some other run time error. When an individual task fails, the error is logged and the failure is reported back to the parent TaskTracker. Since the TaskTracker is still running, it can notify the JobTracker that it is free to run another task.&lt;/p&gt;
+&lt;p&gt;There is also a default timeout duration for tasks that are not making progress. If a task exceeds this timeout, it is killed and the TaskTracker is notified. The default timeout is 10 minutes but can be configured by the user. There are also settings dictating how many times a task can fail before the job is considered failed or the percentage of tasks that can fail before the job is considered failed. There may be circumstances in which task failures are acceptable as long as some of the work is completed.&lt;/p&gt;
+&lt;h4 id=&#34;tasktracker-failure&#34;&gt;TaskTracker Failure&lt;/h4&gt;
+&lt;p&gt;TaskTrackers that fail or are unresponsive past the heartbeat timeout are considered dead. The JobTracker will remove it from its pool of trackers to schedule tasks on. Tasks that were completed or in progress on the failed TaskTracker are rescheduled since the intermediate data is no longer available.&lt;/p&gt;
+&lt;p&gt;TaskTrackers that fail repeatedly are added to a blacklist and are not used for scheduling tasks. This can occur if the TaskTracker is not configured correctly or if the TaskTracker is running on faulty hardware.&lt;/p&gt;
+&lt;h4 id=&#34;jobtracker-failure&#34;&gt;JobTracker Failure&lt;/h4&gt;
+&lt;p&gt;The JobTracker is a single point of failure in Hadoop v1. If the JobTracker fails, all jobs that are running or waiting to run are lost. The rate of failure is typically low since the chance that a single machine fails is low. If it does fail, a restart is attempted and all running jobs need to be restarted.&lt;/p&gt;
+&lt;h3 id=&#34;shuffle-and-sort&#34;&gt;Shuffle and Sort&lt;/h3&gt;
+&lt;p&gt;The shuffle and sort phase is a key process which defines how data is moved from the map tasks to the reduce tasks. Data may be split among many map tasks, but reducers get all rows for a given key together. The shuffle and sort phase is responsible for this. It is split up into three phases.&lt;/p&gt;
+&lt;h4 id=&#34;map-phase&#34;&gt;Map Phase&lt;/h4&gt;
+&lt;p&gt;Output from the map tasks is stored in memory in a circular buffer. Once that buffer becomes full, it spills over to the disk. Before going to the disk, it is partitioned based on the reducer that it will ultimately be sent to. This acts as a sort of pre-sorting to optimize the shuffle and sort phase.&lt;/p&gt;
+&lt;p&gt;Depending on the setting for the size of spill files, the map phase may produce multiple spill files. These files are merged into a single file before being sent to the reducers. The final result is a single file per reducer that is sorted by key.&lt;/p&gt;
+&lt;h4 id=&#34;copy-phase&#34;&gt;Copy Phase&lt;/h4&gt;
+&lt;p&gt;The data needed by a particular reducer task is split up among many map tasks. The copy phase is responsible for copying the data from the map tasks to the reducer tasks. The reducer will begin copying as data is made available by the map tasks, even if all map tasks have not been completed.&lt;/p&gt;
+&lt;p&gt;Copies can be executed in parallel via threading. The JobTracker is responsible for assigning the reducers to the map tasks so that the data is copied to the correct reducer. When all map tasks have completed, the reducer will begin the reduce phase.&lt;/p&gt;
+&lt;h4 id=&#34;reduce-phase&#34;&gt;Reduce Phase&lt;/h4&gt;
+&lt;p&gt;In this phase, data is merged while maintaining their sorted order. The reduce function is this executed for each key in the sorted output. The output is written directly to the &lt;em&gt;output filesystem&lt;/em&gt;, which is commonly HDFS.&lt;/p&gt;
+&lt;h3 id=&#34;types-of-schedulers&#34;&gt;Types of Schedulers&lt;/h3&gt;
+&lt;p&gt;Early versions of Hadoop used a simple FIFO scheduler. This scheduler would run jobs in the order that they were submitted. This is not ideal since it does not take into account the size of the job or the priority of the job. A job that is submitted after a large job will have to wait until the large job is completed. Considering longer running jobs like machine learning training, a better scheduler is needed.&lt;/p&gt;
+&lt;h4 id=&#34;the-fair-scheduler&#34;&gt;The Fair Scheduler&lt;/h4&gt;
+&lt;p&gt;The fair scheduler aims to give every user an equal amount of cluster capacity over time. This allows multiple jobs to be running simultaneously. The scheduler does this by placing jobs in &lt;em&gt;pools&lt;/em&gt; assigned to each user. This allows short jobs to run without waiting for long jobs to complete.&lt;/p&gt;
+&lt;p&gt;The fair scheduler also supports &lt;em&gt;preemption&lt;/em&gt;. This allows the scheduler to kill tasks that are running for too long to make room for other jobs. This is useful for long running jobs that are not making progress. Note that this does not kill the entire job. The tasks that are killed are rescheduled on other TaskTrackers.&lt;/p&gt;
+&lt;h4 id=&#34;the-capacity-scheduler&#34;&gt;The Capacity Scheduler&lt;/h4&gt;
+&lt;p&gt;In capacity scheduling, a cluster is divided into multiple queues. Each queue is assigned some amount of cluster capacity. These queues are hierarchical, so a queue can be assigned to a user or a group of users. This allows for more fine grained control over the cluster capacity. In effect, this allows for multiple clusters to be managed by a single cluster.&lt;/p&gt;
+&lt;h3 id=&#34;merging-database-functions-and-mapreduce&#34;&gt;Merging Database Functions and MapReduce&lt;/h3&gt;
+&lt;p&gt;The power of MapReduce was apparent, but all operations had to be framed in the context of a mapping and reduce functions. This made it difficult or tedious to perform common database operations. Several projects were started to bridge the gap between MapReduce and databases.&lt;/p&gt;
+&lt;h4 id=&#34;apache-pig&#34;&gt;Apache Pig&lt;/h4&gt;
+&lt;p&gt;Developed by Yahoo, Pig Latin is a high level language that glues together SQL and MapReduce. It was not meant to replace SQL. In fact, the authors note that people in data analysis fine SQL to be unnatural for data analysis. Their work was mean to provide something that meets the declarative style of SQL and procedural style of MapReduce. Consider their opening example.&lt;/p&gt;
+&lt;p&gt;Given a table of &lt;code&gt;urls&lt;/code&gt;: &lt;code&gt;(url, category, pagerank)&lt;/code&gt;, find the average pagerank of high-pagerank urls in that category. In SQL, a query might look like this.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;SELECT&lt;/span&gt; category, AV &lt;span style=&#34;color:#66d9ef&#34;&gt;G&lt;/span&gt;(pagerank)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;FROM&lt;/span&gt; urls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;WHERE&lt;/span&gt; pagerank &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;GROUP&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;BY&lt;/span&gt; category
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;HAVING&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;COUNT&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;An equivalent query in Pig Latin would look like this.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-pig&#34; data-lang=&#34;pig&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;good_urls &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;FILTER&lt;/span&gt; urls &lt;span style=&#34;color:#66d9ef&#34;&gt;BY&lt;/span&gt; pagerank &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;groups &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;GROUP&lt;/span&gt; good_urls &lt;span style=&#34;color:#66d9ef&#34;&gt;BY&lt;/span&gt; category;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;big_groups &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;FILTER&lt;/span&gt; groups &lt;span style=&#34;color:#66d9ef&#34;&gt;BY&lt;/span&gt; COUNT(good_urls) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;**6;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;output&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;FOREACH&lt;/span&gt; big_groups &lt;span style=&#34;color:#66d9ef&#34;&gt;GENERATE&lt;/span&gt; category, AVG(good_urls.pagerank);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Each statement in Pig Latin describes a data transformation. These statements are converted into an ensemble of MapReduce jobs, but each statement is not necessarily a single MapReduce job. The Pig Latin compiler is responsible for optimizing the statements.&lt;/p&gt;
+&lt;h4 id=&#34;apache-hive&#34;&gt;Apache Hive&lt;/h4&gt;
+&lt;p&gt;Hive was developed at Facebook to provide an SQL-like interface for processing queries on big data. In addition to providing a high-level language, it also treats Hadoop like a DBMS. This allows users to impose structure on the data and query it using as if it were a traditional database.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-26_16-11-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Hive Architecture (Elmasri and Navathe).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Hive Architecture (Elmasri and Navathe).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Hive comes with a query-based language called HiveQL that includes joints, aggregations, and other common SQL operations. The tables in Hive are linked directly to directories in HDFS. This allows for data to be loaded into Hive from HDFS and vice versa. Hive also supports partitioning and bucketing to improve performance. Bucketing stores the data physically in the same file, partitioned by the bucketing key.&lt;/p&gt;
+&lt;h3 id=&#34;advantages-of-hadoop-mapreduce&#34;&gt;Advantages of Hadoop/MapReduce&lt;/h3&gt;
+&lt;p&gt;Consider scanning a 100 TB dataset using a single machine. At a rate of 50 Mbps, this would take around 24 days. Using 1000 machines in parallel would reduce this to about 30 minutes. The resources available can be scaled easily by adding more machines to the cluster. In the event that a machine fails, the tasks can be reassigned to other machines without losing the job completely.&lt;/p&gt;
+&lt;h2 id=&#34;hadoop-v2-aka-yarn&#34;&gt;Hadoop v2 AKA YARN&lt;/h2&gt;
+&lt;p&gt;Hadoop v1 was well received and solved many of the problems efficiently through its MapReduce programming model. However, many problems arise naturally as the size of the cluster grows.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The JobTracker is a single point of failure. As the cluster size increases, this becomes more of an issue.&lt;/li&gt;
+&lt;li&gt;Resources are allocated statically, resulting in a large amount of unused compute when processing jobs.&lt;/li&gt;
+&lt;li&gt;Not every job fits cleanly into the MapReduce programming model.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In addition to these issues, YARN aims to improve scalability, resource utilization, and flexibility. By increasing the availability of nodes at any given time, there are less wasted resources on a cluster. This is especially useful in enterprise-level clusters where there are many users and jobs running at any given time.&lt;/p&gt;
+&lt;p&gt;Supporting multiple programming models also aids to this scalability. Consider a machine learning model being trained for long periods of time. In Hadoop v1, developers would frame these as MapReduce jobs. A major problem with this is that after the original update, the jobs would exchange data outside of the purview of the JobTracker. This also means that the fault tolerance features built into Hadoop v1 were not available for these jobs.&lt;/p&gt;
+&lt;h3 id=&#34;architecture&#34;&gt;Architecture&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-11-26_18-08-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Hadoop v1 vs. YARN Architecture (Elmasri and Navathe).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hadoop v1 vs. YARN Architecture (Elmasri and Navathe).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;resourcemanager&#34;&gt;ResourceManager&lt;/h4&gt;
+&lt;p&gt;The ResourceManager is the master process in YARN. It is responsible for allocating resources to applications and scheduling tasks. Allocations are based on the chosen scheduler. ApplicationMasters will request resources from the ResourceManager. The ResourceManager will then allocate resources to the ApplicationMaster and notify the NodeManager to start the containers.&lt;/p&gt;
+&lt;p&gt;Since the ResourceManager is only responsible for scheduling the available resources, different applications can make use of the same cluster at the same time. This is a major improvement over Hadoop v1 where the JobTracker was responsible for scheduling all jobs.&lt;/p&gt;
+&lt;h4 id=&#34;nodemanager&#34;&gt;NodeManager&lt;/h4&gt;
+&lt;p&gt;The NodeManager runs on every worker node in the cluster. It launches and monitors containers on the node as well as reports the resource utilization back to the ResourceManager. It additionally provides services to Containers such as security, logging, and local file management.&lt;/p&gt;
+&lt;h4 id=&#34;applicationmaster&#34;&gt;ApplicationMaster&lt;/h4&gt;
+&lt;p&gt;The ApplicationMaster manages the execution of an application&amp;rsquo;s processes. These applications can range from a traditional MapReduce job to a long-running machine learning model. The ApplicationMaster is responsible for negotiating resources with the ResourceManager and working with the NodeManager to execute and monitor the containers. It sends resource status updates to the ResourceManager as requirements change.&lt;/p&gt;
+&lt;h4 id=&#34;container&#34;&gt;Container&lt;/h4&gt;
+&lt;p&gt;A container is a collection of resources allocated to an application. These resources are allocated by the ResourceManager and managed by the NodeManager. These resources refer directly to the resources available on the node. This includes CPU, memory, disk, and network.&lt;/p&gt;
+&lt;h3 id=&#34;fault-tolerance&#34;&gt;Fault Tolerance&lt;/h3&gt;
+&lt;p&gt;The ResourceManager is a single point of failure in YARN. If it fails, it can restart and recover its state. Any containers in the cluster are killed and restarted. The ApplicationMaster is responsible for restarting any tasks that were running in the containers.&lt;/p&gt;
+&lt;h3 id=&#34;execution-flow&#34;&gt;Execution Flow&lt;/h3&gt;
+&lt;p&gt;The following gives an example of how a typical MapReduce job would be executed in YARN.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The client submits a job to the ResourceManager.&lt;/li&gt;
+&lt;li&gt;The ResourceManager allocates a container for the ApplicationMaster and launches the ApplicationMaster on a NodeManager.&lt;/li&gt;
+&lt;li&gt;The ApplicationMaster negotiates resources with the ResourceManager.&lt;/li&gt;
+&lt;li&gt;The ResourceManager allocates containers for the MapReduce tasks and launches them on the NodeManagers.&lt;/li&gt;
+&lt;li&gt;The MapReduce tasks are executed in the containers.&lt;/li&gt;
+&lt;li&gt;The ApplicationMaster monitors the MapReduce tasks and reports status updates to the ResourceManager.&lt;/li&gt;
+&lt;li&gt;When the job is complete, the ApplicationMaster is unregistered and the containers are released.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dean, Jeffrey, and Sanjay Ghemawat. 2008. “MapReduce: Simplified Data Processing on Large Clusters.” &lt;i&gt;Communications of the Acm&lt;/i&gt; 51 (1): 107–13. &lt;a href=&#34;https://doi.org/10.1145/1327452.1327492&#34;&gt;https://doi.org/10.1145/1327452.1327492&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Elmasri, Ramez, and Shamkant B. Navathe. 2015. &lt;i&gt;Fundamentals of Database Systems&lt;/i&gt;. 7th ed. Pearson. &lt;a href=&#34;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&#34;&gt;https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Distributed Databases</title>
@@ -1056,7 +1299,7 @@ We can also query the e-mail addresses of all users who have a character that is
 &lt;h2 id=&#34;database-management-systems&#34;&gt;Database Management Systems&lt;/h2&gt;
 &lt;p&gt;With our database defined, we can use it to make &lt;strong&gt;queries&lt;/strong&gt; about the records that it stores. How we access that database depends on the DBMS that we are using. The database itself is can be modified and changed without affecting the applications that use it. We can also create multiple &lt;strong&gt;views&lt;/strong&gt; of our data dynamically. For example, we can create a view that shows all of the items that a user has in their inventory, or show all of the characters that belong to a specific user. This is all done without modifying the underlying data. This is a powerful feature of databases that allows us to create complex applications that can be easily modified and updated.&lt;/p&gt;
 &lt;p&gt;A &lt;strong&gt;transaction&lt;/strong&gt; is a set of operations that are performed on a database. Transactions are typically used to ensure that the database is in a consistent state. For example, if we want to transfer money from one account to another, we need to make sure that the money is removed from one account and added to the other. If we fail to do this, we could end up with money that is neither in the original account nor the destination account. Transactions allow us to perform these operations in a way that guarantees that the database is in a consistent state.&lt;/p&gt;
-&lt;p&gt;A DBMS must ensure transactional properties such as &lt;strong&gt;isolation&lt;/strong&gt;, which ensures that each transaction executes in isolation from others, and &lt;strong&gt;atomicity&lt;/strong&gt;, which ensures that either all operations in a transaction are executed or none are.&lt;/p&gt;
+&lt;p&gt;A DBMS must ensure transactional properties such as &lt;strong&gt;isolation&lt;/strong&gt;, which ensure that each transaction executes in isolation from others, and &lt;strong&gt;atomicity&lt;/strong&gt;, which ensures that either all operations in a transaction are executed or none are.&lt;/p&gt;
 &lt;h3 id=&#34;dbms-languages&#34;&gt;DBMS Languages&lt;/h3&gt;
 &lt;p&gt;A DBMS provides a way for us to interact with the database. Depending on the level of abstraction and the DBMS itself, a specific language is used to perform basic operations on the database. The most common languages are &lt;strong&gt;data definition languages&lt;/strong&gt; (DDLs) and &lt;strong&gt;data manipulation languages&lt;/strong&gt; (DMLs). A DDL is used to define the structure of the database, such as creating tables and defining relationships between them. A DML is used to perform operations on the data itself, such as inserting, updating, and deleting records.&lt;/p&gt;
 &lt;p&gt;A common query language called Structured Query Language (SQL) defines both DDLs and DMLs. For example, to create our &lt;code&gt;User&lt;/code&gt; table from above, we can use the following SQL statement:&lt;/p&gt;

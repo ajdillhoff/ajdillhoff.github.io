@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents What is MapReduce? Hadoop Distributed File System (HDFS) MapReduce Overview Hadoop v2 AKA YARN Summary These are my personal notes from the book Fundamentals of Database Systems by (Elmasri and Navathe 2015). I highly recommend reading the original source material. The contents of the article should only serve as a brief overview of the topic.
+What is MapReduce? MapReduce is a programming model for processing large datasets in parallel.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/mapreduce/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/mapreduce/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/mapreduce/">
+  <meta property="og:title" content="MapReduce | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents What is MapReduce? Hadoop Distributed File System (HDFS) MapReduce Overview Hadoop v2 AKA YARN Summary These are my personal notes from the book Fundamentals of Database Systems by (Elmasri and Navathe 2015). I highly recommend reading the original source material. The contents of the article should only serve as a brief overview of the topic.
+What is MapReduce? MapReduce is a programming model for processing large datasets in parallel."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-11-24T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-11-24T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>MapReduce | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">MapReduce</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-11-24 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-11-24 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Nov 24, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    14 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/mapreduce/&amp;text=MapReduce" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/mapreduce/&amp;t=MapReduce" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=MapReduce&amp;body=https://ajdillhoff.github.io/notes/mapreduce/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/mapreduce/&amp;title=MapReduce" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=MapReduce%20https://ajdillhoff.github.io/notes/mapreduce/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/mapreduce/&amp;title=MapReduce" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#what-is-mapreduce">What is MapReduce?</a></li>
+<li><a href="#hadoop-distributed-file-system--hdfs">Hadoop Distributed File System (HDFS)</a></li>
+<li><a href="#mapreduce-overview">MapReduce Overview</a></li>
+<li><a href="#hadoop-v2-aka-yarn">Hadoop v2 AKA YARN</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>These are my personal notes from the book <em>Fundamentals of Database Systems</em> by (<a href="#citeproc_bib_item_2">Elmasri and Navathe 2015</a>). I highly recommend reading the original source material. The contents of the article should only serve as a brief overview of the topic.</p>
+<h2 id="what-is-mapreduce">What is MapReduce?</h2>
+<p>MapReduce is a programming model for processing large datasets in parallel. It was originally developed by Jeffrey Dean and Sanjay Ghemawat at Google in 2004 (<a href="#citeproc_bib_item_1">Dean and Ghemawat 2008</a>). It is based on the functional programming paradigm and is inspired by the map and reduce functions in Lisp and other functional languages. The MapReduce programming model is implemented in the Hadoop framework.</p>
+<p>Hadoop is made up of</p>
+<ul>
+<li>Hadoop Distributed File System (HDFS)</li>
+<li>Yet Another Resource Negotiator (YARN)</li>
+<li>MapReduce</li>
+<li>Hadoop Common</li>
+</ul>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-11-26_20-32-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Diagram of MapReduce execution (Elmasri and Navathe)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Diagram of MapReduce execution (Elmasri and Navathe).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="example-word-count">Example: Word Count</h3>
+<p>The classic introductory example for MapReduce is word count, as described in (<a href="#citeproc_bib_item_1">Dean and Ghemawat 2008</a>). Let&rsquo;s say we have a collection of text documents that we want to preprocess for a Natural Language Processing pipeline. One of the first steps is to count the number of times each word appears in the corpus. This is a simple task that can be done in a single machine, but let&rsquo;s assume that the corpus is too large to fit in memory on a single machine. We can use MapReduce to distribute the work across multiple machines.</p>
+<p>The problem is split into two steps: map and reduce. Each step is represented as a function that can run on any arbitrary number of nodes. For now, we will not worry about how the original data is split up efficiently. Instead, assume that each machine gets a single document.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">map</span>(doc):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> word <span style="color:#f92672">in</span> doc:
+</span></span><span style="display:flex;"><span>        emit(word, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">reduce</span>(word, counts):
+</span></span><span style="display:flex;"><span>    emit(word, sum(counts))
+</span></span></code></pre></div><p>The map function takes a document and emits a key-value pair for each word in the document. The key is the word and the value is 1. The reduce function takes a word and a list of counts and emits a key-value pair with the word and the sum of the counts. The output of the map function is a list of key-value pairs that are grouped by key. The reduce function is then applied to each group of key-value pairs.</p>
+<h2 id="hadoop-distributed-file-system--hdfs">Hadoop Distributed File System (HDFS)</h2>
+<p>Store metadata and application data on different nodes.
+Metadata is stored on the NameNode.
+Application data is stored on DataNodes. This data is replicated across multiple DataNodes.
+HDFS uses primary-secondary architecture. The NameNode is the primary and the DataNodes are the secondaries.
+DataNodes are typically partitioned into 1 node per machine.
+NameNodes maintain inodes about file and directories. These inodes are used to map file blocks to DataNodes.
+NameNodes instruct the DataNodes to create, delete, and replicate blocks.
+Data is retrieved by contacting the NameNode to get the block locations and then contacting the DataNodes directly.</p>
+<h3 id="namenode">NameNode</h3>
+<p>Maintain an image of the file system.
+Maintain a journal of changes to the file system.</p>
+<p>Secondary NameNodes are used to create checkpoints of the NameNode&rsquo;s state.</p>
+<h3 id="datanode">DataNode</h3>
+<p>Periodically send heartbeats to the NameNode to indicate their current state (BlockReport).
+Block locations are not part of the namespace image.
+BlockReports are used by services like the MapReduce JobTracker to determine where to schedule tasks.</p>
+<h3 id="file-i-o-operations">File I/O Operations</h3>
+<p>HDFS is single-writer, multiple-reader.
+A file consists of blocks.
+Data that is written on the last block becomes available after an hflush operation.</p>
+<h2 id="mapreduce-overview">MapReduce Overview</h2>
+<p>MapReduce is also a primary-secondary architecture.
+The JobTracker is the primary process and the TaskTrackers are the secondaries.</p>
+<h3 id="jobtracker">JobTracker</h3>
+<p>Manages life cycles of jobs and schedules tasks on the cluster.</p>
+<h4 id="job-submission">Job Submission</h4>
+<ul>
+<li>Gets a new ID from the job tracker.</li>
+<li>Verifies output specifications.</li>
+<li>Computes input splits for the job.</li>
+<li>Copies any resources needed to run the job.</li>
+<li>Informs the job tracker that it is ready for execution.</li>
+</ul>
+<h4 id="job-initialization">Job Initialization</h4>
+<p>When a job is initialized, it is placed in a queue with all information related to executing and tracking the job. A map task is created for each of the input splits. Further, a job setup and cleanup task are created.</p>
+<h4 id="task-assignment">Task Assignment</h4>
+<p>Each TaskTracker periodically sends a <em>heartbeat</em> to the JobTracker with status updates. These inform the JobTracker that it is alive or is able to run a new task. When a TaskTracker is ready to run a new task, the JobTracker will allocate a new one by selecting it using some defined scheduler. There is a default scheduler that will pick based on priority, but a custom scheduler can be given to the job.</p>
+<p>Another consideration for assigning is a map task is <strong>data locality</strong>. Map tasks are based on the input splits, so the JobTracker will try to run the task on the same node that the data is located. If this is not possible, it will prioritize based on the distance between the node and the data. For reduce tasks, there are no locality considerations.</p>
+<h4 id="task-execution">Task Execution</h4>
+<p>When a task is executed, any pertinent information is copied from the shared filesystem to a local filesystem. A JVM is launched to run each task so that any errors will only affect the JVM and not the entire TaskTracker. The JVM will run the task and then report back to the JobTracker with status updates.</p>
+<h4 id="job-completion">Job Completion</h4>
+<p>A job is completed once the last task is finished. In this case, a job cleanup task is run to clean up any resources used by the job.</p>
+<h3 id="tasktracker">TaskTracker</h3>
+<p>TaskTrackers run one per worker node on a cluster. Both map and reduce tasks run on Worker nodes. When a TaskTracker is started, it registers with the JobTracker so that the JobTracker can assign tasks to it. The actual task is run in a separate process on the Worker node which is managed by the TaskTracker.</p>
+<h3 id="fault-tolerance">Fault Tolerance</h3>
+<p>In Hadoop v1, three types of failures must be considered. The first two are the TaskTracker and JobTracker. The third is the spawned process that runs the task on the TaskTracker.</p>
+<h4 id="task-failure">Task Failure</h4>
+<p>Tasks can fail due to bad input, faulty code, hardware failure, or some other run time error. When an individual task fails, the error is logged and the failure is reported back to the parent TaskTracker. Since the TaskTracker is still running, it can notify the JobTracker that it is free to run another task.</p>
+<p>There is also a default timeout duration for tasks that are not making progress. If a task exceeds this timeout, it is killed and the TaskTracker is notified. The default timeout is 10 minutes but can be configured by the user. There are also settings dictating how many times a task can fail before the job is considered failed or the percentage of tasks that can fail before the job is considered failed. There may be circumstances in which task failures are acceptable as long as some of the work is completed.</p>
+<h4 id="tasktracker-failure">TaskTracker Failure</h4>
+<p>TaskTrackers that fail or are unresponsive past the heartbeat timeout are considered dead. The JobTracker will remove it from its pool of trackers to schedule tasks on. Tasks that were completed or in progress on the failed TaskTracker are rescheduled since the intermediate data is no longer available.</p>
+<p>TaskTrackers that fail repeatedly are added to a blacklist and are not used for scheduling tasks. This can occur if the TaskTracker is not configured correctly or if the TaskTracker is running on faulty hardware.</p>
+<h4 id="jobtracker-failure">JobTracker Failure</h4>
+<p>The JobTracker is a single point of failure in Hadoop v1. If the JobTracker fails, all jobs that are running or waiting to run are lost. The rate of failure is typically low since the chance that a single machine fails is low. If it does fail, a restart is attempted and all running jobs need to be restarted.</p>
+<h3 id="shuffle-and-sort">Shuffle and Sort</h3>
+<p>The shuffle and sort phase is a key process which defines how data is moved from the map tasks to the reduce tasks. Data may be split among many map tasks, but reducers get all rows for a given key together. The shuffle and sort phase is responsible for this. It is split up into three phases.</p>
+<h4 id="map-phase">Map Phase</h4>
+<p>Output from the map tasks is stored in memory in a circular buffer. Once that buffer becomes full, it spills over to the disk. Before going to the disk, it is partitioned based on the reducer that it will ultimately be sent to. This acts as a sort of pre-sorting to optimize the shuffle and sort phase.</p>
+<p>Depending on the setting for the size of spill files, the map phase may produce multiple spill files. These files are merged into a single file before being sent to the reducers. The final result is a single file per reducer that is sorted by key.</p>
+<h4 id="copy-phase">Copy Phase</h4>
+<p>The data needed by a particular reducer task is split up among many map tasks. The copy phase is responsible for copying the data from the map tasks to the reducer tasks. The reducer will begin copying as data is made available by the map tasks, even if all map tasks have not been completed.</p>
+<p>Copies can be executed in parallel via threading. The JobTracker is responsible for assigning the reducers to the map tasks so that the data is copied to the correct reducer. When all map tasks have completed, the reducer will begin the reduce phase.</p>
+<h4 id="reduce-phase">Reduce Phase</h4>
+<p>In this phase, data is merged while maintaining their sorted order. The reduce function is this executed for each key in the sorted output. The output is written directly to the <em>output filesystem</em>, which is commonly HDFS.</p>
+<h3 id="types-of-schedulers">Types of Schedulers</h3>
+<p>Early versions of Hadoop used a simple FIFO scheduler. This scheduler would run jobs in the order that they were submitted. This is not ideal since it does not take into account the size of the job or the priority of the job. A job that is submitted after a large job will have to wait until the large job is completed. Considering longer running jobs like machine learning training, a better scheduler is needed.</p>
+<h4 id="the-fair-scheduler">The Fair Scheduler</h4>
+<p>The fair scheduler aims to give every user an equal amount of cluster capacity over time. This allows multiple jobs to be running simultaneously. The scheduler does this by placing jobs in <em>pools</em> assigned to each user. This allows short jobs to run without waiting for long jobs to complete.</p>
+<p>The fair scheduler also supports <em>preemption</em>. This allows the scheduler to kill tasks that are running for too long to make room for other jobs. This is useful for long running jobs that are not making progress. Note that this does not kill the entire job. The tasks that are killed are rescheduled on other TaskTrackers.</p>
+<h4 id="the-capacity-scheduler">The Capacity Scheduler</h4>
+<p>In capacity scheduling, a cluster is divided into multiple queues. Each queue is assigned some amount of cluster capacity. These queues are hierarchical, so a queue can be assigned to a user or a group of users. This allows for more fine grained control over the cluster capacity. In effect, this allows for multiple clusters to be managed by a single cluster.</p>
+<h3 id="merging-database-functions-and-mapreduce">Merging Database Functions and MapReduce</h3>
+<p>The power of MapReduce was apparent, but all operations had to be framed in the context of a mapping and reduce functions. This made it difficult or tedious to perform common database operations. Several projects were started to bridge the gap between MapReduce and databases.</p>
+<h4 id="apache-pig">Apache Pig</h4>
+<p>Developed by Yahoo, Pig Latin is a high level language that glues together SQL and MapReduce. It was not meant to replace SQL. In fact, the authors note that people in data analysis fine SQL to be unnatural for data analysis. Their work was mean to provide something that meets the declarative style of SQL and procedural style of MapReduce. Consider their opening example.</p>
+<p>Given a table of <code>urls</code>: <code>(url, category, pagerank)</code>, find the average pagerank of high-pagerank urls in that category. In SQL, a query might look like this.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> category, AV <span style="color:#66d9ef">G</span>(pagerank)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> urls
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> pagerank <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> category
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">HAVING</span> <span style="color:#66d9ef">COUNT</span>(<span style="color:#f92672">*</span>) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">**</span><span style="color:#ae81ff">6</span>
+</span></span></code></pre></div><p>An equivalent query in Pig Latin would look like this.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-pig" data-lang="pig"><span style="display:flex;"><span>good_urls <span style="color:#f92672">=</span> <span style="color:#66d9ef">FILTER</span> urls <span style="color:#66d9ef">BY</span> pagerank <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.2</span>;
+</span></span><span style="display:flex;"><span>groups <span style="color:#f92672">=</span> <span style="color:#66d9ef">GROUP</span> good_urls <span style="color:#66d9ef">BY</span> category;
+</span></span><span style="display:flex;"><span>big_groups <span style="color:#f92672">=</span> <span style="color:#66d9ef">FILTER</span> groups <span style="color:#66d9ef">BY</span> COUNT(good_urls) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">10</span>**6;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">output</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">FOREACH</span> big_groups <span style="color:#66d9ef">GENERATE</span> category, AVG(good_urls.pagerank);
+</span></span></code></pre></div><p>Each statement in Pig Latin describes a data transformation. These statements are converted into an ensemble of MapReduce jobs, but each statement is not necessarily a single MapReduce job. The Pig Latin compiler is responsible for optimizing the statements.</p>
+<h4 id="apache-hive">Apache Hive</h4>
+<p>Hive was developed at Facebook to provide an SQL-like interface for processing queries on big data. In addition to providing a high-level language, it also treats Hadoop like a DBMS. This allows users to impose structure on the data and query it using as if it were a traditional database.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-11-26_16-11-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Hive Architecture (Elmasri and Navathe)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Hive Architecture (Elmasri and Navathe).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Hive comes with a query-based language called HiveQL that includes joints, aggregations, and other common SQL operations. The tables in Hive are linked directly to directories in HDFS. This allows for data to be loaded into Hive from HDFS and vice versa. Hive also supports partitioning and bucketing to improve performance. Bucketing stores the data physically in the same file, partitioned by the bucketing key.</p>
+<h3 id="advantages-of-hadoop-mapreduce">Advantages of Hadoop/MapReduce</h3>
+<p>Consider scanning a 100 TB dataset using a single machine. At a rate of 50 Mbps, this would take around 24 days. Using 1000 machines in parallel would reduce this to about 30 minutes. The resources available can be scaled easily by adding more machines to the cluster. In the event that a machine fails, the tasks can be reassigned to other machines without losing the job completely.</p>
+<h2 id="hadoop-v2-aka-yarn">Hadoop v2 AKA YARN</h2>
+<p>Hadoop v1 was well received and solved many of the problems efficiently through its MapReduce programming model. However, many problems arise naturally as the size of the cluster grows.</p>
+<ul>
+<li>The JobTracker is a single point of failure. As the cluster size increases, this becomes more of an issue.</li>
+<li>Resources are allocated statically, resulting in a large amount of unused compute when processing jobs.</li>
+<li>Not every job fits cleanly into the MapReduce programming model.</li>
+</ul>
+<p>In addition to these issues, YARN aims to improve scalability, resource utilization, and flexibility. By increasing the availability of nodes at any given time, there are less wasted resources on a cluster. This is especially useful in enterprise-level clusters where there are many users and jobs running at any given time.</p>
+<p>Supporting multiple programming models also aids to this scalability. Consider a machine learning model being trained for long periods of time. In Hadoop v1, developers would frame these as MapReduce jobs. A major problem with this is that after the original update, the jobs would exchange data outside of the purview of the JobTracker. This also means that the fault tolerance features built into Hadoop v1 were not available for these jobs.</p>
+<h3 id="architecture">Architecture</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-11-26_18-08-55_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hadoop v1 vs. YARN Architecture (Elmasri and Navathe)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Hadoop v1 vs. YARN Architecture (Elmasri and Navathe).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="resourcemanager">ResourceManager</h4>
+<p>The ResourceManager is the master process in YARN. It is responsible for allocating resources to applications and scheduling tasks. Allocations are based on the chosen scheduler. ApplicationMasters will request resources from the ResourceManager. The ResourceManager will then allocate resources to the ApplicationMaster and notify the NodeManager to start the containers.</p>
+<p>Since the ResourceManager is only responsible for scheduling the available resources, different applications can make use of the same cluster at the same time. This is a major improvement over Hadoop v1 where the JobTracker was responsible for scheduling all jobs.</p>
+<h4 id="nodemanager">NodeManager</h4>
+<p>The NodeManager runs on every worker node in the cluster. It launches and monitors containers on the node as well as reports the resource utilization back to the ResourceManager. It additionally provides services to Containers such as security, logging, and local file management.</p>
+<h4 id="applicationmaster">ApplicationMaster</h4>
+<p>The ApplicationMaster manages the execution of an application&rsquo;s processes. These applications can range from a traditional MapReduce job to a long-running machine learning model. The ApplicationMaster is responsible for negotiating resources with the ResourceManager and working with the NodeManager to execute and monitor the containers. It sends resource status updates to the ResourceManager as requirements change.</p>
+<h4 id="container">Container</h4>
+<p>A container is a collection of resources allocated to an application. These resources are allocated by the ResourceManager and managed by the NodeManager. These resources refer directly to the resources available on the node. This includes CPU, memory, disk, and network.</p>
+<h3 id="fault-tolerance">Fault Tolerance</h3>
+<p>The ResourceManager is a single point of failure in YARN. If it fails, it can restart and recover its state. Any containers in the cluster are killed and restarted. The ApplicationMaster is responsible for restarting any tasks that were running in the containers.</p>
+<h3 id="execution-flow">Execution Flow</h3>
+<p>The following gives an example of how a typical MapReduce job would be executed in YARN.</p>
+<ol>
+<li>The client submits a job to the ResourceManager.</li>
+<li>The ResourceManager allocates a container for the ApplicationMaster and launches the ApplicationMaster on a NodeManager.</li>
+<li>The ApplicationMaster negotiates resources with the ResourceManager.</li>
+<li>The ResourceManager allocates containers for the MapReduce tasks and launches them on the NodeManagers.</li>
+<li>The MapReduce tasks are executed in the containers.</li>
+<li>The ApplicationMaster monitors the MapReduce tasks and reports status updates to the ResourceManager.</li>
+<li>When the job is complete, the ApplicationMaster is unregistered and the containers are released.</li>
+</ol>
+<h2 id="summary">Summary</h2>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dean, Jeffrey, and Sanjay Ghemawat. 2008. “MapReduce: Simplified Data Processing on Large Clusters.” <i>Communications of the Acm</i> 51 (1): 107–13. <a href="https://doi.org/10.1145/1327452.1327492">https://doi.org/10.1145/1327452.1327492</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Elmasri, Ramez, and Shamkant B. Navathe. 2015. <i>Fundamentals of Database Systems</i>. 7th ed. Pearson. <a href="https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523">https://www.pearson.com/en-us/subject-catalog/p/fundamentals-of-database-systems/P200000003546/9780137502523</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/databases/">databases</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/distributed_databases/">Distributed Databases</a></li>
+          
+          <li><a href="/notes/nosql/">NOSQL</a></li>
+          
+          <li><a href="/notes/structured_query_language/">Structured Query Language</a></li>
+          
+          <li><a href="/notes/introduction_to_databases/">Introduction to Databases</a></li>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2023 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
