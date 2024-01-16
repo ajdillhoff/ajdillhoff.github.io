@@ -7,10 +7,1431 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Fri, 24 Nov 2023 00:00:00 -0600</lastBuildDate>
+    <lastBuildDate>Sun, 14 Jan 2024 13:31:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/computer-science/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Performance Basics</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_performance_basics/</link>
+      <pubDate>Sun, 14 Jan 2024 13:31:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_performance_basics/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#memory-coalescing&#34;&gt;Memory Coalescing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#hiding-memory-latency&#34;&gt;Hiding Memory Latency&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening&#34;&gt;Thread Coarsening&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#optimization-checklist&#34;&gt;Optimization Checklist&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#identifying-bottlenecks&#34;&gt;Identifying Bottlenecks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-takeaway&#34;&gt;The Takeaway&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;These notes are on &amp;ldquo;Chapter 6: Performance Considerations&amp;rdquo; from the book &lt;em&gt;Programming Massively Parallel Processors&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 id=&#34;memory-coalescing&#34;&gt;Memory Coalescing&lt;/h2&gt;
+&lt;p&gt;Global memory accesses are one of the largest bottlenecks in GPU applications.
+DRAM has high latency based on its design. Each cell has a transistor and a capacitor. If the capacitor is charged, it represents a 1. The process to detect the charges in these cells is on the order of 10s of nanoseconds. DRAM can read consecutive groups of cells via &lt;em&gt;bursts&lt;/em&gt;. This means that if the data we wish to access is stored consecutively, it can be accessed within the same burst. Contrast that was random access, in which the DRAM will have to make multiple bursts to read the required data. &lt;strong&gt;Memory coalescing&lt;/strong&gt; refers to optimizing our global memory accesses to take advantage of DRAM bursts.&lt;/p&gt;
+&lt;p&gt;Matrices are &lt;em&gt;naturally coalesced&lt;/em&gt;, so we have already been utilizing this performance pattern in previous examples.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-15_13-00-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Memory accesses for a matrix in row-major ordering (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Memory accesses for a matrix in row-major ordering (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Strategies to optimize code for memory coalescing are to rearrange the threads, the data, or transfer the data first to shared memory so that accesses are faster, referred to as &lt;strong&gt;corner turning&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/h3&gt;
+&lt;p&gt;Consider \(C = AB\), where \(A\) is in row-major order and \(B\) is in column-major order. The naive implementation of this algorithm will have poor memory coalescing. The figure below demonstrates the memory accesses for this scenario. The values required are no consecutive in memory, so the DRAM will have to make multiple bursts to read the data.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-14_20-47-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Memory accesses for a matrix in column-major ordering (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Memory accesses for a matrix in column-major ordering (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The accesses to the elements in \(B\) will be slower since the data is not coalesced. Accessing the elements &lt;em&gt;is&lt;/em&gt; efficient if we assign \(N\) consecutive threads to load \(N\) consecutive elements from the same column of \(B\). This works in conjunction with tiling. The original loads to shared memory pull from consecutive elements in \(B\) which allows the application to take advantage of DRAM bursts. Once the data is in shared memory, the rest of the algorithm can be performed with coalesced accesses. Shared memory uses SRAM instead of DRAM, so coalescing is not an issue.&lt;/p&gt;
+&lt;h2 id=&#34;hiding-memory-latency&#34;&gt;Hiding Memory Latency&lt;/h2&gt;
+&lt;p&gt;DRAMS have &lt;em&gt;banks&lt;/em&gt; and &lt;em&gt;channels&lt;/em&gt;. A controller has a bus that connects banks to the processor. When the DRAM accesses data, the decoder enables the cells so that they can share the information stored with the sensing amplifier. This presents a high latency relative to the time it takes to actually transfer the data. This is why there are multiple banks per channel. The controller can initiate accesses on other banks instead of sitting and waiting for a single bank to finish.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-14_17-19-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Single versus Multi-bank burst timings (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Single versus Multi-bank burst timings (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;It is possible that the controller will initiate a request to a bank that is already busy. This is called a &lt;em&gt;bank conflict&lt;/em&gt;. The controller will have to wait for the bank to finish its current request before it can service the new request. The more banks that are available, the less likely it is that a bank conflict will occur.&lt;/p&gt;
+&lt;h3 id=&#34;example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/h3&gt;
+&lt;p&gt;Consider DRAM with 4 channels and 2 banks per channel. The burst size of this DRAM is 8 bytes, or 2 elements. When data is written to DRAM in the first place, it is distributed in an interleaved fashion across the different channels and banks. The first figure below shows the input matrix \(M\) and output matrix \(P\). The second input matrix is omitted for brevity. The indices of \(M\) are linearized in row-major order to show how they are distributed across the DRAM banks. \(P\) is split into 4 blocks of size \(2 \times 2\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-15_13-55-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Matrix M with linearized indices and matrix P split into 4 blocks.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Matrix M with linearized indices and matrix P split into 4 blocks.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;\(M\) is loaded into DRAM in an interleaved fashion. The first 8 bytes are loaded into bank 0 of channel 0. The next 8 bytes go into bank 0 of channel 1, and so on. Each burst returns 8 bytes. While the first access is being performed on bank 0 channel 0, the controller can initiate a request to bank 0 channel 1. This is visualized in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-15_14-14-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;DRAM distribution for matrix M.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;DRAM distribution for matrix M.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Given the distribution visualized above, we can see that the data accesses for the blocks of \(P\) will be coalesced. Output tile 1 in matrix \(P\) requires $M_0, M_1, M_4,$ and \(M_5\). The first two are available in a single burst from channel 0 bank 0, and the second two are available in a single burst from channel 2 bank 0.&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h2&gt;
+&lt;p&gt;The &lt;em&gt;price of parallelism&lt;/em&gt; may refer to the cost of&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;launching threads&lt;/li&gt;
+&lt;li&gt;synchronization&lt;/li&gt;
+&lt;li&gt;redundant work&lt;/li&gt;
+&lt;li&gt;redundant memory accesses&lt;/li&gt;
+&lt;li&gt;etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;It there are enough hardware resources available, parallelism at the finest level is ideal. If there are not enough resources, there is a price to pay for this parallelism. The hardware will need to serialize the work into blocks of threads that can be executed in parallel.&lt;/p&gt;
+&lt;p&gt;If this is the case for a particular application, it may be beneficial to apply some form of &lt;strong&gt;thread coarsening&lt;/strong&gt;. If the hardware would serialize the work due to inefficient resources, the price of parallelism was paid for nothing. As the programmer, you have the ability to coarsen the threads to alleviate the price of parallelism.&lt;/p&gt;
+&lt;h3 id=&#34;example-coarsening-tiled-matrix-multiplication&#34;&gt;Example: Coarsening Tiled Matrix Multiplication&lt;/h3&gt;
+&lt;p&gt;In tiled matrix multiplication, it is possible that two separate blocks work with the same tile of data from an input matrix. We pay a price for this redundancy, but the benefit is that we can parallelize the work. If the hardware does not have sufficient resource, it will serialize these two blocks. This results in paying the price of data redundancy without the benefit of parallelism.&lt;/p&gt;
+&lt;p&gt;Let \(A, B \in \mathbb{R}^{6 \times 6}\), then \(C = AB \in \mathbb{R}^{6 \times 6}\). If we use a \(2 \times 2\) tile size, then we have 9 blocks of work that can be executed concurrently. For argument&amp;rsquo;s sake, let&amp;rsquo;s say that the hardware can only execute 3 blocks of work at a time. We can use thread coarsening to reduce the number of blocks to 3. Each block will be responsible for a single row of the tiled output matrix. That is, if the output matrix is \(6 \times 6\), then each block will be responsible for a \(2 \times 6\) tile of the output matrix. This is visualized in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-14_21-42-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Thread coarsening for tiled matrix multiplication.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Thread coarsening for tiled matrix multiplication.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The block itself will perform a similar function as the implementation of tiled matrix multiplication we saw previously. We will need to modify the kernel so that it processes values to fill for 3 blocks of work, spanning each row. In the figure above, this is represented by the three gray, numbered blocks. Although each block uses a different column from matrix \(N\), they all use the same row from matrix \(M\). Our solution will take advantage of this reuse of data.&lt;/p&gt;
+&lt;p&gt;Consider the thread that computes the value for the top left entry of block 1. This thread will compute the output value as normal before looping to compute the corresponding relative position in blocks 2 and 3. That is, if the first entry computed is \((0, 0)\) of block 1, then the next entry computed will be \((0, 0)\) of block 2, and so on. This is visualized by the three solid black cells in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-14_21-45-47_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;A single thread loops through three blocks as a result of thread coarsening.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;A single thread loops through three blocks as a result of thread coarsening.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The kernel code is given below. The additional loop controls the switch between the three consecutive tiles. The values from matrix &lt;code&gt;M&lt;/code&gt; are loaded inside the outer-most loop and are reused across the coarse tiles.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define TILE_WIDTH 2
+#define COARSE_FACTOR 3
+__global__ void matMulCoarse(float *M, float *N, float *P, int width) {
+    __shared__ float Mds[TILE_WIDTH][TILE_WIDTH];
+    __shared__ float Nds[TILE_WIDTH][TILE_WIDTH];
+
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+
+    // Identify the row and column of the element to work on
+    int row = by * TILE_WIDTH + ty;
+    int colStart = bx * TILE_WIDTH * COARSE_FACTOR;
+
+    // Initialize Pvalue
+    float Pvalue[COARSE_FACTOR];
+    for (int i = 0; i &amp;lt; COARSE_FACTOR; i++) {
+        Pvalue[i] = 0.0f;
+    }
+
+    // Loop over the tiles required to compute the current output value
+    for (int ph = 0; ph &amp;lt; width / TILE_WIDTH; ph++) {
+        Mds[ty][tx] = M[row * width + ph * TILE_WIDTH + tx];
+
+        for (int c = 0; c &amp;lt; COARSE_FACTOR; c++) {
+            int col = colStart + c * TILE_WIDTH;
+
+            Nds[ty][tx] = N[(ph * TILE_WIDTH + ty) * width + col];
+            __syncthreads();
+
+            for (int k = 0; k &amp;lt; TILE_WIDTH; k++) {
+                Pvalue[c] += Mds[ty][k] * Nds[k][tx];
+            }
+            __syncthreads();
+        }
+    }
+
+    for (int c = 0; c &amp;lt; COARSE_FACTOR; c++) {
+        int col = colStart + c * TILE_WIDTH;
+        P[row * width + col] = Pvalue[c];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;how-to-use-coarsening-in-your-applications&#34;&gt;How to use coarsening in your applications&lt;/h3&gt;
+&lt;p&gt;Thread coarsening is yet another technique that can be applied to optimize your parallel programs. The previous section demonstrated &lt;em&gt;how&lt;/em&gt; it can be applied, but you are probably wondering &lt;em&gt;when&lt;/em&gt; it should be applied. Deciding on whether to apply this technique is largely determined by careful analysis of your current application. This analysis should include benchmarking and profiling. There is work that provides an automatic solution (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Stawinoga and Field 2018&lt;/a&gt;), but we will rely on determining that for ourselves.&lt;/p&gt;
+&lt;p&gt;For now, we can at least discuss when &lt;em&gt;not&lt;/em&gt; to apply coarsening. The most obvious instance is when coarsening is completely unnecessary. Consider the vector addition kernel. Each thread performs an independent computation that has no overlapping data with other thread. There is no need to apply coarsening in this case.&lt;/p&gt;
+&lt;p&gt;Another bad case for implementation would be when the coarsening factor causes hardware to be underutilized. Parallelization in hardware is scalable. If we take away the opporunity for scale, there may be unused compute. This is typically something we can determine via benchmarking.&lt;/p&gt;
+&lt;p&gt;In the coarsened version of matrix multiplication above, we had to create additional private variables to store the coarsened values. These use additional registers per thread. If our application required more than the 32 registers available on our H100, for example, this would have a direct effect on occupancy. Keep that in mind when developing your thread coarsened solution.&lt;/p&gt;
+&lt;h2 id=&#34;optimization-checklist&#34;&gt;Optimization Checklist&lt;/h2&gt;
+&lt;p&gt;Section 6.4 of &lt;em&gt;Programming Massively Parallel Processors&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) provides a checklist of items to consider when optimizing your GPU applications. These are summarized below.&lt;/p&gt;
+&lt;h3 id=&#34;maximizing-occupancy&#34;&gt;Maximizing Occupancy&lt;/h3&gt;
+&lt;p&gt;Having more threads than physical cores available is beneficial, as it hides the latency required for other operations such as data fetching. Instead of waiting on some operation to return, the hardware can switch to another thread to perform work. This is implemented by adjusting the launch configurations or optimizing the number of registers used per thread, for example. We also discussed solutions for hiding memory-based latency.&lt;/p&gt;
+&lt;h3 id=&#34;coalesced-global-memory-accesses&#34;&gt;Coalesced Global Memory Accesses&lt;/h3&gt;
+&lt;p&gt;Random accesses to memory are less efficient than consecutive ones. This is a theme that is repeated through many themes of computer science, such as sorting. Understanding of how the underlying hardware works brought to light new ways to optimize our applications. We can rearrange our data to take advantage of DRAM bursts, or we can use shared memory to reduce the latency of memory accesses.&lt;/p&gt;
+&lt;h3 id=&#34;minimizing-control-divergence&#34;&gt;Minimizing Control Divergence&lt;/h3&gt;
+&lt;p&gt;Although we have not used any applications that exhibit control divergence, we have studied the concept. During SIMD execution, the hardware executes the same instructions on multiple data elements. If a thread or group of threads would diverge from the others, the hardware would have to make multiple passes to cover all of the possible paths.&lt;/p&gt;
+&lt;h3 id=&#34;tiling&#34;&gt;Tiling&lt;/h3&gt;
+&lt;p&gt;Global memory accesses exhibit higher latency due to the nature of DRAM. We can reduce the number of global memory accesses by using shared memory. This was exemplified in the tiled matrix multiplication examples, where there are many redundant data accesses. Moving these data to shared memory reduces the number of global memory accesses.&lt;/p&gt;
+&lt;h3 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h3&gt;
+&lt;p&gt;In cases where the hardware would serialize execution of a kernel, thread coarsening can eliminate redundant work. In the tiled matrix multiplication example, we saw that the hardware would serialize execution of the kernel if there were not enough resources available. In this case, the same redundant loads to shared memory would be performed. To reduce this overhead, we coarsened the thread by having a single kernel perform the work of multiple blocks.&lt;/p&gt;
+&lt;h2 id=&#34;identifying-bottlenecks&#34;&gt;Identifying Bottlenecks&lt;/h2&gt;
+&lt;p&gt;Knowing when to apply each of these optimization techniques comes down to understanding your application. &lt;strong&gt;The single most important step in optimizing your application is to identify the bottleneck&lt;/strong&gt;. What resource is limiting the performance of your solution? Benchmarking and profiling are two techniques that can be used to identify these bottlenecks. We will begin learning these tools in the next lecture.&lt;/p&gt;
+&lt;h2 id=&#34;the-takeaway&#34;&gt;The Takeaway&lt;/h2&gt;
+&lt;p&gt;At this point, you have learned the basics of GPU programming with CUDA. You should be familiar with writing kernels, setting launch configurations, and compiling them. You should be familiar with a few optimization techniques that can be applied to your applications, but you are probably not confident in your ability to identify when they should be used.&lt;/p&gt;
+&lt;p&gt;The next module of this course will focus on problems for which a straightforward solution is not obvious. These are problems that come from other domains of computer science, such as graph theory and linear algebra. We will learn how to apply the techniques we have learned to these problems, and we will learn new techniques that are specific to these problems. Even though the applications themselves may be specific, the techniques used to optimize them are not.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Stawinoga, Nicolai, and Tony Field. 2018. “Predictable Thread Coarsening.” &lt;i&gt;Acm Transactions on Architecture and Code Optimization&lt;/i&gt; 15 (2): 23:1–23:26. &lt;a href=&#34;https://doi.org/10.1145/3194242&#34;&gt;https://doi.org/10.1145/3194242&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CUDA Memory Architecture</title>
+      <link>https://ajdillhoff.github.io/notes/cuda_memory_architecture/</link>
+      <pubDate>Thu, 11 Jan 2024 15:07:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/cuda_memory_architecture/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#memory-access&#34;&gt;Memory Access&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#memory-types&#34;&gt;Memory Types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiling&#34;&gt;Tiling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-tiled-matrix-multiplication&#34;&gt;Example: Tiled Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#boundary-checking&#34;&gt;Boundary Checking&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#memory-use-and-occupancy&#34;&gt;Memory Use and Occupancy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dynamically-changing-the-block-size&#34;&gt;Dynamically Changing the Block Size&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-takeaway&#34;&gt;The Takeaway&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively.&lt;/p&gt;
+&lt;h2 id=&#34;memory-access&#34;&gt;Memory Access&lt;/h2&gt;
+&lt;p&gt;Transferring memory is one of the biggest bottlenecks in GPU programming. Companies like NVIDIA devote a lot of resources to improving the bandwidth and latency of memory transfers. When training a deep learning model, the datasets used are far too large to fit on the GPU. This means that the data must be transferred to the GPU before the actual training code can execute on the device. Training large models can take days or weeks, so the time spent transferring data can be significant.&lt;/p&gt;
+&lt;p&gt;The example provided in Chapter 5 of &amp;ldquo;Programming Massively Parallel Processors&amp;rdquo; is a great introduction to understanding memory access efficiency (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;). In matrix multiplication, the data accesses are limited to a single line of code in the inner-most loop. This means that the memory access pattern is very regular and predictable. The example code is shown below:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;for (int k = 0; i k &amp;lt; numCols; k++) {
+    Cvalue += A[row * numCols + k] * B[k * numCols + col];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This line consists of a floating-point multiplication, floating-point addition, and two memory accesses. Note that we are not storing the result yet, so there is no access to the C matrix. The operation effiency can be described in terms of floating-point operations per second (FLOP/s) and the accesses can be measured in the number of bytes transferred. In this case, we have 2 FLOPs and 8 bytes transferred. This means that the ratio of FLOPs to bytes transferred is 0.25 FLOP/B. This is described as &lt;em&gt;computational intensity&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;With this definition, we get a clearer picture on how to improve the performance of our code. If our kernel relies on too many memory accesses, then the computational intensity will be low. This means that the GPU will be spending more time waiting for data to be transferred than actually performing computations. The goal is to increase the computational intensity as much as possible.&lt;/p&gt;
+&lt;p&gt;To put this in perspective, the H100 SXM5 has 3TB/s of memory bandwidth. This global memory bandwidth limits the kernel to 3000 * 0.25 = 750 GFLOP/s. The peak performance of the H100 is 66.9 TFLOPS. If the specialized Tensor cores are utilized, the peak performance is 494.7 TFLOPS. That means that are kernel is only using 0.15% of the peak performance of the GPU. This program is certainly &lt;strong&gt;memory bound&lt;/strong&gt;. Our theoretical limit to computational intensity is the peak performance of the GPU. Programs that achieve this peak are called &lt;strong&gt;compute bound&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Based on the tools we have discussed so far, it is not clear how we can optimize this kernel. The only way to improve the computational intensity is to reduce the number of memory accesses. Modern GPUs have more than just global memory. The next section will explore the different types of memory available on the GPU.&lt;/p&gt;
+&lt;h2 id=&#34;memory-types&#34;&gt;Memory Types&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Global Memory&lt;/li&gt;
+&lt;li&gt;Local Memory
+Resides on global memory, but is not shared between threads. This includes local variables and function arguments.&lt;/li&gt;
+&lt;li&gt;Shared Memory
+Resides on the chip. Allocated to thread blocks. Shared between threads in the same block.&lt;/li&gt;
+&lt;li&gt;Constant Memory&lt;/li&gt;
+&lt;li&gt;Registers
+Resides on the chip. Each thread has its own registers. Very fast memory.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Data in CPU registers are swapped depending on the context of the program. GPU registers are consistent even when other threads are launched to hide latency. This results in a larger register file on the GPU.&lt;/p&gt;
+&lt;p&gt;Following the von Neumann architecture, memory that is closer to the chip is faster but more expensive. Data residing on registers is the most ideal for performance since the processor can work directly with the register values. This benefit comes in the form of energy consumption as well. Transferring data from global memory to the chip requires additional cycles resulting in more energy used.&lt;/p&gt;
+&lt;p&gt;When a private variable is declared in a kernel, every single thread will have its own copy of that variable.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Variable declaration&lt;/th&gt;
+&lt;th&gt;Memory&lt;/th&gt;
+&lt;th&gt;Scope&lt;/th&gt;
+&lt;th&gt;Lifetime&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Automatic variables (not arrays)&lt;/td&gt;
+&lt;td&gt;Register&lt;/td&gt;
+&lt;td&gt;Thread&lt;/td&gt;
+&lt;td&gt;Grid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Automatic array variables&lt;/td&gt;
+&lt;td&gt;Local&lt;/td&gt;
+&lt;td&gt;Thread&lt;/td&gt;
+&lt;td&gt;Grid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__device__ __shared__ int SharedVar;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Shared&lt;/td&gt;
+&lt;td&gt;Block&lt;/td&gt;
+&lt;td&gt;Grid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__device__ int GlobalVar;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Global&lt;/td&gt;
+&lt;td&gt;Grid&lt;/td&gt;
+&lt;td&gt;Application&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__device__ __constant__ int ConstVar;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Constant&lt;/td&gt;
+&lt;td&gt;Grid&lt;/td&gt;
+&lt;td&gt;Application&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Automatic array variables should seldom be used. It may have seemed convenient to use a static array for computing channel-specific values in an image processing kernel, but it is more efficient to use three separate variables. Each variable will be allocated to a register resulting in faster access times.&lt;/p&gt;
+&lt;p&gt;Global variables are more commonly used to pass information to another kernel that is being launched.&lt;/p&gt;
+&lt;h2 id=&#34;tiling&#34;&gt;Tiling&lt;/h2&gt;
+&lt;p&gt;These memory types serve as tools that we can use to increase efficiency. The first pattern discussed is &lt;strong&gt;tiling&lt;/strong&gt;. Throughout the rest of the course, we will add many more patterns to our repertoire. Tiling is a well-described technique that has a fitting analogy. If a wall needs to be tiled, it is more efficient to use many small tiles that are lighter and easier to handle. In GPU programming, the wall represents the entire global memory space. The individual tiles are local memory that is allocated to each thread block.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_10-13-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Global memory access pattern (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Global memory access pattern (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The kernels we have seen so far have used a &lt;em&gt;global memory access pattern&lt;/em&gt;. In this pattern, all threads have access to every data point from the input. Using a &lt;em&gt;tiling pattern&lt;/em&gt;, we can optimize memory accesses by moving shared resources to local memory that is faster to access.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_10-16-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Tiling pattern (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Tiling pattern (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The tool itself is quite simple in concept, but the challenge will be identifying when the tool can be properly applied. Consider matrix multiplication. The naive kernel we explored previously uses each thread to compute one value of the output matrix. This kernel uses a global memory access pattern, and we can identify that many of the computations require the same input. They key to introducing tiling for matrix multiplication will be identifying which data use reused.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_10-28-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Memory accesses for matrix multiplication (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Memory accesses for matrix multiplication (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the block size is \(2 \times 2\). Each row of the block relies on the same input row from the matrix on the left. That is, \(P_{0,0}\) and \(P_{0,1}\) will use the same data from the first row of \(M\). In our original kernel, this requires 8 global memory accesses. If we placed this row in shared memory, each output thread could access the values much quicker. We can see a similar pattern for the column values in \(N\).&lt;/p&gt;
+&lt;p&gt;Since we are using tiling with a block size of \(B\), we will consider working with \(2B\) values from the input at a time. If the number of values we need to compute an output entry exceeds \(2B\), then we can synchronize the threads before moving to the next section.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_10-25-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Tiled matrix multiplication overview (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Tiled matrix multiplication overview (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Verify that the potential reduction in global memory traffic in matrix multiplication is proportional to the dimension of the blocks used.&lt;/li&gt;
+&lt;li&gt;Verify that the reduction is by a factor of \(N\) if the tiles are \(N \times N\).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;example-tiled-matrix-multiplication&#34;&gt;Example: Tiled Matrix Multiplication&lt;/h2&gt;
+&lt;p&gt;The concept of tiled matrix multiplication is this: load a subset of data from \(M\) and \(N\) into shared memory before using that data to perform the dot product. We have a few limitations to think about here. First, the amount of shared memory is much smaller than global memory; we cannot fit all the data at once. Second, the block size will limit how many elements can be loaded into shared memory at once. As suggested by tiling, we are only working with a small chunk at a time.&lt;/p&gt;
+&lt;p&gt;Using a \(2 \times 2\) block gives us 4 threads to work with. Overlaying that block on the input only allows us to grab 2 values from the first 2 rows in \(M\) and 2 values from the first 2 columns in \(M\). For each tile, the subset of data will be loaded in followed by adding the dot product of the subset to the current value.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_11-14-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Loading the first tile (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Loading the first tile (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_11-15-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Computing the dot product of the first subset (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Computing the dot product of the first subset (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In this example, the block will move to the next subset of data to finish computing the first block of the output matrix. This process can be arbitrarily scaled up to support larger matrices without necessarily increasing the block size. Although, we would want to increase the block size to take advantage of the additional threads. The figure below shows a table of the computations required for each phase.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_11-18-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Tiled matrix multiplication computations (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Tiled matrix multiplication computations (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Check your understanding&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;By using tiling with a block size of \(B \times B\), what is the total reduction in global memory traffic?&lt;/p&gt;
+&lt;h3 id=&#34;implementation-in-cuda&#34;&gt;Implementation in CUDA&lt;/h3&gt;
+&lt;p&gt;Our implementation should follow these steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Establish shared memory for the input from matrix \(M\) and matrix \(N\).&lt;/li&gt;
+&lt;li&gt;Load the first subset of data from \(M\) and \(N\) into shared memory (remember to synchronize threads).&lt;/li&gt;
+&lt;li&gt;Compute the dot product of the subset (remember to synchronize threads).&lt;/li&gt;
+&lt;li&gt;Repeat steps 2 and 3 until all subsets have been computed.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Step 1 is obvious. We need to establish the shared memory for this solution. Steps 2 and 3 are the same as described above, but we do need to remember to synchronize the threads. Without synchronization, the computation may continue before all the data is properly loaded. Step 4 implies that each thread will loop through the subsets until all values have been computed. The kernel is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void MatMulKernel(float* M, float* N, float* P, int Width) {
+    // Block index
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+
+    // Thread index
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+
+    __shared__ float Mds[TILE_WIDTH][TILE_WIDTH];
+    __shared__ float Nds[TILE_WIDTH][TILE_WIDTH];
+
+    // Identify the row and column of the P element to work on
+    int Row = by * TILE_WIDTH + ty;
+    int Col = bx * TILE_WIDTH + tx;
+
+    float Pvalue = 0;
+    for (int ph = 0; ph &amp;lt; Width / TILE_WIDTH; ++ph) {
+        // Collaborative loading of M and N tiles into shared memory
+        Mds[ty][tx] = M[Row * Width + ph * TILE_WIDTH + tx];
+        Nds[ty][tx] = N[(ph * TILE_WIDTH + ty) * Width + Col];
+        __syncthreads();
+
+        for (int k = 0; k &amp;lt; TILE_WIDTH; ++k) {
+            Pvalue += Mds[ty][k] * Nds[k][tx];
+        }
+        __syncthreads();
+    }
+
+    P[Row * Width + Col] = Pvalue;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Let&amp;rsquo;s break this down with a small example. Consider multiplying two \(4 \times 4\) matrices. We will use a block size of \(2 \times 2\), as seen in the figure below. Our block will compute the top left submatrix of the output, \(P_{0,0}\), \(P_{0,1}\), \(P_{1,0}\), and \(P_{1,1}\). We will view the computation from the perspective of the thread for \(P_{0,0}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_14-15-32_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Setup of tiled matrix multiplication example.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Setup of tiled matrix multiplication example.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The row and column of the output computed by the current thread is calculated using the block and thread indices. Of course, this is simply \((0, 0)\) for the first thread. It gets slightly more complicated when computing the input subset in the loop. The input needs to be transferred to shared memory. The loop will skip over a tile at a time. At this point, we already know which row of \(M\) and column of \(N\) we need to access. We need to compute the column index for \(M\) and the row index for \(N\).&lt;/p&gt;
+&lt;p&gt;For \(M\), we start with &lt;code&gt;Row * Width&lt;/code&gt;. This needs to be offset by the tile offset index &lt;code&gt;ph&lt;/code&gt; of the main loop, yielding &lt;code&gt;Row * Width + ph * TILE_WIDTH&lt;/code&gt;. Finally, we need to add the thread index &lt;code&gt;tx&lt;/code&gt; to get the final index &lt;code&gt;Row * Width + ph * TILE_WIDTH + tx&lt;/code&gt;. The same process is applied to \(N\). &lt;strong&gt;Note that this only transfers a single value from each matrix to shared memory, but our computation relies on 2 values from each matrix.&lt;/strong&gt; Each thread in the block is collaboratively loading the data into shared memory. This is why the call to &lt;code&gt;__syncthreads()&lt;/code&gt; is necessary.&lt;/p&gt;
+&lt;p&gt;Specifically, the thread for \(P_{0, 0}\) copies \(M_{0, 0}\) and \(N_{0, 0}\) to shared memory. The thread for \(P_{0, 1}\) copies \(M_{0, 1}\) and \(N_{1, 0}\) to shared memory. The thread for \(P_{1, 0}\) copies \(M_{1, 0}\) and \(N_{0, 1}\) to shared memory. Finally, the thread for \(P_{1, 1}\) copies \(M_{1, 1}\) and \(N_{1, 1}\) to shared memory.&lt;/p&gt;
+&lt;p&gt;The next step is to compute the dot product of the subset. Again, we see a call to &lt;code&gt;__syncthreads()&lt;/code&gt;. Without this synchronization, the loop may be allowed to continue and overwrite the data in shared memory before a thread has finished. Once the final value is computed, each thread can freely write it back to global memory. Since each thread is computing a different value, there is no need to synchronize the threads before writing to global memory.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+P_{0, 0} &amp;amp;+= 2 \times 2 + 1 \times 1 \\
+P_{0, 1} &amp;amp;+= 2 \times 1 + 1 \times 0 \\
+P_{1, 0} &amp;amp;+= 1 \times 2 + 0 \times 1 \\
+P_{1, 1} &amp;amp;+= 1 \times 1 + 0 \times 0
+\end{align*}&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_14-21-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Updated values for the first subset.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Updated values for the first subset.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The next iteration of the loop will grab the next subset of the data and repeat the process. The result after this step is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_14-26-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Updated values for the second subset.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Updated values for the second subset.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To summarize, &lt;code&gt;ph&lt;/code&gt; is the tile offset index, &lt;code&gt;Row&lt;/code&gt; and &lt;code&gt;Col&lt;/code&gt; are the row and column of the output computed by the current thread, and &lt;code&gt;tx&lt;/code&gt; and &lt;code&gt;ty&lt;/code&gt; will give the offset with respect to the current tile.&lt;/p&gt;
+&lt;p&gt;The kernel above has an outer loop that calls another loop managed by thread synchronization, breaking the computation up into several distinct phases. This is called &lt;strong&gt;strip-mining&lt;/strong&gt; and is an important part of tiling. This existed even before GPUs were used (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;performance-analysis&#34;&gt;Performance Analysis&lt;/h3&gt;
+&lt;p&gt;In the naive implementation, we had a computational intensity of 0.25 FLOP/B. With a \(16 \times 16\) tile, the number of global memory accesses is reduced by a factor of 16. This gives us a computational intensity of 4 FLOP/B. We previously stated that the H100 has a global memory bandwidth of 3TB/s. This means that the theoretical limit for the performance of this kernel is 3000 * 4 = 12000 GFLOP/s which is much better than the 750 GFLOP/s we had before.&lt;/p&gt;
+&lt;p&gt;This is not the most optimal way to implement matrix multiplication, and you should always refer to the cuBLAS library for matrix operations. The purpose of this example is to demonstrate the use of tiling.&lt;/p&gt;
+&lt;h2 id=&#34;boundary-checking&#34;&gt;Boundary Checking&lt;/h2&gt;
+&lt;p&gt;The previous implementation assumed that the width of the matrices was a multiple of the tile width and that the input would always be square matrices. Consider changing our \(2 \times 2\) block to a \(3 \times 3\) block using the same input sizes.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-13_12-56-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Using a 3x3 block (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Using a 3x3 block (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Our implementation would follow the same process for the first subset of pattern. An issue arises when computing the second tile offset since the block exceeds the boundaries of our input and output. One solution would be to check the boundary condition on both the input, when transferring the data to shared memory, and the output, when reading the data from shared memory. This would require a conditional statement in the inner loop. This is not ideal since the conditional statement would be executed for every thread in the block.&lt;/p&gt;
+&lt;p&gt;Another solution is to pad the input with zeros. If the index is outside our boundary, adding a 0 will not affect the result of the dot product. This allows for a simpler implementation while still being flexible enough to handle matrices of any size. The relevant portion of the kernel is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;float Pvalue = 0;
+for (int ph = 0; ph &amp;lt; ceil(Width/(float)TILE_WIDTH); ph++) {
+    // Collaborative loading of M and N tiles into shared memory
+    if (Row &amp;lt; Width &amp;amp;&amp;amp; ph * TILE_WIDTH + tx &amp;lt; Width) {
+        Mds[ty][tx] = M[Row * Width + ph * TILE_WIDTH + tx];
+    } else {
+        Mds[ty][tx] = 0.0;
+    }
+    if (ph * TILE_WIDTH + ty &amp;lt; Width &amp;amp;&amp;amp; Col &amp;lt; Width) {
+        Nds[ty][tx] = N[(ph * TILE_WIDTH + ty) * Width + Col];
+    } else {
+        Nds[ty][tx] = 0.0;
+    }
+    __syncthreads();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The rest of the kernel remains the same. In Lab 2, you will implement this and adapt it to work with non square matrices as well.&lt;/p&gt;
+&lt;h2 id=&#34;memory-use-and-occupancy&#34;&gt;Memory Use and Occupancy&lt;/h2&gt;
+&lt;p&gt;Just like exceeding the number of registers per thread can negatively affect occupancy, so can over allocating shared memory. The H100 can have up to 228 KB per SM. If we are maximizing the 2048 threads available per SM, each block cannot exceed 228 KB / 2048 threads = 112 B/thread.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How much shared memory is used by each block?&lt;/strong&gt; Each block has 2 arrays of size \(TILE\_WIDTH \times TILE\_WIDTH\) of type &lt;code&gt;float&lt;/code&gt;. This gives us a total of \(2 \times TILE\_WIDTH \times TILE\_WIDTH \times 4 = 8(TILE\_WIDTH)^2\) B. Each block uses \(TILE\_WIDTH^2\) threads, resulting in 8 B/thread. This is well below the limit of 112 B/thread.&lt;/p&gt;
+&lt;h2 id=&#34;dynamically-changing-the-block-size&#34;&gt;Dynamically Changing the Block Size&lt;/h2&gt;
+&lt;p&gt;The solution presented above uses a constant to determine the tile size. What if this tile size was not optimal for a given hardware configuration? We would surely want to adjust this dynamically to maximize performance. In CUDA, we can support this by using the &lt;code&gt;extern&lt;/code&gt; keyword. First, we need to define our shared memory as one array: &lt;code&gt;extern __shared__ float Mds_Nds[];&lt;/code&gt;. This is a 1D array that represents the shared memory for both input matrices.&lt;/p&gt;
+&lt;p&gt;When launching this kernel, we need some way to inform it of the tile size. First, we would query the device properties and determine the optimal tile size based on the hardware. This size can be used as a third launch configuration input, as shown below. Additionally, the size of the shared memory for each input matrix is provided as two additional arguments to the kernel.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;size_t size = compute_optimal_size(); // Determine optimal tile size
+MatMulKernel&amp;lt;&amp;lt;&amp;lt;dimGrid, dimBlock, size&amp;gt;&amp;gt;&amp;gt;(M_d, N_d, P_d, Width, size/2, size/2);
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel will need to be modified to use the new shared memory array. The first step is to determine the offset for each matrix. This is done by multiplying the tile size by the thread index. The second step is to use the offset to access the correct value in the shared memory array. The kernel is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void MatMulKernel(float* M, float* N, float* P, int Width, int Mds_offset, int Nds_offset) {
+    extern __shared__ float Mds_Nds[];
+
+    float *Mds = (float *)Mds_Nds;
+    float *Nds = (float *)Mds_Nds + Mds_offset;
+
+    // Rest of the kernel
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Completing this modification would require us to use linear indexing for &lt;code&gt;Mds&lt;/code&gt; and &lt;code&gt;Nds&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;the-takeaway&#34;&gt;The Takeaway&lt;/h2&gt;
+&lt;p&gt;Tiling is a powerful tool that can be used to improve the performance of a kernel. It is important to understand the memory access pattern of your kernel and identify which data is reused. This will allow you to move that data to shared memory and reduce the number of global memory accesses. Tiling is the first of many &lt;em&gt;patterns&lt;/em&gt; that we will explore. Just like not every tool is useful for every job, not every pattern will be useful for each problem we face. Increasing the number of tools, or patterns, that we have available will allow us to solve a wider range of problems efficiently.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CUDA Architecture</title>
+      <link>https://ajdillhoff.github.io/notes/cuda_architecture/</link>
+      <pubDate>Mon, 08 Jan 2024 20:49:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/cuda_architecture/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#architecture&#34;&gt;Architecture&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#block-scheduling&#34;&gt;Block Scheduling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#synchronization&#34;&gt;Synchronization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#warps&#34;&gt;Warps&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#control-divergence&#34;&gt;Control Divergence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#warp-scheduling&#34;&gt;Warp Scheduling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#resource-partitioning&#34;&gt;Resource Partitioning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dynamic-launch-configurations&#34;&gt;Dynamic Launch Configurations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-takeaway&#34;&gt;The Takeaway&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;architecture&#34;&gt;Architecture&lt;/h2&gt;
+&lt;p&gt;A GPU consists of chip that is composed of several &lt;strong&gt;streaming multiprocessors&lt;/strong&gt; (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores. Historically, CUDA has used DDR memory, but newer architectures use high-bandwidth memory (HBM). This is closely integrated with the GPU for faster data transfer.&lt;/p&gt;
+&lt;p&gt;In the image below, you can see 6 HBM3 memory modules surrounding the GPU, 3 on either side of the die. HBM3 is capable of 3 TB/s of bandwidth. The platform shown only uses 5 of these modules. The full version will utilize all 6.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_14-29-08_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;NVIDIA H100 GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;NVIDIA H100 GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;block-scheduling&#34;&gt;Block Scheduling&lt;/h2&gt;
+&lt;p&gt;When a kernel is launched, the blocks that we configure in our code are assigned to SMs. All threads in each block will be assigned to each SM. Depending on the platform, the number of blocks that can be assigned to an SM will vary. This is discussed in more detail below. Since all threads in a block are on the same SM, they can share data and communicate with each other.&lt;/p&gt;
+&lt;h2 id=&#34;synchronization&#34;&gt;Synchronization&lt;/h2&gt;
+&lt;p&gt;Threads that run on the same block can be synchronized using &lt;code&gt;__syncthreads()&lt;/code&gt;. This is a pretty straightforward concept, but it is important to understand the caveats. When a kernel reaches this call, the execution of the threads will stop until all of them have reached that point. This construct is typically used when threads need to share data or are dependent on the results of other threads.&lt;/p&gt;
+&lt;p&gt;Be careful on using this call. An example of incorrect usage is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__
+void kernel(int *a, int *b, int *c) {
+    if (threadIdx.x % 2 == 0) {
+        // Perform some work
+        __syncthreads();
+    else {
+        // Perform some other work
+        __syncthreads();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Unlike a general-purpose processor, a GPU does not have control hardware for each individual core. This means that all threads must execute the same instructions using shared resources. In the example above, it is possible for some threads to branch off into a different part of the program. However, only one of the paths can be executed based on this limitation. This is called &lt;strong&gt;control divergence&lt;/strong&gt; and is discussed in more detail below.&lt;/p&gt;
+&lt;p&gt;Even though the call looks the same, each &lt;code&gt;__syncthreads()&lt;/code&gt; is different. The first call will only synchronize the threads that executed the first path. The second call will only synchronize the threads that executed the second path. The result is either undefined output or a deadlock, in which the threads will never reach the second call.&lt;/p&gt;
+&lt;p&gt;Since threads in separate blocks cannot be synchronized, the blocks can be executed in any arbitrary order. You might immediately ask yourself how a complex problem that requires synchronization between all parts of the data can get around this limitation. We will explore more complex patterns and their solutions in later sections.&lt;/p&gt;
+&lt;h2 id=&#34;warps&#34;&gt;Warps&lt;/h2&gt;
+&lt;p&gt;Streaming Multiprocessors in a CUDA chip execute threads in a group of 32 called &lt;strong&gt;warps&lt;/strong&gt;. Since Compute Capability 1.0, the warp size has not changed. When a block is assigned to an SM, it is divided into warps. Given this size, you can easily determine the number of warps assigned to an SM. For example, if you have a block of 256 threads, the SM has 256 / 32 = 8 warps. If the block size is not evenly divisible by the number of warps per SM, the last warp will be padded with inactive threads.&lt;/p&gt;
+&lt;p&gt;When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a &lt;strong&gt;row-major&lt;/strong&gt; order before being partitioned into warps. For example, a 2D block of 16x16 threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.&lt;/p&gt;
+&lt;p&gt;Warps are executed following the Single-Instruction, Multiple-Data (SIMD) model. There is a single program that runs the same instruction on all threads in the same order. If a thread would have executed a different path based on its input data, it would not be executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt; and is explained in the next section.&lt;/p&gt;
+&lt;p&gt;The advantage of this model is that more physical space can be dedicated to ALUs instead of control logic. In a traditional CPU, each processing core would have its own control logic. The tradeoff is that different cores can execute their own programs at varying points in time.&lt;/p&gt;
+&lt;h2 id=&#34;control-divergence&#34;&gt;Control Divergence&lt;/h2&gt;
+&lt;p&gt;Since a traditional CPU has separate control logic for each core, it can execute different programs at the same time. If the program has a conditional statement, it does not need to worry about synchronizing instructions with another core. This is not the case with a GPU. Since every thread in a warp executes the same instruction, only threads that would execute the same path can be processed at the same time. If a thread would execute a different path, it is not executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;What exactly happens then if a warp has 32 threads of which only 16 would execute the same path? Simply, multiple passes are made until all possible paths of execution are considered based on the divergence of the threads. The SM would process the first 16 threads that all follow the same path before processing the second 16 threads.&lt;/p&gt;
+&lt;p&gt;This also applies to other control flow statements such as loops. Consider a CUDA program that processes the elements of a vector. Depending on the loop and data used, the threads may execute a different number of iterations. As threads finished their iterations, they would be disabled while the remaining threads continue.&lt;/p&gt;
+&lt;p&gt;There are some cases in which it is apparent that your program will exhibit control divergence. For example, if you have a conditional statement based on the thread index, you can be sure that the threads will execute different paths.&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Consider a \(200 \times 150\) image that is processed by a CUDA program. The kernel is launched with \(16 \times 16\) blocks which means there are \(200 / 16 = 13\) blocks in the x-direction and \(150 / 16 = 10\) blocks in the y-direction. The total number of blocks is \(13 \times 10 = 130\). Each block has 256 threads, or 8 warps. That means that the total number of warps is \(130 \times 8 = 1040\).&lt;/p&gt;
+&lt;h2 id=&#34;warp-scheduling&#34;&gt;Warp Scheduling&lt;/h2&gt;
+&lt;p&gt;An SM can only execute instructions for a small number of warps. The architecture allows for more warps than the SM can execute since warps will often be waiting for some result or data transfer. Warps are selected based on a priority mechanism. This is called &lt;strong&gt;latency tolerance&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Zero-overhead thread scheduling allows for selecting warps without any overhead. A CPU has more space on the chip for caching and branch prediction so that latency is as low as possible. GPUs have more floating point units and can switch between warps, effectively hiding latency.&lt;/p&gt;
+&lt;p&gt;The execution states for all assigned warps are stored in the hardware registers, eliminating the need to save and restore registers when switching between warps.&lt;/p&gt;
+&lt;p&gt;Under this model, it is ideal for an SM to be assigned more threads than it can execute at once. This increases the odds that the SM will have a warp ready to execute when another warp is waiting for data.&lt;/p&gt;
+&lt;h2 id=&#34;resource-partitioning&#34;&gt;Resource Partitioning&lt;/h2&gt;
+&lt;p&gt;There is a limit on the number of warps that an SM can support. In general, we want to maximize the throughput of an SM by assigning as many warps as possible. The ratio of warps assigned to the number of warps an SM supports is called &lt;strong&gt;occupancy&lt;/strong&gt;. If we understand how the architecture partitions the resources, we can optimize our programs for peak performance. Consider the NVIDIA GH100 GPU, pictured below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_11-44-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GH100 Full GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (Hwu, Kirk, and El Hajj 2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.&lt;/p&gt;
+&lt;p&gt;What if we chose 32 threads per block? Then there would be 2048 / 32 = 64 blocks per SM. However, the device only supports 32 blocks per SM. With only 32 blocks allocated with 32 threads per block, a total of 1024 threads would be utilized. The occupancy in this case is 1024 / 2048 = 50%.&lt;/p&gt;
+&lt;p&gt;Historically, NVIDIA provided an excel spreadsheet to compute occpancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.&lt;/p&gt;
+&lt;h3 id=&#34;including-registers&#34;&gt;Including Registers&lt;/h3&gt;
+&lt;p&gt;Another factor for occupancy is the number of registers used per thread. The H100 has 65,536 registers available for use. As long as your program does not use more than this, you can follow the simpler occupancy calculation from above. With 2048 threads, that leaves 65,536 / 2048 = 32 registers per thread. If we run a program with 256 threads/block, there would be 2048 / 256 = 8 blocks per SM. This means that there are 8 * 256 = 2048 threads per SM. With 31 registers per thread, the total number of registers used per SM is 2048 * 31 = 63,488. In this case we still maximize occupancy since 63,488 &amp;lt; 65,536.&lt;/p&gt;
+&lt;p&gt;What if each thread required 33 registers? In that case, the total number of registers used per SM would be 2048 * 33 = 67,584. How would these resources be partitioned? Only 7 blocks could be assigned since 7 * 256 * 33 = 59,136 &amp;lt; 65,536. This means that only 7 * 256 = 1792 threads would be used, reducing the occupancy to 1792 / 2048 = 87.5%.&lt;/p&gt;
+&lt;h2 id=&#34;dynamic-launch-configurations&#34;&gt;Dynamic Launch Configurations&lt;/h2&gt;
+&lt;p&gt;Depending on our application requirements, we may need to support a range of devices across several compute capabalities. The CUDA API makes this simple by providing several different functions for querying device properties. These can be called from the host before configuring and launching a kernel. This is not an exhaustive list, but it covers the most important properties. When we first launch a program that utilizes CUDA, we will want to know how many devices are available. Later in this course, we will develop programs that utilize multiple GPUs, but we would also want our code to adapt dynamically to a single GPU.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; deviceCount;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cudaGetDeviceCount(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;deviceCount);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Once the device count is known, the properties of each device can be acquired with &lt;code&gt;cudaGetDeviceProperties&lt;/code&gt;. This function takes a pointer to a &lt;code&gt;cudaDeviceProp&lt;/code&gt; struct. The struct contains several properties that can be used to configure the kernel launch. The most important properties are listed below. A full list can be found &lt;a href=&#34;https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;in the CUDA documentation.&lt;/a&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Property&lt;/th&gt;
+&lt;th&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Name of the device&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;totalGlobalMem&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Total amount of global memory available on the device in bytes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;sharedMemPerBlock&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Shared memory available per block in bytes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;regsPerBlock&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;32-bit registers available per block&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;warpSize&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Warp size in threads&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;maxThreadsPerBlock&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Maximum number of threads per block&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;maxThreadsDim&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Maximum size of each dimension of a block&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;maxGridSize&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Maximum size of each dimension of a grid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;multiProcessorCount&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Number of SMs on the device&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;maxThreadsPerMultiProcessor&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Maximum number of threads per SM&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The following example iterates through all devices and queries their properties.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; deviceCount; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cudaDeviceProp prop;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cudaGetDeviceProperties(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;prop, i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// Use properties to configure kernel launch
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;the-takeaway&#34;&gt;The Takeaway&lt;/h2&gt;
+&lt;p&gt;The CUDA architecture is designed to maximize the number of threads that can be executed in parallel. This is achieved by partitioning the resources of the GPU into SMs. Each SM can execute a small number of warps at a time. The number of warps that can be assigned to an SM is called &lt;strong&gt;occupancy&lt;/strong&gt;. The occupancy is determined by the number of threads per block, the number of blocks per SM, and the number of registers used per thread. The CUDA API provides functions for querying device properties so that the kernel launch can be configured dynamically.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Multidimensional Grids and Data</title>
+      <link>https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/</link>
+      <pubDate>Fri, 05 Jan 2024 11:56:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#multidimensional-grid-organization&#34;&gt;Multidimensional Grid Organization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-color-to-grayscale&#34;&gt;Example: Color to Grayscale&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#no-longer-embarrassing-overlapping-data&#34;&gt;No longer embarrassing: overlapping data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#matrix-multiplication&#34;&gt;Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#what-s-next&#34;&gt;What&amp;rsquo;s Next?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&amp;rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector. When performing computations on multidimensional data like matrices, we can match the dimensions of our launch configuration to the dimensions of our data.&lt;/p&gt;
+&lt;h2 id=&#34;multidimensional-grid-organization&#34;&gt;Multidimensional Grid Organization&lt;/h2&gt;
+&lt;p&gt;All threads share a block index, &lt;code&gt;blockIdx&lt;/code&gt;, and a thread index, &lt;code&gt;threadIdx&lt;/code&gt;. These indices are three-dimensional vectors of type &lt;code&gt;dim3&lt;/code&gt;. The &lt;code&gt;dim3&lt;/code&gt; type is defined as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dim3&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x, y, z;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Each grid is a 3D array of blocks, and every block a 3D array of threads. Consider the kernel execution for &lt;code&gt;vecAdd&lt;/code&gt; from Lab 0:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;blocksPerGrid&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;threadsPerBlock&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;128&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vecAdd&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt;blocksPerGrid, threadsPerBlock&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;(a_d, b_d, c_d, n);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This will execute with \(32 \times 128 = 4096\) threads.&lt;/p&gt;
+&lt;p&gt;If our input is a matrix, we should organize our launch dimensions to match its 2D structure. We seemingly have two options: either the grid size or the block size. Consider the figure below, there are 4 blocks in the grid, each with 16 threads organized as a \(4 \times 2 \times 2\) volume.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-05_14-20-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A 2D grid of blocks, each with 16 threads arranged in a 3D configuration (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A 2D grid of blocks, each with 16 threads arranged in a 3D configuration (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Under such a configuration, we would make use of &lt;code&gt;gridDim.x&lt;/code&gt;, &lt;code&gt;gridDim.y&lt;/code&gt;, and &lt;code&gt;gridDim.z&lt;/code&gt; to access the dimensions of the grid. The dimensions of the block would be accessed with &lt;code&gt;blockDim.x&lt;/code&gt;, &lt;code&gt;blockDim.y&lt;/code&gt;, and &lt;code&gt;blockDim.z&lt;/code&gt;. The thread indices would be accessed with &lt;code&gt;threadIdx.x&lt;/code&gt;, &lt;code&gt;threadIdx.y&lt;/code&gt;, and &lt;code&gt;threadIdx.z&lt;/code&gt;. Would this be the best way to organize our launch configuration? &lt;strong&gt;Not exactly.&lt;/strong&gt; We have no use for the 3D structure if we are only working with matrices.&lt;/p&gt;
+&lt;p&gt;Consider an \(n \times m\) matrix. If the matrix is small enough, we could launch a single block with a 2D arrangement of threads to perform the necessary computation. For larger matrices, we would optimally split the work into multiple blocks. This would allow us to perform more work in parallel. Let \(n=62\) and \(m=76\). If we chose a \(16 \times 16\) block size, we would need \(4 \times 5 = 20\) blocks to cover the entire matrix, as shown in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-05_15-04-59_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A 2D grid of blocks, each with 16 threads arranged in 2D (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A 2D grid of blocks, each with 16 threads arranged in 2D (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Optimal Launch Parameters&lt;/strong&gt;&lt;/strong&gt;
+Is it better to have fewer blocks that maximize the amount of threads per block? Or is it better to have more blocks with fewer threads per block? The current maximum number of threads per block is 1024. In practice, a maximum block dimension size of 128 or 256 is ideal. This has more to do with the specific problem and the amount of shared memory required. You will explore this question in Lab 1.&lt;/p&gt;
+&lt;h2 id=&#34;example-color-to-grayscale&#34;&gt;Example: Color to Grayscale&lt;/h2&gt;
+&lt;p&gt;Given the layout just described, we will write a kernel that converts a color image to grayscale. This is an &lt;em&gt;embarrassingly parallel&lt;/em&gt; problem since each pixel can be converted independently of the others. We will use the following formula to convert each pixel:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gray &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.299f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; red &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.587f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; green &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.114f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; blue
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A CPU implementation would require a &lt;code&gt;for&lt;/code&gt; loop over the exact number of pixels. The CUDA kernel for this is straightforward since it only depends on the current pixel. The only real challenge is to compute the correct indices for each thread.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__
+void colorToGrayscale(unsigned char *rgbImage,
+                      unsigned char *grayImage,
+                      int numRows, int numCols)
+{
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (x &amp;gt;= numCols || y &amp;gt;= numRows) return;
+
+    int index = y * numCols + x;
+    int rgbOffset = index * 3;
+    unsigned char r = rgbImage[rgbOffset];
+    unsigned char g = rgbImage[rgbOffset + 1];
+    unsigned char b = rgbImage[rgbOffset + 2];
+    float channelSum = 0.299f * r + 0.587f * g + 0.114f * b;
+    grayImage[index] = channelSum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In this example, we assume an RGB image where each pixel is represented by three unsigned characters. It is standard convention in C to pass a pointer to the first element of the array. This implies that we cannot use the &lt;code&gt;[]&lt;/code&gt; operator to access the elements in a multidimensional way. Instead, we must compute the index ourselves. If you are not currently familiar with flat indexing, you certainly will be by the end of this course.&lt;/p&gt;
+&lt;p&gt;In C, multi-dimensional arrays are stored in row-major order. To compute the index of row &lt;code&gt;j&lt;/code&gt; and column &lt;code&gt;i&lt;/code&gt; in a 2D array, we need to skip over &lt;code&gt;j&lt;/code&gt; rows and &lt;code&gt;i&lt;/code&gt; columns. The total number of columns is the width of the array. The total number of rows is the height of the array. The index is computed as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; index &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; width &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is represented in the following figure.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-05_16-56-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A 2D array stored in row-major order (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A 2D array stored in row-major order (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Since the image is now represented as a flat 1D array, we can use the index computed above to access the correct pixel. The image is typically stored in the same row-major format, although this is not always the case. You should always check the documentation for the image format you are using.&lt;/p&gt;
+&lt;h3 id=&#34;launch-configuration&#34;&gt;Launch Configuration&lt;/h3&gt;
+&lt;p&gt;As stated above, we are going to launch 20 blocks in a \(4 \times 5\) grid. Each block will have 256 threads arranged in a \(16 \times 16\) 2D configuration. This totals to \(20 \times 256 = 5120\) threads. The example figure above shows this configuration overlaid on a \(76 \times 62\) image. That means we have 4712 pixels that need to be converted. The remaining 408 threads will be idle.&lt;/p&gt;
+&lt;p&gt;You might be wondering if all 5120 threads launch at the same time. What if the number of pixels exceeded the number of threads available on the GPU? The short answer is that the GPU will launch as many threads as possible, but the long answer is slightly more complicated and will be discussed in a later lesson.&lt;/p&gt;
+&lt;p&gt;In any case, our kernel can be launched using the following code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;blockSize&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;gridSize&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;colorToGrayscale&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt;gridSize, blockSize&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;(rgbImage, grayImage, numRows, numCols);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;no-longer-embarrassing-overlapping-data&#34;&gt;No longer embarrassing: overlapping data&lt;/h2&gt;
+&lt;p&gt;At this point, you should have a basic understanding of how to solve problems that are embarrassingly parallel. Now comes the next step in shaping your parallel thinking skills. What if the thread relies on multiple data points that may be used by other threads. This is further complicated with problems that require some computation to complete before a thread can begin its work. Let&amp;rsquo;s take a step into deeper waters by looking at image blurring. This is a common technique used in image processing to reduce noise and detail. The basic idea is to replace each pixel with a weighted average of its neighboring pixels. The size of the neighborhood is called the &lt;strong&gt;kernel size&lt;/strong&gt;. The kernel size is typically an odd number so that the pixel of interest is in the center of the neighborhood.&lt;/p&gt;
+&lt;p&gt;The core operation behind blurring is called a &lt;strong&gt;convolution&lt;/strong&gt;. We will explore this operation in depth as it serves as a more advanced pattern for parallelism. For now, we will focus on the basic idea. Given a kernel size of \(5 \times 5\) centered on a pixel, we will compute the weighted average of the 25 pixels in the neighborhood. To keep it simple, the weights will be uniform.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-06_15-50-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A blurring kernel (red) centered on a pixel (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A blurring kernel (red) centered on a pixel (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Given a pixel location \((x, y)\), we can compute the index of the pixel in the neighborhood as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; index &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (y &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; ky) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; numCols &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; kx);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Where \(ky\) and \(kx\) are the row and column indices of the kernel. The kernel is centered on the pixel of interest, so \(ky\) and \(kx\) range from \(-2\) to \(2\). The total number of pixels in the neighborhood is \(5 \times 5 = 25\). The weighted average is computed as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; sum &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0f&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; numPixels &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ky &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;; ky &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;; ky&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; kx &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;; kx &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;; kx&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; kx &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; kx &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; numCols) &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (y &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; ky &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; y &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; ky &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; numRows) &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; index &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (y &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; ky) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; numCols &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; kx);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        sum &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; image[index];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        numPixels&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;image[y &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; numRows &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; x] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sum &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; numPixels;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Some extra care will be needed to account for pixels outside the boundaries. There are several strategies to handle out-of-bounds pixels. The simplest is to ignore them. We will explore other strategies when discussing convolutions. In Lab 1, you will implement a blur kernel that can support a varying kernel size.&lt;/p&gt;
+&lt;h2 id=&#34;matrix-multiplication&#34;&gt;Matrix Multiplication&lt;/h2&gt;
+&lt;p&gt;Matrix multiplication is one of the most important operations in linear algebra. Many high performance computing applications rely on it. It is one of the most widely called operations in deep learning, for example. Parallelizing this and other linear algebra operations has resulted in an explosion of research and applications ranging from computer vision to computational fluid dynamics. Exploring the parallelism of matrix multiplication will give us a deeper understanding of the CUDA programming model. It will also serve as a jumping off point for more advanced topics like shared memory and convolutional neural networks.&lt;/p&gt;
+&lt;h3 id=&#34;definition&#34;&gt;Definition&lt;/h3&gt;
+&lt;p&gt;Let \(A = \mathbb{R}^{m \times n}\) and \(B = \mathbb{R}^{n \times p}\) be two matrices. The product \(C = AB\) is defined as follows:&lt;/p&gt;
+&lt;p&gt;\[
+C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and } j = 1, \ldots, p
+\]&lt;/p&gt;
+&lt;p&gt;This operation is only defined on compatible matrices. That is, the number of columns in \(A\) must equal the number of rows in \(B\). The resulting matrix \(C\) will have \(m\) rows and \(p\) columns.&lt;/p&gt;
+&lt;h3 id=&#34;cpu-implementation&#34;&gt;CPU Implementation&lt;/h3&gt;
+&lt;p&gt;The CPU implementation of matrix multiplication is straightforward. There is a double &lt;code&gt;for&lt;/code&gt; loop to iterate through each element in the &lt;em&gt;output&lt;/em&gt; matrix. The inner loop computes the dot product of the $i$th row of \(A\) and the $j$th column of \(B\). The dot product is computed by summing the element-wise product of the two vectors.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;matrixMultiplyCPU&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;C, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; p) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; m; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; p; j&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; sum &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0f&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; k &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n; k&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                sum &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; A[i &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; k] &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B[k &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; j];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            C[i &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sum;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;gpu-implementation&#34;&gt;GPU Implementation&lt;/h3&gt;
+&lt;p&gt;For a parallel implementation, we can reason that each thread should compute a single element of the output matrix. To compute element \(C_{ij}\), the thread needs access to row \(i\) from \(A\) and column \(j\) from \(B\). Each thread is simply computing the dot product between these two vectors. The figure below visualizes this process.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-08_12-56-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Matrix multiplication (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Matrix multiplication (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output matrix is separated into blocks based on our block size. When writing the kernel, it is necessary to make sure that the index is not out of bounds.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__
+void matrixMultiplyGPU(float *A, float *B, float *C, int m, int n, int p) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &amp;gt;= m || col &amp;gt;= p) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k &amp;lt; n; k++) {
+        sum += A[row * n + k] * B[k * p + col];
+    }
+    C[row * p + col] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;launch-configuration&#34;&gt;Launch Configuration&lt;/h3&gt;
+&lt;p&gt;The launch configuration is similar to the previous examples. We will launch a 2D grid of blocks, each with a 2D arrangement of threads. The block size will be \(16 \times 16\) and the grid size will be \(m / 16 \times p / 16\). The kernel is launched as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;blockSize&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dim3 &lt;span style=&#34;color:#a6e22e&#34;&gt;gridSize&lt;/span&gt;((p &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; blockSize.x &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; blockSize.x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;              (m &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; blockSize.y &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; blockSize.y, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;matrixMultiplyGPU&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt;gridSize, blockSize&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;(A_d, B_d, C_d, m, n, p);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What happens when the output matrix size exceeds the number of blocks per grid and threads per block? Either multiple kernels will be launched, each working with a submatrix of the original input, or each thread will be responsible for multiple elements.&lt;/p&gt;
+&lt;h2 id=&#34;what-s-next&#34;&gt;What&amp;rsquo;s Next?&lt;/h2&gt;
+&lt;p&gt;The complexity was slightly increased by considering multidimensional data. Matrices are a prime example of this. The algorithms explored required us to consider multiple input values to compute a single output value. However, the computation did not rely on any thread synchronization, so the task was still simple enough.&lt;/p&gt;
+&lt;p&gt;Before diving into more complex operations like thread synchronization, was need a better understanding of the GPU&amp;rsquo;s architecture and memory hierarchy. With this knowledge at our disposal, we can begin to optimize our kernels for maximum performance.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Heterogeneous Data Parallel Computing</title>
+      <link>https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/</link>
+      <pubDate>Sat, 30 Dec 2023 14:41:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#key-concepts&#34;&gt;Key Concepts&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cuda-c-programs&#34;&gt;CUDA C Programs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-vector-addition&#34;&gt;Example: Vector Addition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#error-checking&#34;&gt;Error Checking&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;key-concepts&#34;&gt;Key Concepts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Task Parallelism vs. Data Parallelism&lt;/li&gt;
+&lt;li&gt;kernels&lt;/li&gt;
+&lt;li&gt;threads&lt;/li&gt;
+&lt;li&gt;grids&lt;/li&gt;
+&lt;li&gt;blocks&lt;/li&gt;
+&lt;li&gt;global memory&lt;/li&gt;
+&lt;li&gt;data transfer&lt;/li&gt;
+&lt;li&gt;error checking&lt;/li&gt;
+&lt;li&gt;compilation of CUDA programs&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a &lt;strong&gt;kernel&lt;/strong&gt; that is executed independently on many threads. Memory must be allocated on the GPU device before transferring the data from the host machine (CPU). Upon completion of the kernel, the results need to be transferred back to the &lt;strong&gt;host&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;cuda-c-programs&#34;&gt;CUDA C Programs&lt;/h2&gt;
+&lt;p&gt;A basic CUDA program consists of:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A &lt;strong&gt;kernel&lt;/strong&gt; function defining the work to be performed on each thread.&lt;/li&gt;
+&lt;li&gt;Data that is accessible on the &lt;strong&gt;device&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Device memory allocation.&lt;/li&gt;
+&lt;li&gt;Memory transfer from the &lt;strong&gt;host&lt;/strong&gt; to the &lt;strong&gt;device&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Execution of the &lt;strong&gt;kernel&lt;/strong&gt; from the &lt;strong&gt;host&lt;/strong&gt; machine.&lt;/li&gt;
+&lt;li&gt;Data transfer from the &lt;strong&gt;device&lt;/strong&gt; back to the &lt;strong&gt;host&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Memory cleanup.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At first glance, the execution flow of a CUDA program appears sequential; you launch the threads on the GPU and wait for it to complete. A more realistic program would launch the threads and continue local execution, if necessary.&lt;/p&gt;
+&lt;h2 id=&#34;example-vector-addition&#34;&gt;Example: Vector Addition&lt;/h2&gt;
+&lt;p&gt;Hwu et al. refer to vector addition as the &amp;ldquo;Hello World&amp;rdquo; of GPU programming (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;). It is a simple problem that can be described as &lt;em&gt;embarrassingly parallel&lt;/em&gt;. Vector addition is a simple operation. Given two vectors of the same length, \(\mathbf{x}\) and \(\mathbf{y}\), the vector addition operation is defined as:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{z}_i = \mathbf{x}_i + \mathbf{y}_i \quad \forall i \in \{1, \ldots, n\}
+\]&lt;/p&gt;
+&lt;p&gt;The vector addition operation is commutative and associative. The operation can be performed in parallel on each element of the vectors. This can be implemented simply in C.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;vecAdd&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x_h, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y_h, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;z_h, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_h[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x_h[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; y_h[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;One small note about the variable names: it is common to use the suffix `_h` to denote a variable that is allocated on the host (CPU) and `_d` to denote a variable that is allocated on the device (GPU). In this case, the vector addition operation is performed on the host machine.&lt;/p&gt;
+&lt;p&gt;An equivalent implementation in CUDA C is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__
+void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &amp;lt; n) {
+        z_d[i] = x_d[i] + y_d[i];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;__global__&lt;/code&gt; keyword placed before the function definition indicates that the function can be called from both the host and teh device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Keyword&lt;/th&gt;
+&lt;th&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__global__&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Executed on the device, callable from the host and device&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__device__&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Executed on the device, callable from the device only&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;__host__&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Executed on the host, callable from the host only&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Unless otherwise specified, functions that you define will be executed on the host. That is, it is not necessary to specify the &lt;code&gt;__host__&lt;/code&gt; keyword. If you want the compiler to generate both host and device code, you can use the &lt;code&gt;__host__ __device__&lt;/code&gt; keyword combination.&lt;/p&gt;
+&lt;p&gt;The kernel is executed on the host machine using the following code.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;int main() {
+    // Allocate memory on the host
+    float *x_h, *y_h, *z_h;
+    int n = 1024;
+
+    x_h = malloc(n * sizeof(float));
+    y_h = malloc(n * sizeof(float));
+    z_h = malloc(n * sizeof(float));
+
+    // Allocate memory on the device
+    float *x_d, *y_d, *z_d;
+    cudaMalloc(&amp;amp;x_d, n * sizeof(float));
+    cudaMalloc(&amp;amp;y_d, n * sizeof(float));
+    cudaMalloc(&amp;amp;z_d, n * sizeof(float));
+
+    // Transfer data from host to device
+    cudaMemcpy(x_d, x_h, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(y_d, y_h, n * sizeof(float), cudaMemcpyHostToDevice);
+
+    // Execute kernel
+    vecAdd&amp;lt;&amp;lt;&amp;lt;ceil(n / 256.0), 256&amp;gt;&amp;gt;&amp;gt;(x_d, y_d, z_d, n);
+
+    // Transfer data from device to host
+    cudaMemcpy(z_h, z_d, n * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // Free memory on host and device
+    free(x_h);
+    free(y_h);
+    free(z_h);
+    cudaFree(x_d);
+    cudaFree(y_d);
+    cudaFree(z_d);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;There is a lot to unpack here, so we&amp;rsquo;ll start from the top.&lt;/p&gt;
+&lt;h3 id=&#34;memory-allocation&#34;&gt;Memory Allocation&lt;/h3&gt;
+&lt;p&gt;It doesn&amp;rsquo;t really matter where the host data comes from or how it is allocated, but the above example allocates memory using &lt;code&gt;malloc&lt;/code&gt; anyway. Before transferring data to the device, we must allocate memory on it. This is done via &lt;code&gt;cudaMalloc&lt;/code&gt;. The first argument is a pointer to address of the variable. Remember that taking the address of a pointer will result in a double pointer. This is necessary because the function will need to dereference the pointer to store the address to the allocated data. Once the memory is allocated on the device, it cannot be accessed from the host until it is transferred back.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-05_11-54-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Overview of memory layout (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Overview of memory layout (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The memory that is allocated on the device is called &lt;strong&gt;global memory&lt;/strong&gt;. It is accessible by all threads on the device. There is also a small amount of &lt;strong&gt;shared memory&lt;/strong&gt; that is accessible by threads within a single block along with a &lt;strong&gt;unified memory&lt;/strong&gt; model.&lt;/p&gt;
+&lt;h3 id=&#34;memory-transfer&#34;&gt;Memory Transfer&lt;/h3&gt;
+&lt;p&gt;Now that the memory has been allocated, the data can be safely transferred from the host to the device. This is accomplished using &lt;code&gt;cudaMemcpy&lt;/code&gt;. The arguments are the &lt;strong&gt;destination pointer&lt;/strong&gt;, &lt;strong&gt;source pointer&lt;/strong&gt;, &lt;strong&gt;size&lt;/strong&gt;, and &lt;strong&gt;direction&lt;/strong&gt;. The direction is an enumerated type that can be one of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;cudaMemcpyHostToDevice&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cudaMemcpyDeviceToHost&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cudaMemcpyDeviceToDevice&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will only focus on the first two for now.&lt;/p&gt;
+&lt;h3 id=&#34;grids-blocks-and-threads&#34;&gt;Grids, Blocks, and Threads&lt;/h3&gt;
+&lt;p&gt;The CUDA programming model is based on a hierarchy of &lt;strong&gt;grids&lt;/strong&gt;, &lt;strong&gt;blocks&lt;/strong&gt;, and &lt;strong&gt;threads&lt;/strong&gt;. A &lt;strong&gt;grid&lt;/strong&gt; is a collection of &lt;strong&gt;blocks&lt;/strong&gt;. A &lt;strong&gt;block&lt;/strong&gt; is a collection of &lt;strong&gt;threads&lt;/strong&gt;. The number of &lt;strong&gt;blocks&lt;/strong&gt; and &lt;strong&gt;threads&lt;/strong&gt; is defined by the programmer. The number of &lt;strong&gt;blocks&lt;/strong&gt; and &lt;strong&gt;threads&lt;/strong&gt; that can be executed in parallel is limited by the hardware. The number of &lt;strong&gt;blocks&lt;/strong&gt; and &lt;strong&gt;threads&lt;/strong&gt; that can be executed in parallel is called the &lt;strong&gt;grid size&lt;/strong&gt; and &lt;strong&gt;block size&lt;/strong&gt;, respectively.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-05_11-22-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A single block of 256 threads (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A single block of 256 threads (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above shows a single block of 256 threads. This could be one of many blocks in a grid. The threads within each block are executed in parallel and do not interact with threads in other blocks. For threads within a single block, there is a small amount of shared memory as well as other tools for communication. We will explore these in more depth as we dive into the details of the CUDA architecture.&lt;/p&gt;
+&lt;h3 id=&#34;kernel-execution&#34;&gt;Kernel Execution&lt;/h3&gt;
+&lt;p&gt;Calling the kernel function almost looks like any ordinary function call. The main difference is the inclusion of the &lt;code&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/code&gt; and &lt;code&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; syntax. These are used to specify the size of the grid and blocks, respectively. In this example, we specified that each block has 256 threads. We can use that specification to dynamically determine the number of blocks based on the input size. The number of blocks is computed as the ceiling of the input size divided by the number of threads per block. This ensures that there are enough blocks to cover the entire input size.&lt;/p&gt;
+&lt;p&gt;Returning to the kernel function, the thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. These are defined as &lt;code&gt;struct&lt;/code&gt; variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.&lt;/p&gt;
+&lt;p&gt;You may have noticed that it is possible to have more threads than there are blocks. As much as possible, you should try and work with powers of 2. This will ensure that the hardware is used as efficiently as possible. You can always request more threads than there are data points and ignore the threads that are not needed. In this example, we check to see if the thread index is less than the input size. If it is, the vector addition operation is performed. Otherwise, the function exits.&lt;/p&gt;
+&lt;p&gt;There are limits to the number of blocks and threads that can be executed in parallel. These limits are based on the compute capability of the device, referenced &lt;a href=&#34;https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;compiling&#34;&gt;Compiling&lt;/h3&gt;
+&lt;p&gt;CUDA code is compiled using the NVCC compiler driver. It works by compiling host code using the host&amp;rsquo;s native C/C++ compiler and device code to PTX, the CUDA instruction set architecture. Each snippet of code is separated based on the CUDA keyword used to define it. For example, the &lt;code&gt;__global__&lt;/code&gt; keyword used to define the kernel function informs &lt;code&gt;nvcc&lt;/code&gt; that it should be compiled to a PTX file.&lt;/p&gt;
+&lt;h2 id=&#34;error-checking&#34;&gt;Error Checking&lt;/h2&gt;
+&lt;p&gt;The functions we use in the CUDA API return an error code. We can use this to create robust code that checks for errors and either corrects them or exits gracefully. The following example shows a simple way to check the result of `cudaMalloc`:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;cudaError_t err = cudaMalloc(&amp;amp;x_d, n * sizeof(float));
+if (err != cudaSuccess) {
+    fprintf(stderr, &amp;#34;Error: %s\n&amp;#34;, cudaGetErrorString(err));
+    exit(EXIT_FAILURE);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A common pattern is to define a macro that checks the result of a CUDA function and exits if there is an error. This is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true) {
+   if (code != cudaSuccess) {
+      fprintf(stderr,&amp;#34;GPUassert: %s %s %d\n&amp;#34;, cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A small note on the above macro, it is technically C++ code. As of writing this, CUDA does not support all features of C++, but much of the code you will see is written as a mix of C and C++. CUDA was originally developed for C, but C++ features have slowly been introduced over time. If you view the &lt;a href=&#34;https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;official documentation&lt;/a&gt;, you can see that the link is defined as `cuda-c-programming-guide`, but the actual document has been renamed to `CUDA C++ Programming Guide`.&lt;/p&gt;
+&lt;p&gt;Don&amp;rsquo;t overthink the C/C++ distinction. The main point is that you can use C++ features in your CUDA code, but you should be aware that not all features are supported.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>MapReduce</title>

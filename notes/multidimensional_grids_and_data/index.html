@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Summary Multidimensional Grid Organization Example: Color to Grayscale No longer embarrassing: overlapping data Matrix Multiplication What&rsquo;s Next? Summary The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/">
+  <meta property="og:title" content="Multidimensional Grids and Data | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Summary Multidimensional Grid Organization Example: Color to Grayscale No longer embarrassing: overlapping data Matrix Multiplication What&rsquo;s Next? Summary The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-01-05T11:56:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-05T11:56:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Multidimensional Grids and Data | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Multidimensional Grids and Data</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-01-05 11:56:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-05 11:56:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 5, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/&amp;text=Multidimensional%20Grids%20and%20Data" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/&amp;t=Multidimensional%20Grids%20and%20Data" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Multidimensional%20Grids%20and%20Data&amp;body=https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/&amp;title=Multidimensional%20Grids%20and%20Data" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Multidimensional%20Grids%20and%20Data%20https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/multidimensional_grids_and_data/&amp;title=Multidimensional%20Grids%20and%20Data" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#multidimensional-grid-organization">Multidimensional Grid Organization</a></li>
+<li><a href="#example-color-to-grayscale">Example: Color to Grayscale</a></li>
+<li><a href="#no-longer-embarrassing-overlapping-data">No longer embarrassing: overlapping data</a></li>
+<li><a href="#matrix-multiplication">Matrix Multiplication</a></li>
+<li><a href="#what-s-next">What&rsquo;s Next?</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="summary">Summary</h2>
+<p>The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector. When performing computations on multidimensional data like matrices, we can match the dimensions of our launch configuration to the dimensions of our data.</p>
+<h2 id="multidimensional-grid-organization">Multidimensional Grid Organization</h2>
+<p>All threads share a block index, <code>blockIdx</code>, and a thread index, <code>threadIdx</code>. These indices are three-dimensional vectors of type <code>dim3</code>. The <code>dim3</code> type is defined as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">dim3</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> x, y, z;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>Each grid is a 3D array of blocks, and every block a 3D array of threads. Consider the kernel execution for <code>vecAdd</code> from Lab 0:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blocksPerGrid</span>(<span style="color:#ae81ff">32</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">threadsPerBlock</span>(<span style="color:#ae81ff">128</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>vecAdd<span style="color:#f92672">&lt;&lt;&lt;</span>blocksPerGrid, threadsPerBlock<span style="color:#f92672">&gt;&gt;&gt;</span>(a_d, b_d, c_d, n);
+</span></span></code></pre></div><p>This will execute with \(32 \times 128 = 4096\) threads.</p>
+<p>If our input is a matrix, we should organize our launch dimensions to match its 2D structure. We seemingly have two options: either the grid size or the block size. Consider the figure below, there are 4 blocks in the grid, each with 16 threads organized as a \(4 \times 2 \times 2\) volume.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-05_14-20-10_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A 2D grid of blocks, each with 16 threads arranged in a 3D configuration (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>A 2D grid of blocks, each with 16 threads arranged in a 3D configuration (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Under such a configuration, we would make use of <code>gridDim.x</code>, <code>gridDim.y</code>, and <code>gridDim.z</code> to access the dimensions of the grid. The dimensions of the block would be accessed with <code>blockDim.x</code>, <code>blockDim.y</code>, and <code>blockDim.z</code>. The thread indices would be accessed with <code>threadIdx.x</code>, <code>threadIdx.y</code>, and <code>threadIdx.z</code>. Would this be the best way to organize our launch configuration? <strong>Not exactly.</strong> We have no use for the 3D structure if we are only working with matrices.</p>
+<p>Consider an \(n \times m\) matrix. If the matrix is small enough, we could launch a single block with a 2D arrangement of threads to perform the necessary computation. For larger matrices, we would optimally split the work into multiple blocks. This would allow us to perform more work in parallel. Let \(n=62\) and \(m=76\). If we chose a \(16 \times 16\) block size, we would need \(4 \times 5 = 20\) blocks to cover the entire matrix, as shown in the figure below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-05_15-04-59_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A 2D grid of blocks, each with 16 threads arranged in 2D (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>A 2D grid of blocks, each with 16 threads arranged in 2D (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong><strong>Optimal Launch Parameters</strong></strong>
+Is it better to have fewer blocks that maximize the amount of threads per block? Or is it better to have more blocks with fewer threads per block? The current maximum number of threads per block is 1024. In practice, a maximum block dimension size of 128 or 256 is ideal. This has more to do with the specific problem and the amount of shared memory required. You will explore this question in Lab 1.</p>
+<h2 id="example-color-to-grayscale">Example: Color to Grayscale</h2>
+<p>Given the layout just described, we will write a kernel that converts a color image to grayscale. This is an <em>embarrassingly parallel</em> problem since each pixel can be converted independently of the others. We will use the following formula to convert each pixel:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>gray <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.299f</span> <span style="color:#f92672">*</span> red <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.587f</span> <span style="color:#f92672">*</span> green <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.114f</span> <span style="color:#f92672">*</span> blue
+</span></span></code></pre></div><p>A CPU implementation would require a <code>for</code> loop over the exact number of pixels. The CUDA kernel for this is straightforward since it only depends on the current pixel. The only real challenge is to compute the correct indices for each thread.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
+void colorToGrayscale(unsigned char *rgbImage,
+                      unsigned char *grayImage,
+                      int numRows, int numCols)
+{
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (x &gt;= numCols || y &gt;= numRows) return;
+
+    int index = y * numCols + x;
+    int rgbOffset = index * 3;
+    unsigned char r = rgbImage[rgbOffset];
+    unsigned char g = rgbImage[rgbOffset + 1];
+    unsigned char b = rgbImage[rgbOffset + 2];
+    float channelSum = 0.299f * r + 0.587f * g + 0.114f * b;
+    grayImage[index] = channelSum;
+}
+</code></pre><p>In this example, we assume an RGB image where each pixel is represented by three unsigned characters. It is standard convention in C to pass a pointer to the first element of the array. This implies that we cannot use the <code>[]</code> operator to access the elements in a multidimensional way. Instead, we must compute the index ourselves. If you are not currently familiar with flat indexing, you certainly will be by the end of this course.</p>
+<p>In C, multi-dimensional arrays are stored in row-major order. To compute the index of row <code>j</code> and column <code>i</code> in a 2D array, we need to skip over <code>j</code> rows and <code>i</code> columns. The total number of columns is the width of the array. The total number of rows is the height of the array. The index is computed as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> j <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> i;
+</span></span></code></pre></div><p>This is represented in the following figure.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-05_16-56-55_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A 2D array stored in row-major order (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>A 2D array stored in row-major order (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Since the image is now represented as a flat 1D array, we can use the index computed above to access the correct pixel. The image is typically stored in the same row-major format, although this is not always the case. You should always check the documentation for the image format you are using.</p>
+<h3 id="launch-configuration">Launch Configuration</h3>
+<p>As stated above, we are going to launch 20 blocks in a \(4 \times 5\) grid. Each block will have 256 threads arranged in a \(16 \times 16\) 2D configuration. This totals to \(20 \times 256 = 5120\) threads. The example figure above shows this configuration overlaid on a \(76 \times 62\) image. That means we have 4712 pixels that need to be converted. The remaining 408 threads will be idle.</p>
+<p>You might be wondering if all 5120 threads launch at the same time. What if the number of pixels exceeded the number of threads available on the GPU? The short answer is that the GPU will launch as many threads as possible, but the long answer is slightly more complicated and will be discussed in a later lesson.</p>
+<p>In any case, our kernel can be launched using the following code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">gridSize</span>(<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>colorToGrayscale<span style="color:#f92672">&lt;&lt;&lt;</span>gridSize, blockSize<span style="color:#f92672">&gt;&gt;&gt;</span>(rgbImage, grayImage, numRows, numCols);
+</span></span></code></pre></div><h2 id="no-longer-embarrassing-overlapping-data">No longer embarrassing: overlapping data</h2>
+<p>At this point, you should have a basic understanding of how to solve problems that are embarrassingly parallel. Now comes the next step in shaping your parallel thinking skills. What if the thread relies on multiple data points that may be used by other threads. This is further complicated with problems that require some computation to complete before a thread can begin its work. Let&rsquo;s take a step into deeper waters by looking at image blurring. This is a common technique used in image processing to reduce noise and detail. The basic idea is to replace each pixel with a weighted average of its neighboring pixels. The size of the neighborhood is called the <strong>kernel size</strong>. The kernel size is typically an odd number so that the pixel of interest is in the center of the neighborhood.</p>
+<p>The core operation behind blurring is called a <strong>convolution</strong>. We will explore this operation in depth as it serves as a more advanced pattern for parallelism. For now, we will focus on the basic idea. Given a kernel size of \(5 \times 5\) centered on a pixel, we will compute the weighted average of the 25 pixels in the neighborhood. To keep it simple, the weights will be uniform.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-06_15-50-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A blurring kernel (red) centered on a pixel (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>A blurring kernel (red) centered on a pixel (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Given a pixel location \((x, y)\), we can compute the index of the pixel in the neighborhood as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (y <span style="color:#f92672">+</span> ky) <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> (x <span style="color:#f92672">+</span> kx);
+</span></span></code></pre></div><p>Where \(ky\) and \(kx\) are the row and column indices of the kernel. The kernel is centered on the pixel of interest, so \(ky\) and \(kx\) range from \(-2\) to \(2\). The total number of pixels in the neighborhood is \(5 \times 5 = 25\). The weighted average is computed as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> numPixels <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> ky <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>; ky <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">2</span>; ky<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> kx <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>; kx <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">2</span>; kx<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (x <span style="color:#f92672">+</span> kx <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> x <span style="color:#f92672">+</span> kx <span style="color:#f92672">&gt;=</span> numCols) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (y <span style="color:#f92672">+</span> ky <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> y <span style="color:#f92672">+</span> ky <span style="color:#f92672">&gt;=</span> numRows) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (y <span style="color:#f92672">+</span> ky) <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> (x <span style="color:#f92672">+</span> kx);
+</span></span><span style="display:flex;"><span>        sum <span style="color:#f92672">+=</span> image[index];
+</span></span><span style="display:flex;"><span>        numPixels<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>image[y <span style="color:#f92672">*</span> numRows <span style="color:#f92672">+</span> x] <span style="color:#f92672">=</span> sum <span style="color:#f92672">/</span> numPixels;
+</span></span></code></pre></div><p>Some extra care will be needed to account for pixels outside the boundaries. There are several strategies to handle out-of-bounds pixels. The simplest is to ignore them. We will explore other strategies when discussing convolutions. In Lab 1, you will implement a blur kernel that can support a varying kernel size.</p>
+<h2 id="matrix-multiplication">Matrix Multiplication</h2>
+<p>Matrix multiplication is one of the most important operations in linear algebra. Many high performance computing applications rely on it. It is one of the most widely called operations in deep learning, for example. Parallelizing this and other linear algebra operations has resulted in an explosion of research and applications ranging from computer vision to computational fluid dynamics. Exploring the parallelism of matrix multiplication will give us a deeper understanding of the CUDA programming model. It will also serve as a jumping off point for more advanced topics like shared memory and convolutional neural networks.</p>
+<h3 id="definition">Definition</h3>
+<p>Let \(A = \mathbb{R}^{m \times n}\) and \(B = \mathbb{R}^{n \times p}\) be two matrices. The product \(C = AB\) is defined as follows:</p>
+<p>\[
+C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and } j = 1, \ldots, p
+\]</p>
+<p>This operation is only defined on compatible matrices. That is, the number of columns in \(A\) must equal the number of rows in \(B\). The resulting matrix \(C\) will have \(m\) rows and \(p\) columns.</p>
+<h3 id="cpu-implementation">CPU Implementation</h3>
+<p>The CPU implementation of matrix multiplication is straightforward. There is a double <code>for</code> loop to iterate through each element in the <em>output</em> matrix. The inner loop computes the dot product of the $i$th row of \(A\) and the $j$th column of \(B\). The dot product is computed by summing the element-wise product of the two vectors.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">matrixMultiplyCPU</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> p) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> m; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> p; j<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; k <span style="color:#f92672">&lt;</span> n; k<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> A[i <span style="color:#f92672">*</span> n <span style="color:#f92672">+</span> k] <span style="color:#f92672">*</span> B[k <span style="color:#f92672">*</span> p <span style="color:#f92672">+</span> j];
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            C[i <span style="color:#f92672">*</span> p <span style="color:#f92672">+</span> j] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="gpu-implementation">GPU Implementation</h3>
+<p>For a parallel implementation, we can reason that each thread should compute a single element of the output matrix. To compute element \(C_{ij}\), the thread needs access to row \(i\) from \(A\) and column \(j\) from \(B\). Each thread is simply computing the dot product between these two vectors. The figure below visualizes this process.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-08_12-56-34_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Matrix multiplication (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Matrix multiplication (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The output matrix is separated into blocks based on our block size. When writing the kernel, it is necessary to make sure that the index is not out of bounds.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
+void matrixMultiplyGPU(float *A, float *B, float *C, int m, int n, int p) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &gt;= m || col &gt;= p) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k &lt; n; k++) {
+        sum += A[row * n + k] * B[k * p + col];
+    }
+    C[row * p + col] = sum;
+}
+</code></pre><h3 id="launch-configuration">Launch Configuration</h3>
+<p>The launch configuration is similar to the previous examples. We will launch a 2D grid of blocks, each with a 2D arrangement of threads. The block size will be \(16 \times 16\) and the grid size will be \(m / 16 \times p / 16\). The kernel is launched as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">gridSize</span>((p <span style="color:#f92672">+</span> blockSize.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize.x,
+</span></span><span style="display:flex;"><span>              (m <span style="color:#f92672">+</span> blockSize.y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize.y, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>matrixMultiplyGPU<span style="color:#f92672">&lt;&lt;&lt;</span>gridSize, blockSize<span style="color:#f92672">&gt;&gt;&gt;</span>(A_d, B_d, C_d, m, n, p);
+</span></span></code></pre></div><p>What happens when the output matrix size exceeds the number of blocks per grid and threads per block? Either multiple kernels will be launched, each working with a submatrix of the original input, or each thread will be responsible for multiple elements.</p>
+<h2 id="what-s-next">What&rsquo;s Next?</h2>
+<p>The complexity was slightly increased by considering multidimensional data. Matrices are a prime example of this. The algorithms explored required us to consider multiple input values to compute a single output value. However, the computation did not rely on any thread synchronization, so the task was still simple enough.</p>
+<p>Before diving into more complex operations like thread synchronization, was need a better understanding of the GPU&rsquo;s architecture and memory hierarchy. With this knowledge at our disposal, we can begin to optimize our kernels for maximum performance.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/heterogeneous_data_parallel_computing/">Heterogeneous Data Parallel Computing</a></li>
+          
+          <li><a href="/notes/introduction_to_gpgpu_programming/">Introduction to GPGPU Programming</a></li>
+          
+          <li><a href="/notes/mapreduce/">MapReduce</a></li>
+          
+          <li><a href="/notes/distributed_databases/">Distributed Databases</a></li>
+          
+          <li><a href="/notes/nosql/">NOSQL</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

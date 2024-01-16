@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/cuda_memory_architecture/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/cuda_memory_architecture/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/cuda_memory_architecture/">
+  <meta property="og:title" content="CUDA Memory Architecture | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-01-11T15:07:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-11T15:07:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>CUDA Memory Architecture | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">CUDA Memory Architecture</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-01-11 15:07:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-11 15:07:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 11, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    16 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/cuda_memory_architecture/&amp;text=CUDA%20Memory%20Architecture" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/cuda_memory_architecture/&amp;t=CUDA%20Memory%20Architecture" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=CUDA%20Memory%20Architecture&amp;body=https://ajdillhoff.github.io/notes/cuda_memory_architecture/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/cuda_memory_architecture/&amp;title=CUDA%20Memory%20Architecture" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=CUDA%20Memory%20Architecture%20https://ajdillhoff.github.io/notes/cuda_memory_architecture/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/cuda_memory_architecture/&amp;title=CUDA%20Memory%20Architecture" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#memory-access">Memory Access</a></li>
+<li><a href="#memory-types">Memory Types</a></li>
+<li><a href="#tiling">Tiling</a></li>
+<li><a href="#example-tiled-matrix-multiplication">Example: Tiled Matrix Multiplication</a></li>
+<li><a href="#boundary-checking">Boundary Checking</a></li>
+<li><a href="#memory-use-and-occupancy">Memory Use and Occupancy</a></li>
+<li><a href="#dynamically-changing-the-block-size">Dynamically Changing the Block Size</a></li>
+<li><a href="#the-takeaway">The Takeaway</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively.</p>
+<h2 id="memory-access">Memory Access</h2>
+<p>Transferring memory is one of the biggest bottlenecks in GPU programming. Companies like NVIDIA devote a lot of resources to improving the bandwidth and latency of memory transfers. When training a deep learning model, the datasets used are far too large to fit on the GPU. This means that the data must be transferred to the GPU before the actual training code can execute on the device. Training large models can take days or weeks, so the time spent transferring data can be significant.</p>
+<p>The example provided in Chapter 5 of &ldquo;Programming Massively Parallel Processors&rdquo; is a great introduction to understanding memory access efficiency (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>). In matrix multiplication, the data accesses are limited to a single line of code in the inner-most loop. This means that the memory access pattern is very regular and predictable. The example code is shown below:</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">for (int k = 0; i k &lt; numCols; k++) {
+    Cvalue += A[row * numCols + k] * B[k * numCols + col];
+}
+</code></pre><p>This line consists of a floating-point multiplication, floating-point addition, and two memory accesses. Note that we are not storing the result yet, so there is no access to the C matrix. The operation effiency can be described in terms of floating-point operations per second (FLOP/s) and the accesses can be measured in the number of bytes transferred. In this case, we have 2 FLOPs and 8 bytes transferred. This means that the ratio of FLOPs to bytes transferred is 0.25 FLOP/B. This is described as <em>computational intensity</em>.</p>
+<p>With this definition, we get a clearer picture on how to improve the performance of our code. If our kernel relies on too many memory accesses, then the computational intensity will be low. This means that the GPU will be spending more time waiting for data to be transferred than actually performing computations. The goal is to increase the computational intensity as much as possible.</p>
+<p>To put this in perspective, the H100 SXM5 has 3TB/s of memory bandwidth. This global memory bandwidth limits the kernel to 3000 * 0.25 = 750 GFLOP/s. The peak performance of the H100 is 66.9 TFLOPS. If the specialized Tensor cores are utilized, the peak performance is 494.7 TFLOPS. That means that are kernel is only using 0.15% of the peak performance of the GPU. This program is certainly <strong>memory bound</strong>. Our theoretical limit to computational intensity is the peak performance of the GPU. Programs that achieve this peak are called <strong>compute bound</strong>.</p>
+<p>Based on the tools we have discussed so far, it is not clear how we can optimize this kernel. The only way to improve the computational intensity is to reduce the number of memory accesses. Modern GPUs have more than just global memory. The next section will explore the different types of memory available on the GPU.</p>
+<h2 id="memory-types">Memory Types</h2>
+<ul>
+<li>Global Memory</li>
+<li>Local Memory
+Resides on global memory, but is not shared between threads. This includes local variables and function arguments.</li>
+<li>Shared Memory
+Resides on the chip. Allocated to thread blocks. Shared between threads in the same block.</li>
+<li>Constant Memory</li>
+<li>Registers
+Resides on the chip. Each thread has its own registers. Very fast memory.</li>
+</ul>
+<p>Data in CPU registers are swapped depending on the context of the program. GPU registers are consistent even when other threads are launched to hide latency. This results in a larger register file on the GPU.</p>
+<p>Following the von Neumann architecture, memory that is closer to the chip is faster but more expensive. Data residing on registers is the most ideal for performance since the processor can work directly with the register values. This benefit comes in the form of energy consumption as well. Transferring data from global memory to the chip requires additional cycles resulting in more energy used.</p>
+<p>When a private variable is declared in a kernel, every single thread will have its own copy of that variable.</p>
+<table>
+<thead>
+<tr>
+<th>Variable declaration</th>
+<th>Memory</th>
+<th>Scope</th>
+<th>Lifetime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Automatic variables (not arrays)</td>
+<td>Register</td>
+<td>Thread</td>
+<td>Grid</td>
+</tr>
+<tr>
+<td>Automatic array variables</td>
+<td>Local</td>
+<td>Thread</td>
+<td>Grid</td>
+</tr>
+<tr>
+<td><code>__device__ __shared__ int SharedVar;</code></td>
+<td>Shared</td>
+<td>Block</td>
+<td>Grid</td>
+</tr>
+<tr>
+<td><code>__device__ int GlobalVar;</code></td>
+<td>Global</td>
+<td>Grid</td>
+<td>Application</td>
+</tr>
+<tr>
+<td><code>__device__ __constant__ int ConstVar;</code></td>
+<td>Constant</td>
+<td>Grid</td>
+<td>Application</td>
+</tr>
+</tbody>
+</table>
+<p>Automatic array variables should seldom be used. It may have seemed convenient to use a static array for computing channel-specific values in an image processing kernel, but it is more efficient to use three separate variables. Each variable will be allocated to a register resulting in faster access times.</p>
+<p>Global variables are more commonly used to pass information to another kernel that is being launched.</p>
+<h2 id="tiling">Tiling</h2>
+<p>These memory types serve as tools that we can use to increase efficiency. The first pattern discussed is <strong>tiling</strong>. Throughout the rest of the course, we will add many more patterns to our repertoire. Tiling is a well-described technique that has a fitting analogy. If a wall needs to be tiled, it is more efficient to use many small tiles that are lighter and easier to handle. In GPU programming, the wall represents the entire global memory space. The individual tiles are local memory that is allocated to each thread block.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_10-13-54_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Global memory access pattern (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Global memory access pattern (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The kernels we have seen so far have used a <em>global memory access pattern</em>. In this pattern, all threads have access to every data point from the input. Using a <em>tiling pattern</em>, we can optimize memory accesses by moving shared resources to local memory that is faster to access.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_10-16-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Tiling pattern (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Tiling pattern (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The tool itself is quite simple in concept, but the challenge will be identifying when the tool can be properly applied. Consider matrix multiplication. The naive kernel we explored previously uses each thread to compute one value of the output matrix. This kernel uses a global memory access pattern, and we can identify that many of the computations require the same input. They key to introducing tiling for matrix multiplication will be identifying which data use reused.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_10-28-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Memory accesses for matrix multiplication (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Memory accesses for matrix multiplication (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, the block size is \(2 \times 2\). Each row of the block relies on the same input row from the matrix on the left. That is, \(P_{0,0}\) and \(P_{0,1}\) will use the same data from the first row of \(M\). In our original kernel, this requires 8 global memory accesses. If we placed this row in shared memory, each output thread could access the values much quicker. We can see a similar pattern for the column values in \(N\).</p>
+<p>Since we are using tiling with a block size of \(B\), we will consider working with \(2B\) values from the input at a time. If the number of values we need to compute an output entry exceeds \(2B\), then we can synchronize the threads before moving to the next section.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_10-25-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Tiled matrix multiplication overview (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Tiled matrix multiplication overview (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<ul>
+<li>Verify that the potential reduction in global memory traffic in matrix multiplication is proportional to the dimension of the blocks used.</li>
+<li>Verify that the reduction is by a factor of \(N\) if the tiles are \(N \times N\).</li>
+</ul>
+<h2 id="example-tiled-matrix-multiplication">Example: Tiled Matrix Multiplication</h2>
+<p>The concept of tiled matrix multiplication is this: load a subset of data from \(M\) and \(N\) into shared memory before using that data to perform the dot product. We have a few limitations to think about here. First, the amount of shared memory is much smaller than global memory; we cannot fit all the data at once. Second, the block size will limit how many elements can be loaded into shared memory at once. As suggested by tiling, we are only working with a small chunk at a time.</p>
+<p>Using a \(2 \times 2\) block gives us 4 threads to work with. Overlaying that block on the input only allows us to grab 2 values from the first 2 rows in \(M\) and 2 values from the first 2 columns in \(M\). For each tile, the subset of data will be loaded in followed by adding the dot product of the subset to the current value.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_11-14-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Loading the first tile (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Loading the first tile (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_11-15-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Computing the dot product of the first subset (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Computing the dot product of the first subset (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In this example, the block will move to the next subset of data to finish computing the first block of the output matrix. This process can be arbitrarily scaled up to support larger matrices without necessarily increasing the block size. Although, we would want to increase the block size to take advantage of the additional threads. The figure below shows a table of the computations required for each phase.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_11-18-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Tiled matrix multiplication computations (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Tiled matrix multiplication computations (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong>Check your understanding</strong></p>
+<p>By using tiling with a block size of \(B \times B\), what is the total reduction in global memory traffic?</p>
+<h3 id="implementation-in-cuda">Implementation in CUDA</h3>
+<p>Our implementation should follow these steps:</p>
+<ol>
+<li>Establish shared memory for the input from matrix \(M\) and matrix \(N\).</li>
+<li>Load the first subset of data from \(M\) and \(N\) into shared memory (remember to synchronize threads).</li>
+<li>Compute the dot product of the subset (remember to synchronize threads).</li>
+<li>Repeat steps 2 and 3 until all subsets have been computed.</li>
+</ol>
+<p>Step 1 is obvious. We need to establish the shared memory for this solution. Steps 2 and 3 are the same as described above, but we do need to remember to synchronize the threads. Without synchronization, the computation may continue before all the data is properly loaded. Step 4 implies that each thread will loop through the subsets until all values have been computed. The kernel is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void MatMulKernel(float* M, float* N, float* P, int Width) {
+    // Block index
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+
+    // Thread index
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+
+    __shared__ float Mds[TILE_WIDTH][TILE_WIDTH];
+    __shared__ float Nds[TILE_WIDTH][TILE_WIDTH];
+
+    // Identify the row and column of the P element to work on
+    int Row = by * TILE_WIDTH + ty;
+    int Col = bx * TILE_WIDTH + tx;
+
+    float Pvalue = 0;
+    for (int ph = 0; ph &lt; Width / TILE_WIDTH; ++ph) {
+        // Collaborative loading of M and N tiles into shared memory
+        Mds[ty][tx] = M[Row * Width + ph * TILE_WIDTH + tx];
+        Nds[ty][tx] = N[(ph * TILE_WIDTH + ty) * Width + Col];
+        __syncthreads();
+
+        for (int k = 0; k &lt; TILE_WIDTH; ++k) {
+            Pvalue += Mds[ty][k] * Nds[k][tx];
+        }
+        __syncthreads();
+    }
+
+    P[Row * Width + Col] = Pvalue;
+}
+</code></pre><p>Let&rsquo;s break this down with a small example. Consider multiplying two \(4 \times 4\) matrices. We will use a block size of \(2 \times 2\), as seen in the figure below. Our block will compute the top left submatrix of the output, \(P_{0,0}\), \(P_{0,1}\), \(P_{1,0}\), and \(P_{1,1}\). We will view the computation from the perspective of the thread for \(P_{0,0}\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_14-15-32_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Setup of tiled matrix multiplication example." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Setup of tiled matrix multiplication example.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The row and column of the output computed by the current thread is calculated using the block and thread indices. Of course, this is simply \((0, 0)\) for the first thread. It gets slightly more complicated when computing the input subset in the loop. The input needs to be transferred to shared memory. The loop will skip over a tile at a time. At this point, we already know which row of \(M\) and column of \(N\) we need to access. We need to compute the column index for \(M\) and the row index for \(N\).</p>
+<p>For \(M\), we start with <code>Row * Width</code>. This needs to be offset by the tile offset index <code>ph</code> of the main loop, yielding <code>Row * Width + ph * TILE_WIDTH</code>. Finally, we need to add the thread index <code>tx</code> to get the final index <code>Row * Width + ph * TILE_WIDTH + tx</code>. The same process is applied to \(N\). <strong>Note that this only transfers a single value from each matrix to shared memory, but our computation relies on 2 values from each matrix.</strong> Each thread in the block is collaboratively loading the data into shared memory. This is why the call to <code>__syncthreads()</code> is necessary.</p>
+<p>Specifically, the thread for \(P_{0, 0}\) copies \(M_{0, 0}\) and \(N_{0, 0}\) to shared memory. The thread for \(P_{0, 1}\) copies \(M_{0, 1}\) and \(N_{1, 0}\) to shared memory. The thread for \(P_{1, 0}\) copies \(M_{1, 0}\) and \(N_{0, 1}\) to shared memory. Finally, the thread for \(P_{1, 1}\) copies \(M_{1, 1}\) and \(N_{1, 1}\) to shared memory.</p>
+<p>The next step is to compute the dot product of the subset. Again, we see a call to <code>__syncthreads()</code>. Without this synchronization, the loop may be allowed to continue and overwrite the data in shared memory before a thread has finished. Once the final value is computed, each thread can freely write it back to global memory. Since each thread is computing a different value, there is no need to synchronize the threads before writing to global memory.</p>
+<p>\begin{align*}
+P_{0, 0} &amp;+= 2 \times 2 + 1 \times 1 \\
+P_{0, 1} &amp;+= 2 \times 1 + 1 \times 0 \\
+P_{1, 0} &amp;+= 1 \times 2 + 0 \times 1 \\
+P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
+\end{align*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_14-21-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Updated values for the first subset." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>Updated values for the first subset.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The next iteration of the loop will grab the next subset of the data and repeat the process. The result after this step is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_14-26-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Updated values for the second subset." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 10: </span>Updated values for the second subset.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To summarize, <code>ph</code> is the tile offset index, <code>Row</code> and <code>Col</code> are the row and column of the output computed by the current thread, and <code>tx</code> and <code>ty</code> will give the offset with respect to the current tile.</p>
+<p>The kernel above has an outer loop that calls another loop managed by thread synchronization, breaking the computation up into several distinct phases. This is called <strong>strip-mining</strong> and is an important part of tiling. This existed even before GPUs were used (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).</p>
+<h3 id="performance-analysis">Performance Analysis</h3>
+<p>In the naive implementation, we had a computational intensity of 0.25 FLOP/B. With a \(16 \times 16\) tile, the number of global memory accesses is reduced by a factor of 16. This gives us a computational intensity of 4 FLOP/B. We previously stated that the H100 has a global memory bandwidth of 3TB/s. This means that the theoretical limit for the performance of this kernel is 3000 * 4 = 12000 GFLOP/s which is much better than the 750 GFLOP/s we had before.</p>
+<p>This is not the most optimal way to implement matrix multiplication, and you should always refer to the cuBLAS library for matrix operations. The purpose of this example is to demonstrate the use of tiling.</p>
+<h2 id="boundary-checking">Boundary Checking</h2>
+<p>The previous implementation assumed that the width of the matrices was a multiple of the tile width and that the input would always be square matrices. Consider changing our \(2 \times 2\) block to a \(3 \times 3\) block using the same input sizes.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-13_12-56-49_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Using a 3x3 block (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 11: </span>Using a 3x3 block (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Our implementation would follow the same process for the first subset of pattern. An issue arises when computing the second tile offset since the block exceeds the boundaries of our input and output. One solution would be to check the boundary condition on both the input, when transferring the data to shared memory, and the output, when reading the data from shared memory. This would require a conditional statement in the inner loop. This is not ideal since the conditional statement would be executed for every thread in the block.</p>
+<p>Another solution is to pad the input with zeros. If the index is outside our boundary, adding a 0 will not affect the result of the dot product. This allows for a simpler implementation while still being flexible enough to handle matrices of any size. The relevant portion of the kernel is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">float Pvalue = 0;
+for (int ph = 0; ph &lt; ceil(Width/(float)TILE_WIDTH); ph++) {
+    // Collaborative loading of M and N tiles into shared memory
+    if (Row &lt; Width &amp;&amp; ph * TILE_WIDTH + tx &lt; Width) {
+        Mds[ty][tx] = M[Row * Width + ph * TILE_WIDTH + tx];
+    } else {
+        Mds[ty][tx] = 0.0;
+    }
+    if (ph * TILE_WIDTH + ty &lt; Width &amp;&amp; Col &lt; Width) {
+        Nds[ty][tx] = N[(ph * TILE_WIDTH + ty) * Width + Col];
+    } else {
+        Nds[ty][tx] = 0.0;
+    }
+    __syncthreads();
+}
+</code></pre><p>The rest of the kernel remains the same. In Lab 2, you will implement this and adapt it to work with non square matrices as well.</p>
+<h2 id="memory-use-and-occupancy">Memory Use and Occupancy</h2>
+<p>Just like exceeding the number of registers per thread can negatively affect occupancy, so can over allocating shared memory. The H100 can have up to 228 KB per SM. If we are maximizing the 2048 threads available per SM, each block cannot exceed 228 KB / 2048 threads = 112 B/thread.</p>
+<p><strong>How much shared memory is used by each block?</strong> Each block has 2 arrays of size \(TILE\_WIDTH \times TILE\_WIDTH\) of type <code>float</code>. This gives us a total of \(2 \times TILE\_WIDTH \times TILE\_WIDTH \times 4 = 8(TILE\_WIDTH)^2\) B. Each block uses \(TILE\_WIDTH^2\) threads, resulting in 8 B/thread. This is well below the limit of 112 B/thread.</p>
+<h2 id="dynamically-changing-the-block-size">Dynamically Changing the Block Size</h2>
+<p>The solution presented above uses a constant to determine the tile size. What if this tile size was not optimal for a given hardware configuration? We would surely want to adjust this dynamically to maximize performance. In CUDA, we can support this by using the <code>extern</code> keyword. First, we need to define our shared memory as one array: <code>extern __shared__ float Mds_Nds[];</code>. This is a 1D array that represents the shared memory for both input matrices.</p>
+<p>When launching this kernel, we need some way to inform it of the tile size. First, we would query the device properties and determine the optimal tile size based on the hardware. This size can be used as a third launch configuration input, as shown below. Additionally, the size of the shared memory for each input matrix is provided as two additional arguments to the kernel.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">size_t size = compute_optimal_size(); // Determine optimal tile size
+MatMulKernel&lt;&lt;&lt;dimGrid, dimBlock, size&gt;&gt;&gt;(M_d, N_d, P_d, Width, size/2, size/2);
+</code></pre><p>The kernel will need to be modified to use the new shared memory array. The first step is to determine the offset for each matrix. This is done by multiplying the tile size by the thread index. The second step is to use the offset to access the correct value in the shared memory array. The kernel is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void MatMulKernel(float* M, float* N, float* P, int Width, int Mds_offset, int Nds_offset) {
+    extern __shared__ float Mds_Nds[];
+
+    float *Mds = (float *)Mds_Nds;
+    float *Nds = (float *)Mds_Nds + Mds_offset;
+
+    // Rest of the kernel
+}
+</code></pre><p>Completing this modification would require us to use linear indexing for <code>Mds</code> and <code>Nds</code>.</p>
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>Tiling is a powerful tool that can be used to improve the performance of a kernel. It is important to understand the memory access pattern of your kernel and identify which data is reused. This will allow you to move that data to shared memory and reduce the number of global memory accesses. Tiling is the first of many <em>patterns</em> that we will explore. Just like not every tool is useful for every job, not every pattern will be useful for each problem we face. Increasing the number of tools, or patterns, that we have available will allow us to solve a wider range of problems efficiently.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/cuda_architecture/">CUDA Architecture</a></li>
+          
+          <li><a href="/notes/multidimensional_grids_and_data/">Multidimensional Grids and Data</a></li>
+          
+          <li><a href="/notes/heterogeneous_data_parallel_computing/">Heterogeneous Data Parallel Computing</a></li>
+          
+          <li><a href="/notes/introduction_to_gpgpu_programming/">Introduction to GPGPU Programming</a></li>
+          
+          <li><a href="/notes/mapreduce/">MapReduce</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

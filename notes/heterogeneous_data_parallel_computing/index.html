@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/">
+  <meta property="og:title" content="Heterogeneous Data Parallel Computing | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2023-12-30T14:41:00-06:00">
+  
+  <meta property="article:modified_time" content="2023-12-30T14:41:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Heterogeneous Data Parallel Computing | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Heterogeneous Data Parallel Computing</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2023-12-30 14:41:00 -0600 CST" itemprop="datePublished">
+<meta content="2023-12-30 14:41:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Dec 30, 2023</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/&amp;text=Heterogeneous%20Data%20Parallel%20Computing" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/&amp;t=Heterogeneous%20Data%20Parallel%20Computing" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Heterogeneous%20Data%20Parallel%20Computing&amp;body=https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/&amp;title=Heterogeneous%20Data%20Parallel%20Computing" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Heterogeneous%20Data%20Parallel%20Computing%20https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/&amp;title=Heterogeneous%20Data%20Parallel%20Computing" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#key-concepts">Key Concepts</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#cuda-c-programs">CUDA C Programs</a></li>
+<li><a href="#example-vector-addition">Example: Vector Addition</a></li>
+<li><a href="#error-checking">Error Checking</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li>Task Parallelism vs. Data Parallelism</li>
+<li>kernels</li>
+<li>threads</li>
+<li>grids</li>
+<li>blocks</li>
+<li>global memory</li>
+<li>data transfer</li>
+<li>error checking</li>
+<li>compilation of CUDA programs</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<p>This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a <strong>kernel</strong> that is executed independently on many threads. Memory must be allocated on the GPU device before transferring the data from the host machine (CPU). Upon completion of the kernel, the results need to be transferred back to the <strong>host</strong>.</p>
+<h2 id="cuda-c-programs">CUDA C Programs</h2>
+<p>A basic CUDA program consists of:</p>
+<ul>
+<li>A <strong>kernel</strong> function defining the work to be performed on each thread.</li>
+<li>Data that is accessible on the <strong>device</strong>.</li>
+<li>Device memory allocation.</li>
+<li>Memory transfer from the <strong>host</strong> to the <strong>device</strong>.</li>
+<li>Execution of the <strong>kernel</strong> from the <strong>host</strong> machine.</li>
+<li>Data transfer from the <strong>device</strong> back to the <strong>host</strong>.</li>
+<li>Memory cleanup.</li>
+</ul>
+<p>At first glance, the execution flow of a CUDA program appears sequential; you launch the threads on the GPU and wait for it to complete. A more realistic program would launch the threads and continue local execution, if necessary.</p>
+<h2 id="example-vector-addition">Example: Vector Addition</h2>
+<p>Hwu et al. refer to vector addition as the &ldquo;Hello World&rdquo; of GPU programming (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>). It is a simple problem that can be described as <em>embarrassingly parallel</em>. Vector addition is a simple operation. Given two vectors of the same length, \(\mathbf{x}\) and \(\mathbf{y}\), the vector addition operation is defined as:</p>
+<p>\[
+\mathbf{z}_i = \mathbf{x}_i + \mathbf{y}_i \quad \forall i \in \{1, \ldots, n\}
+\]</p>
+<p>The vector addition operation is commutative and associative. The operation can be performed in parallel on each element of the vectors. This can be implemented simply in C.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">vecAdd</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x_h, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y_h, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>z_h, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        z_h[i] <span style="color:#f92672">=</span> x_h[i] <span style="color:#f92672">+</span> y_h[i];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>One small note about the variable names: it is common to use the suffix `_h` to denote a variable that is allocated on the host (CPU) and `_d` to denote a variable that is allocated on the device (GPU). In this case, the vector addition operation is performed on the host machine.</p>
+<p>An equivalent implementation in CUDA C is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
+void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; n) {
+        z_d[i] = x_d[i] + y_d[i];
+    }
+}
+</code></pre><p>This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.</p>
+<p>The <code>__global__</code> keyword placed before the function definition indicates that the function can be called from both the host and teh device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.</p>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__global__</code></td>
+<td>Executed on the device, callable from the host and device</td>
+</tr>
+<tr>
+<td><code>__device__</code></td>
+<td>Executed on the device, callable from the device only</td>
+</tr>
+<tr>
+<td><code>__host__</code></td>
+<td>Executed on the host, callable from the host only</td>
+</tr>
+</tbody>
+</table>
+<p>Unless otherwise specified, functions that you define will be executed on the host. That is, it is not necessary to specify the <code>__host__</code> keyword. If you want the compiler to generate both host and device code, you can use the <code>__host__ __device__</code> keyword combination.</p>
+<p>The kernel is executed on the host machine using the following code.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">int main() {
+    // Allocate memory on the host
+    float *x_h, *y_h, *z_h;
+    int n = 1024;
+
+    x_h = malloc(n * sizeof(float));
+    y_h = malloc(n * sizeof(float));
+    z_h = malloc(n * sizeof(float));
+
+    // Allocate memory on the device
+    float *x_d, *y_d, *z_d;
+    cudaMalloc(&amp;x_d, n * sizeof(float));
+    cudaMalloc(&amp;y_d, n * sizeof(float));
+    cudaMalloc(&amp;z_d, n * sizeof(float));
+
+    // Transfer data from host to device
+    cudaMemcpy(x_d, x_h, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(y_d, y_h, n * sizeof(float), cudaMemcpyHostToDevice);
+
+    // Execute kernel
+    vecAdd&lt;&lt;&lt;ceil(n / 256.0), 256&gt;&gt;&gt;(x_d, y_d, z_d, n);
+
+    // Transfer data from device to host
+    cudaMemcpy(z_h, z_d, n * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // Free memory on host and device
+    free(x_h);
+    free(y_h);
+    free(z_h);
+    cudaFree(x_d);
+    cudaFree(y_d);
+    cudaFree(z_d);
+}
+</code></pre><p>There is a lot to unpack here, so we&rsquo;ll start from the top.</p>
+<h3 id="memory-allocation">Memory Allocation</h3>
+<p>It doesn&rsquo;t really matter where the host data comes from or how it is allocated, but the above example allocates memory using <code>malloc</code> anyway. Before transferring data to the device, we must allocate memory on it. This is done via <code>cudaMalloc</code>. The first argument is a pointer to address of the variable. Remember that taking the address of a pointer will result in a double pointer. This is necessary because the function will need to dereference the pointer to store the address to the allocated data. Once the memory is allocated on the device, it cannot be accessed from the host until it is transferred back.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-05_11-54-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Overview of memory layout (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Overview of memory layout (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The memory that is allocated on the device is called <strong>global memory</strong>. It is accessible by all threads on the device. There is also a small amount of <strong>shared memory</strong> that is accessible by threads within a single block along with a <strong>unified memory</strong> model.</p>
+<h3 id="memory-transfer">Memory Transfer</h3>
+<p>Now that the memory has been allocated, the data can be safely transferred from the host to the device. This is accomplished using <code>cudaMemcpy</code>. The arguments are the <strong>destination pointer</strong>, <strong>source pointer</strong>, <strong>size</strong>, and <strong>direction</strong>. The direction is an enumerated type that can be one of the following:</p>
+<ul>
+<li><code>cudaMemcpyHostToDevice</code></li>
+<li><code>cudaMemcpyDeviceToHost</code></li>
+<li><code>cudaMemcpyDeviceToDevice</code></li>
+</ul>
+<p>We will only focus on the first two for now.</p>
+<h3 id="grids-blocks-and-threads">Grids, Blocks, and Threads</h3>
+<p>The CUDA programming model is based on a hierarchy of <strong>grids</strong>, <strong>blocks</strong>, and <strong>threads</strong>. A <strong>grid</strong> is a collection of <strong>blocks</strong>. A <strong>block</strong> is a collection of <strong>threads</strong>. The number of <strong>blocks</strong> and <strong>threads</strong> is defined by the programmer. The number of <strong>blocks</strong> and <strong>threads</strong> that can be executed in parallel is limited by the hardware. The number of <strong>blocks</strong> and <strong>threads</strong> that can be executed in parallel is called the <strong>grid size</strong> and <strong>block size</strong>, respectively.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-05_11-22-39_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A single block of 256 threads (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>A single block of 256 threads (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The figure above shows a single block of 256 threads. This could be one of many blocks in a grid. The threads within each block are executed in parallel and do not interact with threads in other blocks. For threads within a single block, there is a small amount of shared memory as well as other tools for communication. We will explore these in more depth as we dive into the details of the CUDA architecture.</p>
+<h3 id="kernel-execution">Kernel Execution</h3>
+<p>Calling the kernel function almost looks like any ordinary function call. The main difference is the inclusion of the <code>&lt;&lt;&lt;</code> and <code>&gt;&gt;&gt;</code> syntax. These are used to specify the size of the grid and blocks, respectively. In this example, we specified that each block has 256 threads. We can use that specification to dynamically determine the number of blocks based on the input size. The number of blocks is computed as the ceiling of the input size divided by the number of threads per block. This ensures that there are enough blocks to cover the entire input size.</p>
+<p>Returning to the kernel function, the thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. These are defined as <code>struct</code> variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.</p>
+<p>You may have noticed that it is possible to have more threads than there are blocks. As much as possible, you should try and work with powers of 2. This will ensure that the hardware is used as efficiently as possible. You can always request more threads than there are data points and ignore the threads that are not needed. In this example, we check to see if the thread index is less than the input size. If it is, the vector addition operation is performed. Otherwise, the function exits.</p>
+<p>There are limits to the number of blocks and threads that can be executed in parallel. These limits are based on the compute capability of the device, referenced <a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h3 id="compiling">Compiling</h3>
+<p>CUDA code is compiled using the NVCC compiler driver. It works by compiling host code using the host&rsquo;s native C/C++ compiler and device code to PTX, the CUDA instruction set architecture. Each snippet of code is separated based on the CUDA keyword used to define it. For example, the <code>__global__</code> keyword used to define the kernel function informs <code>nvcc</code> that it should be compiled to a PTX file.</p>
+<h2 id="error-checking">Error Checking</h2>
+<p>The functions we use in the CUDA API return an error code. We can use this to create robust code that checks for errors and either corrects them or exits gracefully. The following example shows a simple way to check the result of `cudaMalloc`:</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">cudaError_t err = cudaMalloc(&amp;x_d, n * sizeof(float));
+if (err != cudaSuccess) {
+    fprintf(stderr, &#34;Error: %s\n&#34;, cudaGetErrorString(err));
+    exit(EXIT_FAILURE);
+}
+</code></pre><p>A common pattern is to define a macro that checks the result of a CUDA function and exits if there is an error. This is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true) {
+   if (code != cudaSuccess) {
+      fprintf(stderr,&#34;GPUassert: %s %s %d\n&#34;, cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+</code></pre><p>A small note on the above macro, it is technically C++ code. As of writing this, CUDA does not support all features of C++, but much of the code you will see is written as a mix of C and C++. CUDA was originally developed for C, but C++ features have slowly been introduced over time. If you view the <a href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html" target="_blank" rel="noopener noreferrer">official documentation</a>, you can see that the link is defined as `cuda-c-programming-guide`, but the actual document has been renamed to `CUDA C++ Programming Guide`.</p>
+<p>Don&rsquo;t overthink the C/C++ distinction. The main point is that you can use C++ features in your CUDA code, but you should be aware that not all features are supported.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/introduction_to_gpgpu_programming/">Introduction to GPGPU Programming</a></li>
+          
+          <li><a href="/notes/mapreduce/">MapReduce</a></li>
+          
+          <li><a href="/notes/distributed_databases/">Distributed Databases</a></li>
+          
+          <li><a href="/notes/nosql/">NOSQL</a></li>
+          
+          <li><a href="/notes/structured_query_language/">Structured Query Language</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
