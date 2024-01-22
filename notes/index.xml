@@ -7,10 +7,345 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 15 Jan 2024 14:48:00 -0600</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jan 2024 21:35:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Convolution</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_convolution/</link>
+      <pubDate>Mon, 15 Jan 2024 21:35:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_convolution/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#convolution&#34;&gt;Convolution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#implementing-a-convolution-kernel&#34;&gt;Implementing a Convolution Kernel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#constant-memory-and-caching&#34;&gt;Constant Memory and Caching&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-convolutions&#34;&gt;Tiled Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;This pattern involves tiling and input data staging.&lt;/p&gt;
+&lt;p&gt;Recall from Lab 1 where we implementing a kernel to blur an image. This kernel worked on each individual output pixel by computing the weighted average of each pixel from the input image, centered on the output pixel location. When we implemented this, we set the weight of every pixel to 1. Whether you were aware of it or not, you implemented a convolution between an input image and weighted kernel.&lt;/p&gt;
+&lt;p&gt;The convolution is an extremely important operator that works on time-varying signals of different dimensionality. In computer vision, they are commonly used to compute responses between a known pattern and an input image. The pixels that return a greater response as a result of convolution indicate a match between the pattern and the input image.&lt;/p&gt;
+&lt;p&gt;This operator can and has been efficiently implemented in a GPU. Through studying this pattern, you will learn to utilize constant memory storage and shared memory storage to efficiently implement a convolution kernel. These techniques will be useful in later applications as well.&lt;/p&gt;
+&lt;h2 id=&#34;convolution&#34;&gt;Convolution&lt;/h2&gt;
+&lt;p&gt;A convolution is a function that takes two functions as input and produces a third function as output. The first function is the input and the second function is the kernel. The output is called the feature map. The kernel is also sometimes called the filter.&lt;/p&gt;
+&lt;p&gt;\[
+(f * g)(t) = \int f(t-a)g(a)da
+\]&lt;/p&gt;
+&lt;p&gt;We can view them more concretely by considering the functions to be vectors. For example, let the function \(f\) be an input vector \(x\) and \(w\) be a kernel representing a filter. The convolution operator is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \int x(t-a)w(a)da.
+\]&lt;/p&gt;
+&lt;p&gt;The result the &lt;strong&gt;feature map&lt;/strong&gt; representing the response of the kernel at each location in the input.&lt;/p&gt;
+&lt;p&gt;In the case of discrete values, it is common to use an odd-sized kernel and center it on an input value. The kernel size is given by some radius \(r\). The convolution operator is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \sum_{-r}^r x(t-r)w( r).
+\]&lt;/p&gt;
+&lt;p&gt;The figure below shows an example of a 1D convolution of a vector if size 8 with a kernel of size 5, centered on the \(t = 2\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-17_18-00-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;1D Convolution between a vector of size 8 and a kernel of size 5.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;1D Convolution between a vector of size 8 and a kernel of size 5.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Convolution is defined in such a way that the kernel is traversed in an inverted manner. In the example above, \(y_2\) is computed by applying the kernel to \(\mathbf{x}\) centered on \(x_2\). The calculation in terms of the locations accesses is&lt;/p&gt;
+&lt;p&gt;\[
+y_2 = x_4 w_{-2} + x_3 w_{-1} + x_2 w_0 + x_1 w_1 + x_0 w_2.
+\]&lt;/p&gt;
+&lt;p&gt;This operation is very similar to the &lt;em&gt;correlation&lt;/em&gt; operator, which is defined as&lt;/p&gt;
+&lt;p&gt;\[
+(x \star w)(t) = \sum_{-r}^r x(t+r)w( r).
+\]&lt;/p&gt;
+&lt;p&gt;We can use the correlation operator to compute the convolution by flipping the kernel. In this case, the calculation can be represented using the dot product. We can also slightly adjust the indexing so that the first index is 0.&lt;/p&gt;
+&lt;p&gt;\[
+y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
+\]&lt;/p&gt;
+&lt;p&gt;Note that the convolution shown above would be undefined for \(i = 0\) and \(i = 1\) since the kernel would be accessing negative indices. Based on the definition, we would ignore these values. This is called a &lt;em&gt;valid&lt;/em&gt; convolution. The output size is then \(n - 2r\). There is also a &lt;em&gt;full&lt;/em&gt; convolution where the output size is \(n\). In this case, the kernel is padded with zeros so that it can be applied to all elements of the input.&lt;/p&gt;
+&lt;h3 id=&#34;2d-convolution&#34;&gt;2D Convolution&lt;/h3&gt;
+&lt;p&gt;Image convolutions use 2D filters applied to 2D images. For a filter with radius \(r\), size of the filter is \((2r + 1) \times (2r + 1)\). The convolution is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(i, j) = \sum_{-r}^r \sum_{-r}^r x(i-r, j-r)w(r, s).
+\]&lt;/p&gt;
+&lt;h2 id=&#34;properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/h2&gt;
+&lt;p&gt;Convolutional networks are commonly built on &lt;em&gt;full&lt;/em&gt; or &lt;em&gt;valid&lt;/em&gt; convolutions. Other variants have also been explored. Here, we will briefly discuss the different properties of this operator. A more detailed treatment can be found in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;padding&#34;&gt;Padding&lt;/h3&gt;
+&lt;p&gt;By definition, a convolution of an input with a filter of size \(n\times n\) will produce an output of size \((m-n+1)\times(m-n+1)\), where \(m\) is the size of the input. This means that the output will be smaller than the input. This is often referred to as a &lt;strong&gt;valid&lt;/strong&gt; convolution. The figure below shows a convolution between a \(3\times3\) kernel and a \(5\times5\) input.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-31-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A valid convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A valid convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output of this convolution is a \(3\times3\) feature map. This is a problem if we want to build a deep network. Each convolution will reduce the size of the input. If we were to stack multiple convolutional layers, the output would eventually be too small to be useful. If we want our output to be same size as the input, we can add padding to the original input image before convolving it. This is often known as a &lt;strong&gt;full&lt;/strong&gt; convolution. An example is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-34-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A full convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A full convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;stride&#34;&gt;Stride&lt;/h3&gt;
+&lt;p&gt;So far, we have only looked at convolutions which step by 1 unit as they shift over the image. We can control the size of this step, or &lt;strong&gt;stride&lt;/strong&gt;, to produce different outcomes. Picking a non-unit stride has a number of effects on the features that are learned in a convolutional neural network.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Dimensionality reduction&lt;/strong&gt;: Skipping over pixels reduces the size of the output feature map. This provides another way of downsampling the input.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Less computation&lt;/strong&gt;: Fewer computations are required to produce the output feature map.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Increased field of view&lt;/strong&gt;: A larger stride increases the field of view of the kernel, leading to larger receptive fields in deeper layers.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Given an input of size \(m\times m\) and a kernel of size \(n\times n\), the output size of a convolution with stride \(s\) is given by&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m-n}{s}\right\rfloor + 1.
+\]&lt;/p&gt;
+&lt;p&gt;The figure below shows a convolution with stride 2 on a \(5\times5\) input.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-45-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A convolution with stride 2 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A convolution with stride 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-size&#34;&gt;Kernel Size&lt;/h3&gt;
+&lt;p&gt;The size of the kernel has a large impact on the features that are learned. A larger kernel will have a larger receptive field. This means that the kernel will be able to capture more information about the input. However, this comes at the cost of increased computation. Common kernel sizes in most CNNs are \(3\times3\), \(5\times5\), and \(7\times7\). It is also convenient to pick an odd kernel size so that the kernel has a center pixel.&lt;/p&gt;
+&lt;h3 id=&#34;dilation&#34;&gt;Dilation&lt;/h3&gt;
+&lt;p&gt;Around 2015, a research trend for CNNs was to find a way to increase the receptive field without adding more parameters. The result is a &lt;strong&gt;dilated&lt;/strong&gt; convolution. The output of a dilated convolution is computed by skipping over pixels in the input. The figure below shows a \(3\times3\) kernel with a dilation of 2.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-27_08-19-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;A dilated convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A dilated convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output size is computed as&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m + 2p - n - (n-1)(d-1)}{s}\right\rfloor + 1,
+\]&lt;/p&gt;
+&lt;p&gt;where \(p\) is the amount of padding and \(d\) is the dilation factor.&lt;/p&gt;
+&lt;h2 id=&#34;implementing-a-convolution-kernel&#34;&gt;Implementing a Convolution Kernel&lt;/h2&gt;
+&lt;p&gt;It is straightforward to write the convolution operation in CUDA C++. Each thread will compute the value for a single output pixel using the filter. We already implemented something very similar with the blurring kernel. The kernel itself should accept the following arguments:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The input image&lt;/li&gt;
+&lt;li&gt;The output image&lt;/li&gt;
+&lt;li&gt;The kernel&lt;/li&gt;
+&lt;li&gt;The radius of the kernel&lt;/li&gt;
+&lt;li&gt;The width of the output image&lt;/li&gt;
+&lt;li&gt;The height of the output image&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A more robust implementation would consider things like padding, stride, dilation, and whether or not a valid or full convolution is desired. For now, we will focus on the simplest case: a valid convolution with a stride of 1 and no padding or dilation. First, let&amp;rsquo;s review the initial naive solution from &lt;em&gt;Programming Massively Parallel Processors&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row - r;
+            int inCol = outCol + col - r;
+            if (inRow &amp;gt;= 0 &amp;amp;&amp;amp; inRow &amp;lt; height &amp;amp;&amp;amp; inCol &amp;gt;= 0 &amp;amp;&amp;amp; inCol &amp;lt; width) {
+                sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+            }
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a &lt;em&gt;valid&lt;/em&gt; convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.&lt;/p&gt;
+&lt;p&gt;It is also a waste of resources in terms of memory used for the output. If we already know that we want to perform a valid convolution, we can allocate the output image to be the appropriate size before calling it. A slightly modified version is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;constant-memory-and-caching&#34;&gt;Constant Memory and Caching&lt;/h2&gt;
+&lt;p&gt;There is a much larger issue present in both versions of this kernel in terms of memory bandwidth. Similar to the matrix multiplication kernel, this kernel can benefit from tiling. However, there is a new problem that arises specifically with convolution. The same filter is accessed by every single thread. This filter does not change for the entire duration of the kernel. This means that we are wasting memory bandwidth by having every thread access the same filter.&lt;/p&gt;
+&lt;p&gt;Given its relatively small size, this kernel is a perfect candidate for constant memory. This is a special type of memory that is cached on the GPU. It is read-only and has a limited size, but it is much faster than global memory. We can write to the devices constant memory from the host code.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 1
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, &lt;a href=&#34;https://google.github.io/styleguide/cppguide.html#Constant_Names&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Google&amp;rsquo;s C++&lt;/a&gt; style guide recommends naming constant variables with a &lt;code&gt;k&lt;/code&gt; prefix. I have adopted this convention here.&lt;/p&gt;
+&lt;p&gt;At this point, &lt;code&gt;F_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * F_d[row][col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If you organize your files such that the kernel is in a separate file from the host code, you will need to declare the constant variable in the kernel file as well.&lt;/p&gt;
+&lt;p&gt;Constant memory variables are stored in DRAM with global memory. The CUDA runtime will cache them since it knows they will not be modified. Processors use caches to reduce the latency of memory accesses by keeping frequently used data in a small, fast memory that is often located directly on the chip. This type of &lt;em&gt;constant cache&lt;/em&gt; is preferable to one that would support high-throughput writes in terms of chip design. It would require specialized hardware to support both which would increase the cost of the chip.&lt;/p&gt;
+&lt;h2 id=&#34;tiled-convolutions&#34;&gt;Tiled Convolutions&lt;/h2&gt;
+&lt;p&gt;Even with caching, the convolutional kernel still makes many accesses to DRAM. Similar to matrix multiplication, we can tile the input image to reduce the number of accesses. Similar to that example, we will use a \(4 \times 4\) tile size. If the input is a \(16 \times 16\) image and we apply a kernel with radius \(r=2\), the output image under a valid convolution will be \(12 \times 12\). This is visualized in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-19_16-35-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
+&lt;p&gt;Following the design presented by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 2
+#define IN_TILE_DIM 32
+#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+__global__ void conv2DTiledConstKernel(float *input, float *output,
+                                       int width, int height) {
+    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
+    // Input tile coordinates
+    int col = blockIdx.x * IN_TILE_DIM + threadIdx.x;
+    int row = blockIdx.y * IN_TILE_DIM + threadIdx.y;
+    if (row &amp;lt; height &amp;amp;&amp;amp; col &amp;lt; width) {
+        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
+    } else {
+        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
+    }
+    __syncthreads();
+
+    if (col &amp;lt; width &amp;amp;&amp;amp; row &amp;lt; height &amp;amp;&amp;amp; threadIdx.x &amp;lt; OUT_TILE_DIM &amp;amp;&amp;amp; threadIdx.y &amp;lt; OUT_TILE_DIM) {
+        float sum = 0.0f;
+        for (int fRow = 0; fRow &amp;lt; 2*FILTER_RADIUS+1; fRow++) {
+            for (int fCol = 0; fCol &amp;lt; 2*FILTER_RADIUS+1; fCol++) {
+                sum += inputTile[threadIdx.y + fRow][threadIdx.x + fCol] * F_d[fRow][fCol];
+            }
+        }
+        output[row * width + col] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The second approach is to choose a block size that matches the size of the output tiles. This makes the initial loading slightly more complicated but ensures that all threads are active.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” &lt;i&gt;Arxiv:1603.07285 [Cs, Stat]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1603.07285&#34;&gt;http://arxiv.org/abs/1603.07285&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Profiling CUDA Applications</title>
@@ -22,7 +357,7 @@
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#overview-of-tools-available&#34;&gt;Overview of Tools Available&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#overview-of-nsight&#34;&gt;Overview of Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#tips-and-best-practices&#34;&gt;Tips and Best Practices&lt;/a&gt;&lt;/li&gt;
@@ -30,10 +365,118 @@
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
 &lt;h2 id=&#34;profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/h2&gt;
-&lt;h2 id=&#34;overview-of-tools-available&#34;&gt;Overview of Tools Available&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Debugging&lt;/li&gt;
+&lt;li&gt;Profiling&lt;/li&gt;
+&lt;li&gt;Benchmarking&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;overview-of-nsight&#34;&gt;Overview of Nsight&lt;/h2&gt;
 &lt;h2 id=&#34;getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/h2&gt;
+&lt;h3 id=&#34;profiling-our-first-program&#34;&gt;Profiling our first program&lt;/h3&gt;
+&lt;p&gt;In Lab 0, you implemented a vector addition kernel that is &lt;em&gt;embarrassingly parallel&lt;/em&gt;. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives. To profile the application, simply launch &lt;code&gt;ncu&lt;/code&gt; with your application.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ncu ./build/main&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Depending on where you are running this program, it may be necessary to launch it with &lt;code&gt;sudo&lt;/code&gt;. If everything was successful, it will output something similar to the following:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Nsight Output&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vec_add(float *, float *, float *, int), 2024-Jan-16 10:42:52, Context 1, Stream 7
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: GPU Speed Of Light Throughput
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  DRAM Frequency                                                           cycle/nsecond                           5.71
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SM Frequency                                                             cycle/nsecond                           1.15
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Elapsed Cycles                                                                   cycle                          3,279
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Memory [%]                                                                           %                           7.54
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  DRAM Throughput                                                                      %                           7.54
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Duration                                                                       usecond                           2.85
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  L1/TEX Cache Throughput                                                              %                           4.32
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  L2 Cache Throughput                                                                  %                           4.86
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SM Active Cycles                                                                 cycle                         623.58
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Compute (SM) [%]                                                                     %                           0.82
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.1 full
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        waves across all SMs. Look at Launch Statistics for more details.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: Launch Statistics
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Size                                                                                                        256
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Function Cache Configuration                                                                  cudaFuncCachePreferNone
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Grid Size                                                                                                          16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Registers Per Thread                                                   register/thread                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Shared Memory Configuration Size                                                 Kbyte                           8.19
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Driver Shared Memory Per Block                                             Kbyte/block                           1.02
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Dynamic Shared Memory Per Block                                             byte/block                              0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Static Shared Memory Per Block                                              byte/block                              0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Threads                                                                         thread                          4,096
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Waves Per SM                                                                                                     0.07
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   The grid for this launch is configured to execute only 16 blocks, which is less than the GPU&amp;#39;s 38
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        multiprocessors. This can underutilize some multiprocessors. If you do not intend to execute this kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        concurrently with other workloads, consider reducing the block size to have at least one block per
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        multiprocessor or increase the size of the grid to fully utilize the available hardware resources. See the
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Hardware Model (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#metrics-hw-model)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        description for more details on launch configurations.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: Occupancy
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit SM                                                                   block                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Registers                                                            block                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Shared Mem                                                           block                            100
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Warps                                                                block                              6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Theoretical Active Warps per SM                                                   warp                             48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Theoretical Occupancy                                                                %                            100
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Achieved Occupancy                                                                   %                          15.85
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Achieved Active Warps Per SM                                                      warp                           7.61
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   This kernel&amp;#39;s theoretical occupancy is not impacted by any block limit. The difference between calculated
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        theoretical (100.0%) and measured achieved occupancy (15.9%) can be the result of warp scheduling overheads
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        as well as across blocks of the same kernel. See the CUDA Best Practices Guide
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        optimizing occupancy.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;viewing-results-in-the-gui&#34;&gt;Viewing Results in the GUI&lt;/h3&gt;
+&lt;p&gt;Nsight comes with both CLI and GUI clients. It is recommended to parse the information from the GUI. The GUI can launch programs both locally and remotely. It can also display the result of a previous launch. To generate a profiling report for our vector addition kernel, run the following command:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ncu -o vec_add_profile ./build/main&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The argument after &lt;code&gt;-o&lt;/code&gt; is the name of the output file. Open Nsight Compute and load the saved file. It should look something like this.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-16_11-59-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Nsight Compute GUI output&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Nsight Compute GUI output
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This basic report only includes three sections: GPU Speed of Light, Launch Statistics, and Occupancy Analysis. We will go over each of these sections in detail.&lt;/p&gt;
+&lt;h3 id=&#34;gpu-speed-of-light&#34;&gt;GPU Speed of Light&lt;/h3&gt;
+&lt;p&gt;High level aspects. Shows what your application is doing relative to peak performance.
+Important lines:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Duration&lt;/li&gt;
+&lt;li&gt;SM &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Memory &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;launch-statistics&#34;&gt;Launch Statistics&lt;/h3&gt;
+&lt;h3 id=&#34;occupancy-analysis&#34;&gt;Occupancy Analysis&lt;/h3&gt;
+&lt;h3 id=&#34;memory-workload-analysis&#34;&gt;Memory Workload Analysis&lt;/h3&gt;
 &lt;h2 id=&#34;case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/h2&gt;
 &lt;h2 id=&#34;tips-and-best-practices&#34;&gt;Tips and Best Practices&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Do not confuse high throughput for high performance. Throughput is a measure of how much work is being done, not how fast it is being done.&lt;/li&gt;
+&lt;li&gt;Using a larger grid size is not always better. More grids introduce more overhead and can lead to lower performance.&lt;/li&gt;
+&lt;/ul&gt;
 </description>
     </item>
     
@@ -1306,7 +1749,7 @@ void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;__global__&lt;/code&gt; keyword placed before the function definition indicates that the function can be called from both the host and teh device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;__global__&lt;/code&gt; keyword placed before the function definition indicates that the function can be called from both the host and the device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -1429,7 +1872,7 @@ void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
 &lt;p&gt;The figure above shows a single block of 256 threads. This could be one of many blocks in a grid. The threads within each block are executed in parallel and do not interact with threads in other blocks. For threads within a single block, there is a small amount of shared memory as well as other tools for communication. We will explore these in more depth as we dive into the details of the CUDA architecture.&lt;/p&gt;
 &lt;h3 id=&#34;kernel-execution&#34;&gt;Kernel Execution&lt;/h3&gt;
 &lt;p&gt;Calling the kernel function almost looks like any ordinary function call. The main difference is the inclusion of the &lt;code&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/code&gt; and &lt;code&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; syntax. These are used to specify the size of the grid and blocks, respectively. In this example, we specified that each block has 256 threads. We can use that specification to dynamically determine the number of blocks based on the input size. The number of blocks is computed as the ceiling of the input size divided by the number of threads per block. This ensures that there are enough blocks to cover the entire input size.&lt;/p&gt;
-&lt;p&gt;Returning to the kernel function, the thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. These are defined as &lt;code&gt;struct&lt;/code&gt; variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.&lt;/p&gt;
+&lt;p&gt;Returning to the kernel function, the thread index is computed using built-in variables &lt;code&gt;blockIdx.x&lt;/code&gt;, &lt;code&gt;blockDim.x&lt;/code&gt;, and &lt;code&gt;threadIdx.x&lt;/code&gt;. These are defined as &lt;code&gt;struct&lt;/code&gt; variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.&lt;/p&gt;
 &lt;p&gt;You may have noticed that it is possible to have more threads than there are blocks. As much as possible, you should try and work with powers of 2. This will ensure that the hardware is used as efficiently as possible. You can always request more threads than there are data points and ignore the threads that are not needed. In this example, we check to see if the thread index is less than the input size. If it is, the vector addition operation is performed. Otherwise, the function exits.&lt;/p&gt;
 &lt;p&gt;There are limits to the number of blocks and threads that can be executed in parallel. These limits are based on the compute capability of the device, referenced &lt;a href=&#34;https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;compiling&#34;&gt;Compiling&lt;/h3&gt;
@@ -12539,6 +12982,415 @@ L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i 
     </item>
     
     <item>
+      <title>Sampling and Aliasing</title>
+      <link>https://ajdillhoff.github.io/notes/sampling/</link>
+      <pubDate>Sun, 30 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/sampling/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resizing&#34;&gt;Resizing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sampling&#34;&gt;Sampling&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resizing&#34;&gt;Resizing&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Aliasing arises through resampling an image&lt;/li&gt;
+&lt;li&gt;How to resize - algorithm&lt;/li&gt;
+&lt;li&gt;How to resolve aliasing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Resizing an image, whether increase or decreasing the size, is a common image operation. In Linear Algebra, &lt;strong&gt;scaling&lt;/strong&gt; is one of the transformations usually discussed, along with rotation and skew. Scaling is performed by creating a transformation matrix&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+M =
+\begin{bmatrix}
+s &amp;amp; 0\\
+0 &amp;amp; s
+\end{bmatrix},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where \(s\) is the scaling factor. This matrix can then be used to transform the location of each point via matrix multiplication.&lt;/p&gt;
+&lt;p&gt;Is is that simple for digital images? Can we simply transform each pixel location of the image using \(M\)? There are a couple of steps missing when it comes to scaling digital images. First, \(M\) simply creates a mapping between the location in the original image and the corresponding output location in the scaled image. If we were to implement this in code, we would need to take the pixel&amp;rsquo;s value from the original image.&lt;/p&gt;
+&lt;h3 id=&#34;a-simple-example&#34;&gt;A Simple example&lt;/h3&gt;
+&lt;p&gt;Take a \(2 \times 2\) image whose pixel values are all the same color.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_21-24-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;2 by 2 image whose values are the same.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;2 by 2 image whose values are the same.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we transform each pixel location of the image and copy that pixel&amp;rsquo;s value to the mapped location in the larger image, we would get something as seen in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_21-29-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The resulting scaled image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The resulting scaled image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This image is exactly what we would expect. The resulting image is two times as large as the first. What pixel values should the new ones take on? This is a question of &lt;strong&gt;sampling&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;sampling&#34;&gt;Sampling&lt;/h2&gt;
+&lt;p&gt;Given \(s = 2\), the scaling matrix maps the original pixel locations to their new values:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\((0, 0) \mapsto (0, 0)\)&lt;/li&gt;
+&lt;li&gt;\((0, 1) \mapsto (0, 2)\)&lt;/li&gt;
+&lt;li&gt;\((1,0) \mapsto (2, 0)\)&lt;/li&gt;
+&lt;li&gt;\((1,1) \mapsto (2, 2)\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;What values should be given to the unmapped values of the new image? There are several sampling strategies used in practice. Two of the most common approaches are &lt;strong&gt;nearest neighbor&lt;/strong&gt; and &lt;strong&gt;bilinear&lt;/strong&gt; sampling. Let&amp;rsquo;s start with the nearest neighbor approach.&lt;/p&gt;
+&lt;h3 id=&#34;nearest-neighbor&#34;&gt;Nearest Neighbor&lt;/h3&gt;
+&lt;p&gt;First, we let the pixel location in an image be the center of that pixel, as depicted below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_22-50-00_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A 2-by-2 image with pixel locations depicted as dots in the center.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A 2-by-2 image with pixel locations depicted as dots in the center.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To establish a map between the pixel locations in the scaled image and that of the original image, we shrink the grid on the larger image and superimpose it over the smaller image.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_22-51-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Pixel grid of larger image superimposed on original image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Pixel grid of larger image superimposed on original image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;With nearest neighbor interpolation, the pixel value in the resized image corresponds to that of the nearest pixel in the original image. In the above figure, we can see that pixels \((0, 0), (0, 1), (1, 0), \text{ and } (1, 1)\) in the resized image are closest to pixel \((0, 0)\) in the original image. Thus, they will take on that pixel&amp;rsquo;s value.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s compare both of these approaches on a real image. The first figure below shows the original image \((16 \times 16\)). The following figure shows the image resized to \((32 \times 32)\) with no interpolation and nearest neighbor interpolation, respectively.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_23-59-17_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Original image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Original image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-29_23-59-52_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Image resized with no interpolation (left) and nearest neighbor (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Image resized with no interpolation (left) and nearest neighbor (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;bilinear-interpolation&#34;&gt;Bilinear Interpolation&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Bilinear interpolation&lt;/strong&gt; is a slightly more sophisticated way of sampling which takes into account all neighboring pixels in the original image. The value of the pixel in the sampled image is a linear combination of the values of the neighbors of the corresponding pixel it is mapped to.&lt;/p&gt;
+&lt;p&gt;Consider a \(3 \times 3\) image upsampled to a \(8 \times 8\) image. The figure below shows the original image with the coordinates of the upsampled image superimposed on it.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_11-36-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;3-by-3 grid with 8-by-8 coordinates overlaid.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;3-by-3 grid with 8-by-8 coordinates overlaid.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;How do we determine the coordinate map between the original and upscaled image?&lt;/strong&gt;
+Solve a linear system.&lt;/p&gt;
+&lt;p&gt;Note the extreme values of the image. That is, the smallest and largest coordinates. Since we stated previously that \((0, 0)\) refers to the coordinate in the middle of the pixel, the top-left of the image boundary for any image is \((-0.5, -0.5)\). The bottom-right corner for the smaller image is \((2.5, 2.5)\). The bottom-right corner for the resized image is \((7.5, 7.5)\). The equation that maps the top-left coordinates between the images is given by&lt;/p&gt;
+&lt;p&gt;\[
+-\frac{1}{2} = -\frac{1}{2}a + b.
+\]&lt;/p&gt;
+&lt;p&gt;The equation that maps the bottom-right coordinates between the images is given by&lt;/p&gt;
+&lt;p&gt;\[
+\frac{5}{2} = \frac{15}{2}a + b.
+\]&lt;/p&gt;
+&lt;p&gt;Thus, we have 2 equations 2 unknowns. Solving this yields \(a = \frac{3}{8}\) and \(b = -\frac{5}{16}\).&lt;/p&gt;
+&lt;p&gt;With the mapping solved, let&amp;rsquo;s compute the color value for pixel \((3, 3)\) in the upsampled image. Here, \((3, 3) \mapsto (\frac{13}{16}, \frac{13}{16})\) in the original image. Our problem for this particular pixel is reduced to the following figure.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_18-08-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Determining the pixel value for the mapped pixel using bilinear interpolation.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Determining the pixel value for the mapped pixel using bilinear interpolation.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;We first interpolate between two pairs of pixels in the original image. That is, we find \(p_1\) and \(p_2\) in the following figure.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_18-15-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Step 1: Interpolate the pixel values between two pixels for (p_1) and (p_2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Step 1: Interpolate the pixel values between two pixels for (p_1) and (p_2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Here, \(p_2 = \frac{3}{16}(255, 255, 255) + \frac{13}{16}(128, 128, 128) \approx (152, 152, 152)\) and \(p_1 = \frac{3}{16}(255, 0, 0) + \frac{13}{16}(255, 255, 255) \approx (255, 207, 207)\). Note that the contribution of the pixel depends on the weight on the other side the intermediate value \(p_i\). For example, if you think of \(p_1\) as a slider from the red pixel to the white pixel. The value to the left of the slider reflects the contribution of the pixel to the right, and vice versa.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_18-23-43_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Computed values of (p_1) and (p_2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Computed values of (p_1) and (p_2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Finally, the value of the new pixel is a linear combination of \(p_1\) and \(p_2\). That is \(p = \frac{13}{16}(152, 152, 152) + \frac{3}{16}(255, 207, 207) \approx (171, 162, 162)\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_18-28-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;The final pixel value computed from (p_1) and (p_2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;The final pixel value computed from (p_1) and (p_2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The following figure compares the original image with both types of interpolation discussed in this section.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_18-34-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Original image (left), upscaled 2x with NN interpolation (middle), upscaled with bilinear interpolation (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Original image (left), upscaled 2x with NN interpolation (middle), upscaled with bilinear interpolation (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;aliasing&#34;&gt;Aliasing&lt;/h3&gt;
+&lt;p&gt;Nearest neighbor interpolation often leads to images with &lt;strong&gt;aliasing&lt;/strong&gt;. In general, aliasing occurs when two signals are sampled at such a frequency that they become indistinguishable from each other. Usually, images are smoothed prior to upsampling or downsampling in an effort to alleviate the effects of aliasing. The figure below shows a downsampled image using nearest neighbor interpolation.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_10-31-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Image downsampled by 4x. Notice the &amp;#34;jaggies&amp;#34;, especially along straight lines.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Image downsampled by 4x. Notice the &amp;ldquo;jaggies&amp;rdquo;, especially along straight lines.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;By blurring the image and using bilinear interpolation, the same image looks much smoother when downsized.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-01-25_19-30-16_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 14: &amp;lt;/span&amp;gt;Image downsampled by 4x using bilinear interpolation.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Image downsampled by 4x using bilinear interpolation.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
       <title>Color</title>
       <link>https://ajdillhoff.github.io/notes/color/</link>
       <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
@@ -13557,6 +14409,336 @@ p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_k,\Sig
 &lt;p&gt;In the more general case of QDA, the decision boundary is quadratic, leading to a quadratic discriminant function. As shown above, the posterior probability function for LDA is linear in \(\mathbf{x}\), which leads to a linear discriminant function.&lt;/p&gt;
 &lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
 &lt;p&gt;See &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt; for an example using scikit-learn.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Linear Filters</title>
+      <link>https://ajdillhoff.github.io/notes/linear_filters/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/linear_filters/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#smoothing&#34;&gt;Smoothing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#convolution&#34;&gt;Convolution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gaussian-filters&#34;&gt;Gaussian Filters&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#image-derivatives&#34;&gt;Image Derivatives&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;How do we detect specific patterns in images (eyes, nose, spots, etc.)?&lt;/li&gt;
+&lt;li&gt;Weighted sums of pixel values.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;smoothing&#34;&gt;Smoothing&lt;/h2&gt;
+&lt;p&gt;When discussing resizing and interpolation, we saw how the choice of scale factor and rotation can produce aliasing in images. Typically, this effect is hidden using some sort of smoothing.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s first look at the case of downsampling an image to 10\% of its original size. If we use nearest neighbor interpolation, the result is very blocky, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_20-49-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Rocinante cropped and scaled to 10% of the original size. Source: The Expanse&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Rocinante cropped and scaled to 10% of the original size. Source: The Expanse
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Effectively, an entire block of pixels in the original image is being mapped to the nearest neighbor. We are losing a lot of information from the original image. The figure below shows an overlay of the low resolution grid over a patch of the high resolution image.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_21-48-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The center dots show the selected pixel value for the downsampled grid.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The center dots show the selected pixel value for the downsampled grid.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;computing-the-average&#34;&gt;Computing the Average&lt;/h3&gt;
+&lt;p&gt;Instead of naively selecting one pixel to represent an entire block, we could compute the average pixel value of all pixels within that block. This is a simple as taking an equal contribution from each pixel in the block and dividing by the total number of pixels in the block. An example of such a block is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_21-55-06_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A (3 times 3) averaging filter.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A (3 times 3) averaging filter.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;By varying the size of this filter, we can effectively change the factor for which we smooth the aliasing.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_21-32-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Original image smoothed with (9 times 9) average filter before downsampling to 10% of its original size.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Original image smoothed with (9 times 9) average filter before downsampling to 10% of its original size.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;convolution&#34;&gt;Convolution&lt;/h2&gt;
+&lt;p&gt;How can we apply the averaging filter to an image effectively? We slide the filter across the image starting at the first pixel in the first row and move row by row until all pixels have been computed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_22-20-56_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;The takes input from all pixels under it and computes the average.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;The takes input from all pixels under it and computes the average.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-30_23-13-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Final portion of image after kernel is applied.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Final portion of image after kernel is applied.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This is performed by the &lt;strong&gt;convolution&lt;/strong&gt; operation. It is defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+g(x, y) = \omega * f(x, y) = \sum_{dx = -a}^a \sum_{dy=-b}^b \omega(dw, dy)f(x + dx, y + dy).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The range \((-a, a)\) represents the rows of the kernel and \((-b, b)\) the range of the columns of the kernel. The center of the kernel is at \((dx = 0, dy = 0)\).&lt;/p&gt;
+&lt;p&gt;This operation is one of, if not the most, important operations in computer vision. It is used to apply filters, but we will later see it as one of the guiding operators for feature extraction and deep learning methods.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_15-40-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;An image (f) convolved with kernel (h). Source: Szeliski&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;An image (f) convolved with kernel (h). Source: Szeliski
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;properties&#34;&gt;Properties&lt;/h3&gt;
+&lt;h4 id=&#34;commutativity&#34;&gt;Commutativity&lt;/h4&gt;
+&lt;p&gt;\(f * g = g * f\)&lt;/p&gt;
+&lt;h4 id=&#34;associativity&#34;&gt;Associativity&lt;/h4&gt;
+&lt;p&gt;\(f * (g * h) = (f * g) * h\)&lt;/p&gt;
+&lt;h4 id=&#34;distributivity&#34;&gt;Distributivity&lt;/h4&gt;
+&lt;p&gt;\(f * (g + h) = (f * g) + (f * h)\)&lt;/p&gt;
+&lt;h3 id=&#34;shift-invariant-linear-systems&#34;&gt;Shift Invariant Linear Systems&lt;/h3&gt;
+&lt;p&gt;Convolution is a &lt;em&gt;linear shift-invariant&lt;/em&gt; operator. That is, it obeys the following properties.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Superposition:&lt;/strong&gt; The response of the sum of the input is the sum of the individual responses.&lt;/p&gt;
+&lt;p&gt;\[
+R(f + g) = R(f) + R(g)
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Scaling:&lt;/strong&gt; The response to a scaled input is equal to the scaled response of the same input.&lt;/p&gt;
+&lt;p&gt;\[
+R(kf) = kR(f)
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Shift Invariance:&lt;/strong&gt; The response to a translated input is equal to the translation of the response to the input.&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;system&lt;/strong&gt; is linear if it satisfies both the superposition and scaling properties. Further, it is a shift-invariant linear system if it is linear and satisfies the shift-invariance property.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Is the average box filter linear?&lt;/strong&gt; Yes, it is applied with convolution which behaves the same everywhere.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Is thresholding a linear system?&lt;/strong&gt; No, it can be shown that \(f(n, m) + g(n, m) &amp;gt; T\), but \(f(n, m) &amp;lt; T\) and \(g(n, m) &amp;lt; T\).&lt;/p&gt;
+&lt;h2 id=&#34;gaussian-filters&#34;&gt;Gaussian Filters&lt;/h2&gt;
+&lt;p&gt;Blurring an image using a box filter does not simulate realistic blurring as well as Gaussian filters do. The following figure exemplifies the difference between the two.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_16-57-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;The left image is blurred using a uniform average box filter. The right image is blurred with a Gaussian filter.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;The left image is blurred using a uniform average box filter. The right image is blurred with a Gaussian filter.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The shortcomings of the average box filter can be seen when viewing the artifacting visible at edges, especially at corners.&lt;/p&gt;
+&lt;p&gt;A Guassian kernel is defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+G(x, y;\sigma) = \frac{1}{2\pi \sigma^2}\exp\Big(-\frac{(x^2 + y^2)}{2 \sigma^2}\Big).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;In effect, it enforces a greater contribution from neighbors near the pixel and a smaller contribution from distant pixels.&lt;/p&gt;
+&lt;h2 id=&#34;image-derivatives&#34;&gt;Image Derivatives&lt;/h2&gt;
+&lt;p&gt;We can use convolution to approximate the partial derivative (or finite difference) of an image. Recall that&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{\partial f}{\partial x} = \lim\limits_{\epsilon \rightarrow 0} \frac{f(x + \epsilon, y) - f(x, y)}{\epsilon}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;We can estimate this as a finite difference&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\frac{\partial h}{\partial x} \approx h_{i+1, j} - h_{i-1, j}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Which can be applied via convolution given a kernal&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathcal{H} =
+\begin{bmatrix}
+0 &amp;amp; 0 &amp;amp; 0\\
+-1 &amp;amp; 0 &amp;amp; 1\\
+0 &amp;amp; 0 &amp;amp; 0\\
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Applying both the horizontal and vertical derivative kernels to an image to a simple square shows the detection of horizontal and vertical edges.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_17-36-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Horizontal (right) and vertical (middle) derivative kernels applied to the original image (left).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Horizontal (right) and vertical (middle) derivative kernels applied to the original image (left).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The results of applying the derivative kernels are referred to as vertical edge and horizontal edge &lt;strong&gt;scores&lt;/strong&gt;. Consider the middle image in the figure above. The left edge has pixel values of 255; the right edge has -255. In either case, a high absolute score reveals that there is an edge. These scores report the direction of greatest change. The 255 on the left edge indicates the direction is to the right, while the -255 score indicates the direction is to the left. All other instances of the image return a rate of change of 0.
+Let&amp;rsquo;s see how these filters perform on a more interesting image.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_22-45-59_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Vertical derivative filter (left) and horizontal derivative filter (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Vertical derivative filter (left) and horizontal derivative filter (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 </description>
     </item>
     

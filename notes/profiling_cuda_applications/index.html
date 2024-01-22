@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content=" Table of Contents Profiling and Benchmarking Overview of Tools Available Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices Profiling and Benchmarking Overview of Tools Available Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices ">
+  <meta name="description" content="Table of Contents Profiling and Benchmarking Overview of Nsight Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices Profiling and Benchmarking Debugging Profiling Benchmarking Overview of Nsight Getting Started with Nsight Profiling our first program In Lab 0, you implemented a vector addition kernel that is embarrassingly parallel. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/profiling_cuda_applications/">
@@ -138,7 +138,7 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/profiling_cuda_applications/">
   <meta property="og:title" content="Profiling CUDA Applications | Alex Dillhoff">
-  <meta property="og:description" content=" Table of Contents Profiling and Benchmarking Overview of Tools Available Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices Profiling and Benchmarking Overview of Tools Available Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices "><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Profiling and Benchmarking Overview of Nsight Getting Started with Nsight Case Study: Matrix Multiplication Tips and Best Practices Profiling and Benchmarking Debugging Profiling Benchmarking Overview of Nsight Getting Started with Nsight Profiling our first program In Lab 0, you implemented a vector addition kernel that is embarrassingly parallel. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2024-01-15T14:48:00-06:00">
@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    1 min read
+    4 min read
   </span>
   
 
@@ -547,7 +547,7 @@
 <div class="heading">Table of Contents</div>
 <ul>
 <li><a href="#profiling-and-benchmarking">Profiling and Benchmarking</a></li>
-<li><a href="#overview-of-tools-available">Overview of Tools Available</a></li>
+<li><a href="#overview-of-nsight">Overview of Nsight</a></li>
 <li><a href="#getting-started-with-nsight">Getting Started with Nsight</a></li>
 <li><a href="#case-study-matrix-multiplication">Case Study: Matrix Multiplication</a></li>
 <li><a href="#tips-and-best-practices">Tips and Best Practices</a></li>
@@ -555,10 +555,118 @@
 </div>
 <!--endtoc-->
 <h2 id="profiling-and-benchmarking">Profiling and Benchmarking</h2>
-<h2 id="overview-of-tools-available">Overview of Tools Available</h2>
+<ul>
+<li>Debugging</li>
+<li>Profiling</li>
+<li>Benchmarking</li>
+</ul>
+<h2 id="overview-of-nsight">Overview of Nsight</h2>
 <h2 id="getting-started-with-nsight">Getting Started with Nsight</h2>
+<h3 id="profiling-our-first-program">Profiling our first program</h3>
+<p>In Lab 0, you implemented a vector addition kernel that is <em>embarrassingly parallel</em>. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives. To profile the application, simply launch <code>ncu</code> with your application.</p>
+<p><code>ncu ./build/main</code></p>
+<p>Depending on where you are running this program, it may be necessary to launch it with <code>sudo</code>. If everything was successful, it will output something similar to the following:</p>
+<p><strong>Nsight Output</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>vec_add(float *, float *, float *, int), 2024-Jan-16 10:42:52, Context 1, Stream 7
+</span></span><span style="display:flex;"><span>  Section: GPU Speed Of Light Throughput
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  DRAM Frequency                                                           cycle/nsecond                           5.71
+</span></span><span style="display:flex;"><span>  SM Frequency                                                             cycle/nsecond                           1.15
+</span></span><span style="display:flex;"><span>  Elapsed Cycles                                                                   cycle                          3,279
+</span></span><span style="display:flex;"><span>  Memory [%]                                                                           %                           7.54
+</span></span><span style="display:flex;"><span>  DRAM Throughput                                                                      %                           7.54
+</span></span><span style="display:flex;"><span>  Duration                                                                       usecond                           2.85
+</span></span><span style="display:flex;"><span>  L1/TEX Cache Throughput                                                              %                           4.32
+</span></span><span style="display:flex;"><span>  L2 Cache Throughput                                                                  %                           4.86
+</span></span><span style="display:flex;"><span>  SM Active Cycles                                                                 cycle                         623.58
+</span></span><span style="display:flex;"><span>  Compute (SM) [%]                                                                     %                           0.82
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.1 full
+</span></span><span style="display:flex;"><span>        waves across all SMs. Look at Launch Statistics for more details.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Section: Launch Statistics
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  Block Size                                                                                                        256
+</span></span><span style="display:flex;"><span>  Function Cache Configuration                                                                  cudaFuncCachePreferNone
+</span></span><span style="display:flex;"><span>  Grid Size                                                                                                          16
+</span></span><span style="display:flex;"><span>  Registers Per Thread                                                   register/thread                             16
+</span></span><span style="display:flex;"><span>  Shared Memory Configuration Size                                                 Kbyte                           8.19
+</span></span><span style="display:flex;"><span>  Driver Shared Memory Per Block                                             Kbyte/block                           1.02
+</span></span><span style="display:flex;"><span>  Dynamic Shared Memory Per Block                                             byte/block                              0
+</span></span><span style="display:flex;"><span>  Static Shared Memory Per Block                                              byte/block                              0
+</span></span><span style="display:flex;"><span>  Threads                                                                         thread                          4,096
+</span></span><span style="display:flex;"><span>  Waves Per SM                                                                                                     0.07
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  WRN   The grid for this launch is configured to execute only 16 blocks, which is less than the GPU&#39;s 38
+</span></span><span style="display:flex;"><span>        multiprocessors. This can underutilize some multiprocessors. If you do not intend to execute this kernel
+</span></span><span style="display:flex;"><span>        concurrently with other workloads, consider reducing the block size to have at least one block per
+</span></span><span style="display:flex;"><span>        multiprocessor or increase the size of the grid to fully utilize the available hardware resources. See the
+</span></span><span style="display:flex;"><span>        Hardware Model (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#metrics-hw-model)
+</span></span><span style="display:flex;"><span>        description for more details on launch configurations.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Section: Occupancy
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  Block Limit SM                                                                   block                             16
+</span></span><span style="display:flex;"><span>  Block Limit Registers                                                            block                             16
+</span></span><span style="display:flex;"><span>  Block Limit Shared Mem                                                           block                            100
+</span></span><span style="display:flex;"><span>  Block Limit Warps                                                                block                              6
+</span></span><span style="display:flex;"><span>  Theoretical Active Warps per SM                                                   warp                             48
+</span></span><span style="display:flex;"><span>  Theoretical Occupancy                                                                %                            100
+</span></span><span style="display:flex;"><span>  Achieved Occupancy                                                                   %                          15.85
+</span></span><span style="display:flex;"><span>  Achieved Active Warps Per SM                                                      warp                           7.61
+</span></span><span style="display:flex;"><span>  ---------------------------------------------------------------------- --------------- ------------------------------
+</span></span><span style="display:flex;"><span>  WRN   This kernel&#39;s theoretical occupancy is not impacted by any block limit. The difference between calculated
+</span></span><span style="display:flex;"><span>        theoretical (100.0%) and measured achieved occupancy (15.9%) can be the result of warp scheduling overheads
+</span></span><span style="display:flex;"><span>        or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block
+</span></span><span style="display:flex;"><span>        as well as across blocks of the same kernel. See the CUDA Best Practices Guide
+</span></span><span style="display:flex;"><span>        (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on
+</span></span><span style="display:flex;"><span>        optimizing occupancy.
+</span></span></code></pre></div><h3 id="viewing-results-in-the-gui">Viewing Results in the GUI</h3>
+<p>Nsight comes with both CLI and GUI clients. It is recommended to parse the information from the GUI. The GUI can launch programs both locally and remotely. It can also display the result of a previous launch. To generate a profiling report for our vector addition kernel, run the following command:</p>
+<p><code>ncu -o vec_add_profile ./build/main</code></p>
+<p>The argument after <code>-o</code> is the name of the output file. Open Nsight Compute and load the saved file. It should look something like this.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-16_11-59-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Nsight Compute GUI output" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Nsight Compute GUI output
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>This basic report only includes three sections: GPU Speed of Light, Launch Statistics, and Occupancy Analysis. We will go over each of these sections in detail.</p>
+<h3 id="gpu-speed-of-light">GPU Speed of Light</h3>
+<p>High level aspects. Shows what your application is doing relative to peak performance.
+Important lines:</p>
+<ul>
+<li>Duration</li>
+<li>SM <code>[%]</code></li>
+<li>Memory <code>[%]</code></li>
+</ul>
+<h3 id="launch-statistics">Launch Statistics</h3>
+<h3 id="occupancy-analysis">Occupancy Analysis</h3>
+<h3 id="memory-workload-analysis">Memory Workload Analysis</h3>
 <h2 id="case-study-matrix-multiplication">Case Study: Matrix Multiplication</h2>
 <h2 id="tips-and-best-practices">Tips and Best Practices</h2>
+<ul>
+<li>Do not confuse high throughput for high performance. Throughput is a measure of how much work is being done, not how fast it is being done.</li>
+<li>Using a larger grid size is not always better. More grids introduce more overhead and can lead to lower performance.</li>
+</ul>
 
     </div>
 

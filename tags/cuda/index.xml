@@ -22,7 +22,7 @@
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#overview-of-tools-available&#34;&gt;Overview of Tools Available&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#overview-of-nsight&#34;&gt;Overview of Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#tips-and-best-practices&#34;&gt;Tips and Best Practices&lt;/a&gt;&lt;/li&gt;
@@ -30,10 +30,118 @@
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
 &lt;h2 id=&#34;profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/h2&gt;
-&lt;h2 id=&#34;overview-of-tools-available&#34;&gt;Overview of Tools Available&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Debugging&lt;/li&gt;
+&lt;li&gt;Profiling&lt;/li&gt;
+&lt;li&gt;Benchmarking&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;overview-of-nsight&#34;&gt;Overview of Nsight&lt;/h2&gt;
 &lt;h2 id=&#34;getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/h2&gt;
+&lt;h3 id=&#34;profiling-our-first-program&#34;&gt;Profiling our first program&lt;/h3&gt;
+&lt;p&gt;In Lab 0, you implemented a vector addition kernel that is &lt;em&gt;embarrassingly parallel&lt;/em&gt;. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives. To profile the application, simply launch &lt;code&gt;ncu&lt;/code&gt; with your application.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ncu ./build/main&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Depending on where you are running this program, it may be necessary to launch it with &lt;code&gt;sudo&lt;/code&gt;. If everything was successful, it will output something similar to the following:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Nsight Output&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vec_add(float *, float *, float *, int), 2024-Jan-16 10:42:52, Context 1, Stream 7
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: GPU Speed Of Light Throughput
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  DRAM Frequency                                                           cycle/nsecond                           5.71
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SM Frequency                                                             cycle/nsecond                           1.15
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Elapsed Cycles                                                                   cycle                          3,279
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Memory [%]                                                                           %                           7.54
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  DRAM Throughput                                                                      %                           7.54
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Duration                                                                       usecond                           2.85
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  L1/TEX Cache Throughput                                                              %                           4.32
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  L2 Cache Throughput                                                                  %                           4.86
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SM Active Cycles                                                                 cycle                         623.58
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Compute (SM) [%]                                                                     %                           0.82
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.1 full
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        waves across all SMs. Look at Launch Statistics for more details.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: Launch Statistics
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Size                                                                                                        256
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Function Cache Configuration                                                                  cudaFuncCachePreferNone
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Grid Size                                                                                                          16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Registers Per Thread                                                   register/thread                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Shared Memory Configuration Size                                                 Kbyte                           8.19
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Driver Shared Memory Per Block                                             Kbyte/block                           1.02
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Dynamic Shared Memory Per Block                                             byte/block                              0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Static Shared Memory Per Block                                              byte/block                              0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Threads                                                                         thread                          4,096
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Waves Per SM                                                                                                     0.07
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   The grid for this launch is configured to execute only 16 blocks, which is less than the GPU&amp;#39;s 38
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        multiprocessors. This can underutilize some multiprocessors. If you do not intend to execute this kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        concurrently with other workloads, consider reducing the block size to have at least one block per
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        multiprocessor or increase the size of the grid to fully utilize the available hardware resources. See the
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Hardware Model (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#metrics-hw-model)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        description for more details on launch configurations.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Section: Occupancy
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit SM                                                                   block                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Registers                                                            block                             16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Shared Mem                                                           block                            100
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Block Limit Warps                                                                block                              6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Theoretical Active Warps per SM                                                   warp                             48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Theoretical Occupancy                                                                %                            100
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Achieved Occupancy                                                                   %                          15.85
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Achieved Active Warps Per SM                                                      warp                           7.61
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ---------------------------------------------------------------------- --------------- ------------------------------
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  WRN   This kernel&amp;#39;s theoretical occupancy is not impacted by any block limit. The difference between calculated
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        theoretical (100.0%) and measured achieved occupancy (15.9%) can be the result of warp scheduling overheads
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        as well as across blocks of the same kernel. See the CUDA Best Practices Guide
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        optimizing occupancy.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;viewing-results-in-the-gui&#34;&gt;Viewing Results in the GUI&lt;/h3&gt;
+&lt;p&gt;Nsight comes with both CLI and GUI clients. It is recommended to parse the information from the GUI. The GUI can launch programs both locally and remotely. It can also display the result of a previous launch. To generate a profiling report for our vector addition kernel, run the following command:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ncu -o vec_add_profile ./build/main&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The argument after &lt;code&gt;-o&lt;/code&gt; is the name of the output file. Open Nsight Compute and load the saved file. It should look something like this.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-16_11-59-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Nsight Compute GUI output&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Nsight Compute GUI output
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This basic report only includes three sections: GPU Speed of Light, Launch Statistics, and Occupancy Analysis. We will go over each of these sections in detail.&lt;/p&gt;
+&lt;h3 id=&#34;gpu-speed-of-light&#34;&gt;GPU Speed of Light&lt;/h3&gt;
+&lt;p&gt;High level aspects. Shows what your application is doing relative to peak performance.
+Important lines:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Duration&lt;/li&gt;
+&lt;li&gt;SM &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Memory &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;launch-statistics&#34;&gt;Launch Statistics&lt;/h3&gt;
+&lt;h3 id=&#34;occupancy-analysis&#34;&gt;Occupancy Analysis&lt;/h3&gt;
+&lt;h3 id=&#34;memory-workload-analysis&#34;&gt;Memory Workload Analysis&lt;/h3&gt;
 &lt;h2 id=&#34;case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/h2&gt;
 &lt;h2 id=&#34;tips-and-best-practices&#34;&gt;Tips and Best Practices&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Do not confuse high throughput for high performance. Throughput is a measure of how much work is being done, not how fast it is being done.&lt;/li&gt;
+&lt;li&gt;Using a larger grid size is not always better. More grids introduce more overhead and can lead to lower performance.&lt;/li&gt;
+&lt;/ul&gt;
 </description>
     </item>
     

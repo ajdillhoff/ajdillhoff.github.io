@@ -7,10 +7,345 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 14 Jan 2024 13:31:00 -0600</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jan 2024 21:35:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/computer-science/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Convolution</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_convolution/</link>
+      <pubDate>Mon, 15 Jan 2024 21:35:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_convolution/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#convolution&#34;&gt;Convolution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#implementing-a-convolution-kernel&#34;&gt;Implementing a Convolution Kernel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#constant-memory-and-caching&#34;&gt;Constant Memory and Caching&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-convolutions&#34;&gt;Tiled Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;This pattern involves tiling and input data staging.&lt;/p&gt;
+&lt;p&gt;Recall from Lab 1 where we implementing a kernel to blur an image. This kernel worked on each individual output pixel by computing the weighted average of each pixel from the input image, centered on the output pixel location. When we implemented this, we set the weight of every pixel to 1. Whether you were aware of it or not, you implemented a convolution between an input image and weighted kernel.&lt;/p&gt;
+&lt;p&gt;The convolution is an extremely important operator that works on time-varying signals of different dimensionality. In computer vision, they are commonly used to compute responses between a known pattern and an input image. The pixels that return a greater response as a result of convolution indicate a match between the pattern and the input image.&lt;/p&gt;
+&lt;p&gt;This operator can and has been efficiently implemented in a GPU. Through studying this pattern, you will learn to utilize constant memory storage and shared memory storage to efficiently implement a convolution kernel. These techniques will be useful in later applications as well.&lt;/p&gt;
+&lt;h2 id=&#34;convolution&#34;&gt;Convolution&lt;/h2&gt;
+&lt;p&gt;A convolution is a function that takes two functions as input and produces a third function as output. The first function is the input and the second function is the kernel. The output is called the feature map. The kernel is also sometimes called the filter.&lt;/p&gt;
+&lt;p&gt;\[
+(f * g)(t) = \int f(t-a)g(a)da
+\]&lt;/p&gt;
+&lt;p&gt;We can view them more concretely by considering the functions to be vectors. For example, let the function \(f\) be an input vector \(x\) and \(w\) be a kernel representing a filter. The convolution operator is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \int x(t-a)w(a)da.
+\]&lt;/p&gt;
+&lt;p&gt;The result the &lt;strong&gt;feature map&lt;/strong&gt; representing the response of the kernel at each location in the input.&lt;/p&gt;
+&lt;p&gt;In the case of discrete values, it is common to use an odd-sized kernel and center it on an input value. The kernel size is given by some radius \(r\). The convolution operator is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(t) = \sum_{-r}^r x(t-r)w( r).
+\]&lt;/p&gt;
+&lt;p&gt;The figure below shows an example of a 1D convolution of a vector if size 8 with a kernel of size 5, centered on the \(t = 2\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-17_18-00-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;1D Convolution between a vector of size 8 and a kernel of size 5.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;1D Convolution between a vector of size 8 and a kernel of size 5.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Convolution is defined in such a way that the kernel is traversed in an inverted manner. In the example above, \(y_2\) is computed by applying the kernel to \(\mathbf{x}\) centered on \(x_2\). The calculation in terms of the locations accesses is&lt;/p&gt;
+&lt;p&gt;\[
+y_2 = x_4 w_{-2} + x_3 w_{-1} + x_2 w_0 + x_1 w_1 + x_0 w_2.
+\]&lt;/p&gt;
+&lt;p&gt;This operation is very similar to the &lt;em&gt;correlation&lt;/em&gt; operator, which is defined as&lt;/p&gt;
+&lt;p&gt;\[
+(x \star w)(t) = \sum_{-r}^r x(t+r)w( r).
+\]&lt;/p&gt;
+&lt;p&gt;We can use the correlation operator to compute the convolution by flipping the kernel. In this case, the calculation can be represented using the dot product. We can also slightly adjust the indexing so that the first index is 0.&lt;/p&gt;
+&lt;p&gt;\[
+y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
+\]&lt;/p&gt;
+&lt;p&gt;Note that the convolution shown above would be undefined for \(i = 0\) and \(i = 1\) since the kernel would be accessing negative indices. Based on the definition, we would ignore these values. This is called a &lt;em&gt;valid&lt;/em&gt; convolution. The output size is then \(n - 2r\). There is also a &lt;em&gt;full&lt;/em&gt; convolution where the output size is \(n\). In this case, the kernel is padded with zeros so that it can be applied to all elements of the input.&lt;/p&gt;
+&lt;h3 id=&#34;2d-convolution&#34;&gt;2D Convolution&lt;/h3&gt;
+&lt;p&gt;Image convolutions use 2D filters applied to 2D images. For a filter with radius \(r\), size of the filter is \((2r + 1) \times (2r + 1)\). The convolution is then&lt;/p&gt;
+&lt;p&gt;\[
+(x * w)(i, j) = \sum_{-r}^r \sum_{-r}^r x(i-r, j-r)w(r, s).
+\]&lt;/p&gt;
+&lt;h2 id=&#34;properties-of-convolutions&#34;&gt;Properties of Convolutions&lt;/h2&gt;
+&lt;p&gt;Convolutional networks are commonly built on &lt;em&gt;full&lt;/em&gt; or &lt;em&gt;valid&lt;/em&gt; convolutions. Other variants have also been explored. Here, we will briefly discuss the different properties of this operator. A more detailed treatment can be found in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;padding&#34;&gt;Padding&lt;/h3&gt;
+&lt;p&gt;By definition, a convolution of an input with a filter of size \(n\times n\) will produce an output of size \((m-n+1)\times(m-n+1)\), where \(m\) is the size of the input. This means that the output will be smaller than the input. This is often referred to as a &lt;strong&gt;valid&lt;/strong&gt; convolution. The figure below shows a convolution between a \(3\times3\) kernel and a \(5\times5\) input.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-31-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A valid convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A valid convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output of this convolution is a \(3\times3\) feature map. This is a problem if we want to build a deep network. Each convolution will reduce the size of the input. If we were to stack multiple convolutional layers, the output would eventually be too small to be useful. If we want our output to be same size as the input, we can add padding to the original input image before convolving it. This is often known as a &lt;strong&gt;full&lt;/strong&gt; convolution. An example is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-34-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A full convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A full convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;stride&#34;&gt;Stride&lt;/h3&gt;
+&lt;p&gt;So far, we have only looked at convolutions which step by 1 unit as they shift over the image. We can control the size of this step, or &lt;strong&gt;stride&lt;/strong&gt;, to produce different outcomes. Picking a non-unit stride has a number of effects on the features that are learned in a convolutional neural network.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Dimensionality reduction&lt;/strong&gt;: Skipping over pixels reduces the size of the output feature map. This provides another way of downsampling the input.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Less computation&lt;/strong&gt;: Fewer computations are required to produce the output feature map.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Increased field of view&lt;/strong&gt;: A larger stride increases the field of view of the kernel, leading to larger receptive fields in deeper layers.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Given an input of size \(m\times m\) and a kernel of size \(n\times n\), the output size of a convolution with stride \(s\) is given by&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m-n}{s}\right\rfloor + 1.
+\]&lt;/p&gt;
+&lt;p&gt;The figure below shows a convolution with stride 2 on a \(5\times5\) input.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-26_16-45-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A convolution with stride 2 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A convolution with stride 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-size&#34;&gt;Kernel Size&lt;/h3&gt;
+&lt;p&gt;The size of the kernel has a large impact on the features that are learned. A larger kernel will have a larger receptive field. This means that the kernel will be able to capture more information about the input. However, this comes at the cost of increased computation. Common kernel sizes in most CNNs are \(3\times3\), \(5\times5\), and \(7\times7\). It is also convenient to pick an odd kernel size so that the kernel has a center pixel.&lt;/p&gt;
+&lt;h3 id=&#34;dilation&#34;&gt;Dilation&lt;/h3&gt;
+&lt;p&gt;Around 2015, a research trend for CNNs was to find a way to increase the receptive field without adding more parameters. The result is a &lt;strong&gt;dilated&lt;/strong&gt; convolution. The output of a dilated convolution is computed by skipping over pixels in the input. The figure below shows a \(3\times3\) kernel with a dilation of 2.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-27_08-19-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;A dilated convolution (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dumoulin and Visin 2018&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A dilated convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output size is computed as&lt;/p&gt;
+&lt;p&gt;\[
+\left\lfloor\frac{m + 2p - n - (n-1)(d-1)}{s}\right\rfloor + 1,
+\]&lt;/p&gt;
+&lt;p&gt;where \(p\) is the amount of padding and \(d\) is the dilation factor.&lt;/p&gt;
+&lt;h2 id=&#34;implementing-a-convolution-kernel&#34;&gt;Implementing a Convolution Kernel&lt;/h2&gt;
+&lt;p&gt;It is straightforward to write the convolution operation in CUDA C++. Each thread will compute the value for a single output pixel using the filter. We already implemented something very similar with the blurring kernel. The kernel itself should accept the following arguments:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The input image&lt;/li&gt;
+&lt;li&gt;The output image&lt;/li&gt;
+&lt;li&gt;The kernel&lt;/li&gt;
+&lt;li&gt;The radius of the kernel&lt;/li&gt;
+&lt;li&gt;The width of the output image&lt;/li&gt;
+&lt;li&gt;The height of the output image&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A more robust implementation would consider things like padding, stride, dilation, and whether or not a valid or full convolution is desired. For now, we will focus on the simplest case: a valid convolution with a stride of 1 and no padding or dilation. First, let&amp;rsquo;s review the initial naive solution from &lt;em&gt;Programming Massively Parallel Processors&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row - r;
+            int inCol = outCol + col - r;
+            if (inRow &amp;gt;= 0 &amp;amp;&amp;amp; inRow &amp;lt; height &amp;amp;&amp;amp; inCol &amp;gt;= 0 &amp;amp;&amp;amp; inCol &amp;lt; width) {
+                sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+            }
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a &lt;em&gt;valid&lt;/em&gt; convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.&lt;/p&gt;
+&lt;p&gt;It is also a waste of resources in terms of memory used for the output. If we already know that we want to perform a valid convolution, we can allocate the output image to be the appropriate size before calling it. A slightly modified version is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;constant-memory-and-caching&#34;&gt;Constant Memory and Caching&lt;/h2&gt;
+&lt;p&gt;There is a much larger issue present in both versions of this kernel in terms of memory bandwidth. Similar to the matrix multiplication kernel, this kernel can benefit from tiling. However, there is a new problem that arises specifically with convolution. The same filter is accessed by every single thread. This filter does not change for the entire duration of the kernel. This means that we are wasting memory bandwidth by having every thread access the same filter.&lt;/p&gt;
+&lt;p&gt;Given its relatively small size, this kernel is a perfect candidate for constant memory. This is a special type of memory that is cached on the GPU. It is read-only and has a limited size, but it is much faster than global memory. We can write to the devices constant memory from the host code.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 1
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, &lt;a href=&#34;https://google.github.io/styleguide/cppguide.html#Constant_Names&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Google&amp;rsquo;s C++&lt;/a&gt; style guide recommends naming constant variables with a &lt;code&gt;k&lt;/code&gt; prefix. I have adopted this convention here.&lt;/p&gt;
+&lt;p&gt;At this point, &lt;code&gt;F_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &amp;lt; 2*r+1; row++) {
+        for (int col = 0; col &amp;lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * F_d[row][col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If you organize your files such that the kernel is in a separate file from the host code, you will need to declare the constant variable in the kernel file as well.&lt;/p&gt;
+&lt;p&gt;Constant memory variables are stored in DRAM with global memory. The CUDA runtime will cache them since it knows they will not be modified. Processors use caches to reduce the latency of memory accesses by keeping frequently used data in a small, fast memory that is often located directly on the chip. This type of &lt;em&gt;constant cache&lt;/em&gt; is preferable to one that would support high-throughput writes in terms of chip design. It would require specialized hardware to support both which would increase the cost of the chip.&lt;/p&gt;
+&lt;h2 id=&#34;tiled-convolutions&#34;&gt;Tiled Convolutions&lt;/h2&gt;
+&lt;p&gt;Even with caching, the convolutional kernel still makes many accesses to DRAM. Similar to matrix multiplication, we can tile the input image to reduce the number of accesses. Similar to that example, we will use a \(4 \times 4\) tile size. If the input is a \(16 \times 16\) image and we apply a kernel with radius \(r=2\), the output image under a valid convolution will be \(12 \times 12\). This is visualized in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-19_16-35-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
+&lt;p&gt;Following the design presented by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 2
+#define IN_TILE_DIM 32
+#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+__global__ void conv2DTiledConstKernel(float *input, float *output,
+                                       int width, int height) {
+    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
+    // Input tile coordinates
+    int col = blockIdx.x * IN_TILE_DIM + threadIdx.x;
+    int row = blockIdx.y * IN_TILE_DIM + threadIdx.y;
+    if (row &amp;lt; height &amp;amp;&amp;amp; col &amp;lt; width) {
+        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
+    } else {
+        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
+    }
+    __syncthreads();
+
+    if (col &amp;lt; width &amp;amp;&amp;amp; row &amp;lt; height &amp;amp;&amp;amp; threadIdx.x &amp;lt; OUT_TILE_DIM &amp;amp;&amp;amp; threadIdx.y &amp;lt; OUT_TILE_DIM) {
+        float sum = 0.0f;
+        for (int fRow = 0; fRow &amp;lt; 2*FILTER_RADIUS+1; fRow++) {
+            for (int fCol = 0; fCol &amp;lt; 2*FILTER_RADIUS+1; fCol++) {
+                sum += inputTile[threadIdx.y + fRow][threadIdx.x + fCol] * F_d[fRow][fCol];
+            }
+        }
+        output[row * width + col] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The second approach is to choose a block size that matches the size of the output tiles. This makes the initial loading slightly more complicated but ensures that all threads are active.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” &lt;i&gt;Arxiv:1603.07285 [Cs, Stat]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1603.07285&#34;&gt;http://arxiv.org/abs/1603.07285&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Performance Basics</title>
@@ -1281,7 +1616,7 @@ void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;__global__&lt;/code&gt; keyword placed before the function definition indicates that the function can be called from both the host and teh device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;__global__&lt;/code&gt; keyword placed before the function definition indicates that the function can be called from both the host and the device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -1404,7 +1739,7 @@ void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
 &lt;p&gt;The figure above shows a single block of 256 threads. This could be one of many blocks in a grid. The threads within each block are executed in parallel and do not interact with threads in other blocks. For threads within a single block, there is a small amount of shared memory as well as other tools for communication. We will explore these in more depth as we dive into the details of the CUDA architecture.&lt;/p&gt;
 &lt;h3 id=&#34;kernel-execution&#34;&gt;Kernel Execution&lt;/h3&gt;
 &lt;p&gt;Calling the kernel function almost looks like any ordinary function call. The main difference is the inclusion of the &lt;code&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/code&gt; and &lt;code&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/code&gt; syntax. These are used to specify the size of the grid and blocks, respectively. In this example, we specified that each block has 256 threads. We can use that specification to dynamically determine the number of blocks based on the input size. The number of blocks is computed as the ceiling of the input size divided by the number of threads per block. This ensures that there are enough blocks to cover the entire input size.&lt;/p&gt;
-&lt;p&gt;Returning to the kernel function, the thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. These are defined as &lt;code&gt;struct&lt;/code&gt; variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.&lt;/p&gt;
+&lt;p&gt;Returning to the kernel function, the thread index is computed using built-in variables &lt;code&gt;blockIdx.x&lt;/code&gt;, &lt;code&gt;blockDim.x&lt;/code&gt;, and &lt;code&gt;threadIdx.x&lt;/code&gt;. These are defined as &lt;code&gt;struct&lt;/code&gt; variables. Modern GPUs have a 3-dimensional grid, but we only need to worry about the first dimension for now. The thread index is computed as the product of the block index and the number of threads per block plus the thread index within the block. This is a common pattern for computing the thread index.&lt;/p&gt;
 &lt;p&gt;You may have noticed that it is possible to have more threads than there are blocks. As much as possible, you should try and work with powers of 2. This will ensure that the hardware is used as efficiently as possible. You can always request more threads than there are data points and ignore the threads that are not needed. In this example, we check to see if the thread index is less than the input size. If it is, the vector addition operation is performed. Otherwise, the function exits.&lt;/p&gt;
 &lt;p&gt;There are limits to the number of blocks and threads that can be executed in parallel. These limits are based on the compute capability of the device, referenced &lt;a href=&#34;https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;compiling&#34;&gt;Compiling&lt;/h3&gt;
