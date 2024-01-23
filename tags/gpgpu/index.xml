@@ -26,6 +26,7 @@
 &lt;li&gt;&lt;a href=&#34;#implementing-a-convolution-kernel&#34;&gt;Implementing a Convolution Kernel&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#constant-memory-and-caching&#34;&gt;Constant Memory and Caching&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#tiled-convolutions&#34;&gt;Tiled Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#caching-the-halo-cells&#34;&gt;Caching the Halo Cells&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -311,12 +312,82 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 
 &lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
 &lt;p&gt;Following the design presented by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 2
-#define IN_TILE_DIM 32
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 1
+#define IN_TILE_DIM 4
 #define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
 __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 __global__ void conv2DTiledConstKernel(float *input, float *output,
                                        int width, int height) {
+    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
+    // Input tile coordinates
+    int col = blockIdx.x * OUT_TILE_DIM + threadIdx.x;
+    int row = blockIdx.y * OUT_TILE_DIM + threadIdx.y;
+    if (row &amp;lt; height &amp;amp;&amp;amp; col &amp;lt; width) {
+        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
+    } else {
+        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
+    }
+    __syncthreads();
+
+    // Output tile coordinates
+    int tileCol = threadIdx.x - FILTER_RADIUS;
+    int tileRow = threadIdx.y - FILTER_RADIUS;
+
+    // In a valid convolution, the output is smaller than the input
+    row -= FILTER_RADIUS;
+    col -= FILTER_RADIUS;
+
+    if (tileCol &amp;gt;= 0 &amp;amp;&amp;amp; tileCol &amp;lt; OUT_TILE_DIM &amp;amp;&amp;amp; tileRow &amp;gt;= 0 &amp;amp;&amp;amp; tileRow &amp;lt; OUT_TILE_DIM) {
+        float sum = 0.0f;
+        for (int fRow = 0; fRow &amp;lt; 2*FILTER_RADIUS+1; fRow++) {
+            for (int fCol = 0; fCol &amp;lt; 2*FILTER_RADIUS+1; fCol++) {
+                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
+            }
+        }
+        output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;There are a few things to consider here. The first phase of this kernel collaboratively loads data into a shared memory space, similar to what we have seen before. This kernel assumes a convenient indexing scheme where the row and column will always be &amp;gt;= 0. We could adopt a scheme that centers the convolution on the center point of the kernel by allowing for negative indices. In this case, it would be necessary to check if the row and column are less than 0. This implementation only needs to verify that the row and column are within the given image size.&lt;/p&gt;
+&lt;p&gt;When it comes to computing the output, not every thread will contribute. This is depicted by the lightly shaded areas in the figure below. You should also note which threads are active for output computation per block. In this simple example, a \(3 \times 3\) filter is used. The input tile dimension is \(4 \times 4\) which means the output tile will be \(2 \times 2\). Only the threads corresponding to the darker blue on the left contribute to the output calculation. Since this one block computes 4 output values, the next block should start 2 units to the right of this one.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-21_16-08-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;The active threads for computing the output tile.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The active threads for computing the output tile.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;performance-analysis&#34;&gt;Performance Analysis&lt;/h3&gt;
+&lt;p&gt;The purpose of this approach was to increase the ratio of arithmetic operations to global memory accesses. For the threads that compute an output tile, there is one multiplication and one addition which yields \(\mathtt{OUT\_TILE\_DIM}^2*(2*\mathtt{FILTER\_RADIUS} + 1)^2*2\) operations total. Each thread in the input tile loads a single &lt;code&gt;float&lt;/code&gt; value for a total of \(\mathtt{IN\_TILE\_DIM}^2 * 4\) bytes. For our small example above, this gives&lt;/p&gt;
+&lt;p&gt;\[
+\frac{2^2 * 3^2 * 2}{4^2 * 4} = 1.125\ \text{Ops/byte}.
+\]&lt;/p&gt;
+&lt;p&gt;In a more realistic example, we would maximize our input tile size to take advantage of the available threads on the device. Currently, the maximum number of supported threads is 1024. This allows for an input tile size of \(32 \times 32\). The resulting operations per byte under this tile size is&lt;/p&gt;
+&lt;p&gt;\[
+\frac{30^2 * 3^2 * 2}{32^2 * 4} = 3.955\ \text{Ops/byte}.
+\]&lt;/p&gt;
+&lt;p&gt;This ratio increases with the size of the filter.&lt;/p&gt;
+&lt;h2 id=&#34;caching-the-halo-cells&#34;&gt;Caching the Halo Cells&lt;/h2&gt;
+&lt;p&gt;In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as &lt;em&gt;halo cells&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;This implementation is going to take advantage of the caching behavior in the chip itself. Values that have been recently used are more likely to already be in L2 cache. The full kernel is given below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2DTiledCachedConstKernel(float *input, float *output,
+                                             int width, int height) {
     __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
     // Input tile coordinates
     int col = blockIdx.x * IN_TILE_DIM + threadIdx.x;
@@ -328,18 +399,33 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
     }
     __syncthreads();
 
-    if (col &amp;lt; width &amp;amp;&amp;amp; row &amp;lt; height &amp;amp;&amp;amp; threadIdx.x &amp;lt; OUT_TILE_DIM &amp;amp;&amp;amp; threadIdx.y &amp;lt; OUT_TILE_DIM) {
-        float sum = 0.0f;
-        for (int fRow = 0; fRow &amp;lt; 2*FILTER_RADIUS+1; fRow++) {
-            for (int fCol = 0; fCol &amp;lt; 2*FILTER_RADIUS+1; fCol++) {
-                sum += inputTile[threadIdx.y + fRow][threadIdx.x + fCol] * F_d[fRow][fCol];
+    if (row &amp;lt; FILTER_RADIUS || col &amp;lt; FILTER_RADIUS || col &amp;gt;= (width - FILTER_RADIUS) || row &amp;gt;= (height - FILTER_RADIUS)) return;
+
+    // Output tile coordinates
+    row -= FILTER_RADIUS;
+    col -= FILTER_RADIUS;
+    int tileCol = threadIdx.x - FILTER_RADIUS;
+    int tileRow = threadIdx.y - FILTER_RADIUS;
+
+    float sum = 0.0f;
+    for (int fRow = 0; fRow &amp;lt; 2 * FILTER_RADIUS + 1; fRow++) {
+        for (int fCol = 0; fCol &amp;lt; 2 * FILTER_RADIUS + 1; fCol++) {
+            // If this value is in shared memory, access it there
+            if (tileCol + fCol &amp;gt;= 0 &amp;amp;&amp;amp;
+                tileCol + fCol &amp;lt; IN_TILE_DIM &amp;amp;&amp;amp;
+                tileRow + fRow &amp;gt;= 0 &amp;amp;&amp;amp;
+                tileRow + fRow &amp;lt; IN_TILE_DIM) {
+                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
+            } else {
+                // Otherwise, access it from global memory
+                sum += input[(row + fRow) * width + (col + fCol)] * kFilter_d[fRow][fCol];
             }
         }
-        output[row * width + col] = sum;
     }
+
+    output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The second approach is to choose a block size that matches the size of the output tiles. This makes the initial loading slightly more complicated but ensures that all threads are active.&lt;/p&gt;
-&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” &lt;i&gt;Arxiv:1603.07285 [Cs, Stat]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1603.07285&#34;&gt;http://arxiv.org/abs/1603.07285&lt;/a&gt;.&lt;/div&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
@@ -1510,8 +1596,12 @@ void kernel(int *a, int *b, int *c) {
 
 &lt;/figure&gt;
 
-&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Optimal Launch Parameters&lt;/strong&gt;&lt;/strong&gt;
-Is it better to have fewer blocks that maximize the amount of threads per block? Or is it better to have more blocks with fewer threads per block? The current maximum number of threads per block is 1024. In practice, a maximum block dimension size of 128 or 256 is ideal. This has more to do with the specific problem and the amount of shared memory required. You will explore this question in Lab 1.&lt;/p&gt;
+&lt;h3 id=&#34;notes-on-compute-capability&#34;&gt;Notes on Compute Capability&lt;/h3&gt;
+&lt;p&gt;It is more important to dynamically adjust the grid size so that your program can adapt to varying input sizes. As of CC 9.0, the maximum number of threads a block can have is 1024, this means that a \(32 \times 32\) block is the largest we can do for matrix data.&lt;/p&gt;
+&lt;p&gt;If the input matrix is smaller than \(32 \times 32\), then only a single block is needed. The additional threads allocated to that block will be inactive for indices outside the range of our input.&lt;/p&gt;
+&lt;p&gt;If the input matrix is larger than \(32 \times 32\), additional blocks should be added to the grid to accommodate the increased size. It is safe to keep the block size fixed, but the grid size &lt;strong&gt;must&lt;/strong&gt; be dynamic.&lt;/p&gt;
+&lt;h3 id=&#34;optimal-launch-parameters&#34;&gt;Optimal Launch Parameters&lt;/h3&gt;
+&lt;p&gt;Is it better to have fewer blocks that maximize the amount of threads per block? Or is it better to have more blocks with fewer threads per block? The current maximum number of threads per block is 1024. In practice, a maximum block dimension size of 128 or 256 is ideal. This has more to do with the specific problem and the amount of shared memory required. You will explore this question in Lab 1.&lt;/p&gt;
 &lt;h2 id=&#34;example-color-to-grayscale&#34;&gt;Example: Color to Grayscale&lt;/h2&gt;
 &lt;p&gt;Given the layout just described, we will write a kernel that converts a color image to grayscale. This is an &lt;em&gt;embarrassingly parallel&lt;/em&gt; problem since each pixel can be converted independently of the others. We will use the following formula to convert each pixel:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;gray &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.299f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; red &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.587f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; green &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0.114f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; blue

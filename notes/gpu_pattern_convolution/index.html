@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Convolution Properties of Convolutions Implementing a Convolution Kernel Constant Memory and Caching Tiled Convolutions Caching the Halo Cells This pattern involves tiling and input data staging.
+Recall from Lab 1 where we implementing a kernel to blur an image. This kernel worked on each individual output pixel by computing the weighted average of each pixel from the input image, centered on the output pixel location. When we implemented this, we set the weight of every pixel to 1.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/gpu_pattern_convolution/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/gpu_pattern_convolution/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/gpu_pattern_convolution/">
+  <meta property="og:title" content="GPU Pattern: Convolution | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Convolution Properties of Convolutions Implementing a Convolution Kernel Constant Memory and Caching Tiled Convolutions Caching the Halo Cells This pattern involves tiling and input data staging.
+Recall from Lab 1 where we implementing a kernel to blur an image. This kernel worked on each individual output pixel by computing the weighted average of each pixel from the input image, centered on the output pixel location. When we implemented this, we set the weight of every pixel to 1."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-01-15T21:35:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-15T21:35:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>GPU Pattern: Convolution | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">GPU Pattern: Convolution</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-01-15 21:35:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-15 21:35:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 15, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    16 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/gpu_pattern_convolution/&amp;text=GPU%20Pattern:%20Convolution" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/gpu_pattern_convolution/&amp;t=GPU%20Pattern:%20Convolution" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=GPU%20Pattern:%20Convolution&amp;body=https://ajdillhoff.github.io/notes/gpu_pattern_convolution/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/gpu_pattern_convolution/&amp;title=GPU%20Pattern:%20Convolution" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=GPU%20Pattern:%20Convolution%20https://ajdillhoff.github.io/notes/gpu_pattern_convolution/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/gpu_pattern_convolution/&amp;title=GPU%20Pattern:%20Convolution" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#convolution">Convolution</a></li>
+<li><a href="#properties-of-convolutions">Properties of Convolutions</a></li>
+<li><a href="#implementing-a-convolution-kernel">Implementing a Convolution Kernel</a></li>
+<li><a href="#constant-memory-and-caching">Constant Memory and Caching</a></li>
+<li><a href="#tiled-convolutions">Tiled Convolutions</a></li>
+<li><a href="#caching-the-halo-cells">Caching the Halo Cells</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>This pattern involves tiling and input data staging.</p>
+<p>Recall from Lab 1 where we implementing a kernel to blur an image. This kernel worked on each individual output pixel by computing the weighted average of each pixel from the input image, centered on the output pixel location. When we implemented this, we set the weight of every pixel to 1. Whether you were aware of it or not, you implemented a convolution between an input image and weighted kernel.</p>
+<p>The convolution is an extremely important operator that works on time-varying signals of different dimensionality. In computer vision, they are commonly used to compute responses between a known pattern and an input image. The pixels that return a greater response as a result of convolution indicate a match between the pattern and the input image.</p>
+<p>This operator can and has been efficiently implemented in a GPU. Through studying this pattern, you will learn to utilize constant memory storage and shared memory storage to efficiently implement a convolution kernel. These techniques will be useful in later applications as well.</p>
+<h2 id="convolution">Convolution</h2>
+<p>A convolution is a function that takes two functions as input and produces a third function as output. The first function is the input and the second function is the kernel. The output is called the feature map. The kernel is also sometimes called the filter.</p>
+<p>\[
+(f * g)(t) = \int f(t-a)g(a)da
+\]</p>
+<p>We can view them more concretely by considering the functions to be vectors. For example, let the function \(f\) be an input vector \(x\) and \(w\) be a kernel representing a filter. The convolution operator is then</p>
+<p>\[
+(x * w)(t) = \int x(t-a)w(a)da.
+\]</p>
+<p>The result the <strong>feature map</strong> representing the response of the kernel at each location in the input.</p>
+<p>In the case of discrete values, it is common to use an odd-sized kernel and center it on an input value. The kernel size is given by some radius \(r\). The convolution operator is then</p>
+<p>\[
+(x * w)(t) = \sum_{-r}^r x(t-r)w( r).
+\]</p>
+<p>The figure below shows an example of a 1D convolution of a vector if size 8 with a kernel of size 5, centered on the \(t = 2\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-17_18-00-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;1D Convolution between a vector of size 8 and a kernel of size 5." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>1D Convolution between a vector of size 8 and a kernel of size 5.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Convolution is defined in such a way that the kernel is traversed in an inverted manner. In the example above, \(y_2\) is computed by applying the kernel to \(\mathbf{x}\) centered on \(x_2\). The calculation in terms of the locations accesses is</p>
+<p>\[
+y_2 = x_4 w_{-2} + x_3 w_{-1} + x_2 w_0 + x_1 w_1 + x_0 w_2.
+\]</p>
+<p>This operation is very similar to the <em>correlation</em> operator, which is defined as</p>
+<p>\[
+(x \star w)(t) = \sum_{-r}^r x(t+r)w( r).
+\]</p>
+<p>We can use the correlation operator to compute the convolution by flipping the kernel. In this case, the calculation can be represented using the dot product. We can also slightly adjust the indexing so that the first index is 0.</p>
+<p>\[
+y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
+\]</p>
+<p>Note that the convolution shown above would be undefined for \(i = 0\) and \(i = 1\) since the kernel would be accessing negative indices. Based on the definition, we would ignore these values. This is called a <em>valid</em> convolution. The output size is then \(n - 2r\). There is also a <em>full</em> convolution where the output size is \(n\). In this case, the kernel is padded with zeros so that it can be applied to all elements of the input.</p>
+<h3 id="2d-convolution">2D Convolution</h3>
+<p>Image convolutions use 2D filters applied to 2D images. For a filter with radius \(r\), size of the filter is \((2r + 1) \times (2r + 1)\). The convolution is then</p>
+<p>\[
+(x * w)(i, j) = \sum_{-r}^r \sum_{-r}^r x(i-r, j-r)w(r, s).
+\]</p>
+<h2 id="properties-of-convolutions">Properties of Convolutions</h2>
+<p>Convolutional networks are commonly built on <em>full</em> or <em>valid</em> convolutions. Other variants have also been explored. Here, we will briefly discuss the different properties of this operator. A more detailed treatment can be found in (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>).</p>
+<h3 id="padding">Padding</h3>
+<p>By definition, a convolution of an input with a filter of size \(n\times n\) will produce an output of size \((m-n+1)\times(m-n+1)\), where \(m\) is the size of the input. This means that the output will be smaller than the input. This is often referred to as a <strong>valid</strong> convolution. The figure below shows a convolution between a \(3\times3\) kernel and a \(5\times5\) input.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-26_16-31-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A valid convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>A valid convolution (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The output of this convolution is a \(3\times3\) feature map. This is a problem if we want to build a deep network. Each convolution will reduce the size of the input. If we were to stack multiple convolutional layers, the output would eventually be too small to be useful. If we want our output to be same size as the input, we can add padding to the original input image before convolving it. This is often known as a <strong>full</strong> convolution. An example is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-26_16-34-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A full convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>A full convolution (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="stride">Stride</h3>
+<p>So far, we have only looked at convolutions which step by 1 unit as they shift over the image. We can control the size of this step, or <strong>stride</strong>, to produce different outcomes. Picking a non-unit stride has a number of effects on the features that are learned in a convolutional neural network.</p>
+<ul>
+<li><strong>Dimensionality reduction</strong>: Skipping over pixels reduces the size of the output feature map. This provides another way of downsampling the input.</li>
+<li><strong>Less computation</strong>: Fewer computations are required to produce the output feature map.</li>
+<li><strong>Increased field of view</strong>: A larger stride increases the field of view of the kernel, leading to larger receptive fields in deeper layers.</li>
+</ul>
+<p>Given an input of size \(m\times m\) and a kernel of size \(n\times n\), the output size of a convolution with stride \(s\) is given by</p>
+<p>\[
+\left\lfloor\frac{m-n}{s}\right\rfloor + 1.
+\]</p>
+<p>The figure below shows a convolution with stride 2 on a \(5\times5\) input.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-26_16-45-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A convolution with stride 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>A convolution with stride 2 (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="kernel-size">Kernel Size</h3>
+<p>The size of the kernel has a large impact on the features that are learned. A larger kernel will have a larger receptive field. This means that the kernel will be able to capture more information about the input. However, this comes at the cost of increased computation. Common kernel sizes in most CNNs are \(3\times3\), \(5\times5\), and \(7\times7\). It is also convenient to pick an odd kernel size so that the kernel has a center pixel.</p>
+<h3 id="dilation">Dilation</h3>
+<p>Around 2015, a research trend for CNNs was to find a way to increase the receptive field without adding more parameters. The result is a <strong>dilated</strong> convolution. The output of a dilated convolution is computed by skipping over pixels in the input. The figure below shows a \(3\times3\) kernel with a dilation of 2.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2023-10-27_08-19-10_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A dilated convolution (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dumoulin and Visin 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>A dilated convolution (<a href="#citeproc_bib_item_1">Dumoulin and Visin 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The output size is computed as</p>
+<p>\[
+\left\lfloor\frac{m + 2p - n - (n-1)(d-1)}{s}\right\rfloor + 1,
+\]</p>
+<p>where \(p\) is the amount of padding and \(d\) is the dilation factor.</p>
+<h2 id="implementing-a-convolution-kernel">Implementing a Convolution Kernel</h2>
+<p>It is straightforward to write the convolution operation in CUDA C++. Each thread will compute the value for a single output pixel using the filter. We already implemented something very similar with the blurring kernel. The kernel itself should accept the following arguments:</p>
+<ul>
+<li>The input image</li>
+<li>The output image</li>
+<li>The kernel</li>
+<li>The radius of the kernel</li>
+<li>The width of the output image</li>
+<li>The height of the output image</li>
+</ul>
+<p>A more robust implementation would consider things like padding, stride, dilation, and whether or not a valid or full convolution is desired. For now, we will focus on the simplest case: a valid convolution with a stride of 1 and no padding or dilation. First, let&rsquo;s review the initial naive solution from <em>Programming Massively Parallel Processors</em> (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>).</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &lt; 2*r+1; row++) {
+        for (int col = 0; col &lt; 2*r+1; col++) {
+            int inRow = outRow + row - r;
+            int inCol = outCol + col - r;
+            if (inRow &gt;= 0 &amp;&amp; inRow &lt; height &amp;&amp; inCol &gt;= 0 &amp;&amp; inCol &lt; width) {
+                sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+            }
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+</code></pre><p>With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a <em>valid</em> convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.</p>
+<p>It is also a waste of resources in terms of memory used for the output. If we already know that we want to perform a valid convolution, we can allocate the output image to be the appropriate size before calling it. A slightly modified version is shown below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *filter, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &lt; 2*r+1; row++) {
+        for (int col = 0; col &lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+</code></pre><h2 id="constant-memory-and-caching">Constant Memory and Caching</h2>
+<p>There is a much larger issue present in both versions of this kernel in terms of memory bandwidth. Similar to the matrix multiplication kernel, this kernel can benefit from tiling. However, there is a new problem that arises specifically with convolution. The same filter is accessed by every single thread. This filter does not change for the entire duration of the kernel. This means that we are wasting memory bandwidth by having every thread access the same filter.</p>
+<p>Given its relatively small size, this kernel is a perfect candidate for constant memory. This is a special type of memory that is cached on the GPU. It is read-only and has a limited size, but it is much faster than global memory. We can write to the devices constant memory from the host code.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define FILTER_RADIUS 1
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+</code></pre><p>This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
+</code></pre><p>The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, <a href="https://google.github.io/styleguide/cppguide.html#Constant_Names" target="_blank" rel="noopener noreferrer">Google&rsquo;s C++</a> style guide recommends naming constant variables with a <code>k</code> prefix. I have adopted this convention here.</p>
+<p>At this point, <code>F_d</code> is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *output,
+                       int r, int width, int height) {
+    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
+    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
+
+    float sum = 0.0f;
+    for (int row = 0; row &lt; 2*r+1; row++) {
+        for (int col = 0; col &lt; 2*r+1; col++) {
+            int inRow = outRow + row;
+            int inCol = outCol + col;
+            sum += input[inRow * width + inCol] * F_d[row][col];
+        }
+    }
+    output[outRow * width + outCol] = sum;
+}
+</code></pre><p>If you organize your files such that the kernel is in a separate file from the host code, you will need to declare the constant variable in the kernel file as well.</p>
+<p>Constant memory variables are stored in DRAM with global memory. The CUDA runtime will cache them since it knows they will not be modified. Processors use caches to reduce the latency of memory accesses by keeping frequently used data in a small, fast memory that is often located directly on the chip. This type of <em>constant cache</em> is preferable to one that would support high-throughput writes in terms of chip design. It would require specialized hardware to support both which would increase the cost of the chip.</p>
+<h2 id="tiled-convolutions">Tiled Convolutions</h2>
+<p>Even with caching, the convolutional kernel still makes many accesses to DRAM. Similar to matrix multiplication, we can tile the input image to reduce the number of accesses. Similar to that example, we will use a \(4 \times 4\) tile size. If the input is a \(16 \times 16\) image and we apply a kernel with radius \(r=2\), the output image under a valid convolution will be \(12 \times 12\). This is visualized in the figure below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-19_16-35-39_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Left: The input image and its tiling. Middle: the filter. Right: The output image and its tiling.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.</p>
+<p>Following the design presented by (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define FILTER_RADIUS 1
+#define IN_TILE_DIM 4
+#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
+__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
+__global__ void conv2DTiledConstKernel(float *input, float *output,
+                                       int width, int height) {
+    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
+    // Input tile coordinates
+    int col = blockIdx.x * OUT_TILE_DIM + threadIdx.x;
+    int row = blockIdx.y * OUT_TILE_DIM + threadIdx.y;
+    if (row &lt; height &amp;&amp; col &lt; width) {
+        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
+    } else {
+        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
+    }
+    __syncthreads();
+
+    // Output tile coordinates
+    int tileCol = threadIdx.x - FILTER_RADIUS;
+    int tileRow = threadIdx.y - FILTER_RADIUS;
+
+    // In a valid convolution, the output is smaller than the input
+    row -= FILTER_RADIUS;
+    col -= FILTER_RADIUS;
+
+    if (tileCol &gt;= 0 &amp;&amp; tileCol &lt; OUT_TILE_DIM &amp;&amp; tileRow &gt;= 0 &amp;&amp; tileRow &lt; OUT_TILE_DIM) {
+        float sum = 0.0f;
+        for (int fRow = 0; fRow &lt; 2*FILTER_RADIUS+1; fRow++) {
+            for (int fCol = 0; fCol &lt; 2*FILTER_RADIUS+1; fCol++) {
+                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
+            }
+        }
+        output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
+    }
+}
+</code></pre><p>There are a few things to consider here. The first phase of this kernel collaboratively loads data into a shared memory space, similar to what we have seen before. This kernel assumes a convenient indexing scheme where the row and column will always be &gt;= 0. We could adopt a scheme that centers the convolution on the center point of the kernel by allowing for negative indices. In this case, it would be necessary to check if the row and column are less than 0. This implementation only needs to verify that the row and column are within the given image size.</p>
+<p>When it comes to computing the output, not every thread will contribute. This is depicted by the lightly shaded areas in the figure below. You should also note which threads are active for output computation per block. In this simple example, a \(3 \times 3\) filter is used. The input tile dimension is \(4 \times 4\) which means the output tile will be \(2 \times 2\). Only the threads corresponding to the darker blue on the left contribute to the output calculation. Since this one block computes 4 output values, the next block should start 2 units to the right of this one.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-21_16-08-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The active threads for computing the output tile." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>The active threads for computing the output tile.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="performance-analysis">Performance Analysis</h3>
+<p>The purpose of this approach was to increase the ratio of arithmetic operations to global memory accesses. For the threads that compute an output tile, there is one multiplication and one addition which yields \(\mathtt{OUT\_TILE\_DIM}^2*(2*\mathtt{FILTER\_RADIUS} + 1)^2*2\) operations total. Each thread in the input tile loads a single <code>float</code> value for a total of \(\mathtt{IN\_TILE\_DIM}^2 * 4\) bytes. For our small example above, this gives</p>
+<p>\[
+\frac{2^2 * 3^2 * 2}{4^2 * 4} = 1.125\ \text{Ops/byte}.
+\]</p>
+<p>In a more realistic example, we would maximize our input tile size to take advantage of the available threads on the device. Currently, the maximum number of supported threads is 1024. This allows for an input tile size of \(32 \times 32\). The resulting operations per byte under this tile size is</p>
+<p>\[
+\frac{30^2 * 3^2 * 2}{32^2 * 4} = 3.955\ \text{Ops/byte}.
+\]</p>
+<p>This ratio increases with the size of the filter.</p>
+<h2 id="caching-the-halo-cells">Caching the Halo Cells</h2>
+<p>In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as <em>halo cells</em>.</p>
+<p>This implementation is going to take advantage of the caching behavior in the chip itself. Values that have been recently used are more likely to already be in L2 cache. The full kernel is given below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2DTiledCachedConstKernel(float *input, float *output,
+                                             int width, int height) {
+    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
+    // Input tile coordinates
+    int col = blockIdx.x * IN_TILE_DIM + threadIdx.x;
+    int row = blockIdx.y * IN_TILE_DIM + threadIdx.y;
+    if (row &lt; height &amp;&amp; col &lt; width) {
+        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
+    } else {
+        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
+    }
+    __syncthreads();
+
+    if (row &lt; FILTER_RADIUS || col &lt; FILTER_RADIUS || col &gt;= (width - FILTER_RADIUS) || row &gt;= (height - FILTER_RADIUS)) return;
+
+    // Output tile coordinates
+    row -= FILTER_RADIUS;
+    col -= FILTER_RADIUS;
+    int tileCol = threadIdx.x - FILTER_RADIUS;
+    int tileRow = threadIdx.y - FILTER_RADIUS;
+
+    float sum = 0.0f;
+    for (int fRow = 0; fRow &lt; 2 * FILTER_RADIUS + 1; fRow++) {
+        for (int fCol = 0; fCol &lt; 2 * FILTER_RADIUS + 1; fCol++) {
+            // If this value is in shared memory, access it there
+            if (tileCol + fCol &gt;= 0 &amp;&amp;
+                tileCol + fCol &lt; IN_TILE_DIM &amp;&amp;
+                tileRow + fRow &gt;= 0 &amp;&amp;
+                tileRow + fRow &lt; IN_TILE_DIM) {
+                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
+            } else {
+                // Otherwise, access it from global memory
+                sum += input[(row + fRow) * width + (col + fCol)] * kFilter_d[fRow][fCol];
+            }
+        }
+    }
+
+    output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
+}
+</code></pre><h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” <i>Arxiv:1603.07285 [Cs, Stat]</i>, January. <a href="http://arxiv.org/abs/1603.07285">http://arxiv.org/abs/1603.07285</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/gpu_performance_basics/">GPU Performance Basics</a></li>
+          
+          <li><a href="/notes/cuda_memory_architecture/">CUDA Memory Architecture</a></li>
+          
+          <li><a href="/notes/cuda_architecture/">CUDA Architecture</a></li>
+          
+          <li><a href="/notes/multidimensional_grids_and_data/">Multidimensional Grids and Data</a></li>
+          
+          <li><a href="/notes/heterogeneous_data_parallel_computing/">Heterogeneous Data Parallel Computing</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
