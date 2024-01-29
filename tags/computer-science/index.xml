@@ -7,10 +7,303 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 15 Jan 2024 21:35:00 -0600</lastBuildDate>
+    <lastBuildDate>Mon, 22 Jan 2024 19:39:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/computer-science/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Stencils</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_stencils/</link>
+      <pubDate>Mon, 22 Jan 2024 19:39:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_stencils/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#differential-equations&#34;&gt;Differential Equations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#stencils&#34;&gt;Stencils&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-basic-stencil&#34;&gt;Example: Basic Stencil&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-stencil&#34;&gt;Tiled Stencil&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening&#34;&gt;Thread Coarsening&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#register-tiling&#34;&gt;Register Tiling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#questions&#34;&gt;Questions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;ul&gt;
+&lt;li&gt;Used in differential equations&lt;/li&gt;
+&lt;li&gt;Frequently use higher precision&lt;/li&gt;
+&lt;li&gt;Some similarity to convolutions&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;differential-equations&#34;&gt;Differential Equations&lt;/h2&gt;
+&lt;p&gt;Any computational problem requires discretization of data or equations so that they can be solved numerically. This is fundamental in numerical analysis, where differential equations need to be approximated.&lt;/p&gt;
+&lt;p&gt;Structured grids are used in finite-difference methods for solving partial differential equations (PDEs). Approximate derivatives can be computed point-wise by considering the neighbors on the grid. As we saw earlier in this course, a grid representation is a natural way to think about data parallelism.&lt;/p&gt;
+&lt;p&gt;Depending on the function and level of discretization, interpolation will be more or less accurate. Consider the logistic sigmoid function sampled at 4 points. In the middle, linear interpolation would work just fine. Near the &lt;em&gt;bends&lt;/em&gt; of the function, a linear approximation would introduce error. The closer the spacing, the more accurate a linear approximation becomes. The downside is that more memory is required to store the points.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_13-03-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Logistic sigmoid function (Wikipedia).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Logistic sigmoid function (Wikipedia).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The precision of the data type also plays an important role. Higher precision data types like &lt;code&gt;double&lt;/code&gt; require more bandwidth to transfer and will typically require more cycles when computing arithmetic operations.&lt;/p&gt;
+&lt;h2 id=&#34;stencils&#34;&gt;Stencils&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;stencil&lt;/strong&gt; is a geometric pattern of weights applied at each point of a structured grid. The points on the grid will derive their values from neighboring points using some numerical approximation. For example, this is used to solve differential equations. Consider a 1D grid of discretized values from a function \(f(x)\). The finite difference approximation can be used to find \(f&amp;rsquo;(x)\):&lt;/p&gt;
+&lt;p&gt;\[ f&amp;rsquo;(x) = \frac{f(x+h) - f(x-h)}{2h} + O(h^2) \]&lt;/p&gt;
+&lt;p&gt;In code, this would look like:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void finite_difference(float *f, float *df, float h) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    df[i] = (f[i+1] - f[i-1]) / (2 * h);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A PDE of two variables can be solved using a 2D stencil. Likewise, a PDE of three variables can be solved using a 3D stencil. The figures below show examples of common 2D and 3D stencils. Note that they typically have an odd number of points so that there is a center point.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_15-23-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;1D stencils. Recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;1D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The 1D stencils shown above are used to approximate the first-order (A), second-order (B), and third-order (C) derivatives of a function \(f(x)\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_15-24-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;2D and 3D stencils. Recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;2D and 3D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The 2D stencils shown above are used to approximate first-order (A) and second-order (B) derivatives of a function \(f(x, )\). Likewise, the 3D stencils are used to approximate first-order (C) and second-order (D) derivatives of a function \(f(x, y, z)\).&lt;/p&gt;
+&lt;p&gt;A &lt;em&gt;stencil sweep&lt;/em&gt; is the process of applying the stencil to all points on the grid, similar to how a convolution is applied. There are many similarities between the two, but the subtle differences will require us to think differently about how to optimize them.&lt;/p&gt;
+&lt;h2 id=&#34;example-basic-stencil&#34;&gt;Example: Basic Stencil&lt;/h2&gt;
+&lt;p&gt;The code below presents a naive kernel for a stencil pattern using a 3D seven-point stencil.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    unsigned int i = blockIdx.z * blockDim.z + threadIdx.z;
+    unsigned int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+        out[i*N*N + j*N + k] = c0 * in[i*N*N + j*N + k]
+                             + c1 * in[i*N*N + j*N + (k - 1)]
+                             + c2 * in[i*N*N + j*N + (k + 1)]
+                             + c3 * in[i*N*N + (j - 1)*N + k]
+                             + c4 * in[i*N*N + (j + 1)*N + k]
+                             + c5 * in[(i - 1)*N*N + j*N + k]
+                             + c6 * in[(i + 1)*N*N + j*N + k];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This example assumes the input and output are 3D grids. For this particular stencil, you should try to identify the number of memory accesses and operations performed. Can you already see some opportunities for optimization?&lt;/p&gt;
+&lt;h2 id=&#34;tiled-stencil&#34;&gt;Tiled Stencil&lt;/h2&gt;
+&lt;p&gt;Just like with convolution, it is possible to use shared memory to improve the performance of a stencil. The code below shows a tiled stencil kernel that uses shared memory.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    __shared__ float tile[IN_TILE_DIM][IN_TILE_DIM][IN_TILE_DIM];
+    int i = blockIdx.z * OUT_TILE_DIM + threadIdx.z - 1;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+
+    if (i &amp;gt;= 0 &amp;amp;&amp;amp; i &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        tile[threadIdx.z][threadIdx.y][threadIdx.x] = in[i*N*N + j*N + k];
+    }
+    __syncthreads();
+    if (i &amp;gt;=1 &amp;amp;&amp;amp; i &amp;lt; N-1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N-1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N-1) {
+        if (threadIdx.z &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.z &amp;lt; IN_TILE_DIM-1 &amp;amp;&amp;amp;
+            threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM-1 &amp;amp;&amp;amp;
+            threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM-1) {
+            out[i*N*N + j*N + k] = c0 * tile[threadIdx.z][threadIdx.y][threadIdx.x]
+                                 + c1 * tile[threadIdx.z][threadIdx.y][threadIdx.x - 1]
+                                 + c2 * tile[threadIdx.z][threadIdx.y][threadIdx.x + 1]
+                                 + c3 * tile[threadIdx.z][threadIdx.y - 1][threadIdx.x]
+                                 + c4 * tile[threadIdx.z][threadIdx.y + 1][threadIdx.x]
+                                 + c5 * tile[threadIdx.z - 1][threadIdx.y][threadIdx.x]
+                                 + c6 * tile[threadIdx.z + 1][threadIdx.y][threadIdx.x];
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Just like before, the threads of a block will first collaborate to load a tile with the relevant data. Stencil patterns are more sparse than convolutional filters and require less data to be loaded into shared memory. This will be the central detail in our analysis of stencil patterns.&lt;/p&gt;
+&lt;h3 id=&#34;scaling-stencil-size-vs-dot-convolution-filter-size&#34;&gt;Scaling stencil size vs. Convolution filter size&lt;/h3&gt;
+&lt;p&gt;Convolutions are more efficient as the size increases since more values are accessed in shared memory. For a \(3 \times 3\) convolution, the upper bound on compute to memory ratio is 4.5 OP/B. A 5 point 2D stencil has a ratio of 2.5 OP/B due to the sparsity of the pattern. The threads in the block would load the diagonal values from global memory, but each thread would only use the 5 points defined by the kernel.&lt;/p&gt;
+&lt;h3 id=&#34;tiling-analysis&#34;&gt;Tiling Analysis&lt;/h3&gt;
+&lt;p&gt;Let us consider the effectiveness of shared memory tiling where each thread performs 13 floating-point ops (7 multiplies and 6 adds) with each block using \((T - 2)^3\) threads. Each block also performs \(T^3\) loads of 4 bytes each. The compute to memory ratio can be express as:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{13(T - 2)^3}{4T^3} = \frac{13}{4} \left(1 - \frac{2}{T}\right)^3
+\]&lt;/p&gt;
+&lt;p&gt;Due to the low limit on threads, the size of \(T\) is typically small. This means there is a smaller amount of reuse of data in shared memory. The ratio of floating-point ops to memory accesses will be low.&lt;/p&gt;
+&lt;p&gt;Each warp loads values from 4 distant locations in global memory. This means that the memory accesses are not coalesced: the memory bandwidth is low. Consider an \(8 \times 8 \times 8\) block. A warp of 32 threads will load 4 rows of 8 values each. &lt;strong&gt;The values within each row contiguous, but the rows are not contiguous.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h2&gt;
+&lt;p&gt;Stencils do not benefit from shared memory as much as convolutions due to the sparsity of the sampled points. Most applications of the stencil patterns work with a 3D grid, resulting in relatively small tile sizes per block.&lt;/p&gt;
+&lt;p&gt;A solution to this is to increase the amount of work each thread performs, AKA &lt;em&gt;thread coarsening&lt;/em&gt;. The price paid for parallelism in the stencil pattern is the low frequency of memory reuse.&lt;/p&gt;
+&lt;p&gt;Each thread performs more work in the \(z\) direction for a 3D seven-point stencil. All threads collaborate to load in a \(z\) layer at time from \(z-1\) to \(z+1\). There are then 3 different shared memory tiles per block. After computing values in the current output tile, the shared memory is rearranged for the next layer. This means that there are more transfers between shared memory as opposed to global memory.&lt;/p&gt;
+&lt;p&gt;The threads are launched to work with a 2D tile at a time, so the size of the block is now \(T^2\). This means we can use a larger value for \(T\). The compute to memory ratio is almost doubled under this scheme. Additionally, the amount of shared memory required is \(3T^2\) rather than \(T^3\).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    __shared__ float inPrev_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inNext_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &amp;gt;= 0 &amp;amp;&amp;amp; iStart - 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inPrev_s[threadIdx.y][threadIdx.x] = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &amp;gt;= 0 &amp;amp;&amp;amp; iStart &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inCurr_s[threadIdx.y][threadIdx.x] = in[iStart*N*N + j*N + k];
+    }
+    for (int i = iStart; i &amp;lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &amp;gt;= 0 &amp;amp;&amp;amp; i + 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+            inNext_s[threadIdx.y][threadIdx.x] = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+            if (threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM - 1 &amp;amp;&amp;amp;
+                threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr_s[threadIdx.y][threadIdx.x]
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev_s[threadIdx.y][threadIdx.x]
+                    + c6 * inNext_s[threadIdx.y][threadIdx.x];
+            }
+        }
+        __syncthreads();
+        inPrev_s[threadIdx.y][threadIdx.x] = inCurr_s[threadIdx.y][threadIdx.x];
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This kernel is visualized below with a block size of \(6 \times 6\). The left and top sides of the tile have been removed for clarity. All of the blue blocks are loaded from global memory. The dark blue blocks represent the &lt;em&gt;active&lt;/em&gt; plane that is used to compute the corresponding output values. After the current plane is completed, the block synchronizes before moving the current values to the previous plane and loads the next plane&amp;rsquo;s values into the current plane &lt;code&gt;inCurr_s&lt;/code&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_15-28-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Visualization of the thread coarsening tile.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of the thread coarsening tile.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;register-tiling&#34;&gt;Register Tiling&lt;/h2&gt;
+&lt;p&gt;In the coarsening solution presented above, each thread works with a single element in the previous and next shared memory tiles. There are 4 elements in that example that really need to be loaded from shared memory. For the 3 elements that are only required by the current thread, they can be loaded into registers.&lt;/p&gt;
+&lt;p&gt;Since only the values in the \(x-y\) direction are required for shared memory, the amount of memory used is reduced by \(\frac{1}{3}\).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    float inPrev;
+    float inCurr;
+    float inNext;
+
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &amp;gt;= 0 &amp;amp;&amp;amp; iStart - 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inPrev = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &amp;gt;= 0 &amp;amp;&amp;amp; iStart &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inCurr = in[iStart*N*N + j*N + k];
+        inCurr_s[threadIdx.y][threadIdx.x] = inCurr;
+    }
+    for (int i = iStart; i &amp;lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &amp;gt;= 0 &amp;amp;&amp;amp; i + 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+            inNext = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+            if (threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM - 1 &amp;amp;&amp;amp;
+                threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev
+                    + c6 * inNext;
+            }
+        }
+        __syncthreads();
+        inPrev = inCurr;
+        inCurr = inNext;
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every threads collectively store the previous and next planes in registers.&lt;/p&gt;
+&lt;p&gt;The larger the stencil size, the more registers are required per thread. In this case, a tradeoff between shared memory space and register usage could be made. This will be explored in your lab.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;Stencils are a useful pattern for solving differential equations. They have some similarities to convolutions, but present unique challenges in terms of optimization. The sparsity of the pattern means that shared memory is not as effective as it is for convolutions. Thread coarsening and register tiling are two techniques that can be used to improve performance.&lt;/p&gt;
+&lt;h2 id=&#34;questions&#34;&gt;Questions&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;How many registers per thread are required for a 3D seven-point stencil, 3D nine-point stencil, and 3D 27-point stencil?&lt;/li&gt;
+&lt;li&gt;How do convolutions relate to stencil patterns? Could you implement a stencil pattern using a convolution filter?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Convolution</title>
@@ -1267,9 +1560,57 @@ void kernel(int *a, int *b, int *c) {
 &lt;p&gt;Even though the call looks the same, each &lt;code&gt;__syncthreads()&lt;/code&gt; is different. The first call will only synchronize the threads that executed the first path. The second call will only synchronize the threads that executed the second path. The result is either undefined output or a deadlock, in which the threads will never reach the second call.&lt;/p&gt;
 &lt;p&gt;Since threads in separate blocks cannot be synchronized, the blocks can be executed in any arbitrary order. You might immediately ask yourself how a complex problem that requires synchronization between all parts of the data can get around this limitation. We will explore more complex patterns and their solutions in later sections.&lt;/p&gt;
 &lt;h2 id=&#34;warps&#34;&gt;Warps&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_21-03-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Warps across several blocks (credit: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Warps across several blocks (credit: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;Streaming Multiprocessors in a CUDA chip execute threads in a group of 32 called &lt;strong&gt;warps&lt;/strong&gt;. Since Compute Capability 1.0, the warp size has not changed. When a block is assigned to an SM, it is divided into warps. Given this size, you can easily determine the number of warps assigned to an SM. For example, if you have a block of 256 threads, the SM has 256 / 32 = 8 warps. If the block size is not evenly divisible by the number of warps per SM, the last warp will be padded with inactive threads.&lt;/p&gt;
-&lt;p&gt;When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a &lt;strong&gt;row-major&lt;/strong&gt; order before being partitioned into warps. For example, a 2D block of 16x16 threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.&lt;/p&gt;
+&lt;p&gt;When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a &lt;strong&gt;row-major&lt;/strong&gt; order before being partitioned into warps. For example, a 2D block of \(16 \times 16\) threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.&lt;/p&gt;
 &lt;p&gt;Warps are executed following the Single-Instruction, Multiple-Data (SIMD) model. There is a single program that runs the same instruction on all threads in the same order. If a thread would have executed a different path based on its input data, it would not be executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt; and is explained in the next section.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_21-08-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;SM layout (source: NVIDIA DLI)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;SM layout (source: NVIDIA DLI)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;The advantage of this model is that more physical space can be dedicated to ALUs instead of control logic. In a traditional CPU, each processing core would have its own control logic. The tradeoff is that different cores can execute their own programs at varying points in time.&lt;/p&gt;
 &lt;h2 id=&#34;control-divergence&#34;&gt;Control Divergence&lt;/h2&gt;
 &lt;p&gt;Since a traditional CPU has separate control logic for each core, it can execute different programs at the same time. If the program has a conditional statement, it does not need to worry about synchronizing instructions with another core. This is not the case with a GPU. Since every thread in a warp executes the same instruction, only threads that would execute the same path can be processed at the same time. If a thread would execute a different path, it is not executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt;.&lt;/p&gt;
@@ -1293,14 +1634,14 @@ void kernel(int *a, int *b, int *c) {
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_11-44-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_11-44-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GH100 Full GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;GH100 Full GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
     
     
     
@@ -1311,7 +1652,7 @@ void kernel(int *a, int *b, int *c) {
 
 &lt;p&gt;The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (Hwu, Kirk, and El Hajj 2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.&lt;/p&gt;
 &lt;p&gt;What if we chose 32 threads per block? Then there would be 2048 / 32 = 64 blocks per SM. However, the device only supports 32 blocks per SM. With only 32 blocks allocated with 32 threads per block, a total of 1024 threads would be utilized. The occupancy in this case is 1024 / 2048 = 50%.&lt;/p&gt;
-&lt;p&gt;Historically, NVIDIA provided an excel spreadsheet to compute occpancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.&lt;/p&gt;
+&lt;p&gt;Historically, NVIDIA provided an excel spreadsheet to compute occupancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.&lt;/p&gt;
 &lt;h3 id=&#34;including-registers&#34;&gt;Including Registers&lt;/h3&gt;
 &lt;p&gt;Another factor for occupancy is the number of registers used per thread. The H100 has 65,536 registers available for use. As long as your program does not use more than this, you can follow the simpler occupancy calculation from above. With 2048 threads, that leaves 65,536 / 2048 = 32 registers per thread. If we run a program with 256 threads/block, there would be 2048 / 256 = 8 blocks per SM. This means that there are 8 * 256 = 2048 threads per SM. With 31 registers per thread, the total number of registers used per SM is 2048 * 31 = 63,488. In this case we still maximize occupancy since 63,488 &amp;lt; 65,536.&lt;/p&gt;
 &lt;p&gt;What if each thread required 33 registers? In that case, the total number of registers used per SM would be 2048 * 33 = 67,584. How would these resources be partitioned? Only 7 blocks could be assigned since 7 * 256 * 33 = 59,136 &amp;lt; 65,536. This means that only 7 * 256 = 1792 threads would be used, reducing the occupancy to 1792 / 2048 = 87.5%.&lt;/p&gt;

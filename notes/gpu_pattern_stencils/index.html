@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Differential Equations Stencils Example: Basic Stencil Tiled Stencil Thread Coarsening Register Tiling Summary Questions Used in differential equations Frequently use higher precision Some similarity to convolutions Differential Equations Any computational problem requires discretization of data or equations so that they can be solved numerically. This is fundamental in numerical analysis, where differential equations need to be approximated.
+Structured grids are used in finite-difference methods for solving partial differential equations (PDEs).">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/gpu_pattern_stencils/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/gpu_pattern_stencils/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/gpu_pattern_stencils/">
+  <meta property="og:title" content="GPU Pattern: Stencils | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Differential Equations Stencils Example: Basic Stencil Tiled Stencil Thread Coarsening Register Tiling Summary Questions Used in differential equations Frequently use higher precision Some similarity to convolutions Differential Equations Any computational problem requires discretization of data or equations so that they can be solved numerically. This is fundamental in numerical analysis, where differential equations need to be approximated.
+Structured grids are used in finite-difference methods for solving partial differential equations (PDEs)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-01-22T19:39:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-22T19:39:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>GPU Pattern: Stencils | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">GPU Pattern: Stencils</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-01-22 19:39:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-22 19:39:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 22, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/gpu_pattern_stencils/&amp;text=GPU%20Pattern:%20Stencils" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/gpu_pattern_stencils/&amp;t=GPU%20Pattern:%20Stencils" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=GPU%20Pattern:%20Stencils&amp;body=https://ajdillhoff.github.io/notes/gpu_pattern_stencils/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/gpu_pattern_stencils/&amp;title=GPU%20Pattern:%20Stencils" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=GPU%20Pattern:%20Stencils%20https://ajdillhoff.github.io/notes/gpu_pattern_stencils/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/gpu_pattern_stencils/&amp;title=GPU%20Pattern:%20Stencils" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#differential-equations">Differential Equations</a></li>
+<li><a href="#stencils">Stencils</a></li>
+<li><a href="#example-basic-stencil">Example: Basic Stencil</a></li>
+<li><a href="#tiled-stencil">Tiled Stencil</a></li>
+<li><a href="#thread-coarsening">Thread Coarsening</a></li>
+<li><a href="#register-tiling">Register Tiling</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#questions">Questions</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<ul>
+<li>Used in differential equations</li>
+<li>Frequently use higher precision</li>
+<li>Some similarity to convolutions</li>
+</ul>
+<h2 id="differential-equations">Differential Equations</h2>
+<p>Any computational problem requires discretization of data or equations so that they can be solved numerically. This is fundamental in numerical analysis, where differential equations need to be approximated.</p>
+<p>Structured grids are used in finite-difference methods for solving partial differential equations (PDEs). Approximate derivatives can be computed point-wise by considering the neighbors on the grid. As we saw earlier in this course, a grid representation is a natural way to think about data parallelism.</p>
+<p>Depending on the function and level of discretization, interpolation will be more or less accurate. Consider the logistic sigmoid function sampled at 4 points. In the middle, linear interpolation would work just fine. Near the <em>bends</em> of the function, a linear approximation would introduce error. The closer the spacing, the more accurate a linear approximation becomes. The downside is that more memory is required to store the points.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-27_13-03-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Logistic sigmoid function (Wikipedia)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Logistic sigmoid function (Wikipedia).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The precision of the data type also plays an important role. Higher precision data types like <code>double</code> require more bandwidth to transfer and will typically require more cycles when computing arithmetic operations.</p>
+<h2 id="stencils">Stencils</h2>
+<p>A <strong>stencil</strong> is a geometric pattern of weights applied at each point of a structured grid. The points on the grid will derive their values from neighboring points using some numerical approximation. For example, this is used to solve differential equations. Consider a 1D grid of discretized values from a function \(f(x)\). The finite difference approximation can be used to find \(f&rsquo;(x)\):</p>
+<p>\[ f&rsquo;(x) = \frac{f(x+h) - f(x-h)}{2h} + O(h^2) \]</p>
+<p>In code, this would look like:</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void finite_difference(float *f, float *df, float h) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    df[i] = (f[i+1] - f[i-1]) / (2 * h);
+}
+</code></pre><p>A PDE of two variables can be solved using a 2D stencil. Likewise, a PDE of three variables can be solved using a 3D stencil. The figures below show examples of common 2D and 3D stencils. Note that they typically have an odd number of points so that there is a center point.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-27_15-23-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;1D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>1D stencils. Recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The 1D stencils shown above are used to approximate the first-order (A), second-order (B), and third-order (C) derivatives of a function \(f(x)\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-27_15-24-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;2D and 3D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>2D and 3D stencils. Recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The 2D stencils shown above are used to approximate first-order (A) and second-order (B) derivatives of a function \(f(x, )\). Likewise, the 3D stencils are used to approximate first-order (C) and second-order (D) derivatives of a function \(f(x, y, z)\).</p>
+<p>A <em>stencil sweep</em> is the process of applying the stencil to all points on the grid, similar to how a convolution is applied. There are many similarities between the two, but the subtle differences will require us to think differently about how to optimize them.</p>
+<h2 id="example-basic-stencil">Example: Basic Stencil</h2>
+<p>The code below presents a naive kernel for a stencil pattern using a 3D seven-point stencil.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    unsigned int i = blockIdx.z * blockDim.z + threadIdx.z;
+    unsigned int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i &gt;= 1 &amp;&amp; i &lt; N - 1 &amp;&amp; j &gt;= 1 &amp;&amp; j &lt; N - 1 &amp;&amp; k &gt;= 1 &amp;&amp; k &lt; N - 1) {
+        out[i*N*N + j*N + k] = c0 * in[i*N*N + j*N + k]
+                             + c1 * in[i*N*N + j*N + (k - 1)]
+                             + c2 * in[i*N*N + j*N + (k + 1)]
+                             + c3 * in[i*N*N + (j - 1)*N + k]
+                             + c4 * in[i*N*N + (j + 1)*N + k]
+                             + c5 * in[(i - 1)*N*N + j*N + k]
+                             + c6 * in[(i + 1)*N*N + j*N + k];
+    }
+}
+</code></pre><p>This example assumes the input and output are 3D grids. For this particular stencil, you should try to identify the number of memory accesses and operations performed. Can you already see some opportunities for optimization?</p>
+<h2 id="tiled-stencil">Tiled Stencil</h2>
+<p>Just like with convolution, it is possible to use shared memory to improve the performance of a stencil. The code below shows a tiled stencil kernel that uses shared memory.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    __shared__ float tile[IN_TILE_DIM][IN_TILE_DIM][IN_TILE_DIM];
+    int i = blockIdx.z * OUT_TILE_DIM + threadIdx.z - 1;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+
+    if (i &gt;= 0 &amp;&amp; i &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+        tile[threadIdx.z][threadIdx.y][threadIdx.x] = in[i*N*N + j*N + k];
+    }
+    __syncthreads();
+    if (i &gt;=1 &amp;&amp; i &lt; N-1 &amp;&amp; j &gt;= 1 &amp;&amp; j &lt; N-1 &amp;&amp; k &gt;= 1 &amp;&amp; k &lt; N-1) {
+        if (threadIdx.z &gt;= 1 &amp;&amp; threadIdx.z &lt; IN_TILE_DIM-1 &amp;&amp;
+            threadIdx.y &gt;= 1 &amp;&amp; threadIdx.y &lt; IN_TILE_DIM-1 &amp;&amp;
+            threadIdx.x &gt;= 1 &amp;&amp; threadIdx.x &lt; IN_TILE_DIM-1) {
+            out[i*N*N + j*N + k] = c0 * tile[threadIdx.z][threadIdx.y][threadIdx.x]
+                                 + c1 * tile[threadIdx.z][threadIdx.y][threadIdx.x - 1]
+                                 + c2 * tile[threadIdx.z][threadIdx.y][threadIdx.x + 1]
+                                 + c3 * tile[threadIdx.z][threadIdx.y - 1][threadIdx.x]
+                                 + c4 * tile[threadIdx.z][threadIdx.y + 1][threadIdx.x]
+                                 + c5 * tile[threadIdx.z - 1][threadIdx.y][threadIdx.x]
+                                 + c6 * tile[threadIdx.z + 1][threadIdx.y][threadIdx.x];
+        }
+    }
+}
+</code></pre><p>Just like before, the threads of a block will first collaborate to load a tile with the relevant data. Stencil patterns are more sparse than convolutional filters and require less data to be loaded into shared memory. This will be the central detail in our analysis of stencil patterns.</p>
+<h3 id="scaling-stencil-size-vs-dot-convolution-filter-size">Scaling stencil size vs. Convolution filter size</h3>
+<p>Convolutions are more efficient as the size increases since more values are accessed in shared memory. For a \(3 \times 3\) convolution, the upper bound on compute to memory ratio is 4.5 OP/B. A 5 point 2D stencil has a ratio of 2.5 OP/B due to the sparsity of the pattern. The threads in the block would load the diagonal values from global memory, but each thread would only use the 5 points defined by the kernel.</p>
+<h3 id="tiling-analysis">Tiling Analysis</h3>
+<p>Let us consider the effectiveness of shared memory tiling where each thread performs 13 floating-point ops (7 multiplies and 6 adds) with each block using \((T - 2)^3\) threads. Each block also performs \(T^3\) loads of 4 bytes each. The compute to memory ratio can be express as:</p>
+<p>\[
+\frac{13(T - 2)^3}{4T^3} = \frac{13}{4} \left(1 - \frac{2}{T}\right)^3
+\]</p>
+<p>Due to the low limit on threads, the size of \(T\) is typically small. This means there is a smaller amount of reuse of data in shared memory. The ratio of floating-point ops to memory accesses will be low.</p>
+<p>Each warp loads values from 4 distant locations in global memory. This means that the memory accesses are not coalesced: the memory bandwidth is low. Consider an \(8 \times 8 \times 8\) block. A warp of 32 threads will load 4 rows of 8 values each. <strong>The values within each row contiguous, but the rows are not contiguous.</strong></p>
+<h2 id="thread-coarsening">Thread Coarsening</h2>
+<p>Stencils do not benefit from shared memory as much as convolutions due to the sparsity of the sampled points. Most applications of the stencil patterns work with a 3D grid, resulting in relatively small tile sizes per block.</p>
+<p>A solution to this is to increase the amount of work each thread performs, AKA <em>thread coarsening</em>. The price paid for parallelism in the stencil pattern is the low frequency of memory reuse.</p>
+<p>Each thread performs more work in the \(z\) direction for a 3D seven-point stencil. All threads collaborate to load in a \(z\) layer at time from \(z-1\) to \(z+1\). There are then 3 different shared memory tiles per block. After computing values in the current output tile, the shared memory is rearranged for the next layer. This means that there are more transfers between shared memory as opposed to global memory.</p>
+<p>The threads are launched to work with a 2D tile at a time, so the size of the block is now \(T^2\). This means we can use a larger value for \(T\). The compute to memory ratio is almost doubled under this scheme. Additionally, the amount of shared memory required is \(3T^2\) rather than \(T^3\).</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    __shared__ float inPrev_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inNext_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &gt;= 0 &amp;&amp; iStart - 1 &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+        inPrev_s[threadIdx.y][threadIdx.x] = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &gt;= 0 &amp;&amp; iStart &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+        inCurr_s[threadIdx.y][threadIdx.x] = in[iStart*N*N + j*N + k];
+    }
+    for (int i = iStart; i &lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &gt;= 0 &amp;&amp; i + 1 &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+            inNext_s[threadIdx.y][threadIdx.x] = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &gt;= 1 &amp;&amp; i &lt; N - 1 &amp;&amp; j &gt;= 1 &amp;&amp; j &lt; N - 1 &amp;&amp; k &gt;= 1 &amp;&amp; k &lt; N - 1) {
+            if (threadIdx.y &gt;= 1 &amp;&amp; threadIdx.y &lt; IN_TILE_DIM - 1 &amp;&amp;
+                threadIdx.x &gt;= 1 &amp;&amp; threadIdx.x &lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr_s[threadIdx.y][threadIdx.x]
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev_s[threadIdx.y][threadIdx.x]
+                    + c6 * inNext_s[threadIdx.y][threadIdx.x];
+            }
+        }
+        __syncthreads();
+        inPrev_s[threadIdx.y][threadIdx.x] = inCurr_s[threadIdx.y][threadIdx.x];
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+</code></pre><p>This kernel is visualized below with a block size of \(6 \times 6\). The left and top sides of the tile have been removed for clarity. All of the blue blocks are loaded from global memory. The dark blue blocks represent the <em>active</em> plane that is used to compute the corresponding output values. After the current plane is completed, the block synchronizes before moving the current values to the previous plane and loads the next plane&rsquo;s values into the current plane <code>inCurr_s</code>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-28_15-28-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of the thread coarsening tile." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Visualization of the thread coarsening tile.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="register-tiling">Register Tiling</h2>
+<p>In the coarsening solution presented above, each thread works with a single element in the previous and next shared memory tiles. There are 4 elements in that example that really need to be loaded from shared memory. For the 3 elements that are only required by the current thread, they can be loaded into registers.</p>
+<p>Since only the values in the \(x-y\) direction are required for shared memory, the amount of memory used is reduced by \(\frac{1}{3}\).</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    float inPrev;
+    float inCurr;
+    float inNext;
+
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &gt;= 0 &amp;&amp; iStart - 1 &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+        inPrev = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &gt;= 0 &amp;&amp; iStart &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+        inCurr = in[iStart*N*N + j*N + k];
+        inCurr_s[threadIdx.y][threadIdx.x] = inCurr;
+    }
+    for (int i = iStart; i &lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &gt;= 0 &amp;&amp; i + 1 &lt; N &amp;&amp; j &gt;= 0 &amp;&amp; j &lt; N &amp;&amp; k &gt;= 0 &amp;&amp; k &lt; N) {
+            inNext = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &gt;= 1 &amp;&amp; i &lt; N - 1 &amp;&amp; j &gt;= 1 &amp;&amp; j &lt; N - 1 &amp;&amp; k &gt;= 1 &amp;&amp; k &lt; N - 1) {
+            if (threadIdx.y &gt;= 1 &amp;&amp; threadIdx.y &lt; IN_TILE_DIM - 1 &amp;&amp;
+                threadIdx.x &gt;= 1 &amp;&amp; threadIdx.x &lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev
+                    + c6 * inNext;
+            }
+        }
+        __syncthreads();
+        inPrev = inCurr;
+        inCurr = inNext;
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+</code></pre><p>The kernel always has the active plane in shared memory. Every threads collectively store the previous and next planes in registers.</p>
+<p>The larger the stencil size, the more registers are required per thread. In this case, a tradeoff between shared memory space and register usage could be made. This will be explored in your lab.</p>
+<h2 id="summary">Summary</h2>
+<p>Stencils are a useful pattern for solving differential equations. They have some similarities to convolutions, but present unique challenges in terms of optimization. The sparsity of the pattern means that shared memory is not as effective as it is for convolutions. Thread coarsening and register tiling are two techniques that can be used to improve performance.</p>
+<h2 id="questions">Questions</h2>
+<ol>
+<li>How many registers per thread are required for a 3D seven-point stencil, 3D nine-point stencil, and 3D 27-point stencil?</li>
+<li>How do convolutions relate to stencil patterns? Could you implement a stencil pattern using a convolution filter?</li>
+</ol>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/gpu_pattern_convolution/">GPU Pattern: Convolution</a></li>
+          
+          <li><a href="/notes/gpu_performance_basics/">GPU Performance Basics</a></li>
+          
+          <li><a href="/notes/cuda_memory_architecture/">CUDA Memory Architecture</a></li>
+          
+          <li><a href="/notes/cuda_architecture/">CUDA Architecture</a></li>
+          
+          <li><a href="/notes/multidimensional_grids_and_data/">Multidimensional Grids and Data</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Detecting Corners Describing Image Patches Scale Invariance Introduction Why do we care about image features? One of the main goals of computer vision is understanding of some environment through visual perception. In order to summarize a visual object, we need some description of it. These descriptions can come in many forms, so we need to articulate some goals as to what we are ultimately looking for when describing an image.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/image_features/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/image_features/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/image_features/">
+  <meta property="og:title" content="Image Features | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Detecting Corners Describing Image Patches Scale Invariance Introduction Why do we care about image features? One of the main goals of computer vision is understanding of some environment through visual perception. In order to summarize a visual object, we need some description of it. These descriptions can come in many forms, so we need to articulate some goals as to what we are ultimately looking for when describing an image."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-28T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Image Features | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Image Features</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-28 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Jan 28, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/image_features/&amp;text=Image%20Features" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/image_features/&amp;t=Image%20Features" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Image%20Features&amp;body=https://ajdillhoff.github.io/notes/image_features/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/image_features/&amp;title=Image%20Features" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Image%20Features%20https://ajdillhoff.github.io/notes/image_features/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/image_features/&amp;title=Image%20Features" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#detecting-corners">Detecting Corners</a></li>
+<li><a href="#describing-image-patches">Describing Image Patches</a></li>
+<li><a href="#scale-invariance">Scale Invariance</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Why do we care about image features? One of the main goals of computer vision is understanding of some environment through visual perception. In order to summarize a visual object, we need some description of it.
+These descriptions can come in many forms, so we need to articulate some goals as to what we are ultimately looking for when describing an image.</p>
+<p>What makes an interesting feature in an image?</p>
+<ul>
+<li>Something distinct</li>
+<li>Invariance properties (translation, rotation, scaling)</li>
+<li>Easy to compute</li>
+</ul>
+<p>Image features are the building blocks of many higher level applications such as</p>
+<ol>
+<li>Stereo correspondence</li>
+<li>Image stitching</li>
+<li>Object recognition and detection</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-08_09-02-34_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Patches taken from two images from different perspectives. Some patches are more descriptive than others. Source: Szeliski" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Patches taken from two images from different perspectives. Some patches are more descriptive than others. Source: Szeliski
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-08_09-06-10_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Objects detected using YOLOv3. Source: Wikipedia." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Objects detected using YOLOv3. Source: Wikipedia.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-08_09-07-29_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Image stitching result. The red lines show the seams at which the images are joined. Source: Wikipedia." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Image stitching result. The red lines show the seams at which the images are joined. Source: Wikipedia.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Topics:</p>
+<ul>
+<li>Corners</li>
+<li>HOG</li>
+<li>SIFT</li>
+<li>Correlation with template</li>
+<li>PCA</li>
+</ul>
+<p>We have talked about <a href="/notes/edge_detection/">Edge Detection</a>, which produces an image of edge pixels given some raw input. Edges are certainly useful features, but are they distinct enough to produce consistent image features?</p>
+<p>Consider an image patch detected from three different primitives:</p>
+<ol>
+<li>Points</li>
+<li>Edges</li>
+<li>Corners</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-08_09-33-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Aperture problem for patches detected from different primitives. Source: Szeliski." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Aperture problem for patches detected from different primitives. Source: Szeliski.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The above figure illustrates the aperture problem.
+Consider a flat surface without texture. If we generate a patch around any arbitrary point, it will have many correspondences with other patches.
+It may be obvious that picking any arbitrary point on a flat, single-colored surface would not be descriptive enough to match with anything useful.</p>
+<p>What about an edge? An edge is distinct based on its orientation. The middle image in the figure above shows that, while some ambiguity has been resolved, there are still a wide range of possible locations that it could be matched to. There could be many such edges found between images.</p>
+<p>This brings us to a corner. A corner has two distinct gradient changes which make it a perfect candidate for interest point detection.</p>
+<h2 id="detecting-corners">Detecting Corners</h2>
+<p><a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.434.4816&amp;rep=rep1&amp;type=pdf" target="_blank" rel="noopener noreferrer">Paper Link</a></p>
+<p>Corners are a great choice for a feature. They are small, rotation and translation invariant, and can be computed simply from the gradient images we have computed before.</p>
+<p>There are a few distinct interest points of a violin. Maybe we can use a corner detector to come up with patches which can be reproduced across different images.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_09-51-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A replica violin." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>A replica violin.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In a local window, a corner exhibits a large change in orientation.
+A flat surface has no orientation response at all.
+An edge only has an orientation in one direction.</p>
+<p><strong>How can we detect such changes in an image?</strong></p>
+<p>The <strong>sum of square differences (SSD)</strong>. If we take some window and move it over some image, taking a the SSD at each point, we can produce an image of responses.
+SSD is defined as</p>
+<p>\[
+f(x, y) = \sum_{(u, v) \in W}\big(I(x + u, y + v) - I(u, v)\big)^2.
+\]</p>
+<p>This difference was previously used to evaluate discrete steps. Harris et al. note this as a limitation and instead aim to evaluate all possible <em>small</em> shifts about the origin of the shift. This is accomplished through analytic expansion of the term \(I(x + u, y + v)\).</p>
+<p>Through Taylor expansion, this can be approximated as</p>
+<p>\begin{align*}
+I(x + u, y + v) &amp;= I(u, v) + x \frac{\partial}{\partial x}I(x, y) + y \frac{\partial}{\partial y}I(x, y) + O(x^2, y^2) \\
+&amp;\approx I(u, v) + xI_x + yI_y
+\end{align*}</p>
+<p>In the above approximation, \(O(x^2, y^2)\) describes the upper bound of the behavior of the function. Through Taylor expansion, we could write the higher order terms. However, we only care about small shifts about the shift origin, so only a first order, or linear, approximation is sufficient.</p>
+<p>Using this first order approximation, SSD can be written</p>
+<p>\begin{align*}
+f(x, y) &amp;\approx \sum_{(u, v) \in W} w(u, v) \big(I(u, v) + xI_x + yI_y - I(u,v)\big)^2\\
+&amp;= \sum_{(u, v) \in W} w(u, v) \big(xI_x + yI_y\big)^2\\
+&amp;= \sum_{(u, v) \in W} w(u, v) \big(x^2I_x^2 + 2xyI_xI_y + y^2I_y^2\big)
+\end{align*}</p>
+<p>The term \(x^2I_x^2 + 2xyI_xI_y + y^2I_y^2\) is a linear combination and can be efficiently computed via matrix multiplication.</p>
+<p>\begin{equation*}
+x^2I_x^2 + 2xyI_xI_y + y^2I_y^2 =
+\begin{bmatrix}
+x &amp; y
+\end{bmatrix}
+\begin{bmatrix}
+I_x^2 &amp; I_x I_y \\
+I_x I_y &amp; I_y^2\\
+\end{bmatrix}
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix}
+\end{equation*}</p>
+<p>We can now rewrite the original SSD as follows.</p>
+<p>\begin{equation*}
+f(x, y) \approx
+\begin{bmatrix}
+x &amp; y
+\end{bmatrix}
+M
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix},
+\end{equation*}</p>
+<p>where</p>
+<p>\begin{equation*}
+M = \sum_{(u, v) \in W} w(u, v) H.
+\end{equation*}</p>
+<p>\begin{equation*}
+H =
+\begin{bmatrix}
+I_x^2 &amp; I_x I_y\\
+I_x I_y &amp; I_y^2 \\
+\end{bmatrix}
+\end{equation*}</p>
+<p>\(M\) is then an autocorrelation matrix. The benefit of this formulation is that \(M\) is a symmetric matrix. If we remember our studies from linear algebra, we remember that there are some very important properties and characteristics of symmetric matrices.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_16-54-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Gradient image (I_x^2)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Gradient image (I_x^2).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_16-55-10_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Gradient image (I_x I_y)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Gradient image (I_x I_y).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_16-55-38_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Gradient image (I_y^2)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Gradient image (I_y^2).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_10-07-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Gradient change in both (x) and (y). Credit: David Jacobs" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>Gradient change in both (x) and (y). Credit: David Jacobs
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>First, lets consider a simple case of detecting the following corner. At this orientation, the changes in gradient are only in the vertical and horizontal directions. If we consider the matrix \(M\) from above, we would get the following result</p>
+<p>\begin{equation*}
+M =
+\begin{bmatrix}
+\sum I_x^2 &amp; \sum I_x I_y\\
+\sum I_x I_y &amp; \sum I_y^2
+\end{bmatrix} =
+\begin{bmatrix}
+\lambda_1 &amp; 0\\
+0 &amp; \lambda_2
+\end{bmatrix}.
+\end{equation*}</p>
+<p>The off-diagonal entries will be 0, by definition of the dot product and orthogonal vectors.
+The entries on the main diagonal will represent the eigenvalues of \(M\).
+If both entries on the main diagonal are large, this would indicate a large change in orientation within the window.</p>
+<p><strong>What if the corner is not as ideal?</strong></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_10-13-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Eigenvalue analysis of autocorrelation matrix. Source: Szeliski." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 10: </span>Eigenvalue analysis of autocorrelation matrix. Source: Szeliski.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong>Relationship to Eigenvalues</strong></p>
+<p>Recall the Spectral Theorem for Symmetric Matrices, which states:
+A symmetric matrix \(A \in \mathbb{R}^{n\times n}\) has the following properties:</p>
+<ol>
+<li>A has \(n\) real eigenvalues, counting multiplicities.</li>
+<li>The dimension of the eigenspace for each eigenvalue \(\lambda\) equals the multiplicity of \(\lambda\) as a root of the characteristic equation.</li>
+<li>The eigenspaces are mutually orthogonal, in the sense that eigenvectors corresponding to different eigenvalues are orthogonal.</li>
+<li>\(A\) is orthogonally diagonalizable.</li>
+</ol>
+<p>Symmetric matrices are orthogonally diagonalizable. Thus, a symmetric matrix \(A\) can be written as \(A = PDP^{-1}\), where the columns of \(P\) are the eigenvectors and \(D\) are the corresponding eigenvalues.
+Another perspective of this is that \(A\) is an ellipse with axis lengths determined by the eigenvalues (diagonal entries of \(D\)) rotated by \(P\).</p>
+<p>The eigenvalues of \(M\) can be classified into different regions depending on if they are indicative of a flat region, edge, or corner.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_10-15-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Classification of responses. Source: Harris (1988)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 11: </span>Classification of responses. Source: Harris (1988).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Performing eigendecomposition seems cumbersome in this case. There must be a simpler way we could compute these responses.</p>
+<p><strong>We can then approximate this response!</strong></p>
+<p>\begin{align*}
+R &amp;= \det H - \alpha \cdot \textrm{tr}(H)^2\\
+&amp;= I_x^2 \cdot I_y^2 - (I_x I_y)^2 - \alpha\big(I_x^2 + I_y^2\big)^2
+\end{align*}</p>
+<p>If there is a corner, the gradient values will depict orthogonality. That is, the middle term in the equation above will be smaller. This results in a larger response.</p>
+<p>The larger the value from the middle term, the less orthogonality is present. This results in a smaller response. In practice, we will see a negative response.</p>
+<p>In practice, \(\alpha \in [0.04, 0.06]\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_16-59-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Response image (R)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 12: </span>Response image (R).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="window-selection">Window Selection</h3>
+<p>What is the best window to choose when computing responses across an image? Harris et al. considered this in their original formulation when comparing to Moravec&rsquo;s corner detection function.
+Using a flat window with uniform values produces a binary response when over interest points and 0 everywhere else. This can be written as</p>
+<p>\begin{equation*}
+M = \sum_{u, v} w(u, v)
+\begin{bmatrix}
+I_x^2 &amp; I_x I_y\\
+I_x I_y &amp; I_y^2
+\end{bmatrix}
+\end{equation*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_10-23-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Uniform response window. Results in 1 for interest points inside the window, 0 otherwise. Credit: Fei-Fei Li" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 13: </span>Uniform response window. Results in 1 for interest points inside the window, 0 otherwise. Credit: Fei-Fei Li
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Instead, Harris et al. propose using a circular Gaussian window which can be computed as</p>
+<p>\begin{equation*}
+M = g(\sigma) *
+\begin{bmatrix}
+I_x^2 &amp; I_x I_y\\
+I_x I_y &amp; I_y^2
+\end{bmatrix}
+\end{equation*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_10-25-42_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Gaussian window response. Credit: Fei-Fei Li" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 14: </span>Gaussian window response. Credit: Fei-Fei Li
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The Guassian window is easy enough to compute and has the added bonus of making the responses rotation invariant!</p>
+<h3 id="nonmaxima-suppression--again">Nonmaxima Suppression (Again)</h3>
+<p>We now have a response image in which each pixel gives an indication as to whether a corner has been detected.
+To thin out these hypotheses, we will need to suppress neighborhood values that are not maximal.
+Just like with <a href="/notes/edge_detection/">Edge Detection</a>, we will need to employ nonmaxima suppression.</p>
+<p>Before applying that, we may choose to threshold the image to filter out points that are obviously not candidates.</p>
+<p>The approach is quite simple here:</p>
+<ol>
+<li>Slide a \(3 \times 3\) window across the image.</li>
+<li>If the center pixel is not the maximum value in the \(3 \times 3\) window, set it to 0.</li>
+<li>Continue until all pixels are evaluated.</li>
+</ol>
+<p>Our final result is shown below. The detected corners are marked.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-08_17-05-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Final output of corner detection." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 15: </span>Final output of corner detection.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="describing-image-patches">Describing Image Patches</h2>
+<p>Given a list of interest points, we can start to build a collection of regions or patches surrounding the point which are useful for feature matching.
+The simple choice here is to take a fixed size patch surrounding an interest point and use it as a template.
+We can then compare that to other interest points in different images to see how well they score.
+There are many limitations to this naive approach that prevent it from working well in general.
+Even if the perspective of the object is the same in multiple images, slight changes is brightness could affect the matching scores greatly.</p>
+<p>Another consideration is scale. If we have an interest point at one scale, will it be detected when that image is scaled by some factor \(k\)?</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_09-33-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Patch surrounding a similar interest point at different scales. Credit: Kristen Grauman, B. Liebe." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 16: </span>Patch surrounding a similar interest point at different scales. Credit: Kristen Grauman, B. Liebe.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>However we choose to represent the information surrounding an interest point need to be robust to translation, scale, and orientation changes.
+It is important to note that, although the Harris corner detector is invariant to orientation, a naive image patch surrounding the interest point may not be.</p>
+<h2 id="scale-invariance">Scale Invariance</h2>
+<p><strong>Is the Harris corner detector scale-invariant?</strong></p>
+<p>No! Consider the figure below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-09_19-10-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Harris corner detector is not scale invariant. Credit: Kristen Grauman" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 17: </span>Harris corner detector is not scale invariant. Credit: Kristen Grauman
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The output from the detector will be different depending on scale.
+One solution would be to resize the image over several different scales and consolidate the detections.
+Doing this would produce many features and take much longer to compute.</p>
+<p>Given some feature template that is centered on an interest point, we would expect that size of the patch scales with the scale change of the image itself.
+This property will drive the development of a scale-invariant method.
+We select the size of the patch by placing some dark blob with a light background (or vice versa) over the interest point and then selecting the size which provides the greatest response.</p>
+<h3 id="laplacian-filter">Laplacian Filter</h3>
+<p>A good choice for this is the Laplacian filter. The Laplacian of a 2D function is</p>
+<p>\begin{equation*}
+(\nabla^2 f)(x, y) = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}.
+\end{equation*}</p>
+<p>The Laplacian filter is created following the derivation in the two figures below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_09-55-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 18: &lt;/span&gt;Deriving second partial derivative filters for x and y. Source: &lt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&gt;" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 18: </span>Deriving second partial derivative filters for x and y. Source: <a href="https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/" target="_blank" rel="noopener noreferrer">https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_09-55-53_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 19: &lt;/span&gt;Combining the x and y filters. Source: &lt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&gt;" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 19: </span>Combining the x and y filters. Source: <a href="https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/" target="_blank" rel="noopener noreferrer">https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>It is also common to smooth the operator before use.
+This can be done by convolving with a Gaussian kernel:</p>
+<p>\begin{equation*}
+K_{\nabla^2} * G_{\sigma}.
+\end{equation*}</p>
+<p>This is referred as the <strong>Laplacian of Gaussian</strong> filter.</p>
+<h3 id="scale-space">Scale Space</h3>
+<p>We can use the Laplacian of Gaussian to find the appropriate size of image patch for a given scale.
+This is achieved by computing a <strong>scale-space</strong> representation of an image.
+When we resize an image to make it smaller, there is a loss of information.
+Similarly, blurring the image causes a loss of information.
+The larger the \(\sigma\) value for the Gaussian, the more information that is lost.
+Thus, we can quickly compute different scale-image representations by applying Gaussian blurring with a range of \(\sigma\) values.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-09_19-27-45_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 20: &lt;/span&gt;Scale space representations. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 20: </span>Scale space representations. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>As it turns out, blurring and resizing correspond with each other.
+This is calculated by applying a Gaussian blur to the image following:</p>
+<p>\begin{equation*}
+L_f(\sigma) = f(G_\sigma * I).
+\end{equation*}</p>
+<p>This is the response of function \(f\) in scale-space \(\sigma\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-09_20-01-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 21: &lt;/span&gt;Selecting features at different scales. Credit: Kristen Grauman" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 21: </span>Selecting features at different scales. Credit: Kristen Grauman
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The size of the patch can be found by iterating through different values of \(\sigma\), applying the Laplacian at each scale, and selecting the value of \(\sigma\) which produced the greatest result.</p>
+<p>Consider a simple rounded square as depicted below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_10-15-11_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 22: &lt;/span&gt;Simple rounded square." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 22: </span>Simple rounded square.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>If we apply the LoG filter to select the scale which gives the greatest response for the region centered on the top left corner at the original scale, we produce the following graph.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_10-16-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 23: &lt;/span&gt;Responses of LoG at the top left corner from (sigma = 0) to (sigma = 8)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 23: </span>Responses of LoG at the top left corner from (sigma = 0) to (sigma = 8).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>If we scale the original image by 2 and apply the same analysis again, we get the following graph.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_10-20-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 24: &lt;/span&gt;Responses of LoG at original image size at the top left corner from (sigma = 0) to (sigma = 8)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 24: </span>Responses of LoG at original image size at the top left corner from (sigma = 0) to (sigma = 8).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To summarize, using this method will allow us to select the appropriate scale at which our interest point provides the strongest response.
+However, the cost of this search is high. As we increase the size of the filters, the more work required for each convolution.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-vision/">computer vision</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/color/">Color</a></li>
+          
+          <li><a href="/notes/histogram_of_oriented_gradients/">Histogram of Oriented Gradients</a></li>
+          
+          <li><a href="/notes/linear_filters/">Linear Filters</a></li>
+          
+          <li><a href="/notes/scale_invariant_feature_transforms/">Scale Invariant Feature Transforms</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

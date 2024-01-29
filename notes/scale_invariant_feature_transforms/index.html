@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Difference of Gaussians Keypoint Localization Orientation Assignment Descriptor Formation Introduction https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
+General approach to computing SIFT features:
+Scale-space Extrema Detection Keypoint localization Orientation Assignment Generate keypoint descriptors Difference of Gaussians This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the Difference of Gaussians. Consider the figure below.
+Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
+  <meta property="og:title" content="Scale Invariant Feature Transforms | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Difference of Gaussians Keypoint Localization Orientation Assignment Descriptor Formation Introduction https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
+General approach to computing SIFT features:
+Scale-space Extrema Detection Keypoint localization Orientation Assignment Generate keypoint descriptors Difference of Gaussians This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the Difference of Gaussians. Consider the figure below.
+Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-28T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Scale Invariant Feature Transforms | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Scale Invariant Feature Transforms</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-28 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Jan 28, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    4 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;text=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;t=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Scale%20Invariant%20Feature%20Transforms&amp;body=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;title=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Scale%20Invariant%20Feature%20Transforms%20https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;title=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#difference-of-gaussians">Difference of Gaussians</a></li>
+<li><a href="#keypoint-localization">Keypoint Localization</a></li>
+<li><a href="#orientation-assignment">Orientation Assignment</a></li>
+<li><a href="#descriptor-formation">Descriptor Formation</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p><a href="https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf" target="_blank" rel="noopener noreferrer">https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf</a></p>
+<p>General approach to computing SIFT features:</p>
+<ol>
+<li>Scale-space Extrema Detection</li>
+<li>Keypoint localization</li>
+<li>Orientation Assignment</li>
+<li>Generate keypoint descriptors</li>
+</ol>
+<h2 id="difference-of-gaussians">Difference of Gaussians</h2>
+<p>This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the <strong>Difference of Gaussians</strong>. Consider the figure below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_10-31-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Comparison of DoG and Laplacian. Credit: Fei-Fei Li." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Comparison of DoG and Laplacian. Credit: Fei-Fei Li.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version.</p>
+<p>Let \(I_{\sigma_1}\) be the image blurred with a smaller value of \(\sigma\) and \(I_{\sigma_2}\) be the image blurred with a larger value.
+Then \(D(I_{\sigma_1}, I_{\sigma_2}) = I_{\sigma_2} - I_{\sigma_1}\).
+If a region in \(I_{\sigma_1}\) is locally flat, it will also be in flat in \(I_{\sigma_2}\).
+The difference will be relatively small for that region.
+If there are abrupt changes in a local region within \(I_{\sigma_1}\), they will be smoothed in \(I_{\sigma_2}\).
+Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for that region.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_20-29-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The Royal Concertgebouw in Amsterdam." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>The Royal Concertgebouw in Amsterdam.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_20-41-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>When building SIFT features, the extremum are selected by comparing 3 DoG images.
+These are selected by evaluating each pixel to 26 of its neighbors in the current scale space and neighboring DoG spaces as visualized below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_18-50-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Finding extrema of pixel (i, j) in a neighborhood of 26 values (Lowe 2004)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Finding extrema of pixel (i, j) in a neighborhood of 26 values (Lowe 2004).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To build the DoG pyramid, the authors propose that images are separated by a constant factor \(k\) in scale space.
+Each octave of scale space is divided such that the scalespace doubles every \(s\) samples.</p>
+<p>Starting with \(\sigma = 0.5\), if we choose \(s=3\) then the fourth sample will be at \(\sigma = 1\), the seventh at \(\sigma=2\), and so on.
+To make sure the DoG images cover the full range of an octave, \(s + 3\) images need to be created per octave.</p>
+<p><strong>Why \(s + 3\)?</strong></p>
+<p>Each octave should evaluate local extrema for \(s\) scales.
+To evaluate this for scale \(\sigma_s\), we need the DoG for scales \(\sigma_{s-1}\) and \(\sigma_{s+1}\).
+This would require 4 Gaussians images to compute.
+The figure below represents the stack for \(s=2\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-10_17-35-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;DOG figure from Lowe 2004." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>DOG figure from Lowe 2004.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong>How is the value of \(s\) determined?</strong></p>
+<p>In the paper, the authors perform a repeatability test to determine if the keypoints would be localized even with random augmentations. The process is as follows:</p>
+<ol>
+<li>Randomly augment an input image with noise, color jitter, scale, rotation, etc.</li>
+<li>Compute keypoints using using the extrema detection.</li>
+<li>Compare detected keypoints with known keypoints from original samples.</li>
+</ol>
+<p>The authors found that using \(s = 3\) provided the highest percentage of repeatability in their experiments.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-13_19-25-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Measuring repeatability of keypoint detections versus # of scales sampled per octave (Lowe 2004)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Measuring repeatability of keypoint detections versus # of scales sampled per octave (Lowe 2004).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="keypoint-localization">Keypoint Localization</h2>
+<p>Given the candidate keypoints selected by picking out local extrema, they pool of responses can further be refined
+by removing points that are sensitive to noise or located along an edge. They borrow the same approach used in the Harris corner detector to select more robust interest points in corners.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-15_20-36-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (Lowe 2004)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (Lowe 2004).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="orientation-assignment">Orientation Assignment</h2>
+<p>Given a keypoint, an orientation histogram is generated. The authors use 36 bins to cover a 360 degree range for orientations.
+Similar to <a href="/notes/histogram_of_oriented_gradients/">Histogram of Oriented Gradients</a>, the orientations are weighted by their gradient magnitudes.
+Additionally, a Gaussian-weighted circular patch is applied, centered on the keypoint, to further weight the responses.
+This means that points farther away from the center contribute less to the overall feature vector.</p>
+<p>In order to make the keypoint rotation invariant, the dominant orientation is determined.
+If there are orientations that are within 80% of the highest orientation peak, multiple keypoints will be created using those orientations as well.</p>
+<p>Orientations in this window are rotated by the dominant gradient so that all directions are with respect to the dominant orientation.
+This is a more efficient alternative to rotating the entire image by that orientation.</p>
+<h2 id="descriptor-formation">Descriptor Formation</h2>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-15_20-22-39_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Keypoint descriptor generation (Lowe 2004)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Keypoint descriptor generation (Lowe 2004).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the paper, the authors generate keypoints using a \(16 \times 16\) window from which \(4 \times 4\) descriptors are generated following the descriptions above.
+Through experimentation, each \(4 \times 4\) descriptor uses 8 orientations, resulting in a feature vector \(\mathbf{x} \in \mathbb{R}^{128}\).</p>
+<p>Different levels of contrast will product edges with higher gradient magnitudes.
+To account for this, the final feature vector is normalized using the \(L2\) hysteresis approach used in Harris corner detection.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-vision/">computer vision</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/color/">Color</a></li>
+          
+          <li><a href="/notes/histogram_of_oriented_gradients/">Histogram of Oriented Gradients</a></li>
+          
+          <li><a href="/notes/image_features/">Image Features</a></li>
+          
+          <li><a href="/notes/linear_filters/">Linear Filters</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

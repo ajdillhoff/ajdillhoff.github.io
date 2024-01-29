@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    10 min read
+    11 min read
   </span>
   
 
@@ -604,9 +604,57 @@ void kernel(int *a, int *b, int *c) {
 <p>Even though the call looks the same, each <code>__syncthreads()</code> is different. The first call will only synchronize the threads that executed the first path. The second call will only synchronize the threads that executed the second path. The result is either undefined output or a deadlock, in which the threads will never reach the second call.</p>
 <p>Since threads in separate blocks cannot be synchronized, the blocks can be executed in any arbitrary order. You might immediately ask yourself how a complex problem that requires synchronization between all parts of the data can get around this limitation. We will explore more complex patterns and their solutions in later sections.</p>
 <h2 id="warps">Warps</h2>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-28_21-03-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Warps across several blocks (credit: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Warps across several blocks (credit: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <p>Streaming Multiprocessors in a CUDA chip execute threads in a group of 32 called <strong>warps</strong>. Since Compute Capability 1.0, the warp size has not changed. When a block is assigned to an SM, it is divided into warps. Given this size, you can easily determine the number of warps assigned to an SM. For example, if you have a block of 256 threads, the SM has 256 / 32 = 8 warps. If the block size is not evenly divisible by the number of warps per SM, the last warp will be padded with inactive threads.</p>
-<p>When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a <strong>row-major</strong> order before being partitioned into warps. For example, a 2D block of 16x16 threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.</p>
+<p>When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a <strong>row-major</strong> order before being partitioned into warps. For example, a 2D block of \(16 \times 16\) threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.</p>
 <p>Warps are executed following the Single-Instruction, Multiple-Data (SIMD) model. There is a single program that runs the same instruction on all threads in the same order. If a thread would have executed a different path based on its input data, it would not be executed with the others. This is called <strong>control divergence</strong> and is explained in the next section.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-28_21-08-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;SM layout (source: NVIDIA DLI)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>SM layout (source: NVIDIA DLI)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <p>The advantage of this model is that more physical space can be dedicated to ALUs instead of control logic. In a traditional CPU, each processing core would have its own control logic. The tradeoff is that different cores can execute their own programs at varying points in time.</p>
 <h2 id="control-divergence">Control Divergence</h2>
 <p>Since a traditional CPU has separate control logic for each core, it can execute different programs at the same time. If the program has a conditional statement, it does not need to worry about synchronizing instructions with another core. This is not the case with a GPU. Since every thread in a warp executes the same instruction, only threads that would execute the same path can be processed at the same time. If a thread would execute a different path, it is not executed with the others. This is called <strong>control divergence</strong>.</p>
@@ -630,14 +678,14 @@ void kernel(int *a, int *b, int *c) {
 
 <figure>
 
-<img src="/ox-hugo/2024-01-11_11-44-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core))." >
+<img src="/ox-hugo/2024-01-11_11-44-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core))." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 2: </span>GH100 Full GPU with 144 SMs (<a href="https://resources.nvidia.com/en-us-tensor-core" target="_blank" rel="noopener noreferrer">NVIDIA</a>).
+    <span class="figure-number">Figure 4: </span>GH100 Full GPU with 144 SMs (<a href="https://resources.nvidia.com/en-us-tensor-core" target="_blank" rel="noopener noreferrer">NVIDIA</a>).
     
     
     
@@ -648,7 +696,7 @@ void kernel(int *a, int *b, int *c) {
 
 <p>The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (Hwu, Kirk, and El Hajj 2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.</p>
 <p>What if we chose 32 threads per block? Then there would be 2048 / 32 = 64 blocks per SM. However, the device only supports 32 blocks per SM. With only 32 blocks allocated with 32 threads per block, a total of 1024 threads would be utilized. The occupancy in this case is 1024 / 2048 = 50%.</p>
-<p>Historically, NVIDIA provided an excel spreadsheet to compute occpancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.</p>
+<p>Historically, NVIDIA provided an excel spreadsheet to compute occupancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.</p>
 <h3 id="including-registers">Including Registers</h3>
 <p>Another factor for occupancy is the number of registers used per thread. The H100 has 65,536 registers available for use. As long as your program does not use more than this, you can follow the simpler occupancy calculation from above. With 2048 threads, that leaves 65,536 / 2048 = 32 registers per thread. If we run a program with 256 threads/block, there would be 2048 / 256 = 8 blocks per SM. This means that there are 8 * 256 = 2048 threads per SM. With 31 registers per thread, the total number of registers used per SM is 2048 * 31 = 63,488. In this case we still maximize occupancy since 63,488 &lt; 65,536.</p>
 <p>What if each thread required 33 registers? In that case, the total number of registers used per SM would be 2048 * 33 = 67,584. How would these resources be partitioned? Only 7 blocks could be assigned since 7 * 256 * 33 = 59,136 &lt; 65,536. This means that only 7 * 256 = 1792 threads would be used, reducing the occupancy to 1792 / 2048 = 87.5%.</p>

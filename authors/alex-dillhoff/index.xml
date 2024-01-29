@@ -7,10 +7,303 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 15 Jan 2024 21:35:00 -0600</lastBuildDate>
+    <lastBuildDate>Mon, 22 Jan 2024 19:39:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Stencils</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_stencils/</link>
+      <pubDate>Mon, 22 Jan 2024 19:39:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_stencils/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#differential-equations&#34;&gt;Differential Equations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#stencils&#34;&gt;Stencils&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-basic-stencil&#34;&gt;Example: Basic Stencil&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-stencil&#34;&gt;Tiled Stencil&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening&#34;&gt;Thread Coarsening&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#register-tiling&#34;&gt;Register Tiling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#questions&#34;&gt;Questions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;ul&gt;
+&lt;li&gt;Used in differential equations&lt;/li&gt;
+&lt;li&gt;Frequently use higher precision&lt;/li&gt;
+&lt;li&gt;Some similarity to convolutions&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;differential-equations&#34;&gt;Differential Equations&lt;/h2&gt;
+&lt;p&gt;Any computational problem requires discretization of data or equations so that they can be solved numerically. This is fundamental in numerical analysis, where differential equations need to be approximated.&lt;/p&gt;
+&lt;p&gt;Structured grids are used in finite-difference methods for solving partial differential equations (PDEs). Approximate derivatives can be computed point-wise by considering the neighbors on the grid. As we saw earlier in this course, a grid representation is a natural way to think about data parallelism.&lt;/p&gt;
+&lt;p&gt;Depending on the function and level of discretization, interpolation will be more or less accurate. Consider the logistic sigmoid function sampled at 4 points. In the middle, linear interpolation would work just fine. Near the &lt;em&gt;bends&lt;/em&gt; of the function, a linear approximation would introduce error. The closer the spacing, the more accurate a linear approximation becomes. The downside is that more memory is required to store the points.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_13-03-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Logistic sigmoid function (Wikipedia).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Logistic sigmoid function (Wikipedia).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The precision of the data type also plays an important role. Higher precision data types like &lt;code&gt;double&lt;/code&gt; require more bandwidth to transfer and will typically require more cycles when computing arithmetic operations.&lt;/p&gt;
+&lt;h2 id=&#34;stencils&#34;&gt;Stencils&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;stencil&lt;/strong&gt; is a geometric pattern of weights applied at each point of a structured grid. The points on the grid will derive their values from neighboring points using some numerical approximation. For example, this is used to solve differential equations. Consider a 1D grid of discretized values from a function \(f(x)\). The finite difference approximation can be used to find \(f&amp;rsquo;(x)\):&lt;/p&gt;
+&lt;p&gt;\[ f&amp;rsquo;(x) = \frac{f(x+h) - f(x-h)}{2h} + O(h^2) \]&lt;/p&gt;
+&lt;p&gt;In code, this would look like:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void finite_difference(float *f, float *df, float h) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    df[i] = (f[i+1] - f[i-1]) / (2 * h);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A PDE of two variables can be solved using a 2D stencil. Likewise, a PDE of three variables can be solved using a 3D stencil. The figures below show examples of common 2D and 3D stencils. Note that they typically have an odd number of points so that there is a center point.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_15-23-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;1D stencils. Recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;1D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The 1D stencils shown above are used to approximate the first-order (A), second-order (B), and third-order (C) derivatives of a function \(f(x)\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-27_15-24-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;2D and 3D stencils. Recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;2D and 3D stencils. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The 2D stencils shown above are used to approximate first-order (A) and second-order (B) derivatives of a function \(f(x, )\). Likewise, the 3D stencils are used to approximate first-order (C) and second-order (D) derivatives of a function \(f(x, y, z)\).&lt;/p&gt;
+&lt;p&gt;A &lt;em&gt;stencil sweep&lt;/em&gt; is the process of applying the stencil to all points on the grid, similar to how a convolution is applied. There are many similarities between the two, but the subtle differences will require us to think differently about how to optimize them.&lt;/p&gt;
+&lt;h2 id=&#34;example-basic-stencil&#34;&gt;Example: Basic Stencil&lt;/h2&gt;
+&lt;p&gt;The code below presents a naive kernel for a stencil pattern using a 3D seven-point stencil.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    unsigned int i = blockIdx.z * blockDim.z + threadIdx.z;
+    unsigned int j = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+        out[i*N*N + j*N + k] = c0 * in[i*N*N + j*N + k]
+                             + c1 * in[i*N*N + j*N + (k - 1)]
+                             + c2 * in[i*N*N + j*N + (k + 1)]
+                             + c3 * in[i*N*N + (j - 1)*N + k]
+                             + c4 * in[i*N*N + (j + 1)*N + k]
+                             + c5 * in[(i - 1)*N*N + j*N + k]
+                             + c6 * in[(i + 1)*N*N + j*N + k];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This example assumes the input and output are 3D grids. For this particular stencil, you should try to identify the number of memory accesses and operations performed. Can you already see some opportunities for optimization?&lt;/p&gt;
+&lt;h2 id=&#34;tiled-stencil&#34;&gt;Tiled Stencil&lt;/h2&gt;
+&lt;p&gt;Just like with convolution, it is possible to use shared memory to improve the performance of a stencil. The code below shows a tiled stencil kernel that uses shared memory.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    __shared__ float tile[IN_TILE_DIM][IN_TILE_DIM][IN_TILE_DIM];
+    int i = blockIdx.z * OUT_TILE_DIM + threadIdx.z - 1;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+
+    if (i &amp;gt;= 0 &amp;amp;&amp;amp; i &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        tile[threadIdx.z][threadIdx.y][threadIdx.x] = in[i*N*N + j*N + k];
+    }
+    __syncthreads();
+    if (i &amp;gt;=1 &amp;amp;&amp;amp; i &amp;lt; N-1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N-1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N-1) {
+        if (threadIdx.z &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.z &amp;lt; IN_TILE_DIM-1 &amp;amp;&amp;amp;
+            threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM-1 &amp;amp;&amp;amp;
+            threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM-1) {
+            out[i*N*N + j*N + k] = c0 * tile[threadIdx.z][threadIdx.y][threadIdx.x]
+                                 + c1 * tile[threadIdx.z][threadIdx.y][threadIdx.x - 1]
+                                 + c2 * tile[threadIdx.z][threadIdx.y][threadIdx.x + 1]
+                                 + c3 * tile[threadIdx.z][threadIdx.y - 1][threadIdx.x]
+                                 + c4 * tile[threadIdx.z][threadIdx.y + 1][threadIdx.x]
+                                 + c5 * tile[threadIdx.z - 1][threadIdx.y][threadIdx.x]
+                                 + c6 * tile[threadIdx.z + 1][threadIdx.y][threadIdx.x];
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Just like before, the threads of a block will first collaborate to load a tile with the relevant data. Stencil patterns are more sparse than convolutional filters and require less data to be loaded into shared memory. This will be the central detail in our analysis of stencil patterns.&lt;/p&gt;
+&lt;h3 id=&#34;scaling-stencil-size-vs-dot-convolution-filter-size&#34;&gt;Scaling stencil size vs. Convolution filter size&lt;/h3&gt;
+&lt;p&gt;Convolutions are more efficient as the size increases since more values are accessed in shared memory. For a \(3 \times 3\) convolution, the upper bound on compute to memory ratio is 4.5 OP/B. A 5 point 2D stencil has a ratio of 2.5 OP/B due to the sparsity of the pattern. The threads in the block would load the diagonal values from global memory, but each thread would only use the 5 points defined by the kernel.&lt;/p&gt;
+&lt;h3 id=&#34;tiling-analysis&#34;&gt;Tiling Analysis&lt;/h3&gt;
+&lt;p&gt;Let us consider the effectiveness of shared memory tiling where each thread performs 13 floating-point ops (7 multiplies and 6 adds) with each block using \((T - 2)^3\) threads. Each block also performs \(T^3\) loads of 4 bytes each. The compute to memory ratio can be express as:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{13(T - 2)^3}{4T^3} = \frac{13}{4} \left(1 - \frac{2}{T}\right)^3
+\]&lt;/p&gt;
+&lt;p&gt;Due to the low limit on threads, the size of \(T\) is typically small. This means there is a smaller amount of reuse of data in shared memory. The ratio of floating-point ops to memory accesses will be low.&lt;/p&gt;
+&lt;p&gt;Each warp loads values from 4 distant locations in global memory. This means that the memory accesses are not coalesced: the memory bandwidth is low. Consider an \(8 \times 8 \times 8\) block. A warp of 32 threads will load 4 rows of 8 values each. &lt;strong&gt;The values within each row contiguous, but the rows are not contiguous.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h2&gt;
+&lt;p&gt;Stencils do not benefit from shared memory as much as convolutions due to the sparsity of the sampled points. Most applications of the stencil patterns work with a 3D grid, resulting in relatively small tile sizes per block.&lt;/p&gt;
+&lt;p&gt;A solution to this is to increase the amount of work each thread performs, AKA &lt;em&gt;thread coarsening&lt;/em&gt;. The price paid for parallelism in the stencil pattern is the low frequency of memory reuse.&lt;/p&gt;
+&lt;p&gt;Each thread performs more work in the \(z\) direction for a 3D seven-point stencil. All threads collaborate to load in a \(z\) layer at time from \(z-1\) to \(z+1\). There are then 3 different shared memory tiles per block. After computing values in the current output tile, the shared memory is rearranged for the next layer. This means that there are more transfers between shared memory as opposed to global memory.&lt;/p&gt;
+&lt;p&gt;The threads are launched to work with a 2D tile at a time, so the size of the block is now \(T^2\). This means we can use a larger value for \(T\). The compute to memory ratio is almost doubled under this scheme. Additionally, the amount of shared memory required is \(3T^2\) rather than \(T^3\).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    __shared__ float inPrev_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+    __shared__ float inNext_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &amp;gt;= 0 &amp;amp;&amp;amp; iStart - 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inPrev_s[threadIdx.y][threadIdx.x] = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &amp;gt;= 0 &amp;amp;&amp;amp; iStart &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inCurr_s[threadIdx.y][threadIdx.x] = in[iStart*N*N + j*N + k];
+    }
+    for (int i = iStart; i &amp;lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &amp;gt;= 0 &amp;amp;&amp;amp; i + 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+            inNext_s[threadIdx.y][threadIdx.x] = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+            if (threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM - 1 &amp;amp;&amp;amp;
+                threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr_s[threadIdx.y][threadIdx.x]
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev_s[threadIdx.y][threadIdx.x]
+                    + c6 * inNext_s[threadIdx.y][threadIdx.x];
+            }
+        }
+        __syncthreads();
+        inPrev_s[threadIdx.y][threadIdx.x] = inCurr_s[threadIdx.y][threadIdx.x];
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This kernel is visualized below with a block size of \(6 \times 6\). The left and top sides of the tile have been removed for clarity. All of the blue blocks are loaded from global memory. The dark blue blocks represent the &lt;em&gt;active&lt;/em&gt; plane that is used to compute the corresponding output values. After the current plane is completed, the block synchronizes before moving the current values to the previous plane and loads the next plane&amp;rsquo;s values into the current plane &lt;code&gt;inCurr_s&lt;/code&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_15-28-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Visualization of the thread coarsening tile.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of the thread coarsening tile.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;register-tiling&#34;&gt;Register Tiling&lt;/h2&gt;
+&lt;p&gt;In the coarsening solution presented above, each thread works with a single element in the previous and next shared memory tiles. There are 4 elements in that example that really need to be loaded from shared memory. For the 3 elements that are only required by the current thread, they can be loaded into registers.&lt;/p&gt;
+&lt;p&gt;Since only the values in the \(x-y\) direction are required for shared memory, the amount of memory used is reduced by \(\frac{1}{3}\).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void stencil_kernel(float *in, float *out, unsigned int N) {
+    int iStart = blockIdx.z * OUT_TILE_DIM;
+    int j = blockIdx.y * OUT_TILE_DIM + threadIdx.y - 1;
+    int k = blockIdx.x * OUT_TILE_DIM + threadIdx.x - 1;
+    float inPrev;
+    float inCurr;
+    float inNext;
+
+    __shared__ float inCurr_s[IN_TILE_DIM][IN_TILE_DIM];
+
+    if (iStart - 1 &amp;gt;= 0 &amp;amp;&amp;amp; iStart - 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inPrev = in[(iStart - 1)*N*N + j*N + k];
+    }
+    if (iStart &amp;gt;= 0 &amp;amp;&amp;amp; iStart &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+        inCurr = in[iStart*N*N + j*N + k];
+        inCurr_s[threadIdx.y][threadIdx.x] = inCurr;
+    }
+    for (int i = iStart; i &amp;lt; iStart + OUT_TILE_DIM; i++) {
+        if (i + 1 &amp;gt;= 0 &amp;amp;&amp;amp; i + 1 &amp;lt; N &amp;amp;&amp;amp; j &amp;gt;= 0 &amp;amp;&amp;amp; j &amp;lt; N &amp;amp;&amp;amp; k &amp;gt;= 0 &amp;amp;&amp;amp; k &amp;lt; N) {
+            inNext = in[(i + 1)*N*N + j*N + k];
+        }
+        __syncthreads();
+        if (i &amp;gt;= 1 &amp;amp;&amp;amp; i &amp;lt; N - 1 &amp;amp;&amp;amp; j &amp;gt;= 1 &amp;amp;&amp;amp; j &amp;lt; N - 1 &amp;amp;&amp;amp; k &amp;gt;= 1 &amp;amp;&amp;amp; k &amp;lt; N - 1) {
+            if (threadIdx.y &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.y &amp;lt; IN_TILE_DIM - 1 &amp;amp;&amp;amp;
+                threadIdx.x &amp;gt;= 1 &amp;amp;&amp;amp; threadIdx.x &amp;lt; IN_TILE_DIM - 1) {
+                out[i*N*N + j*N + k] = c0 * inCurr
+                    + c1 * inCurr_s[threadIdx.y][threadIdx.x - 1]
+                    + c2 * inCurr_s[threadIdx.y][threadIdx.x + 1]
+                    + c3 * inCurr_s[threadIdx.y - 1][threadIdx.x]
+                    + c4 * inCurr_s[threadIdx.y + 1][threadIdx.x]
+                    + c5 * inPrev
+                    + c6 * inNext;
+            }
+        }
+        __syncthreads();
+        inPrev = inCurr;
+        inCurr = inNext;
+        inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every threads collectively store the previous and next planes in registers.&lt;/p&gt;
+&lt;p&gt;The larger the stencil size, the more registers are required per thread. In this case, a tradeoff between shared memory space and register usage could be made. This will be explored in your lab.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;Stencils are a useful pattern for solving differential equations. They have some similarities to convolutions, but present unique challenges in terms of optimization. The sparsity of the pattern means that shared memory is not as effective as it is for convolutions. Thread coarsening and register tiling are two techniques that can be used to improve performance.&lt;/p&gt;
+&lt;h2 id=&#34;questions&#34;&gt;Questions&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;How many registers per thread are required for a 3D seven-point stencil, 3D nine-point stencil, and 3D 27-point stencil?&lt;/li&gt;
+&lt;li&gt;How do convolutions relate to stencil patterns? Could you implement a stencil pattern using a convolution filter?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Convolution</title>
@@ -1400,9 +1693,57 @@ void kernel(int *a, int *b, int *c) {
 &lt;p&gt;Even though the call looks the same, each &lt;code&gt;__syncthreads()&lt;/code&gt; is different. The first call will only synchronize the threads that executed the first path. The second call will only synchronize the threads that executed the second path. The result is either undefined output or a deadlock, in which the threads will never reach the second call.&lt;/p&gt;
 &lt;p&gt;Since threads in separate blocks cannot be synchronized, the blocks can be executed in any arbitrary order. You might immediately ask yourself how a complex problem that requires synchronization between all parts of the data can get around this limitation. We will explore more complex patterns and their solutions in later sections.&lt;/p&gt;
 &lt;h2 id=&#34;warps&#34;&gt;Warps&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_21-03-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Warps across several blocks (credit: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Warps across several blocks (credit: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;Streaming Multiprocessors in a CUDA chip execute threads in a group of 32 called &lt;strong&gt;warps&lt;/strong&gt;. Since Compute Capability 1.0, the warp size has not changed. When a block is assigned to an SM, it is divided into warps. Given this size, you can easily determine the number of warps assigned to an SM. For example, if you have a block of 256 threads, the SM has 256 / 32 = 8 warps. If the block size is not evenly divisible by the number of warps per SM, the last warp will be padded with inactive threads.&lt;/p&gt;
-&lt;p&gt;When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a &lt;strong&gt;row-major&lt;/strong&gt; order before being partitioned into warps. For example, a 2D block of 16x16 threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.&lt;/p&gt;
+&lt;p&gt;When multi-dimensional thread blocks are assigned to an SM, the threads are linearly mapped in a &lt;strong&gt;row-major&lt;/strong&gt; order before being partitioned into warps. For example, a 2D block of \(16 \times 16\) threads will be mapped to a 1D array of 256 threads. The first 32 threads will be assigned to the first warp, the next 32 to the second warp, and so on.&lt;/p&gt;
 &lt;p&gt;Warps are executed following the Single-Instruction, Multiple-Data (SIMD) model. There is a single program that runs the same instruction on all threads in the same order. If a thread would have executed a different path based on its input data, it would not be executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt; and is explained in the next section.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-28_21-08-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;SM layout (source: NVIDIA DLI)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;SM layout (source: NVIDIA DLI)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;The advantage of this model is that more physical space can be dedicated to ALUs instead of control logic. In a traditional CPU, each processing core would have its own control logic. The tradeoff is that different cores can execute their own programs at varying points in time.&lt;/p&gt;
 &lt;h2 id=&#34;control-divergence&#34;&gt;Control Divergence&lt;/h2&gt;
 &lt;p&gt;Since a traditional CPU has separate control logic for each core, it can execute different programs at the same time. If the program has a conditional statement, it does not need to worry about synchronizing instructions with another core. This is not the case with a GPU. Since every thread in a warp executes the same instruction, only threads that would execute the same path can be processed at the same time. If a thread would execute a different path, it is not executed with the others. This is called &lt;strong&gt;control divergence&lt;/strong&gt;.&lt;/p&gt;
@@ -1426,14 +1767,14 @@ void kernel(int *a, int *b, int *c) {
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_11-44-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-11_11-44-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;GH100 Full GPU with 144 SMs ([NVIDIA](https://resources.nvidia.com/en-us-tensor-core)).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;GH100 Full GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;GH100 Full GPU with 144 SMs (&lt;a href=&#34;https://resources.nvidia.com/en-us-tensor-core&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NVIDIA&lt;/a&gt;).
     
     
     
@@ -1444,7 +1785,7 @@ void kernel(int *a, int *b, int *c) {
 
 &lt;p&gt;The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (Hwu, Kirk, and El Hajj 2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.&lt;/p&gt;
 &lt;p&gt;What if we chose 32 threads per block? Then there would be 2048 / 32 = 64 blocks per SM. However, the device only supports 32 blocks per SM. With only 32 blocks allocated with 32 threads per block, a total of 1024 threads would be utilized. The occupancy in this case is 1024 / 2048 = 50%.&lt;/p&gt;
-&lt;p&gt;Historically, NVIDIA provided an excel spreadsheet to compute occpancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.&lt;/p&gt;
+&lt;p&gt;Historically, NVIDIA provided an excel spreadsheet to compute occupancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.&lt;/p&gt;
 &lt;h3 id=&#34;including-registers&#34;&gt;Including Registers&lt;/h3&gt;
 &lt;p&gt;Another factor for occupancy is the number of registers used per thread. The H100 has 65,536 registers available for use. As long as your program does not use more than this, you can follow the simpler occupancy calculation from above. With 2048 threads, that leaves 65,536 / 2048 = 32 registers per thread. If we run a program with 256 threads/block, there would be 2048 / 256 = 8 blocks per SM. This means that there are 8 * 256 = 2048 threads per SM. With 31 registers per thread, the total number of registers used per SM is 2048 * 31 = 63,488. In this case we still maximize occupancy since 63,488 &amp;lt; 65,536.&lt;/p&gt;
 &lt;p&gt;What if each thread required 33 registers? In that case, the total number of registers used per SM would be 2048 * 33 = 67,584. How would these resources be partitioned? Only 7 blocks could be assigned since 7 * 256 * 33 = 59,136 &amp;lt; 65,536. This means that only 7 * 256 = 1792 threads would be used, reducing the occupancy to 1792 / 2048 = 87.5%.&lt;/p&gt;
@@ -12873,6 +13214,322 @@ L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i 
     </item>
     
     <item>
+      <title>Edge Detection</title>
+      <link>https://ajdillhoff.github.io/notes/edge_detection/</link>
+      <pubDate>Tue, 01 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/edge_detection/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#computing-gradient-norms&#34;&gt;Computing Gradient Norms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#nonmaxima-suppression&#34;&gt;Nonmaxima Suppression&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thresholding&#34;&gt;Thresholding&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#connectivity-analysis&#34;&gt;Connectivity Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_22-45-59_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Vertical derivative filter (left) and horizontal derivative filter (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Vertical derivative filter (left) and horizontal derivative filter (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;When &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_filters/&#34;&gt;image gradient&lt;/a&gt; filters are applied to an image, we can observe that the sample responses are very sensitive to noise and detail. For example, look at the surface at the back of ship near the drive cone. To resolve this, the image should be smoothed before differentiating it. Recall that the Gaussian filter smooths the area so that neighboring pixels are more similar than distant pixels.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-01-31_22-49-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;dx kernel applied to image blurred with Gaussian (sigma=1).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;dx kernel applied to image blurred with Gaussian (sigma=1).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This is closer to what we want, but the end goal is to create an image that shows distinct edges. We need to be clear about what an edge is. For now, we consider the images produced by convolving the \(dx\) or \(dy\) kernels as edge score images. They are only intermediate; we still need to make a final decision.&lt;/p&gt;
+&lt;p&gt;In this section, we will learn about the Canny Edge Detector. The general algorithm is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Smooth the image using Gaussian blurring.&lt;/li&gt;
+&lt;li&gt;Compute the gradient image via filtering. Most commonly, the &lt;a href=&#34;https://en.wikipedia.org/wiki/Sobel_operator&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Sobel operator&lt;/a&gt; is used.&lt;/li&gt;
+&lt;li&gt;Filter out weaker edge score by selecting local pixels with the largest gradient change.&lt;/li&gt;
+&lt;li&gt;Use double thresholding to separate strong, or definite, edge pixels from weak ones.&lt;/li&gt;
+&lt;li&gt;Remove all weak pixels not connected to a strong pixel.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Canny edge detection follows 3 objective criteria:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Edges should be detected with a low error rate. The goal is to extract as many &lt;em&gt;actual&lt;/em&gt; edges as possible.&lt;/li&gt;
+&lt;li&gt;A detected edge should correspond to the center pixel of the edge in the original image.&lt;/li&gt;
+&lt;li&gt;It should be robust to noise and only mark an edge pixel once.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Smoothing the image can be done by applying a Gaussian blur. Next, we need to compute the gradient image.&lt;/p&gt;
+&lt;h2 id=&#34;computing-gradient-norms&#34;&gt;Computing Gradient Norms&lt;/h2&gt;
+&lt;p&gt;As we saw before, the derivative filters compute the direction of greatest change in the calculated direction. When combining the result of \(dx\) and \(dy\), we get the gradient of the pixel.&lt;/p&gt;
+&lt;p&gt;\[
+\nabla f(x, y) = \Bigg[\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}\Bigg].
+\]&lt;/p&gt;
+&lt;p&gt;Canny edge detection works by selecting local pixels with the largest gradient change. In order to do this, we need to compute the &lt;strong&gt;norm&lt;/strong&gt; of the gradient. If we consider every pixel in the gradient image to be a vector indicating the direction of greatest change, the norm can be computed as&lt;/p&gt;
+&lt;p&gt;\[
+\|\nabla f(x, y)\| = \sqrt{\Big(\frac{\partial f}{\partial x}\Big)^2 + \Big(\frac{\partial f}{\partial y}\Big)^2}.
+\]&lt;/p&gt;
+&lt;p&gt;Additionally, we want the angle of direction of the gradient. This can be computed for each pixel as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\theta = \text{atan2}(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;In practice, this can be computed at the same time. There are also efficient implementations of &lt;code&gt;atan2&lt;/code&gt; which can generate an array of the same size of the original image containing the computed angles for each pixel.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_12-47-47_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Gradient norm of image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Gradient norm of image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above shows the result of computing the gradient norms for each pixel. This representation is intuitive to interpret. The largest values are on the edges of the violin. The image produced by this step is still too fuzzy. These do not represent the final edges.&lt;/p&gt;
+&lt;h2 id=&#34;nonmaxima-suppression&#34;&gt;Nonmaxima Suppression&lt;/h2&gt;
+&lt;p&gt;The gradient norm image is helpful in showing all edge scores, but the egdes are still too thick and there are many disconnected edge scores detected. We can thin the edges by evaluating neighboring pixels. We will select only the local pixels which have the highest absolute gradient and suppress the others.
+This process is called &lt;strong&gt;nonmaxima suppression&lt;/strong&gt;.
+There are two approaches to this problem. The first is approximates the closest gradient normal. The second uses interpolation to compute a more accurate value.&lt;/p&gt;
+&lt;p&gt;In the first approach, the number of discrete orientations for the edge normal are split into horizontal, vertical, \(45^{\circ}\), and \(-45^{\circ}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_13-13-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Discretizing angles into 4 regions.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Discretizing angles into 4 regions.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;For a given pixel, the gradient direction is discretized into one of the above four regions by selection the angle closest to the original angle given.
+Next, the gradient norm of the given pixel is compared to that of the pixels on either side of it following the same discretized direction. If one of the neighboring pixels has a higher gradient norm, the current pixel&amp;rsquo;s value is set to 0.
+The intuition here is that if it &lt;em&gt;were&lt;/em&gt; an edge pixel, it would have the largest gradient norm along its given direction.&lt;/p&gt;
+&lt;p&gt;The result of applying this process on our gradient image is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_14-44-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Gradient norm image after nonmaxima suppression is applied.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Gradient norm image after nonmaxima suppression is applied.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;interpolation&#34;&gt;Interpolation&lt;/h3&gt;
+&lt;p&gt;An alternative approach is to interpolate the gradient norm using the actual angle.
+Instead of discretizing it into one of four regions above, the original angle is used to compute the neighboring pixels in continuous space.
+This will, of course, produce invalid pixel locations. The gradient norm for the neighboring pixels follows the approach discussed in &lt;a href=&#34;https://ajdillhoff.github.io/notes/sampling/&#34;&gt;Sampling and Aliasing&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;For example, if we are at pixel \((5, 5)\) with a gradient direction of \(55^{\circ}\), then the neighboring pixels along that angle can be computed by first finding the vector following that direction. That is&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{p}_{\text{offset}} &amp;amp;=
+\begin{bmatrix}
+\cos (55^{\circ} \cdot \frac{\pi}{180^{\circ}})\\
+\sin (55^{\circ} \cdot \frac{\pi}{180^{\circ}})
+\end{bmatrix}\\
+&amp;amp;=
+\begin{bmatrix}
+.5736\\
+.8192
+\end{bmatrix}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then the two neighboring pixels along this direction are \(f(5 - .5373, 5 - .8192)\) and \(f(5 + .5373, 5 + .8192)\). These are clearly not valid pixel locations.
+To compute the interpolated value, a weighted contribution from the closest 4 pixels are used for each of the two neighbors.
+For \(f(4.4627, 4.1808)\), these pixels are \(\{(4, 4), (5, 4), (4, 5), (5, 5)\}\).
+The interpolation weights for this pixel are computed as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+w_x &amp;amp;= 4.4627 - 4 = .4627\\
+w_y &amp;amp;= 4.1808 - 4 = .1808
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then the resulting pixel value is computed via bilinear interpolation:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+f(4.4627, 4.1808) &amp;amp;=
+(1 - w_x) \cdot (1 - w_y) \cdot f(4, 4)\\
+&amp;amp;+ w_x \cdot (1 - w_y) \cdot f(5, 4)\\
+&amp;amp;+ (1 - w_x) \cdot w_y \cdot f(4, 5)\\
+&amp;amp;+ w_x \cdot w_y \cdot f(5, 5).
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;thresholding&#34;&gt;Thresholding&lt;/h2&gt;
+&lt;p&gt;We now have an image of edge scores, but have not yet made a final determination on which pixels are actually edges. One approach to selecting the edge pixel is to use thresholding. That is, we suppress any pixel value that is lower than some parameter \(T\):&lt;/p&gt;
+&lt;p&gt;\[
+f_{T}(x, y) = f(x, y) \geq T.
+\]&lt;/p&gt;
+&lt;p&gt;However, this approach will still leave many false positives as well as edge segments that may be connected to strong edges.
+This issue is partly resolved via &lt;strong&gt;hysteresis thresholding&lt;/strong&gt;.
+For this, we choose 2 threshold values: one for weak edges and another for strong edge scores.
+Using these scores, we can generate two images:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+f_{T_H}(x, y) &amp;amp;= f(x, y) \geq T_{H}\\
+f_{T_L}(x, y) &amp;amp;= f(x, y) \geq T_{L}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can then eliminate the duplicate pixels in \(f_{T_L}\) by subtracting \(f_{T_H}\):&lt;/p&gt;
+&lt;p&gt;\[
+f_{T_L} = f_{T_L} - f_{T_H}.
+\]&lt;/p&gt;
+&lt;p&gt;Using the image processed via nonmaxima suppression from before, this generates the following images:&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_14-43-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Low threshold image (left) and high threshold image (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Low threshold image (left) and high threshold image (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;connectivity-analysis&#34;&gt;Connectivity Analysis&lt;/h2&gt;
+&lt;p&gt;There must be a reason why we computed a lower threshold. There are weak edge pixels that may have been apart of a segment connected to strong pixels. In this case, we want to keep every weak pixel that is 8-connected to a strong pixel.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_15-00-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;The pixels surrounding the black pixel are 8-connected to it. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;The pixels surrounding the black pixel are 8-connected to it. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This can be accomplished with the following steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Locate an edge pixel in the high threshold image.&lt;/li&gt;
+&lt;li&gt;Mark all pixels in the weak image that are 8-connected to the current strong pixel as strong pixels.&lt;/li&gt;
+&lt;li&gt;Repeat steps 1 and 2 for all strong pixels in the original high threshold image.&lt;/li&gt;
+&lt;li&gt;Set all pixels in the weak image that were not marked to 0.&lt;/li&gt;
+&lt;li&gt;Add the marked weak pixels to the strong image.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Applying the procedure above given the weak and strong images from before yields the following result.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-06_15-04-45_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Final edge image after connectivity analysis.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Final edge image after connectivity analysis.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
       <title>Sampling and Aliasing</title>
       <link>https://ajdillhoff.github.io/notes/sampling/</link>
       <pubDate>Sun, 30 Jan 2022 00:00:00 -0600</pubDate>
@@ -13894,6 +14551,931 @@ m = V - C
 &lt;/figure&gt;
 
 &lt;p&gt;This looks washed out. All of the pixels with 0 values were increased uniformly. Perhaps we could clamp that by setting all pixels with the given value change back to their original values.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Histogram of Oriented Gradients</title>
+      <link>https://ajdillhoff.github.io/notes/histogram_of_oriented_gradients/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/histogram_of_oriented_gradients/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#orientation-histograms&#34;&gt;Orientation Histograms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#histogram-of-oriented-gradients&#34;&gt;Histogram of Oriented Gradients&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Key Questions&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Why are these necessary?&lt;/li&gt;
+&lt;li&gt;What limitations do they address that corner interest points cannot?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Although the original &lt;a href=&#34;http://vision.stanford.edu/teaching/cs231b_spring1213/papers/CVPR05_DalalTriggs.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;HOG Paper&lt;/a&gt; came out after &lt;a href=&#34;https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;SIFT&lt;/a&gt;, it is much simpler to describe the process.
+Histograms of Oriented Gradients are feature vectors that are generated by evaluating gradients within a local neighborhood of interest points.&lt;/p&gt;
+&lt;h2 id=&#34;orientation-histograms&#34;&gt;Orientation Histograms&lt;/h2&gt;
+&lt;p&gt;This approach depends on building &lt;a href=&#34;https://john.cs.olemiss.edu/heroes/papers/hand_gesture.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;orientation histograms&lt;/a&gt;.
+For each pixel in the original image, construct a histogram of gradient orientations of all pixels within a square window.
+The gradient orientations of each pixel are easily calculated following the approach used for &lt;a href=&#34;https://ajdillhoff.github.io/notes/edge_detection/&#34;&gt;Edge Detection&lt;/a&gt;.
+This transformation can be flattened into a single vector that is used to compare images via L2 distance or some other metric.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-12_19-48-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Orientation histograms of hand images.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Orientation histograms of hand images.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The pseudocode to generate orientation histograms is shown below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-nil&#34; data-lang=&#34;nil&#34;&gt;let w be the window_size
+let h be half the window_size
+let norms be the gradient norms of the input image for each pixel
+let angles be the computed orientations of the gradient vectors for each pixel
+for each pixel (i, j):
+    create a histogram of orientations with $b$ bins
+    weight the orientations of the bins based on the gradient norm
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The histograms of each local feature are translation invariant.
+A histogram of gradient orientations for a feature in one image should be the same as one generated to a similar feature in another image.&lt;/p&gt;
+&lt;p&gt;This approach is not scale invariant.&lt;/p&gt;
+&lt;h2 id=&#34;histogram-of-oriented-gradients&#34;&gt;Histogram of Oriented Gradients&lt;/h2&gt;
+&lt;p&gt;Dalal and Triggs (2005) propose a feature extraction method based on orientatio histograms.
+In their work published at CVPR, they evaluate their features by training a SVM for pedestrian detection on a standard (at that time) benchmark.
+They evaluate on a person detector using the metric &lt;strong&gt;False Positives Per Window (FPPW)&lt;/strong&gt;.
+This can be calculated as `num_fp / num_windows`.&lt;/p&gt;
+&lt;h3 id=&#34;computing-hog&#34;&gt;Computing HoG&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Extract a window of some size.&lt;/li&gt;
+&lt;li&gt;Divide window into sub-grid&lt;/li&gt;
+&lt;li&gt;Compute orientation histogram of each cell.&lt;/li&gt;
+&lt;li&gt;Concatentate the four histograms.&lt;/li&gt;
+&lt;li&gt;Normalize the feature vector.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Usually choose 4 cells per window with 9 orientation bins.&lt;/p&gt;
+&lt;h3 id=&#34;normalization-schemes&#34;&gt;Normalization Schemes&lt;/h3&gt;
+&lt;p&gt;There were several normalizion schemes addressed in the paper.
+The normalization scheme picked based on lowest FPPW is `L2-Hys`:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Normalize the concatenated vector.&lt;/li&gt;
+&lt;li&gt;Clip values to 0.2&lt;/li&gt;
+&lt;li&gt;Normalize again.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;They also evaulated the features with L2, L1, and L1-sqrt.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-12_15-48-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Evaluation of normalization approaches (Dalal and Triggs, 2005).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Evaluation of normalization approaches (Dalal and Triggs, 2005).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>Image Features</title>
+      <link>https://ajdillhoff.github.io/notes/image_features/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/image_features/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#detecting-corners&#34;&gt;Detecting Corners&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#describing-image-patches&#34;&gt;Describing Image Patches&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#scale-invariance&#34;&gt;Scale Invariance&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Why do we care about image features? One of the main goals of computer vision is understanding of some environment through visual perception. In order to summarize a visual object, we need some description of it.
+These descriptions can come in many forms, so we need to articulate some goals as to what we are ultimately looking for when describing an image.&lt;/p&gt;
+&lt;p&gt;What makes an interesting feature in an image?&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Something distinct&lt;/li&gt;
+&lt;li&gt;Invariance properties (translation, rotation, scaling)&lt;/li&gt;
+&lt;li&gt;Easy to compute&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Image features are the building blocks of many higher level applications such as&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Stereo correspondence&lt;/li&gt;
+&lt;li&gt;Image stitching&lt;/li&gt;
+&lt;li&gt;Object recognition and detection&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-08_09-02-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Patches taken from two images from different perspectives. Some patches are more descriptive than others. Source: Szeliski&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Patches taken from two images from different perspectives. Some patches are more descriptive than others. Source: Szeliski
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-08_09-06-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Objects detected using YOLOv3. Source: Wikipedia.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Objects detected using YOLOv3. Source: Wikipedia.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-08_09-07-29_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Image stitching result. The red lines show the seams at which the images are joined. Source: Wikipedia.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Image stitching result. The red lines show the seams at which the images are joined. Source: Wikipedia.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Topics:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Corners&lt;/li&gt;
+&lt;li&gt;HOG&lt;/li&gt;
+&lt;li&gt;SIFT&lt;/li&gt;
+&lt;li&gt;Correlation with template&lt;/li&gt;
+&lt;li&gt;PCA&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We have talked about &lt;a href=&#34;https://ajdillhoff.github.io/notes/edge_detection/&#34;&gt;Edge Detection&lt;/a&gt;, which produces an image of edge pixels given some raw input. Edges are certainly useful features, but are they distinct enough to produce consistent image features?&lt;/p&gt;
+&lt;p&gt;Consider an image patch detected from three different primitives:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Points&lt;/li&gt;
+&lt;li&gt;Edges&lt;/li&gt;
+&lt;li&gt;Corners&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-08_09-33-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Aperture problem for patches detected from different primitives. Source: Szeliski.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Aperture problem for patches detected from different primitives. Source: Szeliski.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The above figure illustrates the aperture problem.
+Consider a flat surface without texture. If we generate a patch around any arbitrary point, it will have many correspondences with other patches.
+It may be obvious that picking any arbitrary point on a flat, single-colored surface would not be descriptive enough to match with anything useful.&lt;/p&gt;
+&lt;p&gt;What about an edge? An edge is distinct based on its orientation. The middle image in the figure above shows that, while some ambiguity has been resolved, there are still a wide range of possible locations that it could be matched to. There could be many such edges found between images.&lt;/p&gt;
+&lt;p&gt;This brings us to a corner. A corner has two distinct gradient changes which make it a perfect candidate for interest point detection.&lt;/p&gt;
+&lt;h2 id=&#34;detecting-corners&#34;&gt;Detecting Corners&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.434.4816&amp;amp;rep=rep1&amp;amp;type=pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Paper Link&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Corners are a great choice for a feature. They are small, rotation and translation invariant, and can be computed simply from the gradient images we have computed before.&lt;/p&gt;
+&lt;p&gt;There are a few distinct interest points of a violin. Maybe we can use a corner detector to come up with patches which can be reproduced across different images.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_09-51-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;A replica violin.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;A replica violin.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In a local window, a corner exhibits a large change in orientation.
+A flat surface has no orientation response at all.
+An edge only has an orientation in one direction.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How can we detect such changes in an image?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;sum of square differences (SSD)&lt;/strong&gt;. If we take some window and move it over some image, taking a the SSD at each point, we can produce an image of responses.
+SSD is defined as&lt;/p&gt;
+&lt;p&gt;\[
+f(x, y) = \sum_{(u, v) \in W}\big(I(x + u, y + v) - I(u, v)\big)^2.
+\]&lt;/p&gt;
+&lt;p&gt;This difference was previously used to evaluate discrete steps. Harris et al. note this as a limitation and instead aim to evaluate all possible &lt;em&gt;small&lt;/em&gt; shifts about the origin of the shift. This is accomplished through analytic expansion of the term \(I(x + u, y + v)\).&lt;/p&gt;
+&lt;p&gt;Through Taylor expansion, this can be approximated as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+I(x + u, y + v) &amp;amp;= I(u, v) + x \frac{\partial}{\partial x}I(x, y) + y \frac{\partial}{\partial y}I(x, y) + O(x^2, y^2) \\
+&amp;amp;\approx I(u, v) + xI_x + yI_y
+\end{align*}&lt;/p&gt;
+&lt;p&gt;In the above approximation, \(O(x^2, y^2)\) describes the upper bound of the behavior of the function. Through Taylor expansion, we could write the higher order terms. However, we only care about small shifts about the shift origin, so only a first order, or linear, approximation is sufficient.&lt;/p&gt;
+&lt;p&gt;Using this first order approximation, SSD can be written&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+f(x, y) &amp;amp;\approx \sum_{(u, v) \in W} w(u, v) \big(I(u, v) + xI_x + yI_y - I(u,v)\big)^2\\
+&amp;amp;= \sum_{(u, v) \in W} w(u, v) \big(xI_x + yI_y\big)^2\\
+&amp;amp;= \sum_{(u, v) \in W} w(u, v) \big(x^2I_x^2 + 2xyI_xI_y + y^2I_y^2\big)
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The term \(x^2I_x^2 + 2xyI_xI_y + y^2I_y^2\) is a linear combination and can be efficiently computed via matrix multiplication.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+x^2I_x^2 + 2xyI_xI_y + y^2I_y^2 =
+\begin{bmatrix}
+x &amp;amp; y
+\end{bmatrix}
+\begin{bmatrix}
+I_x^2 &amp;amp; I_x I_y \\
+I_x I_y &amp;amp; I_y^2\\
+\end{bmatrix}
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;We can now rewrite the original SSD as follows.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+f(x, y) \approx
+\begin{bmatrix}
+x &amp;amp; y
+\end{bmatrix}
+M
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix},
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+M = \sum_{(u, v) \in W} w(u, v) H.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+H =
+\begin{bmatrix}
+I_x^2 &amp;amp; I_x I_y\\
+I_x I_y &amp;amp; I_y^2 \\
+\end{bmatrix}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;\(M\) is then an autocorrelation matrix. The benefit of this formulation is that \(M\) is a symmetric matrix. If we remember our studies from linear algebra, we remember that there are some very important properties and characteristics of symmetric matrices.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_16-54-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Gradient image (I_x^2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Gradient image (I_x^2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_16-55-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Gradient image (I_x I_y).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Gradient image (I_x I_y).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_16-55-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Gradient image (I_y^2).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Gradient image (I_y^2).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_10-07-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Gradient change in both (x) and (y). Credit: David Jacobs&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Gradient change in both (x) and (y). Credit: David Jacobs
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;First, lets consider a simple case of detecting the following corner. At this orientation, the changes in gradient are only in the vertical and horizontal directions. If we consider the matrix \(M\) from above, we would get the following result&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+M =
+\begin{bmatrix}
+\sum I_x^2 &amp;amp; \sum I_x I_y\\
+\sum I_x I_y &amp;amp; \sum I_y^2
+\end{bmatrix} =
+\begin{bmatrix}
+\lambda_1 &amp;amp; 0\\
+0 &amp;amp; \lambda_2
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The off-diagonal entries will be 0, by definition of the dot product and orthogonal vectors.
+The entries on the main diagonal will represent the eigenvalues of \(M\).
+If both entries on the main diagonal are large, this would indicate a large change in orientation within the window.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What if the corner is not as ideal?&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_10-13-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Eigenvalue analysis of autocorrelation matrix. Source: Szeliski.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Eigenvalue analysis of autocorrelation matrix. Source: Szeliski.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Relationship to Eigenvalues&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Recall the Spectral Theorem for Symmetric Matrices, which states:
+A symmetric matrix \(A \in \mathbb{R}^{n\times n}\) has the following properties:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;A has \(n\) real eigenvalues, counting multiplicities.&lt;/li&gt;
+&lt;li&gt;The dimension of the eigenspace for each eigenvalue \(\lambda\) equals the multiplicity of \(\lambda\) as a root of the characteristic equation.&lt;/li&gt;
+&lt;li&gt;The eigenspaces are mutually orthogonal, in the sense that eigenvectors corresponding to different eigenvalues are orthogonal.&lt;/li&gt;
+&lt;li&gt;\(A\) is orthogonally diagonalizable.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Symmetric matrices are orthogonally diagonalizable. Thus, a symmetric matrix \(A\) can be written as \(A = PDP^{-1}\), where the columns of \(P\) are the eigenvectors and \(D\) are the corresponding eigenvalues.
+Another perspective of this is that \(A\) is an ellipse with axis lengths determined by the eigenvalues (diagonal entries of \(D\)) rotated by \(P\).&lt;/p&gt;
+&lt;p&gt;The eigenvalues of \(M\) can be classified into different regions depending on if they are indicative of a flat region, edge, or corner.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_10-15-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Classification of responses. Source: Harris (1988).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Classification of responses. Source: Harris (1988).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Performing eigendecomposition seems cumbersome in this case. There must be a simpler way we could compute these responses.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;We can then approximate this response!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+R &amp;amp;= \det H - \alpha \cdot \textrm{tr}(H)^2\\
+&amp;amp;= I_x^2 \cdot I_y^2 - (I_x I_y)^2 - \alpha\big(I_x^2 + I_y^2\big)^2
+\end{align*}&lt;/p&gt;
+&lt;p&gt;If there is a corner, the gradient values will depict orthogonality. That is, the middle term in the equation above will be smaller. This results in a larger response.&lt;/p&gt;
+&lt;p&gt;The larger the value from the middle term, the less orthogonality is present. This results in a smaller response. In practice, we will see a negative response.&lt;/p&gt;
+&lt;p&gt;In practice, \(\alpha \in [0.04, 0.06]\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_16-59-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Response image (R).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Response image (R).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;window-selection&#34;&gt;Window Selection&lt;/h3&gt;
+&lt;p&gt;What is the best window to choose when computing responses across an image? Harris et al. considered this in their original formulation when comparing to Moravec&amp;rsquo;s corner detection function.
+Using a flat window with uniform values produces a binary response when over interest points and 0 everywhere else. This can be written as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+M = \sum_{u, v} w(u, v)
+\begin{bmatrix}
+I_x^2 &amp;amp; I_x I_y\\
+I_x I_y &amp;amp; I_y^2
+\end{bmatrix}
+\end{equation*}&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_10-23-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Uniform response window. Results in 1 for interest points inside the window, 0 otherwise. Credit: Fei-Fei Li&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Uniform response window. Results in 1 for interest points inside the window, 0 otherwise. Credit: Fei-Fei Li
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Instead, Harris et al. propose using a circular Gaussian window which can be computed as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+M = g(\sigma) *
+\begin{bmatrix}
+I_x^2 &amp;amp; I_x I_y\\
+I_x I_y &amp;amp; I_y^2
+\end{bmatrix}
+\end{equation*}&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_10-25-42_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 14: &amp;lt;/span&amp;gt;Gaussian window response. Credit: Fei-Fei Li&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Gaussian window response. Credit: Fei-Fei Li
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The Guassian window is easy enough to compute and has the added bonus of making the responses rotation invariant!&lt;/p&gt;
+&lt;h3 id=&#34;nonmaxima-suppression--again&#34;&gt;Nonmaxima Suppression (Again)&lt;/h3&gt;
+&lt;p&gt;We now have a response image in which each pixel gives an indication as to whether a corner has been detected.
+To thin out these hypotheses, we will need to suppress neighborhood values that are not maximal.
+Just like with &lt;a href=&#34;https://ajdillhoff.github.io/notes/edge_detection/&#34;&gt;Edge Detection&lt;/a&gt;, we will need to employ nonmaxima suppression.&lt;/p&gt;
+&lt;p&gt;Before applying that, we may choose to threshold the image to filter out points that are obviously not candidates.&lt;/p&gt;
+&lt;p&gt;The approach is quite simple here:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Slide a \(3 \times 3\) window across the image.&lt;/li&gt;
+&lt;li&gt;If the center pixel is not the maximum value in the \(3 \times 3\) window, set it to 0.&lt;/li&gt;
+&lt;li&gt;Continue until all pixels are evaluated.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Our final result is shown below. The detected corners are marked.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-08_17-05-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 15: &amp;lt;/span&amp;gt;Final output of corner detection.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Final output of corner detection.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;describing-image-patches&#34;&gt;Describing Image Patches&lt;/h2&gt;
+&lt;p&gt;Given a list of interest points, we can start to build a collection of regions or patches surrounding the point which are useful for feature matching.
+The simple choice here is to take a fixed size patch surrounding an interest point and use it as a template.
+We can then compare that to other interest points in different images to see how well they score.
+There are many limitations to this naive approach that prevent it from working well in general.
+Even if the perspective of the object is the same in multiple images, slight changes is brightness could affect the matching scores greatly.&lt;/p&gt;
+&lt;p&gt;Another consideration is scale. If we have an interest point at one scale, will it be detected when that image is scaled by some factor \(k\)?&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_09-33-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 16: &amp;lt;/span&amp;gt;Patch surrounding a similar interest point at different scales. Credit: Kristen Grauman, B. Liebe.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Patch surrounding a similar interest point at different scales. Credit: Kristen Grauman, B. Liebe.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;However we choose to represent the information surrounding an interest point need to be robust to translation, scale, and orientation changes.
+It is important to note that, although the Harris corner detector is invariant to orientation, a naive image patch surrounding the interest point may not be.&lt;/p&gt;
+&lt;h2 id=&#34;scale-invariance&#34;&gt;Scale Invariance&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Is the Harris corner detector scale-invariant?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;No! Consider the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-09_19-10-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 17: &amp;lt;/span&amp;gt;Harris corner detector is not scale invariant. Credit: Kristen Grauman&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Harris corner detector is not scale invariant. Credit: Kristen Grauman
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The output from the detector will be different depending on scale.
+One solution would be to resize the image over several different scales and consolidate the detections.
+Doing this would produce many features and take much longer to compute.&lt;/p&gt;
+&lt;p&gt;Given some feature template that is centered on an interest point, we would expect that size of the patch scales with the scale change of the image itself.
+This property will drive the development of a scale-invariant method.
+We select the size of the patch by placing some dark blob with a light background (or vice versa) over the interest point and then selecting the size which provides the greatest response.&lt;/p&gt;
+&lt;h3 id=&#34;laplacian-filter&#34;&gt;Laplacian Filter&lt;/h3&gt;
+&lt;p&gt;A good choice for this is the Laplacian filter. The Laplacian of a 2D function is&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+(\nabla^2 f)(x, y) = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The Laplacian filter is created following the derivation in the two figures below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_09-55-08_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 18: &amp;lt;/span&amp;gt;Deriving second partial derivative filters for x and y. Source: &amp;lt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&amp;gt;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 18: &lt;/span&gt;Deriving second partial derivative filters for x and y. Source: &lt;a href=&#34;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_09-55-53_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 19: &amp;lt;/span&amp;gt;Combining the x and y filters. Source: &amp;lt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&amp;gt;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 19: &lt;/span&gt;Combining the x and y filters. Source: &lt;a href=&#34;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://theailearner.com/2019/05/25/laplacian-of-gaussian-log/&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;It is also common to smooth the operator before use.
+This can be done by convolving with a Gaussian kernel:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+K_{\nabla^2} * G_{\sigma}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This is referred as the &lt;strong&gt;Laplacian of Gaussian&lt;/strong&gt; filter.&lt;/p&gt;
+&lt;h3 id=&#34;scale-space&#34;&gt;Scale Space&lt;/h3&gt;
+&lt;p&gt;We can use the Laplacian of Gaussian to find the appropriate size of image patch for a given scale.
+This is achieved by computing a &lt;strong&gt;scale-space&lt;/strong&gt; representation of an image.
+When we resize an image to make it smaller, there is a loss of information.
+Similarly, blurring the image causes a loss of information.
+The larger the \(\sigma\) value for the Gaussian, the more information that is lost.
+Thus, we can quickly compute different scale-image representations by applying Gaussian blurring with a range of \(\sigma\) values.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-09_19-27-45_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 20: &amp;lt;/span&amp;gt;Scale space representations. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 20: &lt;/span&gt;Scale space representations. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;As it turns out, blurring and resizing correspond with each other.
+This is calculated by applying a Gaussian blur to the image following:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+L_f(\sigma) = f(G_\sigma * I).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This is the response of function \(f\) in scale-space \(\sigma\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-09_20-01-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 21: &amp;lt;/span&amp;gt;Selecting features at different scales. Credit: Kristen Grauman&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 21: &lt;/span&gt;Selecting features at different scales. Credit: Kristen Grauman
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The size of the patch can be found by iterating through different values of \(\sigma\), applying the Laplacian at each scale, and selecting the value of \(\sigma\) which produced the greatest result.&lt;/p&gt;
+&lt;p&gt;Consider a simple rounded square as depicted below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_10-15-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 22: &amp;lt;/span&amp;gt;Simple rounded square.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 22: &lt;/span&gt;Simple rounded square.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we apply the LoG filter to select the scale which gives the greatest response for the region centered on the top left corner at the original scale, we produce the following graph.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_10-16-22_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 23: &amp;lt;/span&amp;gt;Responses of LoG at the top left corner from (sigma = 0) to (sigma = 8).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 23: &lt;/span&gt;Responses of LoG at the top left corner from (sigma = 0) to (sigma = 8).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we scale the original image by 2 and apply the same analysis again, we get the following graph.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_10-20-17_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 24: &amp;lt;/span&amp;gt;Responses of LoG at original image size at the top left corner from (sigma = 0) to (sigma = 8).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 24: &lt;/span&gt;Responses of LoG at original image size at the top left corner from (sigma = 0) to (sigma = 8).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To summarize, using this method will allow us to select the appropriate scale at which our interest point provides the strongest response.
+However, the cost of this search is high. As we increase the size of the filters, the more work required for each convolution.&lt;/p&gt;
 </description>
     </item>
     
@@ -16128,6 +17710,272 @@ It works by randomly removing a node from the network during a forward/backward 
 The node is not truly removed. Instead, its output during the forward and backward passes is ignored via a binary mask.&lt;/p&gt;
 &lt;p&gt;When training a network with dropout, it will generally take longer for the model to converge to a solution.
 Intuitively, this is because a different subnetwork is being used for each pass.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Scale Invariant Feature Transforms</title>
+      <link>https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/</link>
+      <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#difference-of-gaussians&#34;&gt;Difference of Gaussians&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#keypoint-localization&#34;&gt;Keypoint Localization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#orientation-assignment&#34;&gt;Orientation Assignment&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#descriptor-formation&#34;&gt;Descriptor Formation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;General approach to computing SIFT features:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Scale-space Extrema Detection&lt;/li&gt;
+&lt;li&gt;Keypoint localization&lt;/li&gt;
+&lt;li&gt;Orientation Assignment&lt;/li&gt;
+&lt;li&gt;Generate keypoint descriptors&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;difference-of-gaussians&#34;&gt;Difference of Gaussians&lt;/h2&gt;
+&lt;p&gt;This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the &lt;strong&gt;Difference of Gaussians&lt;/strong&gt;. Consider the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_10-31-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Comparison of DoG and Laplacian. Credit: Fei-Fei Li.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Comparison of DoG and Laplacian. Credit: Fei-Fei Li.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version.&lt;/p&gt;
+&lt;p&gt;Let \(I_{\sigma_1}\) be the image blurred with a smaller value of \(\sigma\) and \(I_{\sigma_2}\) be the image blurred with a larger value.
+Then \(D(I_{\sigma_1}, I_{\sigma_2}) = I_{\sigma_2} - I_{\sigma_1}\).
+If a region in \(I_{\sigma_1}\) is locally flat, it will also be in flat in \(I_{\sigma_2}\).
+The difference will be relatively small for that region.
+If there are abrupt changes in a local region within \(I_{\sigma_1}\), they will be smoothed in \(I_{\sigma_2}\).
+Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for that region.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_20-29-08_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The Royal Concertgebouw in Amsterdam.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The Royal Concertgebouw in Amsterdam.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_20-41-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;When building SIFT features, the extremum are selected by comparing 3 DoG images.
+These are selected by evaluating each pixel to 26 of its neighbors in the current scale space and neighboring DoG spaces as visualized below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_18-50-20_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Finding extrema of pixel (i, j) in a neighborhood of 26 values (Lowe 2004).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Finding extrema of pixel (i, j) in a neighborhood of 26 values (Lowe 2004).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To build the DoG pyramid, the authors propose that images are separated by a constant factor \(k\) in scale space.
+Each octave of scale space is divided such that the scalespace doubles every \(s\) samples.&lt;/p&gt;
+&lt;p&gt;Starting with \(\sigma = 0.5\), if we choose \(s=3\) then the fourth sample will be at \(\sigma = 1\), the seventh at \(\sigma=2\), and so on.
+To make sure the DoG images cover the full range of an octave, \(s + 3\) images need to be created per octave.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Why \(s + 3\)?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Each octave should evaluate local extrema for \(s\) scales.
+To evaluate this for scale \(\sigma_s\), we need the DoG for scales \(\sigma_{s-1}\) and \(\sigma_{s+1}\).
+This would require 4 Gaussians images to compute.
+The figure below represents the stack for \(s=2\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-10_17-35-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;DOG figure from Lowe 2004.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;DOG figure from Lowe 2004.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;How is the value of \(s\) determined?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In the paper, the authors perform a repeatability test to determine if the keypoints would be localized even with random augmentations. The process is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Randomly augment an input image with noise, color jitter, scale, rotation, etc.&lt;/li&gt;
+&lt;li&gt;Compute keypoints using using the extrema detection.&lt;/li&gt;
+&lt;li&gt;Compare detected keypoints with known keypoints from original samples.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The authors found that using \(s = 3\) provided the highest percentage of repeatability in their experiments.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-13_19-25-02_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Measuring repeatability of keypoint detections versus # of scales sampled per octave (Lowe 2004).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Measuring repeatability of keypoint detections versus # of scales sampled per octave (Lowe 2004).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;keypoint-localization&#34;&gt;Keypoint Localization&lt;/h2&gt;
+&lt;p&gt;Given the candidate keypoints selected by picking out local extrema, they pool of responses can further be refined
+by removing points that are sensitive to noise or located along an edge. They borrow the same approach used in the Harris corner detector to select more robust interest points in corners.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_20-36-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (Lowe 2004).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (Lowe 2004).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;orientation-assignment&#34;&gt;Orientation Assignment&lt;/h2&gt;
+&lt;p&gt;Given a keypoint, an orientation histogram is generated. The authors use 36 bins to cover a 360 degree range for orientations.
+Similar to &lt;a href=&#34;https://ajdillhoff.github.io/notes/histogram_of_oriented_gradients/&#34;&gt;Histogram of Oriented Gradients&lt;/a&gt;, the orientations are weighted by their gradient magnitudes.
+Additionally, a Gaussian-weighted circular patch is applied, centered on the keypoint, to further weight the responses.
+This means that points farther away from the center contribute less to the overall feature vector.&lt;/p&gt;
+&lt;p&gt;In order to make the keypoint rotation invariant, the dominant orientation is determined.
+If there are orientations that are within 80% of the highest orientation peak, multiple keypoints will be created using those orientations as well.&lt;/p&gt;
+&lt;p&gt;Orientations in this window are rotated by the dominant gradient so that all directions are with respect to the dominant orientation.
+This is a more efficient alternative to rotating the entire image by that orientation.&lt;/p&gt;
+&lt;h2 id=&#34;descriptor-formation&#34;&gt;Descriptor Formation&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_20-22-39_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Keypoint descriptor generation (Lowe 2004).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Keypoint descriptor generation (Lowe 2004).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the paper, the authors generate keypoints using a \(16 \times 16\) window from which \(4 \times 4\) descriptors are generated following the descriptions above.
+Through experimentation, each \(4 \times 4\) descriptor uses 8 orientations, resulting in a feature vector \(\mathbf{x} \in \mathbb{R}^{128}\).&lt;/p&gt;
+&lt;p&gt;Different levels of contrast will product edges with higher gradient magnitudes.
+To account for this, the final feature vector is normalized using the \(L2\) hysteresis approach used in Harris corner detection.&lt;/p&gt;
 </description>
     </item>
     
