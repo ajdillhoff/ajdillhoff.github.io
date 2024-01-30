@@ -15740,12 +15740,14 @@ k(\mathbf{x}, \mathbf{x}&amp;rsquo;) = \phi(\mathbf{x})^T \phi(\mathbf{x}&amp;rs
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#gaussian-class-conditional-densities&#34;&gt;Gaussian Class Conditional Densities&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#decision-boundaries&#34;&gt;Decision Boundaries&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#quadratic-descriminant-analysis&#34;&gt;Quadratic Descriminant Analysis&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#example&#34;&gt;Example&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;p&gt;Slides for these notes can be found &lt;a href=&#34;https://ajdillhoff.github.io/teaching/cse6363/lectures/lda.pdf&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;This section covers classification from a probabilistic perspective.
 The &lt;a href=&#34;https://ajdillhoff.github.io/notes/discriminant_functions/&#34;&gt;discriminative approach&lt;/a&gt; involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class.
@@ -15845,6 +15847,58 @@ When divided by the sum per the definition of \(p(C_k|\mathbf{x};\mathbf{\theta}
 \end{align*}&lt;/p&gt;
 &lt;p&gt;This lets us express \(p(C_k|\mathbf{x};\mathbf{\theta})\) as the &lt;strong&gt;softmax&lt;/strong&gt; function:&lt;/p&gt;
 &lt;p&gt;\(p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&amp;rsquo;}\exp(\mathbf{w}_{k&amp;rsquo;}^T\mathbf{x}+\mathbf{b}_{k&amp;rsquo;})}\).&lt;/p&gt;
+&lt;h2 id=&#34;decision-boundaries&#34;&gt;Decision Boundaries&lt;/h2&gt;
+&lt;p&gt;When using LDA, classifications can be made by choosing the class with the highest posterior probability. Geometrically, this decision boundary has a direct connection to logistic regression. The decision boundary is the set of points where the posterior probability of two classes is equal. This is the set of points where the linear discriminant function is equal to 0. This connection follows the derivation given by Kevin P. Murphy in his book &lt;em&gt;Probabilistic Machine Learning: An Introduction&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Murphy 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;In the previous section, the derivation for the posterior probability of class \(C_k\) was written in the form of the softmax function&lt;/p&gt;
+&lt;p&gt;\[
+p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&amp;rsquo;}\exp(\mathbf{w}_{k&amp;rsquo;}^T\mathbf{x}+\mathbf{b}_{k&amp;rsquo;})}.
+\]&lt;/p&gt;
+&lt;p&gt;In the binary case, the posterior for class 1 is given by&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+p(C_1|\mathbf{x};\mathbf{\theta}) &amp;amp;= \frac{\exp(\mathbf{w}_1^T\mathbf{x}+\mathbf{b}_1)}{\exp(\mathbf{w}_1^T\mathbf{x}+\mathbf{b}_1) + \exp(\mathbf{w}_2^T\mathbf{x}+\mathbf{b}_2)}\\
+&amp;amp;= \frac{1}{1 + \exp((\mathbf{w}_1 - \mathbf{w}_2)^T\mathbf{x}+(\mathbf{b}_1 - \mathbf{b}_2))}\\
+&amp;amp;= \sigma((\mathbf{w}_1 - \mathbf{w}_2)^T\mathbf{x}+(\mathbf{b}_1 - \mathbf{b}_2)).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Using the previous definition of \(\mathbf{b}_k\), we can rewrite \(\mathbf{b}_1 - \mathbf{b}_2\) as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{b}_1 - \mathbf{b}_2 &amp;amp;= -\frac{1}{2}\mathbf{\mu}_1^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_1 + \log \mathbf{\pi}_1 + \frac{1}{2}\mathbf{\mu}_2^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_2 - \log \mathbf{\pi}_2\\
+&amp;amp;= -\frac{1}{2}(\mathbf{\mu}_1 - \mathbf{\mu}_2)^T \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 + \mathbf{\mu}_2) + \log \frac{\mathbf{\pi}_1}{\mathbf{\pi}_2}\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This can be used to define a new weight vector \(\mathbf{w}&amp;rsquo;\) and a point directly between the two class means \(\mathbf{x}_0\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{w}&amp;rsquo; &amp;amp;= \mathbf{\Sigma}^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)\\
+\mathbf{x}_0 &amp;amp;= \frac{1}{2}(\mathbf{\mu}_1 + \mathbf{\mu}_2) - (\mathbf{\mu}_1 - \mathbf{\mu}_2)\frac{\log \frac{\mathbf{\pi}_1}{\mathbf{\pi}_2}}{(\mathbf{\mu}_1 - \mathbf{\mu}_2)^T \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2)}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;With these new terms defined, we have that \(\mathbf{w}&amp;rsquo;^T\mathbf{x}_0 = -(\mathbf{b}_1 - \mathbf{b}_2)\) and the posterior probability for class 1 can be written in the form of binary logistic regression:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+p(C_1|\mathbf{x};\mathbf{\theta}) = \sigma(\mathbf{w}&amp;rsquo;^T(\mathbf{x} - \mathbf{x}_0)).
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;The middle point between the two class means \(\mathbf{x}_0\) is the point where the posterior probability of class 1 is 0.5. This is the decision boundary between the two classes. That is, if \(\mathbf{w}&amp;rsquo;^T\mathbf{x} &amp;gt; \mathbf{w}&amp;rsquo;^T\mathbf{x}_0\), then the posterior probability of class 1 is greater than \(0.5\) and the input vector \(\mathbf{x}\) is classified as class 1.&lt;/p&gt;
+&lt;p&gt;The split between the class priors controls the location of the decision boundary. If the class priors are equal, then the decision boundary is the point directly between the two class means. If the class priors are not equal, then the decision boundary is shifted towards the class with the higher prior. The figure below visualizes this.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-01-30_11-23-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Decision boundary between two classes (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Murphy 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decision boundary between two classes (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Murphy 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;h2 id=&#34;maximum-likelihood-estimation&#34;&gt;Maximum Likelihood Estimation&lt;/h2&gt;
 &lt;p&gt;Given our formulation in the previous section, we can estimate the parameters of the model via &lt;strong&gt;maximum likelihood estimation&lt;/strong&gt;. Assuming \(K\) classes with Gaussian class conditional densities, the likelihood function is&lt;/p&gt;
 &lt;p&gt;\begin{equation*}
@@ -15882,6 +15936,10 @@ p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_k,\Sig
 &lt;p&gt;In the more general case of QDA, the decision boundary is quadratic, leading to a quadratic discriminant function. As shown above, the posterior probability function for LDA is linear in \(\mathbf{x}\), which leads to a linear discriminant function.&lt;/p&gt;
 &lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
 &lt;p&gt;See &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt; for an example using scikit-learn.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Murphy, Kevin P. 2022. &lt;i&gt;Probabilistic Machine Learning: An Introduction&lt;/i&gt;. MIT Press.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -16231,6 +16289,7 @@ Let&amp;rsquo;s see how these filters perform on a more interesting image.&lt;/p
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;p&gt;Slides for these notes are available &lt;a href=&#34;https://ajdillhoff.github.io/teaching/cse6363/lectures/logistic_regression.pdf&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;With &lt;a href=&#34;https://ajdillhoff.github.io/notes/linear_regression/&#34;&gt;Linear Regression&lt;/a&gt; we were able to fit a model to our data in order to make inferences on unseen data points. In the examples, both the input features and observation were continuous. With logistic regression, we will use similar models to classify the data points based on their input features. We start out with the simplest approach: we assume that the data is linearly separable and can be assigned one of \(K\) discrete classes.&lt;/p&gt;
 &lt;p&gt;In the binary case, the target variable will takes on either a 0 or 1. For \(K &amp;gt; 2\), we will use a \(K\) dimensional vector that has a 1 corresponding to the class encoding for that input and a 0 for all other positions. For example, if our possible target classes were \(\{\text{car, truck, person}\}\), then a target vector for \(\text{person}\) would be \(\mathbf{y} = [0, 0, 1]^T\).&lt;/p&gt;
@@ -17149,6 +17208,7 @@ If \(P\) is not orthonormal, then we can simply scale our eigenvectors to maximi
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;p&gt;Slides for these notes are available &lt;a href=&#34;https://ajdillhoff.github.io/teaching/cse6363/lectures/probability.pdf&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;Probability theory provides a consistent framework for the quantification and manipulation of uncertainty.
 It allows us to make the best decisions given the limited information we may have.
@@ -17599,6 +17659,7 @@ p(x) = \int p(x, y)dy.
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;p&gt;Slides for these notes are available &lt;a href=&#34;https://ajdillhoff.github.io/teaching/cse6363/lectures/regularization.pdf&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;div class=&#34;blockquote&#34;&gt;
 &lt;blockquote&gt;
@@ -17693,7 +17754,7 @@ By controlling these factors, a fair comparison can be made.&lt;/p&gt;
 Rotating, translating, and scaling images are the most common.
 Additionally applying random crops can further augment the dataset.&lt;/p&gt;
 &lt;p&gt;The original dataset may only include samples of a class that have similar lighting.
-Color jitter is an effective way of including a broader range of hue or brightness and usually leads to a model that is robust to such changes.ZZ&lt;/p&gt;
+Color jitter is an effective way of including a broader range of hue or brightness and usually leads to a model that is robust to such changes.&lt;/p&gt;
 &lt;p&gt;It is important to make sure that the crops still contain enough information to properly classify it.
 Common forms of data augmentation are available through APIs like &lt;a href=&#34;https://pytorch.org/vision/stable/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;torchvision&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;early-stopping&#34;&gt;Early Stopping&lt;/h2&gt;
@@ -18131,6 +18192,7 @@ y = \text{arg}\max_{y&amp;rsquo;}\mathbf{w}^T\phi(\mathbf{x},y&amp;rsquo;).
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;p&gt;Slides for these notes are available &lt;a href=&#34;https://ajdillhoff.github.io/teaching/cse6363/lectures/linear_regression.pdf&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;Given a dataset of observations \(\mathbf{X} \in \mathbb{R}^{n \times d}\), where \(n\) is the number of samples and \(d\) represents the number of features per sample, and corresponding target values \(\mathbf{Y} \in \mathbb{R}^n\), create a simple prediction model which predicts the target value \(\mathbf{y}\) given a new observation \(\mathbf{x}\). The classic example in this case is a linear model, a function that is a linear combination of the input features and some weights \(\mathbf{w}\).&lt;/p&gt;
 

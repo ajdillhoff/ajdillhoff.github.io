@@ -29,8 +29,8 @@
   
     
   
-  <meta name="description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
-Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\).">
+  <meta name="description" content="Table of Contents Introduction Gaussian Class Conditional Densities Decision Boundaries Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Slides for these notes can be found here.
+Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
@@ -139,13 +139,13 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/linear_discriminant_analysis/">
   <meta property="og:title" content="Linear Discriminant Analysis | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Introduction Gaussian Class Conditional Densities Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task.
-Let&rsquo;s begin with a 2 class problem. To classify this with a generative model, we use the class-conditional densities \(p(\mathbf{x}|C_i)\) and class priors \(p(C_i)\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Introduction Gaussian Class Conditional Densities Decision Boundaries Maximum Likelihood Estimation Quadratic Descriminant Analysis Example Slides for these notes can be found here.
+Introduction This section covers classification from a probabilistic perspective. The discriminative approach involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class. We will see that modeling the conditional probability distribution \(p(C_k|\mathbf{x})\) grants us additional benefits while still fulfilling our original classification task."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
   
-  <meta property="article:modified_time" content="2023-08-31T00:00:00&#43;00:00">
+  <meta property="article:modified_time" content="2024-01-30T00:00:00&#43;00:00">
   
 
   
@@ -383,7 +383,7 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
 
 
 <meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2023-08-31 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+<meta content="2024-01-30 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -410,7 +410,7 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
           Last updated on
       
     
-    <time>Aug 31, 2023</time>
+    <time>Jan 30, 2024</time>
   </span>
   
 
@@ -419,7 +419,7 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    5 min read
+    7 min read
   </span>
   
 
@@ -552,12 +552,14 @@ Let&rsquo;s begin with a 2 class problem. To classify this with a generative mod
 <ul>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#gaussian-class-conditional-densities">Gaussian Class Conditional Densities</a></li>
+<li><a href="#decision-boundaries">Decision Boundaries</a></li>
 <li><a href="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
 <li><a href="#quadratic-descriminant-analysis">Quadratic Descriminant Analysis</a></li>
 <li><a href="#example">Example</a></li>
 </ul>
 </div>
 <!--endtoc-->
+<p>Slides for these notes can be found <a href="/teaching/cse6363/lectures/lda.pdf">here</a>.</p>
 <h2 id="introduction">Introduction</h2>
 <p>This section covers classification from a probabilistic perspective.
 The <a href="/notes/discriminant_functions/">discriminative approach</a> involves a parameterized function which assigns each input vector \(\mathbf{x}\) to a specific class.
@@ -657,6 +659,58 @@ When divided by the sum per the definition of \(p(C_k|\mathbf{x};\mathbf{\theta}
 \end{align*}</p>
 <p>This lets us express \(p(C_k|\mathbf{x};\mathbf{\theta})\) as the <strong>softmax</strong> function:</p>
 <p>\(p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&rsquo;}\exp(\mathbf{w}_{k&rsquo;}^T\mathbf{x}+\mathbf{b}_{k&rsquo;})}\).</p>
+<h2 id="decision-boundaries">Decision Boundaries</h2>
+<p>When using LDA, classifications can be made by choosing the class with the highest posterior probability. Geometrically, this decision boundary has a direct connection to logistic regression. The decision boundary is the set of points where the posterior probability of two classes is equal. This is the set of points where the linear discriminant function is equal to 0. This connection follows the derivation given by Kevin P. Murphy in his book <em>Probabilistic Machine Learning: An Introduction</em> (<a href="#citeproc_bib_item_1">Murphy 2022</a>).</p>
+<p>In the previous section, the derivation for the posterior probability of class \(C_k\) was written in the form of the softmax function</p>
+<p>\[
+p(C_k|\mathbf{x};\mathbf{\theta}) = \frac{\exp(\mathbf{w}_k^T\mathbf{x}+\mathbf{b}_k)}{\sum_{k&rsquo;}\exp(\mathbf{w}_{k&rsquo;}^T\mathbf{x}+\mathbf{b}_{k&rsquo;})}.
+\]</p>
+<p>In the binary case, the posterior for class 1 is given by</p>
+<p>\begin{align*}
+p(C_1|\mathbf{x};\mathbf{\theta}) &amp;= \frac{\exp(\mathbf{w}_1^T\mathbf{x}+\mathbf{b}_1)}{\exp(\mathbf{w}_1^T\mathbf{x}+\mathbf{b}_1) + \exp(\mathbf{w}_2^T\mathbf{x}+\mathbf{b}_2)}\\
+&amp;= \frac{1}{1 + \exp((\mathbf{w}_1 - \mathbf{w}_2)^T\mathbf{x}+(\mathbf{b}_1 - \mathbf{b}_2))}\\
+&amp;= \sigma((\mathbf{w}_1 - \mathbf{w}_2)^T\mathbf{x}+(\mathbf{b}_1 - \mathbf{b}_2)).
+\end{align*}</p>
+<p>Using the previous definition of \(\mathbf{b}_k\), we can rewrite \(\mathbf{b}_1 - \mathbf{b}_2\) as</p>
+<p>\begin{align*}
+\mathbf{b}_1 - \mathbf{b}_2 &amp;= -\frac{1}{2}\mathbf{\mu}_1^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_1 + \log \mathbf{\pi}_1 + \frac{1}{2}\mathbf{\mu}_2^T \mathbf{\Sigma}^{-1}\mathbf{\mu}_2 - \log \mathbf{\pi}_2\\
+&amp;= -\frac{1}{2}(\mathbf{\mu}_1 - \mathbf{\mu}_2)^T \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 + \mathbf{\mu}_2) + \log \frac{\mathbf{\pi}_1}{\mathbf{\pi}_2}\\
+\end{align*}</p>
+<p>This can be used to define a new weight vector \(\mathbf{w}&rsquo;\) and a point directly between the two class means \(\mathbf{x}_0\):</p>
+<p>\begin{align*}
+\mathbf{w}&rsquo; &amp;= \mathbf{\Sigma}^{-1}(\mathbf{\mu}_1 - \mathbf{\mu}_2)\\
+\mathbf{x}_0 &amp;= \frac{1}{2}(\mathbf{\mu}_1 + \mathbf{\mu}_2) - (\mathbf{\mu}_1 - \mathbf{\mu}_2)\frac{\log \frac{\mathbf{\pi}_1}{\mathbf{\pi}_2}}{(\mathbf{\mu}_1 - \mathbf{\mu}_2)^T \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2)}.
+\end{align*}</p>
+<p>With these new terms defined, we have that \(\mathbf{w}&rsquo;^T\mathbf{x}_0 = -(\mathbf{b}_1 - \mathbf{b}_2)\) and the posterior probability for class 1 can be written in the form of binary logistic regression:</p>
+<p>\begin{equation*}
+p(C_1|\mathbf{x};\mathbf{\theta}) = \sigma(\mathbf{w}&rsquo;^T(\mathbf{x} - \mathbf{x}_0)).
+\end{equation*}</p>
+<p>The middle point between the two class means \(\mathbf{x}_0\) is the point where the posterior probability of class 1 is 0.5. This is the decision boundary between the two classes. That is, if \(\mathbf{w}&rsquo;^T\mathbf{x} &gt; \mathbf{w}&rsquo;^T\mathbf{x}_0\), then the posterior probability of class 1 is greater than \(0.5\) and the input vector \(\mathbf{x}\) is classified as class 1.</p>
+<p>The split between the class priors controls the location of the decision boundary. If the class priors are equal, then the decision boundary is the point directly between the two class means. If the class priors are not equal, then the decision boundary is shifted towards the class with the higher prior. The figure below visualizes this.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-01-30_11-23-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decision boundary between two classes (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Murphy 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Decision boundary between two classes (<a href="#citeproc_bib_item_1">Murphy 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <h2 id="maximum-likelihood-estimation">Maximum Likelihood Estimation</h2>
 <p>Given our formulation in the previous section, we can estimate the parameters of the model via <strong>maximum likelihood estimation</strong>. Assuming \(K\) classes with Gaussian class conditional densities, the likelihood function is</p>
 <p>\begin{equation*}
@@ -694,6 +748,10 @@ p(C_k|\mathbf{x};\theta) \propto \pi_k\mathcal{N}(\mathbf{x}|\mathbf{\mu}_k,\Sig
 <p>In the more general case of QDA, the decision boundary is quadratic, leading to a quadratic discriminant function. As shown above, the posterior probability function for LDA is linear in \(\mathbf{x}\), which leads to a linear discriminant function.</p>
 <h2 id="example">Example</h2>
 <p>See <a href="https://github.com/ajdillhoff/CSE6363/blob/main/logistic_regression/lda.ipynb" target="_blank" rel="noopener noreferrer">here</a> for an example using scikit-learn.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Murphy, Kevin P. 2022. <i>Probabilistic Machine Learning: An Introduction</i>. MIT Press.</div>
+</div>
 
     </div>
 
