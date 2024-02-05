@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Histograms Latency of Atomic Operations Privatization Coarsening Aggregation The Takeaway These notes follow the presentation of the parallel histogram pattern in the book Programming Massively Parallel Processors: A Hands-on Approach (Hwu, Kirk, and El Hajj 2022).
+Histograms Examples of histograms include: Frequency of words in a document Distribution of pixel intensities in an image Distribution of particle energies in a physics simulation Distribution of thread block execution times in a GPU kernel Consider the program below which computes a histogram of the letters in a string.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/">
+  <meta property="og:title" content="GPU Pattern: Parallel Histogram | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Histograms Latency of Atomic Operations Privatization Coarsening Aggregation The Takeaway These notes follow the presentation of the parallel histogram pattern in the book Programming Massively Parallel Processors: A Hands-on Approach (Hwu, Kirk, and El Hajj 2022).
+Histograms Examples of histograms include: Frequency of words in a document Distribution of pixel intensities in an image Distribution of particle energies in a physics simulation Distribution of thread block execution times in a GPU kernel Consider the program below which computes a histogram of the letters in a string."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-01-29T17:22:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-01-29T17:22:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>GPU Pattern: Parallel Histogram | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">GPU Pattern: Parallel Histogram</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-01-29 17:22:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-01-29 17:22:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 29, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    10 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/&amp;text=GPU%20Pattern:%20Parallel%20Histogram" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/&amp;t=GPU%20Pattern:%20Parallel%20Histogram" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=GPU%20Pattern:%20Parallel%20Histogram&amp;body=https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/&amp;title=GPU%20Pattern:%20Parallel%20Histogram" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=GPU%20Pattern:%20Parallel%20Histogram%20https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/&amp;title=GPU%20Pattern:%20Parallel%20Histogram" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#histograms">Histograms</a></li>
+<li><a href="#latency-of-atomic-operations">Latency of Atomic Operations</a></li>
+<li><a href="#privatization">Privatization</a></li>
+<li><a href="#coarsening">Coarsening</a></li>
+<li><a href="#aggregation">Aggregation</a></li>
+<li><a href="#the-takeaway">The Takeaway</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>These notes follow the presentation of the parallel histogram pattern in the book <strong>Programming Massively Parallel Processors: A Hands-on Approach</strong> (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).</p>
+<h2 id="histograms">Histograms</h2>
+<ul>
+<li>Examples of histograms include:
+<ul>
+<li>Frequency of words in a document</li>
+<li>Distribution of pixel intensities in an image</li>
+<li>Distribution of particle energies in a physics simulation</li>
+<li>Distribution of thread block execution times in a GPU kernel</li>
+</ul>
+</li>
+</ul>
+<p>Consider the program below which computes a histogram of the letters in a string. The input is assumed to be lower case.
+Since this is executed sequentially, there is no risk of multiple threads writing to the same memory location at the same time.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">histogram_sequential</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>data, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> length, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>hist) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> length; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        hist[data[i] <span style="color:#f92672">-</span> <span style="color:#e6db74">&#39;a&#39;</span>]<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>To parallelize, we could launch a kernel which has each thread work with on character from the input. This presents a major problem when updating the histogram, as multiple threads may try and increment the same location simultaneously. This is called <em>output interference</em>.</p>
+<h3 id="race-conditions">Race Conditions</h3>
+<p>For example, thread 1 and thread 2 may have the letter &lsquo;a&rsquo; as their input. They will both issue a <em>read-modify-write</em> procedure where the current value of the histogram is read, incremented, and then written back to memory. If thread 1 reads the value of the histogram before thread 2 writes to it, the value that thread 1 writes back will be incorrect. This is a classic example of a <em>race condition</em>. Depending on the timing, one thread could have read the updated value from the other thread, or both threads could have read the same value and incremented it, resulting in a loss of data.</p>
+<h3 id="atomic-operations">Atomic Operations</h3>
+<p>One solution to this problem is to perform atomic operations. This is a special type of operations that locks a memory location while it is being updated. This prevents other thread from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.</p>
+<p>The CUDA API provides several atomic operations:</p>
+<ul>
+<li><code>atomicAdd</code></li>
+<li><code>atomicSub</code></li>
+<li><code>atomicExch</code></li>
+<li><code>atomicMin</code></li>
+<li><code>atomicMax</code></li>
+<li><code>atomicInc</code></li>
+<li><code>atomicDec</code></li>
+<li><code>atomicCAS</code></li>
+</ul>
+<p>These are all <em>intrinsic functions</em>, meaning they are processed in a special way by the compiler. Instead of acting like a function call that comes with the typical overhead from the stack, these are implemented as inline machine instructions. The CUDA kernel below uses <code>atomicAdd</code> to increment the histogram.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void histogram_atomic(char *data, unsigned int length, unsigned int *hist) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; length) {
+        atomicAdd(&amp;hist[data[i] - &#39;a&#39;], 1);
+    }
+}
+</code></pre><h2 id="latency-of-atomic-operations">Latency of Atomic Operations</h2>
+<p>Atomic operations prevent the hardware from maximizing DRAM bursts since they serialize memory accesses. This can lead to a significant performance penalty. For each atomic operation, there are two delays: the delay from loading an element and the delay from storing the updated values.</p>
+<p>Not all threads will be loading and storing to the same memory location; this is dependent on the number of bins used in the histogram. If the number of bins is small, the performance penalty will be greater. This analysis is further complicated based on the distribution of the data.</p>
+<p>Atomic operations can be performed on the last level of cache. If the value is not in the cache, it will be brought into cache for future accesses. Although this does provide a performance benefit, it is not enough to offset the performance penalty of atomic operations.</p>
+<h2 id="privatization">Privatization</h2>
+<p>If much of the traffic is concentrated on a single area, the solution involves directing the traffic away in some manner. This is what <strong>privatization</strong> does. Since the bottleneck is the data load and store, privatization gives each thread its own private store so that it can update without contention. Of course, each copy must be combined in some way at the end. The cost of merging these copies is much less than the cost of the atomic operations. In practice, privatization is done for groups of threads, not individual ones.</p>
+<p>The example above can be privatized by making a copy of the histogram for each thread block. The level of contention is much lower since only a single block will update their own private copy. All copies of the histogram are allocated as one monolithic array. Each individual block can use its local indices to offset the pointer. Private copies of values will likely still be cached in L2, so the cost of merging the copies is minimal.</p>
+<p>For example, if we have 256 threads per block and 26 bins, we can allocate a \(26 \times 256\) array of integers. Each thread block will have its own copy of the histogram. The kernel below demonstrates this.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define NUM_BINS 26
+__global__ void histogram_privatized(char *data, unsigned int length, unsigned int *hist) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; length) {
+        int pos = data[i] - &#39;a&#39;;
+        atomicAdd(&amp;hist[blockIdx.x * NUM_BINS + pos], 1);
+    }
+    __syncthreads();
+    if (blockIdx.x &gt; 0) {
+        for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+            unsigned int binValue = hist[blockIdx.x * NUM_BINS + bin];
+            if (binValue &gt; 0) {
+                atomicAdd(&amp;hist[bin], binValue);
+            }
+        }
+    }
+}
+</code></pre><p>Each block is free to use its section of the histogram without contention. After all blocks have finished, the histogram is merged by summing the values of each bin across all blocks. This is done by having each block add its values to the global histogram. The <code>__syncthreads</code> function is used to ensure that all blocks have finished updating their private copies before the merge begins.</p>
+<p>Each block after index 0 will add its values to the global histogram, represented by the first block. Only a single thread per block will be accessing each bin, so the only contention is with other blocks. If the bins are small enough, shared memory can be used to store the private copies. Even though an atomic operation is still required, the latency for loading and storing is reduced by an order of magnitude. The shared kernel below demonstrates this.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define NUM_BINS 26
+__global__ void histogram_privatized(char *data, unsigned int length, unsigned int *hist) {
+    __shared__ unsigned int hist_s[NUM_BINS];
+    for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+        hist_s[bin] = 0;
+    }
+    __syncthreads();
+
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; length) {
+        int pos = data[i] - &#39;a&#39;;
+        atomicAdd(&amp;hist_s[pos], 1);
+    }
+    __syncthreads();
+    if (blockIdx.x &gt; 0) {
+        for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+            unsigned int binValue = hist_s[bin];
+            if (binValue &gt; 0) {
+                atomicAdd(&amp;hist[bin], binValue);
+            }
+        }
+    }
+}
+</code></pre><h2 id="coarsening">Coarsening</h2>
+<p>The bottleneck of using privatization moves from DRAM access to merging copies back to the <em>public</em> copy of the data. This scales up based on the number of blocks used, since each thread in a block will be sharing a bin in the worst case. If the problem exceeds the capacity of the hardware, the scheduler will serialize the blocks. If they are serialized anyway, then the cost of privatization is not worth it.</p>
+<p>Coarsening will reduce the overhead of privatization by reducing the number of private copies that are committed to the public one. Each thread will process multiple elements.</p>
+<h3 id="contiguous-partitioning">Contiguous Partitioning</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-03_11-59-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Contiguous partitioning. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Contiguous partitioning. Recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Each thread is assigned a contiguous range of elements to process. The kernel is a straightforward extension of the privatized kernel. This approach works better on a CPU, where there are only a small number of threads. This is due to the caching behavior of the CPU. With so many threads on a GPU, it is less likely that the data will be in the cache since so many threads are competing.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define NUM_BINS 26
+__global__ void histogram_privatized_cc(char *data, unsigned int length, unsigned int *hist) {
+    __shared__ unsigned int hist_s[NUM_BINS];
+    for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+        hist_s[bin] = 0;
+    }
+    __syncthreads();
+
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; length) {
+        int pos = data[i] - &#39;a&#39;;
+        atomicAdd(&amp;hist_s[pos], 1);
+    }
+    __syncthreads();
+    if (blockIdx.x &gt; 0) {
+        for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+            unsigned int binValue = hist_s[bin];
+            if (binValue &gt; 0) {
+                atomicAdd(&amp;hist[bin], binValue);
+            }
+        }
+    }
+}
+</code></pre><h3 id="interleaved-partitioning">Interleaved Partitioning</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-03_12-00-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Interleaved partitioning. Recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Interleaved partitioning. Recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Contiguous partitioning allowed for contiguous access to values relative to each thread. However, the memory was not contiguous with respect to other threads. In terms of DRAM accesses, each individual read from memory was too far apart to take advantage of coalescing. With <strong>interleaved partitioning</strong>, the memory can be accessed in a single DRAM access since the memory is coalesced.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define NUM_BINS 26
+__global__ void histogram_privatized_ic(char *data, unsigned int length, unsigned int *hist) {
+    __shared__ unsigned int hist_s[NUM_BINS];
+    for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+        hist_s[bin] = 0;
+    }
+    __syncthreads();
+
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    for (int i = tid; i &lt; length; i += blockDim.x * gridDim.x) {
+        int pos = data[i] - &#39;a&#39;;
+        if (pos &gt;= 0 &amp;&amp; pos &lt; 26) {
+            atomicAdd(&amp;hist_s[pos], 1);
+        }
+    }
+    __syncthreads();
+    if (blockIdx.x &gt; 0) {
+        for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+            unsigned int binValue = hist_s[bin];
+            if (binValue &gt; 0) {
+                atomicAdd(&amp;hist[bin], binValue);
+            }
+        }
+    }
+}
+</code></pre><p>In the code above, the main difference is the second <code>for</code> loop. The index <code>i</code> is incremented by <code>blockDim.x * gridDim.x</code>. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures above and below.</p>
+<h2 id="aggregation">Aggregation</h2>
+<p>It is not uncommon that the input data will have a skewed distribution. There may be sections of the input that are locally dense. This will lead to a large number of atomic operations within a small area. To reduce the number of atomic operations, the input can be aggregated into a larger update before being committed to the global histogram. Consider the code below.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void histogram_aggregate(char *data, unsigned int length, unsigned int *histo) {
+    // Initialize shared memory
+    __shared__ unsigned int hist_s[NUM_BINS];
+    for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+        hist_s[bin] = 0;
+    }
+    __syncthreads();
+
+    // Build histogram
+    unsigned int accumulator = 0;
+    int prevBinIdx = -1;
+    unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    for (unsigned int i = tid; i a, length; i += blockDim.x * gridDim.x) {
+        int binIdx = data[i] - &#39;a&#39;;
+        if (binIdx == prevBinIdx) {
+            accumulator++;
+        } else {
+            if (prevBinIdx &gt;= 0) {
+                atomicAdd(&amp;hist_s[prevBinIdx], accumulator);
+            }
+            accumulator = 1;
+            prevBinIdx = binIdx;
+        }
+    }
+    if (accumulator &gt; 0) {
+        atomicAdd(&amp;hist_s[prevBinIdx], accumulator);
+    }
+    __syncthreads();
+
+    // Commit to global memory
+    for (unsigned int bin = threadIdx.x; bin &lt; NUM_BINS; bin += blockDim.x) {
+        unsigned int binValue = hist_s[bin];
+        if (binValue &gt; 0) {
+            atomicAdd(&amp;histo[bin], binValue);
+        }
+    }
+}
+</code></pre><p>The difference in this kernel is the histogram loop in the middle. The previous bin index is tracked to determine if contiguous values would be aggregated. As long as the values are the same, the accumulator is increased. As soon as a new value is encountered, a batch update is performed. This reduces the number of atomic operations by a factor of the number of contiguous values.</p>
+<p>If the data is relatively uniform, the cost of aggregation exceeds the simple kernel. If you are working with images, spatially local data will usually be aggregated. This kernel would be beneficial in that case. Another downside to the aggregated kernel is that it requires more registers and has an increased chance for control divergence. As with all implementations, you should profile this against your use case.</p>
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>Computing histograms is a common operation in fields such as image processing, natural language processing, and physics simulations. For example, a core preprocessing step for training a large language model is to compute the frequency of words in a corpus. This is a perfect example of a task that can be parallelized on a GPU.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/gpu_pattern_stencils/">GPU Pattern: Stencils</a></li>
+          
+          <li><a href="/notes/gpu_pattern_convolution/">GPU Pattern: Convolution</a></li>
+          
+          <li><a href="/notes/profiling_cuda_applications/">Profiling CUDA Applications</a></li>
+          
+          <li><a href="/notes/gpu_performance_basics/">GPU Performance Basics</a></li>
+          
+          <li><a href="/notes/cuda_memory_architecture/">CUDA Memory Architecture</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

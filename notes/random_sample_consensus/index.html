@@ -29,13 +29,11 @@
   
     
   
-  <meta name="description" content="Table of Contents Introduction Difference of Gaussians Keypoint Localization Orientation Assignment Descriptor Formation Introduction https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
-General approach to computing SIFT features:
-Scale-space Extrema Detection Keypoint localization Orientation Assignment Generate keypoint descriptors Difference of Gaussians This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the Difference of Gaussians. Consider the figure below.
-Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version.">
+  <meta name="description" content="Table of Contents Introduction Finding the Best Fit Model Introduction Unless our data is perfect, we will not be able to find parameters that fit the data in the presence of outliers. Consider fitting the data in the figure below using a least squares method.
+Figure 1: Points sample along a line with many outliers around it. Source: Wikipedia If we were to fit a naive least squares model, the outliers would surely produce parameters for a line that does not fit the most amount of data possible.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/random_sample_consensus/">
 
   
 
@@ -127,7 +125,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/random_sample_consensus/">
 
   
   
@@ -139,29 +137,27 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
   <meta property="twitter:card" content="summary">
   
   <meta property="og:site_name" content="Alex Dillhoff">
-  <meta property="og:url" content="https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/">
-  <meta property="og:title" content="Scale Invariant Feature Transforms | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Introduction Difference of Gaussians Keypoint Localization Orientation Assignment Descriptor Formation Introduction https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
-General approach to computing SIFT features:
-Scale-space Extrema Detection Keypoint localization Orientation Assignment Generate keypoint descriptors Difference of Gaussians This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the Difference of Gaussians. Consider the figure below.
-Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/random_sample_consensus/">
+  <meta property="og:title" content="RANdom SAmple Consensus | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Finding the Best Fit Model Introduction Unless our data is perfect, we will not be able to find parameters that fit the data in the presence of outliers. Consider fitting the data in the figure below using a least squares method.
+Figure 1: Points sample along a line with many outliers around it. Source: Wikipedia If we were to fit a naive least squares model, the outliers would surely produce parameters for a line that does not fit the most amount of data possible."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
-  <meta property="article:published_time" content="2022-01-22T00:00:00-06:00">
+  <meta property="article:published_time" content="2022-02-15T00:00:00-06:00">
   
-  <meta property="article:modified_time" content="2024-01-28T00:00:00&#43;00:00">
+  <meta property="article:modified_time" content="2022-02-15T00:00:00-06:00">
   
-
-  
-
 
   
 
 
+  
 
 
 
-  <title>Scale Invariant Feature Transforms | Alex Dillhoff</title>
+
+
+  <title>RANdom SAmple Consensus | Alex Dillhoff</title>
 
   <script>
   MathJax = {
@@ -377,7 +373,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
     
     
     <div class="article-container py-3">
-      <h1 itemprop="name">Scale Invariant Feature Transforms</h1>
+      <h1 itemprop="name">RANdom SAmple Consensus</h1>
 
       
 
@@ -386,8 +382,8 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
 
 
 
-<meta content="2022-01-22 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2024-01-28 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+<meta content="2022-02-15 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-02-15 00:00:00 -0600 CST" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -411,10 +407,8 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
     
     
       
-          Last updated on
-      
     
-    <time>Jan 28, 2024</time>
+    <time>Feb 15, 2022</time>
   </span>
   
 
@@ -423,7 +417,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    4 min read
+    5 min read
   </span>
   
 
@@ -449,7 +443,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;text=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/random_sample_consensus/&amp;text=RANdom%20SAmple%20Consensus" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -462,7 +456,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;t=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/random_sample_consensus/&amp;t=RANdom%20SAmple%20Consensus" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook-f"></i>
         </a>
       </li>
@@ -475,7 +469,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="mailto:?subject=Scale%20Invariant%20Feature%20Transforms&amp;body=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=RANdom%20SAmple%20Consensus&amp;body=https://ajdillhoff.github.io/notes/random_sample_consensus/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -488,7 +482,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;title=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/random_sample_consensus/&amp;title=RANdom%20SAmple%20Consensus" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -501,7 +495,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="https://web.whatsapp.com/send?text=Scale%20Invariant%20Feature%20Transforms%20https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="https://web.whatsapp.com/send?text=RANdom%20SAmple%20Consensus%20https://ajdillhoff.github.io/notes/random_sample_consensus/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -514,7 +508,7 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&amp;title=Scale%20Invariant%20Feature%20Transforms" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/random_sample_consensus/&amp;title=RANdom%20SAmple%20Consensus" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -555,24 +549,122 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
 <div class="heading">Table of Contents</div>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#difference-of-gaussians">Difference of Gaussians</a></li>
-<li><a href="#keypoint-localization">Keypoint Localization</a></li>
-<li><a href="#orientation-assignment">Orientation Assignment</a></li>
-<li><a href="#descriptor-formation">Descriptor Formation</a></li>
+<li><a href="#finding-the-best-fit-model">Finding the Best Fit Model</a></li>
 </ul>
 </div>
 <!--endtoc-->
 <h2 id="introduction">Introduction</h2>
-<p><a href="https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf" target="_blank" rel="noopener noreferrer">https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf</a></p>
-<p>General approach to computing SIFT features:</p>
+<p>Unless our data is perfect, we will not be able to find parameters that fit the data in the presence of outliers.
+Consider fitting the data in the figure below using a least squares method.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-15_18-04-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Points sample along a line with many outliers around it. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Points sample along a line with many outliers around it. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>If we were to fit a naive least squares model, the outliers would surely produce parameters for a line that does not fit the most amount of data possible.</p>
+<p>Consider the figures below. In the first one, a least squares model is fit to points generated from a line.
+With the addition of just a single outlier, the model no longer fits the line.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-15_18-22-32_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Least squares can easily fit a line with great accuracy." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Least squares can easily fit a line with great accuracy.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-15_18-21-24_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A single outlier leads to a bad fit for linear regression." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>A single outlier leads to a bad fit for linear regression.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Ideally, we want a model that is robust to outliers.
+That is, the model should be fit such that it matches the largest number of samples, or <strong>inliers</strong>.
+One such approach to this problem is <strong>RANdom SAmple Consensus (RANSAC)</strong>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-15_18-35-05_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;RANSAC fit to most inliers while ignoring the outliers. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>RANSAC fit to most inliers while ignoring the outliers. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The general process is as follows:</p>
 <ol>
-<li>Scale-space Extrema Detection</li>
-<li>Keypoint localization</li>
-<li>Orientation Assignment</li>
-<li>Generate keypoint descriptors</li>
+<li>Randomly select source samples and their matching targets.</li>
+<li>Fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets.</li>
+<li>Measure the error of how well ALL data fits and select the number of inliers with error less than \(t\).</li>
+<li>If the error is lower than the previous best error, fit a new model to these inliers.</li>
 </ol>
-<h2 id="difference-of-gaussians">Difference of Gaussians</h2>
-<p>This same technique for detecting interesting points in a scale-invariant way can be approximated by taking the <strong>Difference of Gaussians</strong>. Consider the figure below.</p>
 
 
 
@@ -581,14 +673,14 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
 
 <figure>
 
-<img src="/ox-hugo/2022-02-10_10-31-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Comparison of DoG and Laplacian. Credit: Fei-Fei Li." >
+<img src="Introduction/2022-02-15_18-57-00_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;RANSAC fitting random samples and counting the number of inliers. Source: Wikipedia" >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 1: </span>Comparison of DoG and Laplacian. Credit: Fei-Fei Li.
+    <span class="figure-number">Figure 5: </span>RANSAC fitting random samples and counting the number of inliers. Source: Wikipedia
     
     
     
@@ -597,13 +689,57 @@ Figure 1: Comparison of DoG and Laplacian. Credit: Fei-Fei Li. By taking the dif
 
 </figure>
 
-<p>By taking the difference of images smoothed by a Gaussian with different values of \(\sigma\), the resulting pixel values correspond to areas with high gradient norms in the less blurry version.</p>
-<p>Let \(I_{\sigma_1}\) be the image blurred with a smaller value of \(\sigma\) and \(I_{\sigma_2}\) be the image blurred with a larger value.
-Then \(D(I_{\sigma_1}, I_{\sigma_2}) = I_{\sigma_2} - I_{\sigma_1}\).
-If a region in \(I_{\sigma_1}\) is locally flat, it will also be in flat in \(I_{\sigma_2}\).
-The difference will be relatively small for that region.
-If there are abrupt changes in a local region within \(I_{\sigma_1}\), they will be smoothed in \(I_{\sigma_2}\).
-Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for that region.</p>
+<p>The algorithm can be found on the <a href="https://en.wikipedia.org/wiki/Random_sample_consensus" target="_blank" rel="noopener noreferrer">Wikipedia page</a>.</p>
+<h2 id="finding-the-best-fit-model">Finding the Best Fit Model</h2>
+<p>When it comes to finding the parameters of a transformation matrix that converts points in one image to another, how do we solve for that matrix? We are looking for some \(A\) such that</p>
+<p>\begin{equation*}
+A\mathbf{x} = \mathbf{\hat{x}}.
+\end{equation*}</p>
+<p>In a perfect world, \(\mathbf{\hat{x}}\) will match the target point \(\mathbf{y}\). In other words,</p>
+<p>\(\|\mathbf{\hat{x}} - \mathbf{y}\|_{2} = 0\).</p>
+<p>For an affine transformation, we would have some transformation matrix</p>
+<p>\begin{equation*}
+A =
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13}\\
+a_{21} &amp; a_{22} &amp; a_{23}
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Then we compute each component of \(A\mathbf{x}\) as</p>
+<p>\begin{align*}
+\hat{x}_1 &amp;= a_{11} * x_1 + a_{12} * x_2 + a_{13} * 1\\
+\hat{x}_2 &amp;= a_{21} * x_1 + a_{22} * x_2 + a_{23} * 1\\
+\end{align*}</p>
+<p>We can fit this using a least squares approach by the following construction.</p>
+<p>\begin{equation*}
+\begin{bmatrix}
+x_1^{(1)} &amp; x_2^{(1)} &amp; 1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; x_1^{(1)} &amp; x_2^{(1)} &amp; 1\\
+&amp;&amp; \vdots\\
+x_1^{(n)} &amp; x_2^{(n)} &amp; 1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; x_1^{(n)} &amp; x_2^{(n)} &amp; 1\\
+\end{bmatrix}
+\begin{bmatrix}
+a_{11}\\
+a_{12}\\
+a_{13}\\
+a_{21}\\
+a_{22}\\
+a_{23}\\
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}_1^{(1)}\\
+\hat{x}_2^{(1)}\\
+\vdots\\
+\hat{x}_1^{(n)}\\
+\hat{x}_2^{(n)}\\
+\end{bmatrix}
+\end{equation*}</p>
+<p>We can solve this analytically! Recall the <strong>normal equations</strong>:</p>
+<p>\[
+A^T A \mathbf{x} = A^T \mathbf{b}.
+\]</p>
+<p>Let&rsquo;s test this on a couple of images&hellip;</p>
 
 
 
@@ -612,14 +748,14 @@ Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for t
 
 <figure>
 
-<img src="/ox-hugo/2022-02-13_20-29-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The Royal Concertgebouw in Amsterdam." >
+<img src="/ox-hugo/2022-02-15_19-20-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Two images taken with matching features shared between them." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 2: </span>The Royal Concertgebouw in Amsterdam.
+    <span class="figure-number">Figure 6: </span>Two images taken with matching features shared between them.
     
     
     
@@ -628,6 +764,8 @@ Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for t
 
 </figure>
 
+<p>First, we use some feature detector such as <a href="/notes/scale_invariant_feature_transforms/">SIFT</a> to find keypoints in each image.
+Then, we can take a brute force approach to determine which keypoints match between them.</p>
 
 
 
@@ -636,14 +774,14 @@ Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for t
 
 <figure>
 
-<img src="/ox-hugo/2022-02-13_20-41-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5)." >
+<img src="/ox-hugo/2022-02-15_19-24-24_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;We&#39;ve got a lot of potential matches here." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 3: </span>Difference of Gaussian between the original image blurred with (sigma = 0.5) and (sigma=1.5).
+    <span class="figure-number">Figure 7: </span>We&rsquo;ve got a lot of potential matches here.
     
     
     
@@ -652,8 +790,7 @@ Therefore, the difference \(D(I_{\sigma_1}, I_{\sigma_2})\) will be higher for t
 
 </figure>
 
-<p>When building SIFT features, the extremum are selected by comparing 3 DoG images.
-These are selected by evaluating each pixel to 26 of its neighbors in the current scale space and neighboring DoG spaces as visualized below.</p>
+<p>After running RANSAC, we end up with a model that fits the following inlier points.</p>
 
 
 
@@ -662,14 +799,14 @@ These are selected by evaluating each pixel to 26 of its neighbors in the curren
 
 <figure>
 
-<img src="/ox-hugo/2022-02-13_18-50-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Finding extrema of pixel (i, j) in a neighborhood of 26 values (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Lowe 2004&lt;/a&gt;)." >
+<img src="/ox-hugo/2022-02-15_19-25-31_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Many of the outliers were removed and we are left with the following matches." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 4: </span>Finding extrema of pixel (i, j) in a neighborhood of 26 values (<a href="#citeproc_bib_item_2">Lowe 2004</a>).
+    <span class="figure-number">Figure 8: </span>Many of the outliers were removed and we are left with the following matches.
     
     
     
@@ -678,15 +815,7 @@ These are selected by evaluating each pixel to 26 of its neighbors in the curren
 
 </figure>
 
-<p>To build the DoG pyramid, the authors propose that images are separated by a constant factor \(k\) in scale space.
-Each octave of scale space is divided such that the scalespace doubles every \(s\) samples.</p>
-<p>Starting with \(\sigma = 0.5\), if we choose \(s=3\) then the fourth sample will be at \(\sigma = 1\), the seventh at \(\sigma=2\), and so on.
-To make sure the DoG images cover the full range of an octave, \(s + 3\) images need to be created per octave.</p>
-<p><strong>Why \(s + 3\)?</strong></p>
-<p>Each octave should evaluate local extrema for \(s\) scales.
-To evaluate this for scale \(\sigma_s\), we need the DoG for scales \(\sigma_{s-1}\) and \(\sigma_{s+1}\).
-This would require 4 Gaussians images to compute.
-The figure below represents the stack for \(s=2\).</p>
+<p>We can use the found transformation matrix to warp our source image to fit our destination image as seen below.</p>
 
 
 
@@ -695,14 +824,14 @@ The figure below represents the stack for \(s=2\).</p>
 
 <figure>
 
-<img src="/ox-hugo/2022-02-10_17-35-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;DOG figure (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Lowe 2004&lt;/a&gt;)." >
+<img src="/ox-hugo/2022-02-15_19-31-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Images stitched together... not perfect!" >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 5: </span>DOG figure (<a href="#citeproc_bib_item_2">Lowe 2004</a>).
+    <span class="figure-number">Figure 9: </span>Images stitched together&hellip; not perfect!
     
     
     
@@ -711,14 +840,78 @@ The figure below represents the stack for \(s=2\).</p>
 
 </figure>
 
-<p><strong>How is the value of \(s\) determined?</strong></p>
-<p>In the paper, the authors perform a repeatability test to determine if the keypoints would be localized even with random augmentations. The process is as follows:</p>
-<ol>
-<li>Randomly augment an input image with noise, color jitter, scale, rotation, etc.</li>
-<li>Compute keypoints using using the extrema detection.</li>
-<li>Compare detected keypoints with known keypoints from original samples.</li>
-</ol>
-<p>The authors found that using \(s = 3\) provided the highest percentage of repeatability in their experiments.</p>
+<h3 id="finding-a-better-transformation">Finding a better transformation</h3>
+<p>The transformation matrix was an affine transformation matrix.
+What we really want is a projective transformation!
+We can extend our approach to finding an affine matrix from earlier by remembering that projective transformations are completed following a perspective divide (usually denoted by \(w\)).</p>
+<p>Instead of a constant 1 in the third position of the affine vector, we have a value \(w\):</p>
+<p>\begin{equation*}
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13}\\
+a_{21} &amp; a_{22} &amp; a_{23}\\
+a_{31} &amp; a_{32} &amp; a_{33}\\
+\end{bmatrix}
+\begin{bmatrix}
+x\\
+y\\
+w
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}\\
+\hat{y}\\
+\hat{w}
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Dividing by \(\hat{w}\) completes the perspective projection:</p>
+<p>\begin{equation*}
+\begin{bmatrix}
+\frac{\hat{x}}{\hat{w}}\\
+\frac{\hat{y}}{\hat{w}}\\
+1
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Again, we can write out the individual equation for each component as</p>
+<p>\begin{align*}
+\hat{x} &amp;= (a_{11} * x + a_{12} * y + a_{13} * w) \div (a_{31} * x + a_{32} * y + a_{33} * w)\\
+\hat{y} &amp;= (a_{21} * x + a_{22} * y + a_{23} * w) \div (a_{31} * x + a_{32} * y + a_{33} * w)\\
+\end{align*}</p>
+<p>We may assume that \(w = 1\) for the original points (before transformation).
+Additionally, \(a_{33}\) is typically set to 1 when constructing a transformation matrix.
+These are safe enough assumptions to make considering that we will make many attempts at finding the best fitting parameters.</p>
+<p>Solving for \(\hat{x}\) and \(\hat{y}\) in terms of a linear combination of elements yields</p>
+<p>\begin{align*}
+\hat{x} &amp;= a_{11} * x + a_{12} * y + a_{13} - \hat{x} * a_{31} * x - \hat{x} * a_{32} * y\\
+\hat{y} &amp;= a_{21} * x + a_{22} * y + a_{23} - \hat{y} * a_{31} * x - \hat{y} * a_{32} * y\\
+\end{align*}</p>
+<p>We can fit this using a least squares approach by the following construction.</p>
+<p>\begin{equation*}
+\begin{bmatrix}
+x_1^{(1)} &amp; x_2^{(1)} &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; -x_1^{(1)}\hat{x}_1^{(1)} &amp; -x_2^{(1)}\hat{x}_1^{(1)}\\
+0 &amp; 0 &amp; 0 &amp; x_1^{(1)} &amp; x_2^{(1)} &amp; 1 &amp; -x_1^{(1)}\hat{x}_2^{(1)} &amp; -x_2^{(1)}\hat{x}_2^{(1)}\\
+&amp;&amp; \vdots\\
+x_1^{(n)} &amp; x_2^{(n)} &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; -x_1^{(n)}\hat{x}_1^{(n)} &amp; -x_2^{(n)}\hat{x}_1^{(n)}\\
+0 &amp; 0 &amp; 0 &amp; x_1^{(n)} &amp; x_2^{(n)} &amp; 1 &amp; -x_1^{(n)}\hat{x}_2^{(n)} &amp; -x_2^{(n)}\hat{x}_2^{(n)}
+\end{bmatrix}
+\begin{bmatrix}
+a_{11}\\
+a_{12}\\
+a_{13}\\
+a_{21}\\
+a_{22}\\
+a_{23}\\
+a_{31}\\
+a_{32}
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}_1^{(1)}\\
+\hat{x}_2^{(1)}\\
+\vdots\\
+\hat{x}_1^{(n)}\\
+\hat{x}_2^{(n)}
+\end{bmatrix}.
+\end{equation*}</p>
+<p>We can use the normal equations as before to solve for this system.</p>
+<p>The figure below shows the final result of image stitching using a perspective projection instead of an affine matrix.</p>
 
 
 
@@ -727,14 +920,14 @@ The figure below represents the stack for \(s=2\).</p>
 
 <figure>
 
-<img src="/ox-hugo/2022-02-13_19-25-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Measuring repeatability of keypoint detections versus # of scales sampled per octave (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Lowe 2004&lt;/a&gt;)." >
+<img src="/ox-hugo/2022-02-16_17-59-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Stitching using a perspective projection." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 6: </span>Measuring repeatability of keypoint detections versus # of scales sampled per octave (<a href="#citeproc_bib_item_2">Lowe 2004</a>).
+    <span class="figure-number">Figure 10: </span>Stitching using a perspective projection.
     
     
     
@@ -743,76 +936,6 @@ The figure below represents the stack for \(s=2\).</p>
 
 </figure>
 
-<h2 id="keypoint-localization">Keypoint Localization</h2>
-<p>Given the candidate keypoints selected by picking out local extrema, they pool of responses can further be refined
-by removing points that are sensitive to noise or located along an edge. They borrow the same approach used in the Harris corner detector to select more robust interest points in corners.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2022-02-15_20-36-13_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Lowe 2004&lt;/a&gt;)." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 7: </span>Refinement of candidate keypoints by filtering those sensitive to noise (c) and those representing ambiguity along edges (d) (<a href="#citeproc_bib_item_2">Lowe 2004</a>).
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<h2 id="orientation-assignment">Orientation Assignment</h2>
-<p>Given a keypoint, an orientation histogram is generated. The authors use 36 bins to cover a 360 degree range for orientations.
-Similar to <a href="/notes/histogram_of_oriented_gradients/">Histogram of Oriented Gradients</a>, the orientations are weighted by their gradient magnitudes (<a href="#citeproc_bib_item_1">Dalal and Triggs 2005</a>).
-Additionally, a Gaussian-weighted circular patch is applied, centered on the keypoint, to further weight the responses.
-This means that points farther away from the center contribute less to the overall feature vector.</p>
-<p>In order to make the keypoint rotation invariant, the dominant orientation is determined.
-If there are orientations that are within 80% of the highest orientation peak, multiple keypoints will be created using those orientations as well.</p>
-<p>Orientations in this window are rotated by the dominant gradient so that all directions are with respect to the dominant orientation.
-This is a more efficient alternative to rotating the entire image by that orientation.</p>
-<h2 id="descriptor-formation">Descriptor Formation</h2>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2022-02-15_20-22-39_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Keypoint descriptor generation (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Lowe 2004&lt;/a&gt;)." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 8: </span>Keypoint descriptor generation (<a href="#citeproc_bib_item_2">Lowe 2004</a>).
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<p>In the paper, the authors generate keypoints using a \(16 \times 16\) window from which \(4 \times 4\) descriptors are generated following the descriptions above.
-Through experimentation, each \(4 \times 4\) descriptor uses 8 orientations, resulting in a feature vector \(\mathbf{x} \in \mathbb{R}^{128}\).</p>
-<p>Different levels of contrast will product edges with higher gradient magnitudes.
-To account for this, the final feature vector is normalized using the \(L2\) hysteresis approach used in Harris corner detection.</p>
-<h2 id="references">References</h2>
-<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
-  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dalal, N., and B. Triggs. 2005. “Histograms of Oriented Gradients for Human Detection.” In <i>2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’05)</i>, 1:886–93 vol. 1. <a href="https://doi.org/10.1109/CVPR.2005.177">https://doi.org/10.1109/CVPR.2005.177</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Lowe, David G. 2004. “Distinctive Image Features from Scale-Invariant Keypoints.” <i>International Journal of Computer Vision</i> 60 (2): 91–110. <a href="https://doi.org/10.1023/B:VISI.0000029664.99615.94">https://doi.org/10.1023/B:VISI.0000029664.99615.94</a>.</div>
-</div>
 
     </div>
 
@@ -820,7 +943,7 @@ To account for this, the final feature vector is normalized using the \(L2\) hys
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tags/computer-vision/">computer vision</a>
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
   
 </div>
 
@@ -917,22 +1040,6 @@ To account for this, the final feature vector is normalized using the \(L2\) hys
 
 
       
-      
-      <div class="article-widget">
-        <div class="hr-light"></div>
-        <h3>Related</h3>
-        <ul>
-          
-          <li><a href="/notes/color/">Color</a></li>
-          
-          <li><a href="/notes/histogram_of_oriented_gradients/">Histogram of Oriented Gradients</a></li>
-          
-          <li><a href="/notes/image_features/">Image Features</a></li>
-          
-          <li><a href="/notes/linear_filters/">Linear Filters</a></li>
-          
-        </ul>
-      </div>
       
     
 

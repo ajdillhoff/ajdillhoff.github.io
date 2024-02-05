@@ -7,10 +7,250 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sat, 21 Oct 2023 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Sun, 04 Feb 2024 17:49:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/algorithms/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Master Theorem</title>
+      <link>https://ajdillhoff.github.io/notes/master_theorem/</link>
+      <pubDate>Sun, 04 Feb 2024 17:49:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/master_theorem/</guid>
+      <description>&lt;p&gt;In the study of &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;, a recurrence tree can be used to determine the runtime complexity. These notes focus on the &lt;strong&gt;master theorem&lt;/strong&gt;, a blueprint for solving any recurrence of the form&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = aT(n/b) + f(n).
+\]&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Divide and Conquer Algorithms</title>
+      <link>https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/</link>
+      <pubDate>Tue, 23 Jan 2024 08:38:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#solving-recurrences&#34;&gt;Solving Recurrences&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-merge-sort&#34;&gt;Example: Merge Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-multiplying-square-matrices&#34;&gt;Example: Multiplying Square Matrices&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-convex-hull&#34;&gt;Example: Convex Hull&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-median-search&#34;&gt;Example: Median Search&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;definition&#34;&gt;Definition&lt;/h2&gt;
+&lt;p&gt;Divide and conquer algorithms are a class of algorithms that solve a problem by breaking it into smaller subproblems, solving the subproblems recursively, and then combining the solutions to the subproblems to form a solution to the original problem. Problems that can be solved in this manner are typically highly parallelizable. These notes investigate a few examples of classic divide and conquer algorithms and their analysis.&lt;/p&gt;
+&lt;p&gt;A divide and conquer method is split into three steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Divide the problem into smaller subproblems.&lt;/li&gt;
+&lt;li&gt;Conquer the subproblems by solving them recursively.&lt;/li&gt;
+&lt;li&gt;Combine the solutions to the subproblems to form a solution to the original problem.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Their runtime can be characterized by the recurrence relation \(T(n)\). A recurrence \(T(n)\) is &lt;em&gt;algorithmic&lt;/em&gt; if, for every sufficiently large &lt;em&gt;threshold&lt;/em&gt; constant \(n_0 &amp;gt; 0\), the following two properties hold:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;For all \(n \leq n_0\), the recurrence defines the running time of a constant-size input.&lt;/li&gt;
+&lt;li&gt;For all \(n \geq n_0\), every path of recursion terminates in a defined base case within a finite number of recursive calls.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The algorithm must output a solution in finite time.
+If the second property doesn&amp;rsquo;t hold, the algorithm is not correct &amp;ndash; it may end up in an infinite loop.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;Whenever a recurrence is stated without an explicit base case, we assume that the recurrence is algorithmic.&amp;rdquo; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This assumption means that the algorithm is correct and terminates in finite time, so there must be a base case. The base case is less important for analysis than the recursive case.&lt;/p&gt;
+&lt;p&gt;It is common to break up each subproblem uniformly, but it is not always the best way to do it. For example, an application such as matrix multiplication is typically broken up uniformly since there is no spatial or temporal relationship to consider. Algorithms for image processing, on the other hand, may have input values that are locally correlated, so it may be better to break up the input in a way that preserves this correlation.&lt;/p&gt;
+&lt;h2 id=&#34;solving-recurrences&#34;&gt;Solving Recurrences&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Substitution method&lt;/li&gt;
+&lt;li&gt;Recursion-tree method&lt;/li&gt;
+&lt;li&gt;Master method&lt;/li&gt;
+&lt;li&gt;Akra-Bazzi method&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;example-merge-sort&#34;&gt;Example: Merge Sort&lt;/h2&gt;
+&lt;p&gt;Merge sort is a classic example of a divide and conquer algorithm. It works by dividing the input array into two halves, sorting each half recursively, and then merging the two sorted halves.&lt;/p&gt;
+&lt;h3 id=&#34;divide&#34;&gt;Divide&lt;/h3&gt;
+&lt;p&gt;The divide step takes an input subarray \(A[p:r]\) and computes a midpoint \(q\) before partitioning it into two subarrays \(A[p:q]\) and \(A[q+1:r]\). These subarrays will be sorted recursively until the base case is reached.&lt;/p&gt;
+&lt;h3 id=&#34;conquer&#34;&gt;Conquer&lt;/h3&gt;
+&lt;p&gt;The conquer step recursively sorts the two subarrays \(A[p:q]\) and \(A[q+1:r]\). If the base case is such that the input array has only one element, the array is already sorted.&lt;/p&gt;
+&lt;h3 id=&#34;combine&#34;&gt;Combine&lt;/h3&gt;
+&lt;p&gt;The combine step merges the two sorted subarrays to produce the final sorted array.&lt;/p&gt;
+&lt;h3 id=&#34;python-implementation&#34;&gt;Python Implementation&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;merge_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; len(A) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Conquer -- base case&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Divide Step&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    mid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(A) &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    left &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; merge_sort(A[:mid])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    right &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; merge_sort(A[mid:])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Combine Step&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; merge(left, right)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;merge&lt;/span&gt;(left, right):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; []
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i, j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Merge the two subarrays&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; len(left)) &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; len(right)):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; left[i] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; right[j]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            result&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(left[i])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            result&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(right[j])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Add the remaining elements to the final array&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    result &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; left[i:]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    result &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; right[j:]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; result
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This function assumes that the subarrays &lt;code&gt;left&lt;/code&gt; and &lt;code&gt;right&lt;/code&gt; are already sorted. If the value in the left subarray is less than the value in the right subarray, the left value is added to the final array. Otherwise, the right value is added. As soon as one of the subarrays is exhausted, the remaining elements in the other subarray are added to the final array. This is done with slicing in Python.&lt;/p&gt;
+&lt;p&gt;The divide step simply splits the data into &lt;code&gt;left&lt;/code&gt; and &lt;code&gt;right&lt;/code&gt; subarrays. The conquer step simplifies the sorting process by reducing it down to the base case &amp;ndash; a single element. Finally, the combine step merges or &lt;em&gt;folds&lt;/em&gt; the two sorted subarrays together.&lt;/p&gt;
+&lt;p&gt;Example code can be found &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/sorting/merge_sort.py&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;When analyzing the running time of a divide and conquer algorithm, it is safe to assume that the base case runs in constant time. The focus of the analysis should be on the &lt;strong&gt;recurrence equation&lt;/strong&gt;. For merge sort, we originally have a problem of size \(n\). We then divide the problem into 2 subproblems of size \(n/2\). Therefore the recurrence is \(T(n) = 2T(n/2)\). These recurrence continues for as long as the base case is not reached.&lt;/p&gt;
+&lt;p&gt;Of course we also have to factor in the time it takes for the divide and combine steps. These can be represented as \(D(n)\) and \(C(n)\), respectively. The total running time of the algorithm is then \(T(n) = 2T(n/2) + D(n) + C(n)\) when \(n &amp;gt;= n_0\), where \(n_0\) is the base case.&lt;/p&gt;
+&lt;p&gt;For merge sort specifically, the base case is \(D(n) = \Theta(1)\) since all it does is compute the midpoint. As we saw above, the conquer step is the recurrent \(T(n) = 2T(n/2)\). The combine step is \(C(n) = \Theta(n)\) since it takes linear time to merge the two subarrays. Thus, the worst-case running time of merge sort is \(T(n) = 2T(n/2) + \Theta(n)\).&lt;/p&gt;
+&lt;p&gt;Not every problem will have a recurrence of \(2T(n/2)\). We can generalize this to \(aT(n/b)\), where \(a\) is the number of subproblems and \(b\) is the size of the subproblems.&lt;/p&gt;
+&lt;p&gt;We haven&amp;rsquo;t finished the analysis yet since it is still not clear what the asymptotic upper bound is. &lt;strong&gt;Recurrence trees&lt;/strong&gt; can be used to visualize the running time of a divide and conquer algorithms. After inspecting the result of the tree, we will be able to easily determine the complexity of merge sort in terms of big-O notation.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-04_15-09-47_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Expansion of recursion tree for merge sort (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Expansion of recursion tree for merge sort (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above from &lt;em&gt;Introduction to Algorithms&lt;/em&gt;, the root of the tree represents the original problem of size \(n\) in (a). In (b), the divide step splits the problem into two problems of size \(n/2\). The cost of this step is indicated by \(c_2n\). Here, \(c_2\) represents the constant cost per element for dividing and combining. As mentioned above, the combine step is dependent on the size of the subproblems, so the cost is \(c_2n\). Subfigure (c) shows a third split, where each new subproblem has size \(n/4\). This would continue recursively until the base case is reached, as shown in the figure below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-04_15-14-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Full recursion tree for merge sort (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Full recursion tree for merge sort (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The upper bound for each level of the tree is \(c_2n\). The height of a binary tree is \(\log_b n\). The total cost of the tree is the sum of the costs at each level. In this case, the cost is \(c_2n \log n + c_1n\), where the last \(c1_n\) comes from the base case. The first term is the dominating factor in the running time, so the running time of merge sort is \(\Theta(n \log n)\).&lt;/p&gt;
+&lt;h3 id=&#34;questions&#34;&gt;Questions&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Assume that the base case is \(n &amp;gt; 1\). What is the running time of the conquer step dependent on?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;example-multiplying-square-matrices&#34;&gt;Example: Multiplying Square Matrices&lt;/h2&gt;
+&lt;p&gt;Matrix multiplication is defined as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;square_matrix_multiply&lt;/span&gt;(A, B):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(A)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    C &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                C[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; A[i][k] &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B[k][j]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; C
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Initializing values takes \(\Theta(n^2)\). The full process takes \(\Theta(n^3)\).&lt;/p&gt;
+&lt;h3 id=&#34;divide-and-conquer&#34;&gt;Divide and Conquer&lt;/h3&gt;
+&lt;p&gt;In this approach, the matrix will be split into block matrices of size \(n/2\). Each submatrix can be multiplied with the corresponding submatrix of the other matrix. The resulting submatrices can be added together to form the final matrix. This is permissible based on the definition of matrix multiplication.&lt;/p&gt;
+&lt;p&gt;Base case is \(n=1\) where only a single addition and multiplication are performed. This is \(T(1) = \Theta(1)\). For \(n &amp;gt; 1\), the recursive algorithm starts by splitting into 8 subproblems of size \(n/2\). There are 8 subproblems because there are 4 submatrices in each matrix, and each submatrix is multiplied with the corresponding submatrix in the other matrix.&lt;/p&gt;
+&lt;p&gt;Each recursive call contributes \(T(n/2)\) to the running time. There are 8 recursive calls, so the total running time is \(8T(n/2) + \Theta(n^2)\). There is no need to implement a combine step since the matrix is updated in place. The final running time is \(T(n) = 8T(n/2) + \Theta(1)\) &lt;strong&gt;for the recursive portion&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;example-convex-hull&#34;&gt;Example: Convex Hull&lt;/h2&gt;
+&lt;p&gt;Given \(n\) points in plane, the convex hull is the smallest convex polygon that contains all the points.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No two points have the same \(x\) or \(y\) coordinate.&lt;/li&gt;
+&lt;li&gt;Sequence of points on boundary in clockwise order as doubly linked list.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;naive-solution&#34;&gt;Naive Solution&lt;/h3&gt;
+&lt;p&gt;Draw lines between each pair of points. If all other points are on the same side of the line, the line is part of the convex hull. This is \(\Theta(n^3)\).&lt;/p&gt;
+&lt;h3 id=&#34;divide-and-conquer&#34;&gt;Divide and Conquer&lt;/h3&gt;
+&lt;p&gt;Sort the points by \(x\) coordinate. Split into two halves by \(x\). Recursively find the convex hull of each half. Merge the two convex hulls.&lt;/p&gt;
+&lt;h4 id=&#34;merging&#34;&gt;Merging&lt;/h4&gt;
+&lt;p&gt;Find upper tangent and lower tangent.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Why not just select the highest point from each half?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The highest point in each half may not be part of the convex hull. The question assumes that the two convex hulls are relatively close to each other.&lt;/p&gt;
+&lt;h4 id=&#34;two-finger-algorithm&#34;&gt;Two Finger Algorithm&lt;/h4&gt;
+&lt;p&gt;Start at the rightmost point of the left convex hull and the leftmost point of the right convex hull. Move the right finger clockwise and the left finger counterclockwise until the tangent is found. The pseudocode is as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;merge_convex_hulls&lt;/span&gt;(left, right):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Find the rightmost point of the left convex hull&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    left_max &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(left, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Find the leftmost point of the right convex hull&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    right_min &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(right, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Find the upper tangent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Move the right finger clockwise&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        right_max &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(right, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; is_upper_tangent(left_max, right_max):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Move the left finger counterclockwise&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        left_max &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(left, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# Find the lower tangent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Move the right finger clockwise&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        right_min &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(right, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; is_lower_tangent(left_min, right_min):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Move the left finger counterclockwise&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        left_min &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(left, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This runs in \(\Theta(n)\) time.&lt;/p&gt;
+&lt;p&gt;Removing the lines that are not part of the convex hull require the cut and paste operations. Starting at the upper tangent, move clockwise along the right convex hull until you reach the point in the lower tangent of the right convex hull. Make the connection to the corresponding point on the left convex hull based on the lower tangent, then move clockwise until you reach the upper tangent of the left convex hull. This is \(\Theta(n)\).&lt;/p&gt;
+&lt;h2 id=&#34;example-median-search&#34;&gt;Example: Median Search&lt;/h2&gt;
+&lt;p&gt;Given a set of \(n\) numbers, defined \(rank(X)\) as the number in the set that are less than or equal to \(X\).&lt;/p&gt;
+&lt;p&gt;\(Select(S, i)\)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Pick \(x \in S\)&lt;/li&gt;
+&lt;li&gt;Compute \(k = rank(x)\)&lt;/li&gt;
+&lt;li&gt;B = {y in S | y &amp;lt; x}&lt;/li&gt;
+&lt;li&gt;C = {y in S | y &amp;gt; x}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If \(i = k\), return \(x\).
+else if \(k &amp;gt; i\), return \(Select(B, i)\).
+else return \(Select(C, i-k)\).&lt;/p&gt;
+&lt;p&gt;How do we get balanced partitions?&lt;/p&gt;
+&lt;p&gt;Arrange \(S\) into columns of size 5.
+Sort each column descending (linear time).
+Find &amp;ldquo;median of medians&amp;rdquo; as \(X\)&lt;/p&gt;
+&lt;p&gt;If the columns are sorted, it is trivial to find the median of each column.&lt;/p&gt;
+&lt;p&gt;Half of the groups contribute at least 3 elements greater than \(X\), except for the last group. We have one group that contains \(x\).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Minimum Spanning Trees</title>
