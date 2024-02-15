@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Resources Introduction Parametric Representation Motivation of the Fundamental Snake Equation External Force Energy Minimization Iterative Solution Applications Resources http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf
+https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf
+https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf
+Introduction Snakes, as named by Kass et al., is a spline curve that is minimized such that it moves towards distinct image features such as edges. The closed curve, or snake, can be thought of as a rubber band.
+Figure 1: Example of snake snapping to object.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/active_contours/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/active_contours/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/active_contours/">
+  <meta property="og:title" content="Active Contours | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Resources Introduction Parametric Representation Motivation of the Fundamental Snake Equation External Force Energy Minimization Iterative Solution Applications Resources http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf
+https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf
+https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf
+Introduction Snakes, as named by Kass et al., is a spline curve that is minimized such that it moves towards distinct image features such as edges. The closed curve, or snake, can be thought of as a rubber band.
+Figure 1: Example of snake snapping to object."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-02-22T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-02-22T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Active Contours | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Active Contours</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-02-22 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-02-22 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Feb 22, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/active_contours/&amp;text=Active%20Contours" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/active_contours/&amp;t=Active%20Contours" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Active%20Contours&amp;body=https://ajdillhoff.github.io/notes/active_contours/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/active_contours/&amp;title=Active%20Contours" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Active%20Contours%20https://ajdillhoff.github.io/notes/active_contours/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/active_contours/&amp;title=Active%20Contours" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#parametric-representation">Parametric Representation</a></li>
+<li><a href="#motivation-of-the-fundamental-snake-equation">Motivation of the Fundamental Snake Equation</a></li>
+<li><a href="#external-force">External Force</a></li>
+<li><a href="#energy-minimization">Energy Minimization</a></li>
+<li><a href="#iterative-solution">Iterative Solution</a></li>
+<li><a href="#applications">Applications</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="resources">Resources</h2>
+<ul>
+<li>
+<p><a href="http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf" target="_blank" rel="noopener noreferrer">http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf</a></p>
+</li>
+<li>
+<p><a href="https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf" target="_blank" rel="noopener noreferrer">https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf</a></p>
+</li>
+<li>
+<p><a href="https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf" target="_blank" rel="noopener noreferrer">https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf</a></p>
+</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p><strong>Snakes</strong>, as named by Kass et al., is a spline curve that is minimized such that it moves towards distinct image features such as edges.
+The closed curve, or snake, can be thought of as a rubber band.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="Introduction/2022-02-23_08-37-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Example of snake snapping to object. (Copyright 2018, 2008 Pearson Education, Inc.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Example of snake snapping to object. (Copyright 2018, 2008 Pearson Education, Inc.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>When stretched out, the band has an internal potential energy that forces the band to close in around some rigid object which exerts force against the band&rsquo;s internal energy.
+This method does not tout itself it be a fully autonomous way to segment interesting features.
+Instead, it is useful in semi-supervised settings where the user knows a general region of interest.
+The minimization of the snake will segment the desired object under reasonable settings.</p>
+<h2 id="parametric-representation">Parametric Representation</h2>
+<p>The contour is represented as a curve using a parametric representation:</p>
+<p>\[
+(x, y) = (g(s), h(s)).
+\]</p>
+<p>The argument \(s\) can be thought of as the trajectory of the curve.</p>
+<p>Parametric representations are a natural choice for representing curves in computing due to their compact representation.
+For example, a circle is defined by \(x^2 + y^2 = r^2\). The individual values \(x\) and \(y\) are</p>
+<p>\begin{align*}
+x &amp;= r\cos(s)\\
+y &amp;= r\sin(s)
+\end{align*}</p>
+<p>It can then be shown that</p>
+<p>\begin{align*}
+x^2 + y^2 &amp;= r^2\cos^2(s) + r^2\sin^2(s)\\
+&amp;= r^2\big(\cos^2(s) + \sin^2(s)\big)\\
+&amp;= r^2.
+\end{align*}</p>
+<p>As a vector, we can represent \((x, y)\) as</p>
+<p>\begin{equation*}
+\mathbf{c}=
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix}=
+\begin{bmatrix}
+x\\
+\pm \sqrt{r^2 - x^2}
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Using the more efficient parametric representation, this vector is defined as</p>
+<p>\begin{equation*}
+\mathbf{c}=
+\begin{bmatrix}
+r\cos(s)\\
+r\sin(s)
+\end{bmatrix}.
+\end{equation*}</p>
+<p>Another example using parametric representation is that of spline curves.</p>
+<p>\begin{align*}
+x(t) &amp;= a_xt^3 + b_xt^2 + c_xt + dx\\
+y(t) &amp;= a_yt^3 + b_yt^2 + c_yt + dy
+\end{align*}</p>
+<p>Then, \(\mathbf{f}(t) = (x(t), y(t))\).</p>
+<h2 id="motivation-of-the-fundamental-snake-equation">Motivation of the Fundamental Snake Equation</h2>
+<p>Given a vector \(\mathbf{c}(s) = \big(x(s), y(s)\big)\) normalized such that \(0 \leq s \leq 1\), an energy function is defined based on internal and external forces:</p>
+<p>\[
+E(\mathbf{c}) = E_{int} + E_{ext}.
+\]</p>
+<p>As the snake is updated iteratively, its final position should be one such that the energy \(E\) is minimized.</p>
+<p>The internal energy function is given as</p>
+<p>\[
+E_{int} = \frac{\alpha}{2}\|\mathbf{c}&rsquo;(s)\|^2 + \frac{\beta}{2}\|\mathbf{c}&rsquo;&rsquo;(s)\|^2,
+\]</p>
+<p>where the first-order term is controlled by \(\alpha\) and the second-order term controlled by \(\beta\).
+The first-order term gives the snake an elastic quality that shrinks towards a rigid object.
+The second-order term controls the siffness of the contour.</p>
+<h2 id="external-force">External Force</h2>
+<p>The external force \(E_{ext}\) is based on the magnitude of the image gradient:</p>
+<p>\[
+E_{img}(x, y) = \|\nabla f(x, y)\|^2.
+\]</p>
+<p>Additionally, the gradient vectors are recorded. The combination of the two serve to represent a force field of the edge map.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-27_22-35-31_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Force field using the edge map using normalized gradients. Source: Pearson Education, Inc." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Force field using the edge map using normalized gradients. Source: Pearson Education, Inc.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="energy-minimization">Energy Minimization</h2>
+<p>The total energy of the snake is then</p>
+<p>\[
+E(\mathbf{c}(s)) = \int_0^1 \frac{\alpha}{2}\|\mathbf{c}&rsquo;(s)\|^2 ds + \int_0^1 \frac{\beta}{2}\|\mathbf{c}&rsquo;&rsquo;(s)\|^2 ds + \int_0^1 E_{img}(\mathbf{c}(s))ds.
+\]</p>
+<p>To find the minimum energy, we write the above equation as a function \(F\) and take its derivative with respect to s.
+The minimum energy must satisfy</p>
+<p>\[
+\frac{\partial}{\partial s}\Big(\frac{\partial F}{\partial\mathbf{c}&rsquo;}\Big) - \frac{\partial^2}{\partial s^2} \Big(\frac{\partial F}{\partial \mathbf{c}&rsquo;&rsquo;}\Big) - \frac{\partial F}{\partial \mathbf{c}} = 0.
+\]</p>
+<p>Solving for the partials above yields</p>
+<p>\[
+\alpha \mathbf{c}&rsquo;&rsquo; - \beta \mathbf{c}&rsquo;&rsquo;&rsquo;&rsquo; - \nabla E_{img} = 0.
+\]</p>
+<p>Since the derivative of energy is a force, and the external force of the object is against the internal force of the snake, we can write</p>
+<p>\[
+\nabla E_{img} = -\mathbf{F}.
+\]</p>
+<p>Under this perspective, the minimum energy is found when</p>
+<p>\[
+\alpha \mathbf{c}&rsquo;&rsquo;(s) - \beta \mathbf{c}&rsquo;&rsquo;&rsquo;&rsquo;(s) + \mathbf{F}(\mathbf{c}(s)) = 0.
+\]</p>
+<h2 id="iterative-solution">Iterative Solution</h2>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-27_22-28-54_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From top left to bottom right: initial snake, 10 steps, 50, 100, 150, 200. Source: Pearson Education, Inc." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>From top left to bottom right: initial snake, 10 steps, 50, 100, 150, 200. Source: Pearson Education, Inc.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To solve this as an iterative process over time \(t\), we write the force vector \(\mathbf{F}\) in terms of its 2D components dependent on \(t\):</p>
+<p>\[
+\mathbf{F}(\mathbf{c}(s, t)) = \mathbf{F}(x(s, t), y(s, t)) = \begin{bmatrix}
+F_x (x(s, t), y(s, t))\\
+F_y (x(s, t), y(s, t))
+\end{bmatrix}.
+\]</p>
+<p>For the internal energy components, we take the partial derivative of \(\mathbf{c}\) with respect to time:</p>
+<p>\[
+\frac{\partial \mathbf{c}(s, t)}{\partial t} = \begin{bmatrix}
+\frac{\partial x(s, t)}{\partial t}\\
+\frac{\partial y(s, t)}{\partial t}\\
+\end{bmatrix}.
+\]</p>
+<p>These derivatives rely on second and fourth order derivatives. For \(x(s, t)\), this is</p>
+<p>\[
+\frac{\partial x(s, t)}{\partial t} = \alpha \frac{\partial^2 x(s, t)}{\partial s^2} - \beta \frac{\partial^4 x(s, t)}{\partial s^4} + F_x(x(s, t), y(s, t)).
+\]</p>
+<p>The partial for \(y\) follows a similar formulation. These derivatives are approximated using finite differences.
+The second order derivative is approximated as</p>
+<p>\[
+\frac{\partial^2 x(s, t)}{\partial s^2} = x&rsquo;&rsquo;(k, t) = x(k + 1, t) - 2x(k, t) + x(k-1, t),
+\]</p>
+<p>and the fourth order derivative is approximated as</p>
+<p>\[
+\frac{\partial^4 x(s, t)}{\partial s^4} = x&rsquo;&rsquo;&rsquo;&rsquo;(k, t) = x(k + 2, t) - 4x(k + 1, t) + 6x(k, t) - 4x(k-1, t) + x(k-2, t).
+\]</p>
+<p>The finite differences can be written in matrix form as a <a href="https://en.wikipedia.org/wiki/Pentadiagonal_matrix" target="_blank" rel="noopener noreferrer">pentadiagonal banded matrix</a>.
+Adding back the external force yields a much simpler equation:</p>
+<p>\[
+Dx + F_x(\mathbf{x}(t), \mathbf{y}(t)) = 0,
+\]</p>
+<p>where</p>
+<p>\[
+D = \alpha D_2 - \beta D_4,
+\]</p>
+<p>the matrix of finite differences.</p>
+<p>Solving the above equation involves taking a finite step in time multiplied by the product of the negative time derivatives.
+To simplify this process further, an assumption is made that the external force remains constant over time.</p>
+<p>\[
+D\mathbf{x}(t) + \mathbf{F}_x(\mathbf{x}(t-1, \mathbf{y}(y-1)) = -\gamma(\mathbf{x}(t) - \mathbf{x}(t-1))
+\]</p>
+<p>This is solved using matrix inversion yielding the final update for time \(t\) as</p>
+<p>\[
+\mathbf{x}(t) = A[\mathbf{x}(t-1) + \gamma \mathbf{F}_x(\mathbf{x}(t-1), \mathbf{y}(t-1))],
+\]</p>
+<p>where \(A = [I - D]^{-1}\).</p>
+<p>The step for \(\mathbf{y}(t)\) follows a similar formulation.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-27_22-24-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Snake transition between time steps. Source: Pearson Education, Inc." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Snake transition between time steps. Source: Pearson Education, Inc.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="applications">Applications</h2>
+<p>In the original paper, the authors show an application where an initial frame of video is initialize with a snak by hand to track the contours of a mouth.
+From that point, the shape automatically matches the subsequent frames.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-27_22-32-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Snakes for motion tracking (Kass et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Snakes for motion tracking (Kass et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/image_segmentation/">Image Segmentation</a></li>
+          
+          <li><a href="/notes/random_sample_consensus/">RANdom SAmple Consensus</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

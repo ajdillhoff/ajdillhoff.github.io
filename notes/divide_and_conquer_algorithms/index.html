@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    10 min read
+    11 min read
   </span>
   
 
@@ -573,7 +573,7 @@ If the second property doesn&rsquo;t hold, the algorithm is not correct &ndash; 
 <blockquote>
 <p>&ldquo;Whenever a recurrence is stated without an explicit base case, we assume that the recurrence is algorithmic.&rdquo; (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
 </blockquote>
-<p>This assumption means that the algorithm is correct and terminates in finite time, so there must be a base case. The base case is less important for analysis than the recursive case.</p>
+<p>This assumption means that the algorithm is correct and terminates in finite time, so there must be a base case. The base case is less important for analysis than the recursive case. For example, your base case might work with 100 elements, and that would still be \(\Theta(1)\) because it is a constant.</p>
 <p>It is common to break up each subproblem uniformly, but it is not always the best way to do it. For example, an application such as matrix multiplication is typically broken up uniformly since there is no spatial or temporal relationship to consider. Algorithms for image processing, on the other hand, may have input values that are locally correlated, so it may be better to break up the input in a way that preserves this correlation.</p>
 <h2 id="solving-recurrences">Solving Recurrences</h2>
 <ul>
@@ -700,6 +700,28 @@ If the second property doesn&rsquo;t hold, the algorithm is not correct &ndash; 
 <p>In this approach, the matrix will be split into block matrices of size \(n/2\). Each submatrix can be multiplied with the corresponding submatrix of the other matrix. The resulting submatrices can be added together to form the final matrix. This is permissible based on the definition of matrix multiplication.</p>
 <p>Base case is \(n=1\) where only a single addition and multiplication are performed. This is \(T(1) = \Theta(1)\). For \(n &gt; 1\), the recursive algorithm starts by splitting into 8 subproblems of size \(n/2\). There are 8 subproblems because there are 4 submatrices in each matrix, and each submatrix is multiplied with the corresponding submatrix in the other matrix.</p>
 <p>Each recursive call contributes \(T(n/2)\) to the running time. There are 8 recursive calls, so the total running time is \(8T(n/2) + \Theta(n^2)\). There is no need to implement a combine step since the matrix is updated in place. The final running time is \(T(n) = 8T(n/2) + \Theta(1)\) <strong>for the recursive portion</strong>.</p>
+<p>This method easily adapts to parallel processing. The size of each <em>tile</em> can be adjusted to fit the number of processors available. The algorithm can be parallelized by assigning each processor to a subproblem.</p>
+<p>We now walk through an example on a \(4 \times 4\) matrix. Assume that each \(A_{ij}\) and \(B_{ij}\) is a \(2 \times 2\) matrix.</p>
+<p>\begin{bmatrix}
+A_{11} &amp; A_{12} \\
+A_{21} &amp; A_{22}
+\end{bmatrix}</p>
+<p>\begin{bmatrix}
+B_{11} &amp; B_{12} \\
+B_{21} &amp; B_{22}
+\end{bmatrix}</p>
+<p>These matrices are already partitioned. They currently don&rsquo;t meet the base case, so 8 recursive calls are made which compute the following products:</p>
+<ol>
+<li>\(A_{11}B_{11}\)</li>
+<li>\(A_{12}B_{21}\)</li>
+<li>\(A_{11}B_{12}\)</li>
+<li>\(A_{12}B_{22}\)</li>
+<li>\(A_{21}B_{11}\)</li>
+<li>\(A_{22}B_{21}\)</li>
+<li>\(A_{21}B_{12}\)</li>
+<li>\(A_{22}B_{22}\)</li>
+</ol>
+<p>Peeking into the first recursive call, the \(2 \times 2\) matrices are partitioned into 4 \(1 \times 1\) matrices, or scalars. The base case is reached, and the product is computed. The same process is repeated for the other 7 recursive calls. The final matrix is then formed by adding the products together.</p>
 <h2 id="example-convex-hull">Example: Convex Hull</h2>
 <p>Given \(n\) points in plane, the convex hull is the smallest convex polygon that contains all the points.</p>
 <ul>
@@ -740,7 +762,16 @@ If the second property doesn&rsquo;t hold, the algorithm is not correct &ndash; 
 </span></span></code></pre></div><p>This runs in \(\Theta(n)\) time.</p>
 <p>Removing the lines that are not part of the convex hull require the cut and paste operations. Starting at the upper tangent, move clockwise along the right convex hull until you reach the point in the lower tangent of the right convex hull. Make the connection to the corresponding point on the left convex hull based on the lower tangent, then move clockwise until you reach the upper tangent of the left convex hull. This is \(\Theta(n)\).</p>
 <h2 id="example-median-search">Example: Median Search</h2>
-<p>Given a set of \(n\) numbers, defined \(rank(X)\) as the number in the set that are less than or equal to \(X\).</p>
+<p>Finding the median value of a set can be performed in linear time without fully sorting the data. The recurrence is based on discarding a constant fraction of the elements at each step.</p>
+<h3 id="algorithm">Algorithm</h3>
+<ol>
+<li><strong><strong>Divide</strong></strong>: Partition the set into groups of 5 elements. Depending on the size of the set, there may be less than 5 elements in the last set.</li>
+<li><strong><strong>Conquer</strong></strong>: Sort each group and find the median of each group. Since the subsets are of constant size, this is done in constant time.</li>
+<li><strong><strong>Combine</strong></strong>: Given the median of each group from step 2, find the median of medians. This value will be used as a pivot for the next step.</li>
+<li><strong><strong>Partition</strong></strong>: Use the pivot to separate values smaller and larger than the pivot.</li>
+<li><strong><strong>Select</strong></strong>: If the given pivot is the true median based on its position in the original set, select it. If not, recursively select the median from the appropriate partition.</li>
+</ol>
+<p>Given a set of \(n\) numbers, define \(rank(X)\) as the number in the set that are less than or equal to \(X\).</p>
 <p>\(Select(S, i)\)</p>
 <ul>
 <li>Pick \(x \in S\)</li>

@@ -7,10 +7,193 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 29 Jan 2024 17:22:00 -0600</lastBuildDate>
+    <lastBuildDate>Mon, 05 Feb 2024 15:47:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/gpgpu/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Reduction</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_reduction/</link>
+      <pubDate>Mon, 05 Feb 2024 15:47:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_reduction/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#reduction-trees&#34;&gt;Reduction Trees&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-simple-kernel&#34;&gt;A Simple Kernel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#minimizing-control-divergence&#34;&gt;Minimizing Control Divergence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#memory-divergence-of-reduction&#34;&gt;Memory Divergence of Reduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#reducing-the-number-of-global-memory-requests&#34;&gt;Reducing the number of global memory requests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#hierarchical-reduction&#34;&gt;Hierarchical Reduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening-back-again&#34;&gt;Thread Coarsening - Back Again&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;The following notes follow Chapter 10 of &lt;em&gt;Programming Massively Parallel Processors&lt;/em&gt; (Hwu, Kirk, and El Hajj 2022).&lt;/p&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Given a set of values, a &lt;strong&gt;reduction&lt;/strong&gt; produces a single output. It is an important part of many parallel algorithms including &lt;a href=&#34;https://ajdillhoff.github.io/notes/mapreduce/&#34;&gt;MapReduce&lt;/a&gt;. Other patterns that we have studied can also be viewed as reductions, such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/&#34;&gt;GPU Pattern: Parallel Histogram&lt;/a&gt;. Implementing this parallel pattern requires careful consideration of thread communication, and will be the focus of these notes.&lt;/p&gt;
+&lt;p&gt;Many of the operations you rely on are examples of reductions. For example, the `sum` function is a reduction, as is the `max` function. A reduction can be viewed as a linear combination of the input values, or transformed values, and is often used to compute a summary statistic. If \(\phi(\cdot)\) is a binary operator, then a reduction computes the following:&lt;/p&gt;
+&lt;p&gt;\[
+v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
+\]&lt;/p&gt;
+&lt;p&gt;where \(v\) is the accumulated value and \(x_i\) are the input values. The operator \(\phi(\cdot)\) can be any associative and commutative operation, such as addition or multiplication. Each operator has a corresponding identity element, such as 0 for addition or 1 for multiplication. The identity element is used to initialize the reduction and can be represented as \(v = v_0\) in the equation above.&lt;/p&gt;
+&lt;h2 id=&#34;reduction-trees&#34;&gt;Reduction Trees&lt;/h2&gt;
+&lt;p&gt;Reductions of any kind are well represented using trees. The first level of reduction maximizes the amount of parallelism. As the input is gradually reduced, fewer threads are needed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-13_18-11-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Sum reduce as a reduction tree.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Sum reduce as a reduction tree.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In order to implement a parallel reduction, the chosen operator must be associative. For example, \(a + (b + c) = (a + b) + c\). The operator must also be commutative, such that \(a + b = b + a\).&lt;/p&gt;
+&lt;p&gt;Reduction trees reveal the logarithmic nature of parallel reductions. Just like divide and conquer algorithms, the number of threads is halved at each level of the tree. The number of levels in the tree is \(\log_2(n)\), where \(n\) is the number of input values. Given an input size of \(n = 1024\), the number of threads required is \(\log_2(1024) = 10\). This is a significant reduction from the original input size. The sequential version of this reduction would require 1023 operations.&lt;/p&gt;
+&lt;h2 id=&#34;a-simple-kernel&#34;&gt;A Simple Kernel&lt;/h2&gt;
+&lt;p&gt;As mentioned above, reduction requires communication between threads. Since only the threads within a single block can communicate, we will focus on a block-level reduction. For now, each block can work with a total of 2048 input values based on the limitation of 1024 threads per block.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceKernel(float *input, float *output) {
+    unsigned int i = 2 * threadIdx.x;
+
+        for (unsigned int stride = 1; stride &amp;lt;= blockDim.x; stride *= 2) {
+            // Only threads in even positions participate
+            if (threadIdx.x % stride == 0) {
+                input[i] += input[i + stride];
+            }
+            __syncthreads();
+        }
+
+        if (threadIdx.x == 0) {
+            *output = input[0];
+        }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each thread is assigned to a single write location &lt;code&gt;2 * threadIdx.x&lt;/code&gt;. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Visualization of kernel execution&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;You can see that the kernel is simple, but it is also inefficient. There is a great deal of control divergence that will be addressed in the next section.&lt;/p&gt;
+&lt;h2 id=&#34;minimizing-control-divergence&#34;&gt;Minimizing Control Divergence&lt;/h2&gt;
+&lt;p&gt;As we just saw, the key to optimizing a reduction kernel is to minimize control divergence and make sure as many threads stay active as possible. A warp of 32 threads would consume the execution resources even if half of them are inactive. As each stage of the reduction tree is completed, the amount of wasted resources increases. Depending on the input size, entire warps could be launched and then immediately become inactive.&lt;/p&gt;
+&lt;p&gt;The number of execution resources consumes is proportional to the number of active warps across all iterations. We can compute the number of resources consumed as follows:&lt;/p&gt;
+&lt;p&gt;\[
+(\frac{5N}{64} + \frac{N}{128} + \frac{N}{256} + \cdots + 1) * 32
+\]&lt;/p&gt;
+&lt;p&gt;where \(N\) is the number of input values. Each thread operates on 2 values, so \(\frac{N}{2}\) are launched in total. Since every warp has 32 threads, a total of \(\frac{N}{64}\) warps are launched. For the first 5 iterations, all warps will be active. The 5th iteration only has 1 active thread in each warp. On the 6th iteration, the number of active warps is halved, and so on.&lt;/p&gt;
+&lt;p&gt;For an input of size \(N = 1024\), the number of resources consumed is \((80 + 8 + 4 + 2 + 1) * 32 = 3040\). The total number of results committed by the active threads is equal to the number of operations performed, which is \(N - 1 = 1023\). The efficiency of the kernel is then \(\frac{1023}{3040} = 0.34\). Only around 34% of the resources are used to perform the reduction.&lt;/p&gt;
+&lt;h3 id=&#34;rearranging-the-threads&#34;&gt;Rearranging the Threads&lt;/h3&gt;
+&lt;p&gt;A simple rearrangement of where the active results are stored can improve the efficiency of the kernel by reducing control divergence. The idea is to keep the threads that own the results of the reduction close together. Instead of increasing the stride, it should be decreased. The figure below shows the rearrangement of the threads.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Visualization of rearranged kernel execution&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceKernel(float *input, float *output) {
+    unsigned int i = threadIdx.x;
+
+    for (unsigned int stride = blockDim.x; stride &amp;gt;= 1; stride /= 2) {
+        if (i &amp;lt; stride) {
+            input[i] += input[i + stride];
+        }
+        __syncthreads();
+    }
+
+    if (threadIdx.x == 0) {
+        *output = input[0];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel itself is effectively the same, but the rearrangement of the threads ensures that each warp has less control divergence. Additionally, warps that drop off after each iteration are no longer consuming execution resources. For an input of 256, the first 4 warps are fully utilized (barring the last thread of the last warp). After the first iteration, the number of active warps is halved. Warps 3 and 4 are now fully inactive, leaving warps 1 and 2 to perform the reduction operation on all threads. We can compute the number of resources consumed under this new arrangement as follows:&lt;/p&gt;
+&lt;p&gt;\[
+(\frac{N}{64} + \frac{N}{128} + \frac{N}{256} + \cdots + 1 + 5) * 32
+\]&lt;/p&gt;
+&lt;p&gt;At each iteration, half of warps become inactive and no longer consume resources. The last warp will consume execution resources for all 32 threads, even though the number of active threads is less than 32. For our input of size \(N = 1024\), the number of resources consumed is \((16 + 8 + 4 + 2 + 1 + 5) * 32 = 1152\), resulting in an efficiency of \(\frac{1023}{1152} = 0.89\). This is a significant improvement over the original kernel. This will increase based on the input size.&lt;/p&gt;
+&lt;h2 id=&#34;memory-divergence-of-reduction&#34;&gt;Memory Divergence of Reduction&lt;/h2&gt;
+&lt;p&gt;Does this kernel take advantage of memory coalescing? Each thread reads and writes from and to its &lt;em&gt;assigned&lt;/em&gt; location. It also makes a read from a location that is a stride away. These locations are certainly not adjacent and will not be coalesced.&lt;/p&gt;
+&lt;p&gt;Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separate of &lt;code&gt;stride&lt;/code&gt;, the &lt;code&gt;64 * 4&lt;/code&gt; bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.&lt;/p&gt;
+&lt;p&gt;The convergent kernel from the last section takes advantage of memory coalescing, leading to fewer memory requests.&lt;/p&gt;
+&lt;h2 id=&#34;reducing-the-number-of-global-memory-requests&#34;&gt;Reducing the number of global memory requests&lt;/h2&gt;
+&lt;p&gt;As we saw with tiling in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;, we can reduce the number of global memory requests by using shared memory. Threads write their results to global memory, which is read again in the next iteration. By keeping the intermediate results in shared memory, we can reduce the number of global memory requests. If implemented correctly, only the original input values will need to be read from global memory.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceSharedKernel(float *input, float *output) {
+    __shared__ float input_s[BLOCK_DIM];
+    unsigned int i = threadIdx.x;
+    input_s[i] = input[i] + input[i + BLOCK_DIM];
+
+    for (unsigned int stride = blockDim.x / 2; stride &amp;gt;= 1; stride /= 2) {
+        __syncthreads();
+        if (i &amp;lt; stride) {
+            input_s[i] += input_s[i + stride];
+        }
+    }
+
+    if (i == 0) {
+        *output = input_s[0];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;At the very top of this kernel, the necessary input is loaded from global memory, added, and written to shared memory. This is the only time global memory is accessed, with the exception of the final write to the output. The call to &lt;code&gt;syncthreads()&lt;/code&gt; moves to the top so that the shared memory is guaranteed before the next update.&lt;/p&gt;
+&lt;p&gt;This approach not only requires fewer global memory requests, but the original input is left unmodified.&lt;/p&gt;
+&lt;h2 id=&#34;hierarchical-reduction&#34;&gt;Hierarchical Reduction&lt;/h2&gt;
+&lt;p&gt;One major assumption that has been made in each of these kernels is that they are running on a single block. Thread synchronization is critical to the success of the reduction. If we want to reduce a larger number of input across multiple blocks, the kernel should allow for independent execution. This is achieved by segmenting the input and performing a reduction on each segment. The final reduction is then performed on the results of the segment reductions.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Visualization of hierarchical reduction&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceHierarchicalKernel(float *input, float *output) {
+    __shared__ float input_s[BLOCK_DIM];
+    unsigned int segment = 2 * blockDim.x * blockIdx.x;
+    unsigned int i = segment + threadIdx.x;
+    unsigned int t = threadIdx.x;
+    input_s[t] = input[i] + input[i + BLOCK_DIM];
+
+    for (unsigned int stride = blockDim.x / 2; stride &amp;gt;= 1; stride /= 2) {
+        __syncthreads();
+        if (t &amp;lt; stride) {
+            input_s[t] += input_s[t + stride];
+        }
+    }
+
+    if (t == 0) {
+        atomicAdd(output, input_s[0]);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening-back-again&#34;&gt;Thread Coarsening - Back Again&lt;/h2&gt;
+&lt;p&gt;Thread coarsening was first analyzed in the context of matrix multiplication in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improve data locality.&lt;/p&gt;
+&lt;p&gt;For reduction, successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ coarsenedSumReductionKernel(float *input, float *output) {
+    __shared__ float input_s[BLOCK_DIM];
+    uint segment = COARSE_FACTOR * 2 * blockDim.x * blockIdx.x;
+    uint i = segment + threadIdx.x;
+    uint t = threadIdx.x;
+
+    float sum = input[i];
+    for (uint tile = 1; tile &amp;lt; COARSE_FACTOR * 2; tile++) {
+        sum += input[i + tile * BLOCK_DIM];
+    }
+
+    input_s[t] = sum;
+
+    for (uint stride = blockDim.x / 2; stride &amp;gt;= 1; stride /= 2) {
+        __syncthreads();
+        if (t &amp;lt; stride) {
+            input_s[t] += input_s[t + stride];
+        }
+    }
+    if (t == 0) {
+        atomicAdd(output, input_s[0]);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;&lt;strong&gt;TODO: Add visualization of thread coarsening&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Parallel Histogram</title>
@@ -999,21 +1182,16 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#overview-of-nsight&#34;&gt;Overview of Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#tips-and-best-practices&#34;&gt;Tips and Best Practices&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#ocl-notes&#34;&gt;OCL Notes&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;profiling-and-benchmarking&#34;&gt;Profiling and Benchmarking&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Debugging&lt;/li&gt;
-&lt;li&gt;Profiling&lt;/li&gt;
-&lt;li&gt;Benchmarking&lt;/li&gt;
-&lt;/ul&gt;
 &lt;h2 id=&#34;overview-of-nsight&#34;&gt;Overview of Nsight&lt;/h2&gt;
+&lt;p&gt;NVIDIA NSight Compute is a profiling tool for CUDA kernels. It features an expert system that can help you identify performance bottlenecks in your code. It is essential for methodically optimizing your code. These notes will cover the basics of using Nsight Compute to profile your CUDA applications.&lt;/p&gt;
 &lt;h2 id=&#34;getting-started-with-nsight&#34;&gt;Getting Started with Nsight&lt;/h2&gt;
 &lt;h3 id=&#34;profiling-our-first-program&#34;&gt;Profiling our first program&lt;/h3&gt;
 &lt;p&gt;In Lab 0, you implemented a vector addition kernel that is &lt;em&gt;embarrassingly parallel&lt;/em&gt;. We will now use Nsight to profile its performance. Realistically, there is not much we can do to increase the performance of this kernel, but it will still help us understand the information that Nsight gives. To profile the application, simply launch &lt;code&gt;ncu&lt;/code&gt; with your application.&lt;/p&gt;
@@ -1104,14 +1282,22 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
 
 &lt;p&gt;This basic report only includes three sections: GPU Speed of Light, Launch Statistics, and Occupancy Analysis. We will go over each of these sections in detail.&lt;/p&gt;
 &lt;h3 id=&#34;gpu-speed-of-light&#34;&gt;GPU Speed of Light&lt;/h3&gt;
-&lt;p&gt;High level aspects. Shows what your application is doing relative to peak performance.
-Important lines:&lt;/p&gt;
+&lt;p&gt;This section displays high level aspects of your kernel. The main metrics report what your application is doing relative to peak performance. Sparing the full details of the documentation, the most important metrics are:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;Duration&lt;/li&gt;
-&lt;li&gt;SM &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Memory &lt;code&gt;[%]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Duration: The total time spent executing the kernel. This is the most important metric for performance.&lt;/li&gt;
+&lt;li&gt;SM &lt;code&gt;[%]&lt;/code&gt;: The relative throughput of the SMs as compared to the theoretical maximum.&lt;/li&gt;
+&lt;li&gt;Memory &lt;code&gt;[%]&lt;/code&gt;: The relative throughput of the memory as compared to the theoretical maximum.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Do not get lost in the numbers!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Remember that this tool is simply reporting facts about your kernel. Take care not to misinterpret the data. In the run from above, the kernel throughput is only 0.85%. There are a number of reasons as to why this number is so low.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Latency Issues: The kernel may have to wait for memory operations, resulting in a low throughput.&lt;/li&gt;
+&lt;li&gt;Workload Characteristics: Your particular kernel may not need to do much work, resulting in a low throughput.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&#34;launch-statistics&#34;&gt;Launch Statistics&lt;/h3&gt;
+&lt;p&gt;This section shows us the launch configuration that was used for this kernel. In our earlier programs, we may set these manually for testing. Later on, we will want our programs to adapt to changing input sizes, so these statistics will becomes more useful.&lt;/p&gt;
+&lt;p&gt;More importantly, this shows you the resource usage per block.&lt;/p&gt;
+&lt;p&gt;If you are profiling an application for which you are not familiar with the code, it is convenient to know the grid and block sizes that were used when launching the kernel.&lt;/p&gt;
 &lt;h3 id=&#34;occupancy-analysis&#34;&gt;Occupancy Analysis&lt;/h3&gt;
 &lt;h3 id=&#34;memory-workload-analysis&#34;&gt;Memory Workload Analysis&lt;/h3&gt;
 &lt;h2 id=&#34;case-study-matrix-multiplication&#34;&gt;Case Study: Matrix Multiplication&lt;/h2&gt;
@@ -1119,6 +1305,45 @@ Important lines:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Do not confuse high throughput for high performance. Throughput is a measure of how much work is being done, not how fast it is being done.&lt;/li&gt;
 &lt;li&gt;Using a larger grid size is not always better. More grids introduce more overhead and can lead to lower performance.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;ocl-notes&#34;&gt;OCL Notes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Analysis Driven Optimization&lt;/li&gt;
+&lt;li&gt;Understanding Performance Limiters&lt;/li&gt;
+&lt;li&gt;Metrics Review&lt;/li&gt;
+&lt;li&gt;Memory Bound Analysis&lt;/li&gt;
+&lt;li&gt;Compute Bound Analysis&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Goals&lt;/strong&gt;
+Make efficient use of memory subsystem
+Expose enough parallelism to hide latency&lt;/p&gt;
+&lt;h3 id=&#34;analysis-driven-optimization&#34;&gt;Analysis Driven Optimization&lt;/h3&gt;
+&lt;p&gt;Cyclical process&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Profile&lt;/li&gt;
+&lt;li&gt;Determine Limiter&lt;/li&gt;
+&lt;li&gt;Inspect&lt;/li&gt;
+&lt;li&gt;Optimize&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Determine if memory or compute bound. If neither, analyze where the latency is coming from.&lt;/p&gt;
+&lt;h3 id=&#34;metrics&#34;&gt;Metrics&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Latency&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;sm efficiency&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Memory&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;dram utilization&lt;/li&gt;
+&lt;li&gt;L2 utilization&lt;/li&gt;
+&lt;li&gt;shared utilization&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Compute&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DP utilization&lt;/li&gt;
+&lt;li&gt;SP utilization&lt;/li&gt;
+&lt;li&gt;HP utilization&lt;/li&gt;
+&lt;li&gt;TC utilization&lt;/li&gt;
+&lt;li&gt;Integer&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -1172,7 +1397,7 @@ DRAM has high latency based on its design. Each cell has a transistor and a capa
 
 &lt;p&gt;Strategies to optimize code for memory coalescing are to rearrange the threads, the data, or transfer the data first to shared memory so that accesses are faster, referred to as &lt;strong&gt;corner turning&lt;/strong&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/h3&gt;
-&lt;p&gt;Consider \(C = AB\), where \(A\) is in row-major order and \(B\) is in column-major order. The naive implementation of this algorithm will have poor memory coalescing. The figure below demonstrates the memory accesses for this scenario. The values required are no consecutive in memory, so the DRAM will have to make multiple bursts to read the data.&lt;/p&gt;
+&lt;p&gt;Consider \(C = AB\), where \(A\) is in row-major order and \(B\) is in column-major order. The naive implementation of this algorithm will have poor memory coalescing. The figure below demonstrates the memory accesses for this scenario. The values required are not consecutive in memory, so the DRAM will have to make multiple bursts to read the data.&lt;/p&gt;
 
 
 
@@ -2804,6 +3029,1059 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Sosutha, S., and D. Mohana. 2015. “Heterogeneous Parallel Computing Using Cuda for Chemical Process.” &lt;i&gt;Procedia Computer Science&lt;/i&gt;, Graph Algorithms, High Performance Implementations and Its Applications ( ICGHIA 2014 ), 47 (January): 237–46. &lt;a href=&#34;https://doi.org/10.1016/j.procs.2015.03.203&#34;&gt;https://doi.org/10.1016/j.procs.2015.03.203&lt;/a&gt;.&lt;/div&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. “Llama 2: Open Foundation and Fine-Tuned Chat Models.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2307.09288&#34;&gt;https://doi.org/10.48550/arXiv.2307.09288&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Segmentation via Clustering</title>
+      <link>https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/</link>
+      <pubDate>Thu, 24 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#agglomerative-clustering&#34;&gt;Agglomerative Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#k-means-clustering&#34;&gt;K-Means Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#references&#34;&gt;References&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The goal of segmentation is fairly broad: group visual elements together.
+For any given task, the question is &lt;em&gt;how are elements grouped?&lt;/em&gt;
+At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity.
+Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.&lt;/p&gt;
+&lt;p&gt;Segmentation by thresholding works in cases where the boundaries between features are clearly defined.
+However, thresholding is not very robust to complex images with noise.
+Consider a simple image and its intensity histogram as noise is added.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_10-27-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Even with some noise added, as seen in the middle image, thresholding is still relatively straightforward.
+Once enough noise is added, thresholding via pixel intensities will not work.
+A more sophisticated approach is needed in this case.&lt;/p&gt;
+&lt;p&gt;Clustering is a fairly intuitive way to think about segmentation.
+Instead of a fine-grained representation of an image as a collection of pixels, it is represented as groups or clusters that share some common features.
+The general process of clustering is simple.
+The image is represented as a collection of feature vectors (intensity, pixel color, etc.).
+Feature vectors are assigned to a single cluster. These clusters represent some segment of the image.&lt;/p&gt;
+&lt;p&gt;When it comes to clustering methods, there are two main approaches: agglomerative and divisive.
+Simply, one is a bottom-up approach. The other is a top-down approach.
+After briefly introductin agglomerative clustering, we will explore specific implementations of segmentation using k-means clustering as well as segmentation using superpixels &amp;lt;&amp;amp;achantaSLICSuperpixelsCompared2012&amp;gt;.&lt;/p&gt;
+&lt;h2 id=&#34;agglomerative-clustering&#34;&gt;Agglomerative Clustering&lt;/h2&gt;
+&lt;p&gt;Agglomerative clustering methods start by assuming every element is a separate cluster.
+Elements are formed based on some local similarities.
+As these methods iterate, the number of clusters decreases.
+Deciding which elements to merge depends on &lt;strong&gt;inter-cluster distance&lt;/strong&gt;.
+The exact choice of distance is dependent on the task. Some examples include:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Single-link clustering&lt;/strong&gt;: The distance between the closest elements.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Complete-link clustering&lt;/strong&gt;: The maximum distance between an element of the first cluster and one of the second.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Group average clustering&lt;/strong&gt;: Average distance of elements in a cluster.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;How many clusters are or should be in a single image?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This is a difficult question to answer for many reasons. The answer will be largely dependent on the task at hand.
+It is a problem of learning the underlying generative process of the visual elements in the image.
+By defining the specific goal of segmentation (segment by color, shape, etc.), we are introducing a prior about the underlying generative processes which formed the image.&lt;/p&gt;
+&lt;p&gt;&lt;a id=&#34;figure--fig1&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_16-24-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;There are approaches which attempt to segment objects in semi-supervised settings.
+As seen in &lt;a href=&#34;#figure--fig1&#34;&gt;Figure 1&lt;/a&gt;, Zhao et al. propose a part segmentation model for 3D objects which only utilizes 1-5% of the training part labels &amp;lt;&amp;amp;zhao3DPointCapsule2019&amp;gt;.&lt;/p&gt;
+&lt;p&gt;For example, if we divised an algorithm that would segment an image by color values, it might be able to segment the hand wearing a solid color glove relatively easily.
+If we wanted to segment the hand into its individual joints, we would have to introduce a visual prior such as asking the subject to wear a multicolored glove.
+We could also add prior information about the hand shape and joint configuration into the model itself.&lt;/p&gt;
+&lt;p&gt;&lt;a id=&#34;figure--joint-pc&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_22-08-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the &lt;a href=&#34;#figure--joint-pc&#34;&gt;figure above&lt;/a&gt;, the kinematic hand model could be used to segment the hand by assigning points in the point cloud to the nearest joint as estimated by the model.&lt;/p&gt;
+&lt;p&gt;One way to visualize the cluster relationships is a &lt;em&gt;dendrogram&lt;/em&gt;.
+Initially, each element is its own cluster. As the process evolves and clusters are merged based on some similarity,
+the hierarchy is updated to show how the connections are formed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_18-16-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Example output from scikit-image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Example output from scikit-image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;k-means-clustering&#34;&gt;K-Means Clustering&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://huggingface.co/spaces/SLU-CSCI5750-SP2022/homework03_DigitClassificationKNN&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;K-Means Variant KNN Demo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;K-Means clustering is a popular machine learning method used in both supervised and unsupervised settings.
+It works by iteratively updating a set of &lt;em&gt;centroids&lt;/em&gt; or means until some stopping criteria is achieved.&lt;/p&gt;
+&lt;p&gt;To use this with image segmentation, we start by treating our image features as vectors.
+In the RGB case, each pixel is a vector of 3 values.
+It starts out by initializing \(k\) clusters randomly with means \(\mathbf{m}_i\).
+The next step is to compute the distance between the clusters and each point in the image.
+Points are assigned to the cluster that is closest.&lt;/p&gt;
+&lt;p&gt;\[
+\text{arg}\min_{C} \sum_{i=1}^k \sum_{\mathbf{z}\in C_i}\|\mathbf{z} - \mathbf{m}_i\|^2,
+\]&lt;/p&gt;
+&lt;p&gt;where \(C = \{C_1, \dots, C_k\}\) is the cluster set.&lt;/p&gt;
+&lt;p&gt;K-Means uses Expectation Maximization to update its parameters.
+That is, it first computes the expected values given its current cluster centers before updating the cluster centers based on the new assignments.
+The standard algorithm is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Initialize clusters&lt;/strong&gt; - Randomly select \(k\) points as cluster centers \(\mathbf{m}_i\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Assign samples to clusters&lt;/strong&gt; - Assign each sample to the closest cluster center based on some distance metric.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Update the means&lt;/strong&gt; - Compute a new value for the cluster centers based on the assignments in the previous step.
+\[
+\mathbf{m}_i = \frac{1}{|C_i|}\sum_{\mathbf{z} \in C_i}\mathbf{z}, \quad i = 1, \dots, k
+\]&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Test for convergence&lt;/strong&gt; - Compute the distances between the means at time \(t\) and time \(t - 1\) as \(E\). Stop if the difference is less than some threshold: \(E \leq T\).&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_21-41-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Image segmented using k-means with k=3. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Image segmented using k-means with k=3. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/h2&gt;
+&lt;p&gt;Simple Linear Iterative Clustering (SLIC) is widely used algorithm based on K-Means clustering for image segmentation &amp;lt;&amp;amp;achantaSLICSuperpixelsCompared2012&amp;gt;.&lt;/p&gt;
+&lt;p&gt;As discussed in the original paper, the authors state that SLIC h   as two main advantages over traditional K-Means:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The search space for assigning points is reduced, leading to an increase in performance.&lt;/li&gt;
+&lt;li&gt;By weighting the distance measure, color and spatial proximity are both considered when forming clusters.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The algorithm itself is simple to understand and implement, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_23-39-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;SLIC Algorithm (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;SLIC Algorithm (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;initialization&#34;&gt;Initialization&lt;/h3&gt;
+&lt;p&gt;To keep the search space smaller, the individual search regions are spaced \(S = \sqrt{N/k}\) pixels apart, where \(N\) is the number of pixels and \(k\) is the number of cluster centers.&lt;/p&gt;
+&lt;p&gt;The image itself is represented in &lt;a href=&#34;https://en.wikipedia.org/wiki/CIELAB_color_space&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;CIELAB color space&lt;/a&gt;.
+This color space was chosen because it is &lt;em&gt;perceputally uniform&lt;/em&gt;.
+That is, it is useful for detecting small differences in color.&lt;/p&gt;
+&lt;p&gt;Each of the \(k\) pixel clusters is then defined as a superpixel consisting of the CIELAB color and position:&lt;/p&gt;
+&lt;p&gt;\[
+C_i = [l_i\ a_i\ b_i\ x_i\ y_i]^T.
+\]&lt;/p&gt;
+&lt;p&gt;For stability, the seed locations are moved to the lowest gradient position in a \(3 \times 3\) neighborhood.
+If the superpixels are building locally distinct regions, it is better to avoid placing them on an edge (boundary) pixel.&lt;/p&gt;
+&lt;h3 id=&#34;search-space-and-distance&#34;&gt;Search Space and Distance&lt;/h3&gt;
+&lt;p&gt;The search space for a cluster center is a region \(2S \times 2S\) around the cluster.
+Each pixel in this region is compared to the cluster center \(C_k\) using a distance measure \(D\).&lt;/p&gt;
+&lt;p&gt;The distance measure should consider both the spatial and color distances:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+d_c &amp;amp;= \sqrt{(l_j - l_i)^2 + (a_j - a_i)^2 + (b_j - b_i)^2}\\
+d_s &amp;amp;= \sqrt{(x_j - x_i)^2 + (y_j - y_i)^2}\\
+D&amp;rsquo; &amp;amp;= \sqrt{\Big(\frac{d_c}{N_c}\Big)^2 + \Big(\frac{d_s}{N_s}\Big)^2}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The individual distances should be normalized by their respective maximums since the range of CIELAB values is different from the variable maximum of \(N_s\), which is based on the image size.
+Here, \(N_s\) corresponds to the sampling size \(\sqrt{N/k}\).&lt;/p&gt;
+&lt;p&gt;The authors found that normalizing this way was inconsistent since the color distances vary greatly from cluster to cluster.
+They turn this normalization into a hyperparameter constant \(m\) so that the user can control the importance between spatial and color proximity.&lt;/p&gt;
+&lt;p&gt;\[
+D = \sqrt{d_c^2 + \Big(\frac{d_s}{S}\Big)^2 m^2}
+\]&lt;/p&gt;
+&lt;p&gt;A smaller \(m\) results in superpixels that adhere more to image boundaries, where a larger value promotes compact superpixels.&lt;/p&gt;
+&lt;h3 id=&#34;results&#34;&gt;Results&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-24-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Comparison of SLIC against other superpixel methods (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Comparison of SLIC against other superpixel methods (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-26-00_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Images segmented using a varying number of clusters (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Images segmented using a varying number of clusters (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/h2&gt;
+&lt;p&gt;Superpixels are useful for reducing the dimensionality of the feature space.
+Their applications include tracking, segmentation, and object detection.
+Methods that extract superpixels do not work out of the box with deep learning methods
+due to their non-differentiable formulation.
+Deep learning methods rely on gradient descent to optimize their parameters.
+This requires that the functions used in a deep network be differentiable.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-47-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Superpixels optimized for semantic segmentation (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Superpixels optimized for semantic segmentation (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Superpixel Sampling Networks, proposed by Jampani et al., introduce the first attempt at integrating superpixel extraction methods with deep learning models &amp;lt;&amp;amp;jampaniSuperpixelSamplingNetworks2018&amp;gt;.
+In this work, they adapt SLIC as a differentiable layer in a deep network which result in superpixels that are fine-tuned for specific tasks.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_21-45-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Model diagram for SSN (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Model diagram for SSN (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The train their model on a semantic segmentation task which fine tunes the learned superpixels such that they adhere more closely to segmentation boundaries.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_21-51-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Results on semantic segmentation (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Results on semantic segmentation (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In a more recent work, Yang et al. propose a deep network that directly produces the superpixels as opposed to using a soft K-Means layer &amp;lt;&amp;amp;yangSuperpixelSegmentationFully2020&amp;gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_22-05-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Similar to SSN, they experiment on the Berkeley Image Segmentation Dataset.
+Their results are competitive with other deep learning-based approaches.
+The authors note that their method generalizes better in segmentation tasks by being robust to fine details and noise.
+Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_22-14-22_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Comparison of results on competing methods (Yang et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of results on competing methods (Yang et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;p&gt;&amp;lt;/home/alex/ajdillhoff@gmail.com/bibliography/master.bib&amp;gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Active Contours</title>
+      <link>https://ajdillhoff.github.io/notes/active_contours/</link>
+      <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/active_contours/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#parametric-representation&#34;&gt;Parametric Representation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#motivation-of-the-fundamental-snake-equation&#34;&gt;Motivation of the Fundamental Snake Equation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#external-force&#34;&gt;External Force&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#energy-minimization&#34;&gt;Energy Minimization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#iterative-solution&#34;&gt;Iterative Solution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#applications&#34;&gt;Applications&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Snakes&lt;/strong&gt;, as named by Kass et al., is a spline curve that is minimized such that it moves towards distinct image features such as edges.
+The closed curve, or snake, can be thought of as a rubber band.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-23_08-37-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Example of snake snapping to object. (Copyright 2018, 2008 Pearson Education, Inc.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Example of snake snapping to object. (Copyright 2018, 2008 Pearson Education, Inc.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;When stretched out, the band has an internal potential energy that forces the band to close in around some rigid object which exerts force against the band&amp;rsquo;s internal energy.
+This method does not tout itself it be a fully autonomous way to segment interesting features.
+Instead, it is useful in semi-supervised settings where the user knows a general region of interest.
+The minimization of the snake will segment the desired object under reasonable settings.&lt;/p&gt;
+&lt;h2 id=&#34;parametric-representation&#34;&gt;Parametric Representation&lt;/h2&gt;
+&lt;p&gt;The contour is represented as a curve using a parametric representation:&lt;/p&gt;
+&lt;p&gt;\[
+(x, y) = (g(s), h(s)).
+\]&lt;/p&gt;
+&lt;p&gt;The argument \(s\) can be thought of as the trajectory of the curve.&lt;/p&gt;
+&lt;p&gt;Parametric representations are a natural choice for representing curves in computing due to their compact representation.
+For example, a circle is defined by \(x^2 + y^2 = r^2\). The individual values \(x\) and \(y\) are&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+x &amp;amp;= r\cos(s)\\
+y &amp;amp;= r\sin(s)
+\end{align*}&lt;/p&gt;
+&lt;p&gt;It can then be shown that&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+x^2 + y^2 &amp;amp;= r^2\cos^2(s) + r^2\sin^2(s)\\
+&amp;amp;= r^2\big(\cos^2(s) + \sin^2(s)\big)\\
+&amp;amp;= r^2.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;As a vector, we can represent \((x, y)\) as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{c}=
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix}=
+\begin{bmatrix}
+x\\
+\pm \sqrt{r^2 - x^2}
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Using the more efficient parametric representation, this vector is defined as&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\mathbf{c}=
+\begin{bmatrix}
+r\cos(s)\\
+r\sin(s)
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Another example using parametric representation is that of spline curves.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+x(t) &amp;amp;= a_xt^3 + b_xt^2 + c_xt + dx\\
+y(t) &amp;amp;= a_yt^3 + b_yt^2 + c_yt + dy
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then, \(\mathbf{f}(t) = (x(t), y(t))\).&lt;/p&gt;
+&lt;h2 id=&#34;motivation-of-the-fundamental-snake-equation&#34;&gt;Motivation of the Fundamental Snake Equation&lt;/h2&gt;
+&lt;p&gt;Given a vector \(\mathbf{c}(s) = \big(x(s), y(s)\big)\) normalized such that \(0 \leq s \leq 1\), an energy function is defined based on internal and external forces:&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{c}) = E_{int} + E_{ext}.
+\]&lt;/p&gt;
+&lt;p&gt;As the snake is updated iteratively, its final position should be one such that the energy \(E\) is minimized.&lt;/p&gt;
+&lt;p&gt;The internal energy function is given as&lt;/p&gt;
+&lt;p&gt;\[
+E_{int} = \frac{\alpha}{2}\|\mathbf{c}&amp;rsquo;(s)\|^2 + \frac{\beta}{2}\|\mathbf{c}&amp;rsquo;&amp;rsquo;(s)\|^2,
+\]&lt;/p&gt;
+&lt;p&gt;where the first-order term is controlled by \(\alpha\) and the second-order term controlled by \(\beta\).
+The first-order term gives the snake an elastic quality that shrinks towards a rigid object.
+The second-order term controls the siffness of the contour.&lt;/p&gt;
+&lt;h2 id=&#34;external-force&#34;&gt;External Force&lt;/h2&gt;
+&lt;p&gt;The external force \(E_{ext}\) is based on the magnitude of the image gradient:&lt;/p&gt;
+&lt;p&gt;\[
+E_{img}(x, y) = \|\nabla f(x, y)\|^2.
+\]&lt;/p&gt;
+&lt;p&gt;Additionally, the gradient vectors are recorded. The combination of the two serve to represent a force field of the edge map.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-27_22-35-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Force field using the edge map using normalized gradients. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Force field using the edge map using normalized gradients. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;energy-minimization&#34;&gt;Energy Minimization&lt;/h2&gt;
+&lt;p&gt;The total energy of the snake is then&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{c}(s)) = \int_0^1 \frac{\alpha}{2}\|\mathbf{c}&amp;rsquo;(s)\|^2 ds + \int_0^1 \frac{\beta}{2}\|\mathbf{c}&amp;rsquo;&amp;rsquo;(s)\|^2 ds + \int_0^1 E_{img}(\mathbf{c}(s))ds.
+\]&lt;/p&gt;
+&lt;p&gt;To find the minimum energy, we write the above equation as a function \(F\) and take its derivative with respect to s.
+The minimum energy must satisfy&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial}{\partial s}\Big(\frac{\partial F}{\partial\mathbf{c}&amp;rsquo;}\Big) - \frac{\partial^2}{\partial s^2} \Big(\frac{\partial F}{\partial \mathbf{c}&amp;rsquo;&amp;rsquo;}\Big) - \frac{\partial F}{\partial \mathbf{c}} = 0.
+\]&lt;/p&gt;
+&lt;p&gt;Solving for the partials above yields&lt;/p&gt;
+&lt;p&gt;\[
+\alpha \mathbf{c}&amp;rsquo;&amp;rsquo; - \beta \mathbf{c}&amp;rsquo;&amp;rsquo;&amp;rsquo;&amp;rsquo; - \nabla E_{img} = 0.
+\]&lt;/p&gt;
+&lt;p&gt;Since the derivative of energy is a force, and the external force of the object is against the internal force of the snake, we can write&lt;/p&gt;
+&lt;p&gt;\[
+\nabla E_{img} = -\mathbf{F}.
+\]&lt;/p&gt;
+&lt;p&gt;Under this perspective, the minimum energy is found when&lt;/p&gt;
+&lt;p&gt;\[
+\alpha \mathbf{c}&amp;rsquo;&amp;rsquo;(s) - \beta \mathbf{c}&amp;rsquo;&amp;rsquo;&amp;rsquo;&amp;rsquo;(s) + \mathbf{F}(\mathbf{c}(s)) = 0.
+\]&lt;/p&gt;
+&lt;h2 id=&#34;iterative-solution&#34;&gt;Iterative Solution&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-27_22-28-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;From top left to bottom right: initial snake, 10 steps, 50, 100, 150, 200. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From top left to bottom right: initial snake, 10 steps, 50, 100, 150, 200. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To solve this as an iterative process over time \(t\), we write the force vector \(\mathbf{F}\) in terms of its 2D components dependent on \(t\):&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{F}(\mathbf{c}(s, t)) = \mathbf{F}(x(s, t), y(s, t)) = \begin{bmatrix}
+F_x (x(s, t), y(s, t))\\
+F_y (x(s, t), y(s, t))
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;For the internal energy components, we take the partial derivative of \(\mathbf{c}\) with respect to time:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathbf{c}(s, t)}{\partial t} = \begin{bmatrix}
+\frac{\partial x(s, t)}{\partial t}\\
+\frac{\partial y(s, t)}{\partial t}\\
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;These derivatives rely on second and fourth order derivatives. For \(x(s, t)\), this is&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial x(s, t)}{\partial t} = \alpha \frac{\partial^2 x(s, t)}{\partial s^2} - \beta \frac{\partial^4 x(s, t)}{\partial s^4} + F_x(x(s, t), y(s, t)).
+\]&lt;/p&gt;
+&lt;p&gt;The partial for \(y\) follows a similar formulation. These derivatives are approximated using finite differences.
+The second order derivative is approximated as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial^2 x(s, t)}{\partial s^2} = x&amp;rsquo;&amp;rsquo;(k, t) = x(k + 1, t) - 2x(k, t) + x(k-1, t),
+\]&lt;/p&gt;
+&lt;p&gt;and the fourth order derivative is approximated as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial^4 x(s, t)}{\partial s^4} = x&amp;rsquo;&amp;rsquo;&amp;rsquo;&amp;rsquo;(k, t) = x(k + 2, t) - 4x(k + 1, t) + 6x(k, t) - 4x(k-1, t) + x(k-2, t).
+\]&lt;/p&gt;
+&lt;p&gt;The finite differences can be written in matrix form as a &lt;a href=&#34;https://en.wikipedia.org/wiki/Pentadiagonal_matrix&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;pentadiagonal banded matrix&lt;/a&gt;.
+Adding back the external force yields a much simpler equation:&lt;/p&gt;
+&lt;p&gt;\[
+Dx + F_x(\mathbf{x}(t), \mathbf{y}(t)) = 0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+D = \alpha D_2 - \beta D_4,
+\]&lt;/p&gt;
+&lt;p&gt;the matrix of finite differences.&lt;/p&gt;
+&lt;p&gt;Solving the above equation involves taking a finite step in time multiplied by the product of the negative time derivatives.
+To simplify this process further, an assumption is made that the external force remains constant over time.&lt;/p&gt;
+&lt;p&gt;\[
+D\mathbf{x}(t) + \mathbf{F}_x(\mathbf{x}(t-1, \mathbf{y}(y-1)) = -\gamma(\mathbf{x}(t) - \mathbf{x}(t-1))
+\]&lt;/p&gt;
+&lt;p&gt;This is solved using matrix inversion yielding the final update for time \(t\) as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}(t) = A[\mathbf{x}(t-1) + \gamma \mathbf{F}_x(\mathbf{x}(t-1), \mathbf{y}(t-1))],
+\]&lt;/p&gt;
+&lt;p&gt;where \(A = [I - D]^{-1}\).&lt;/p&gt;
+&lt;p&gt;The step for \(\mathbf{y}(t)\) follows a similar formulation.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-27_22-24-01_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Snake transition between time steps. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Snake transition between time steps. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;applications&#34;&gt;Applications&lt;/h2&gt;
+&lt;p&gt;In the original paper, the authors show an application where an initial frame of video is initialize with a snak by hand to track the contours of a mouth.
+From that point, the shape automatically matches the subsequent frames.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-27_22-32-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Snakes for motion tracking (Kass et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Snakes for motion tracking (Kass et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>Image Segmentation</title>
+      <link>https://ajdillhoff.github.io/notes/image_segmentation/</link>
+      <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/image_segmentation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#defining-segmentations&#34;&gt;Defining Segmentations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#grouping&#34;&gt;Grouping&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#segmentation-methods&#34;&gt;Segmentation Methods&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/&lt;/a&gt; (Berkeley Segmentation Database)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/abs/2105.15203v2&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://arxiv.org/abs/2105.15203v2&lt;/a&gt; (SegFormer)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/abs/1703.06870&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://arxiv.org/abs/1703.06870&lt;/a&gt; (Mask R-CNN)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/sithu31296/semantic-segmentation&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/sithu31296/semantic-segmentation&lt;/a&gt; (Collection of SOTA models)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Feature extraction methods such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&#34;&gt;SIFT&lt;/a&gt; provide us with many distinct, low-level features that are useful for providing local descriptions images.
+We now &amp;ldquo;zoom out&amp;rdquo; and take a slightly higher level look at the next stage of image summarization.
+Our goal here is to take these low-level features and group, or fit, them together such that they represent a higher level feature.
+For example, from small patches representing color changes or edges, we may wish to build higher-level feature representing an eye, mouth, and nose.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-23_08-12-56_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Capsule networks learn template components that make up handwritten images (Kosiorek et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Capsule networks learn template components that make up handwritten images (Kosiorek et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The goal of &lt;strong&gt;image segmentation&lt;/strong&gt; is to obtain a compact representation of distinct features in an image.
+We will see that this task is loosely defined and will vary from application to application.
+For example, in one task we may wish to segment individual people detected in an image.
+In another task, we may wish to segment the clothes they are wearing to identify certain fashion trends or make
+predictions about the time of year based on an image.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-22_09-22-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Mask R-CNN results on COCO dataset (He et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Mask R-CNN results on COCO dataset (He et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Popular methods for segmenting images use clustering or graph techniques.
+Clustering methods will group local pixels together into regions based on similarity.
+There are also a class of segmentation based on locating boundary curves called &lt;a href=&#34;https://ajdillhoff.github.io/notes/active_contours/&#34;&gt;Active Contours&lt;/a&gt;.
+These segment distinct boundaries based on image features such as edges and are motivated by physical or mathematical properties.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-02-22_09-32-59_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Comparison results from SegFormer paper (Xie et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Comparison results from SegFormer paper (Xie et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;defining-segmentations&#34;&gt;Defining Segmentations&lt;/h2&gt;
+&lt;p&gt;The task of image segmentation comes with ambiguity.
+People will segment images in different ways depending on the task.&lt;/p&gt;
+&lt;h2 id=&#34;grouping&#34;&gt;Grouping&lt;/h2&gt;
+&lt;p&gt;At the pixel-level, features such as edges will look similar regardless of the context.
+An edge segment from a car will look similar to that of a building at a small enough scale.
+As soon as those features are grouped together, their representation completely changes.
+A collection of edges becomes a square or a corner.
+The higher-level of grouping we have, the more that the collection of features begin to diverge from each other.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.katnoria.com/gradvizv1/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;ConvNet Gradient Visualization&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Consider the famouse Muller-Lyer illusion seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_20-41-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Looking at the details individually, it is easier to see that the lines are the same length.
+When considering the grouped features around them, they appear different.&lt;/p&gt;
+&lt;p&gt;Another view of segmentation considers what is the figure versus what is the ground, or background.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_20-49-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The &lt;a href=&#34;https://en.wikipedia.org/wiki/Gestalt_psychology&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Gestalt school of psychology&lt;/a&gt; posited that grouping was the key to visual understanding.
+Towards establishing a theory of segmentation, a set of factors was proposed:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Proximity&lt;/strong&gt; - Group elements that are close together.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Similarity&lt;/strong&gt; - Elements that share some sort of measurable similarity are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Common fate&lt;/strong&gt; - Often tied to temporal features, elements with a similar trajectory are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Common region&lt;/strong&gt; - Elements enclosed in a region are part of the same group. This region could be arbitrary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Parallelism&lt;/strong&gt; - Parallel elements are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Closure&lt;/strong&gt; - Lined or curves that are closed.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Symmetry&lt;/strong&gt; - Elements exhibiting some sort of symmetry. For example, a mirrored shaped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Continuity&lt;/strong&gt; - Continuous curves are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Familiar configuration&lt;/strong&gt; - Lower level elements, when grouped together, form a higher level object.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-03-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_18-23-16_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Sky and Water by M.C. Escher&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Sky and Water by M.C. Escher
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Intuiting applications for some of these rules is easier than others.
+For example, familiar configuration suggests that some familiar object can be identified by the sum of its parts.
+This is especially helpful for problems where the whole object is occluded.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-09-15_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Parts of the hand are occluded either by the hand itself or some object (Mueller et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Parts of the hand are occluded either by the hand itself or some object (Mueller et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Common fate is a useful rule when considering tracking an object or group of objects over a series of frames.
+Even something a simple as frame differencing is an efficient preprocessing step to removing unrelated information.&lt;/p&gt;
+&lt;h2 id=&#34;segmentation-methods&#34;&gt;Segmentation Methods&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ajdillhoff.github.io/notes/active_contours/&#34;&gt;Active Contours&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/&#34;&gt;Segmentation via Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 </description>
     </item>
     

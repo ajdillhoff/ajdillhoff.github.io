@@ -36,7 +36,16 @@
 &lt;h3 id=&#34;build-sparse-frequency-vectors&#34;&gt;Build Sparse Frequency Vectors&lt;/h3&gt;
 &lt;p&gt;The next step is to create a histogram of the visual features for each image. The histogram is a sparse vector, where each element represents the count of a visual feature in the image. The histogram is then normalized to create a feature vector. Given an input image, the feature vector is extracted and assigned a label based on the cluster model. That label is one of the \(n\) chosen words in the vocabulary, which is incremented in the histogram.&lt;/p&gt;
 &lt;h3 id=&#34;adjust-frequency-vectors&#34;&gt;Adjust Frequency Vectors&lt;/h3&gt;
-&lt;p&gt;The feature vectors are then adjusted to account for the frequency of the visual features. This is done by applying a weighting scheme to the feature vectors. The most common weighting scheme is the Term Frequency-Inverse Document Frequency (TF-IDF) weighting. This weighting scheme is used to adjust the frequency of a word in a document based on the frequency of the word in the entire dataset. In terms of the Bag of Visual Words, the frequency of a visual feature in an image is adjusted based on the frequency of the visual feature in the entire dataset.&lt;/p&gt;
+&lt;p&gt;The feature vectors are then adjusted to account for the frequency of the visual features. This is done by applying a weighting scheme to them. The most common weighting scheme is called Term Frequency-Inverse Document Frequency (TF-IDF). TF-IDF scheme adjusts the frequency of a word in a document based on the frequency in the entire dataset. It is calculated as follows:&lt;/p&gt;
+&lt;p&gt;\[
+\text{TF-IDF}(t, d) = \text{TF}(t, d) \times \text{IDF}(t),
+\]&lt;/p&gt;
+&lt;p&gt;where \(\text{TF}(t, d)\) is the term frequency of term \(t\) in document \(d\) and \(\text{IDF}(t)\) is the inverse document frequency of term \(t\) in the entire dataset.&lt;/p&gt;
+&lt;p&gt;\(\text{TF}(t, d)\) is simply the number of times that visual feature \(t\) appears in the image \(d\). \(\text{IDF}(t)\) is calculated as follows:&lt;/p&gt;
+&lt;p&gt;\[
+\text{IDF}(t) = \log\left(\frac{N}{n_t}\right),
+\]&lt;/p&gt;
+&lt;p&gt;where \(N\) is the total number of images in the dataset and \(n_t\) is the number of images that contain the visual feature \(t\).&lt;/p&gt;
 &lt;h3 id=&#34;compare-vectors&#34;&gt;Compare Vectors&lt;/h3&gt;
 &lt;p&gt;The last step is to compare the feature vectors in service of some downstream task like classification. Since every feature vector is a fixed length, they can be used as input to a machine learning model.&lt;/p&gt;
 </description>
@@ -494,7 +503,7 @@ p(z_t = i, z_{t+1} = j|\mathbf{x}_{1:T}) = \frac{\alpha_t(i)a_{ij}b_j(x_{t+1})\b
 &lt;!--endtoc--&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;&lt;strong&gt;Paper link:&lt;/strong&gt; &lt;a href=&#34;https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently. Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.&lt;/p&gt;
+&lt;p&gt;Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Platt, n.d.&lt;/a&gt;). Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.&lt;/p&gt;
 &lt;p&gt;The two key components of SMO are&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;an analytic method to solving for two Lagrange multipliers at a time&lt;/li&gt;
@@ -677,11 +686,15 @@ It does this by breaking down the larger optimization problem into a small and s
 Solving for one would not be possible without violating KKT conditions.
 There are two components to Sequential Minimal Optimization: the first is how the Lagrangians are selected and the second is the actual optimization step.&lt;/p&gt;
 &lt;h3 id=&#34;choosing-the-first-lagrangian&#34;&gt;Choosing the First Lagrangian&lt;/h3&gt;
-&lt;p&gt;The algorithm first determines which samples in the dataset violate the given KKT conditions.
-Only those violating the conditions are eligible for optimization.
-Additionally, samples that are not on the bounds are selected (those with \(\alpha_i \neq 0\) and \(\alpha_i \neq C\)).
+&lt;p&gt;The algorithm first determines which samples in the dataset violate the given KKT conditions. Only those violating the conditions are eligible for optimization. A solution is found when the following are true for all \(i\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\alpha_i = 0 \iff y_i u_i \geq 1,\\
+0 &amp;lt; \alpha_i &amp;lt; C \iff y_i u_i = 1,\\
+\alpha_i = C \iff y_i u_i \leq 1.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Additionally, samples that are not on the bounds are selected (those with \(\alpha_i \neq 0\) and \(\alpha_i \neq C\)).
 This continues through the dataset until no sample violates the KKT constraints within \(\epsilon\).&lt;/p&gt;
-&lt;p&gt;As a last step, SMO searches the entire dataset to look for any bound samples that violate KKT conditions.&lt;/p&gt;
+&lt;p&gt;As a last step, SMO searches the entire dataset to look for any bound samples that violate KKT conditions. It is possible that updating a non-bound sample would cause a bound sample to violate the KKT conditions.&lt;/p&gt;
 &lt;h3 id=&#34;choosing-the-second-lagrangian&#34;&gt;Choosing the Second Lagrangian&lt;/h3&gt;
 &lt;p&gt;The second Lagrangian is chosen to maximize the size of the step taken during joint optimization.
 Noting that the step size is based on&lt;/p&gt;
@@ -726,6 +739,10 @@ u = \sum_{i=1}^N y_i \alpha_i K(\mathbf{x}_i, \mathbf{x}) - b.
 \]&lt;/p&gt;
 &lt;h2 id=&#34;implementation&#34;&gt;Implementation&lt;/h2&gt;
 &lt;p&gt;An implementation of SMO in Python is available at &lt;a href=&#34;https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Platt, John C. n.d. “Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines,” 21.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

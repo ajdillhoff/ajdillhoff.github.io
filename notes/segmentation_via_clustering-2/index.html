@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Agglomerative Clustering K-Means Clustering Simple Linear Iterative Clustering (SLIC) Superpixels in Recent Work References Introduction The goal of segmentation is fairly broad: group visual elements together. For any given task, the question is how are elements grouped? At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity. Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/">
+  <meta property="og:title" content="Segmentation via Clustering | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Agglomerative Clustering K-Means Clustering Simple Linear Iterative Clustering (SLIC) Superpixels in Recent Work References Introduction The goal of segmentation is fairly broad: group visual elements together. For any given task, the question is how are elements grouped? At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity. Without a model of higher level objects, the pixel-based approach will break down at a large enough scale."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-02-24T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2022-02-24T00:00:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Segmentation via Clustering | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Segmentation via Clustering</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-02-24 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2022-02-24 00:00:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Feb 24, 2022</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    8 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/&amp;text=Segmentation%20via%20Clustering" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/&amp;t=Segmentation%20via%20Clustering" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Segmentation%20via%20Clustering&amp;body=https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/&amp;title=Segmentation%20via%20Clustering" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Segmentation%20via%20Clustering%20https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/&amp;title=Segmentation%20via%20Clustering" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#agglomerative-clustering">Agglomerative Clustering</a></li>
+<li><a href="#k-means-clustering">K-Means Clustering</a></li>
+<li><a href="#simple-linear-iterative-clustering--slic">Simple Linear Iterative Clustering (SLIC)</a></li>
+<li><a href="#superpixels-in-recent-work">Superpixels in Recent Work</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>The goal of segmentation is fairly broad: group visual elements together.
+For any given task, the question is <em>how are elements grouped?</em>
+At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity.
+Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.</p>
+<p>Segmentation by thresholding works in cases where the boundaries between features are clearly defined.
+However, thresholding is not very robust to complex images with noise.
+Consider a simple image and its intensity histogram as noise is added.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-01_10-27-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Even with some noise added, as seen in the middle image, thresholding is still relatively straightforward.
+Once enough noise is added, thresholding via pixel intensities will not work.
+A more sophisticated approach is needed in this case.</p>
+<p>Clustering is a fairly intuitive way to think about segmentation.
+Instead of a fine-grained representation of an image as a collection of pixels, it is represented as groups or clusters that share some common features.
+The general process of clustering is simple.
+The image is represented as a collection of feature vectors (intensity, pixel color, etc.).
+Feature vectors are assigned to a single cluster. These clusters represent some segment of the image.</p>
+<p>When it comes to clustering methods, there are two main approaches: agglomerative and divisive.
+Simply, one is a bottom-up approach. The other is a top-down approach.
+After briefly introductin agglomerative clustering, we will explore specific implementations of segmentation using k-means clustering as well as segmentation using superpixels &lt;&amp;achantaSLICSuperpixelsCompared2012&gt;.</p>
+<h2 id="agglomerative-clustering">Agglomerative Clustering</h2>
+<p>Agglomerative clustering methods start by assuming every element is a separate cluster.
+Elements are formed based on some local similarities.
+As these methods iterate, the number of clusters decreases.
+Deciding which elements to merge depends on <strong>inter-cluster distance</strong>.
+The exact choice of distance is dependent on the task. Some examples include:</p>
+<ol>
+<li><strong>Single-link clustering</strong>: The distance between the closest elements.</li>
+<li><strong>Complete-link clustering</strong>: The maximum distance between an element of the first cluster and one of the second.</li>
+<li><strong>Group average clustering</strong>: Average distance of elements in a cluster.</li>
+</ol>
+<p><strong>How many clusters are or should be in a single image?</strong></p>
+<p>This is a difficult question to answer for many reasons. The answer will be largely dependent on the task at hand.
+It is a problem of learning the underlying generative process of the visual elements in the image.
+By defining the specific goal of segmentation (segment by color, shape, etc.), we are introducing a prior about the underlying generative processes which formed the image.</p>
+<p><a id="figure--fig1"></a></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-24_16-24-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>There are approaches which attempt to segment objects in semi-supervised settings.
+As seen in <a href="#figure--fig1">Figure 1</a>, Zhao et al. propose a part segmentation model for 3D objects which only utilizes 1-5% of the training part labels &lt;&amp;zhao3DPointCapsule2019&gt;.</p>
+<p>For example, if we divised an algorithm that would segment an image by color values, it might be able to segment the hand wearing a solid color glove relatively easily.
+If we wanted to segment the hand into its individual joints, we would have to introduce a visual prior such as asking the subject to wear a multicolored glove.
+We could also add prior information about the hand shape and joint configuration into the model itself.</p>
+<p><a id="figure--joint-pc"></a></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-01_22-08-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the <a href="#figure--joint-pc">figure above</a>, the kinematic hand model could be used to segment the hand by assigning points in the point cloud to the nearest joint as estimated by the model.</p>
+<p>One way to visualize the cluster relationships is a <em>dendrogram</em>.
+Initially, each element is its own cluster. As the process evolves and clusters are merged based on some similarity,
+the hierarchy is updated to show how the connections are formed.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-24_18-16-31_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Example output from scikit-image." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Example output from scikit-image.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="k-means-clustering">K-Means Clustering</h2>
+<ul>
+<li><a href="https://huggingface.co/spaces/SLU-CSCI5750-SP2022/homework03_DigitClassificationKNN" target="_blank" rel="noopener noreferrer">K-Means Variant KNN Demo</a></li>
+<li><a href="https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py" target="_blank" rel="noopener noreferrer">https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py</a></li>
+</ul>
+<p>K-Means clustering is a popular machine learning method used in both supervised and unsupervised settings.
+It works by iteratively updating a set of <em>centroids</em> or means until some stopping criteria is achieved.</p>
+<p>To use this with image segmentation, we start by treating our image features as vectors.
+In the RGB case, each pixel is a vector of 3 values.
+It starts out by initializing \(k\) clusters randomly with means \(\mathbf{m}_i\).
+The next step is to compute the distance between the clusters and each point in the image.
+Points are assigned to the cluster that is closest.</p>
+<p>\[
+\text{arg}\min_{C} \sum_{i=1}^k \sum_{\mathbf{z}\in C_i}\|\mathbf{z} - \mathbf{m}_i\|^2,
+\]</p>
+<p>where \(C = \{C_1, \dots, C_k\}\) is the cluster set.</p>
+<p>K-Means uses Expectation Maximization to update its parameters.
+That is, it first computes the expected values given its current cluster centers before updating the cluster centers based on the new assignments.
+The standard algorithm is as follows:</p>
+<ol>
+<li><strong>Initialize clusters</strong> - Randomly select \(k\) points as cluster centers \(\mathbf{m}_i\).</li>
+<li><strong>Assign samples to clusters</strong> - Assign each sample to the closest cluster center based on some distance metric.</li>
+<li><strong>Update the means</strong> - Compute a new value for the cluster centers based on the assignments in the previous step.
+\[
+\mathbf{m}_i = \frac{1}{|C_i|}\sum_{\mathbf{z} \in C_i}\mathbf{z}, \quad i = 1, \dots, k
+\]</li>
+<li><strong>Test for convergence</strong> - Compute the distances between the means at time \(t\) and time \(t - 1\) as \(E\). Stop if the difference is less than some threshold: \(E \leq T\).</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-01_21-41-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Image segmented using k-means with k=3. Source: Pearson Education, Inc." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Image segmented using k-means with k=3. Source: Pearson Education, Inc.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="simple-linear-iterative-clustering--slic">Simple Linear Iterative Clustering (SLIC)</h2>
+<p>Simple Linear Iterative Clustering (SLIC) is widely used algorithm based on K-Means clustering for image segmentation &lt;&amp;achantaSLICSuperpixelsCompared2012&gt;.</p>
+<p>As discussed in the original paper, the authors state that SLIC h   as two main advantages over traditional K-Means:</p>
+<ol>
+<li>The search space for assigning points is reduced, leading to an increase in performance.</li>
+<li>By weighting the distance measure, color and spatial proximity are both considered when forming clusters.</li>
+</ol>
+<p>The algorithm itself is simple to understand and implement, as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-01_23-39-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;SLIC Algorithm (Achanta et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>SLIC Algorithm (Achanta et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="initialization">Initialization</h3>
+<p>To keep the search space smaller, the individual search regions are spaced \(S = \sqrt{N/k}\) pixels apart, where \(N\) is the number of pixels and \(k\) is the number of cluster centers.</p>
+<p>The image itself is represented in <a href="https://en.wikipedia.org/wiki/CIELAB_color_space" target="_blank" rel="noopener noreferrer">CIELAB color space</a>.
+This color space was chosen because it is <em>perceputally uniform</em>.
+That is, it is useful for detecting small differences in color.</p>
+<p>Each of the \(k\) pixel clusters is then defined as a superpixel consisting of the CIELAB color and position:</p>
+<p>\[
+C_i = [l_i\ a_i\ b_i\ x_i\ y_i]^T.
+\]</p>
+<p>For stability, the seed locations are moved to the lowest gradient position in a \(3 \times 3\) neighborhood.
+If the superpixels are building locally distinct regions, it is better to avoid placing them on an edge (boundary) pixel.</p>
+<h3 id="search-space-and-distance">Search Space and Distance</h3>
+<p>The search space for a cluster center is a region \(2S \times 2S\) around the cluster.
+Each pixel in this region is compared to the cluster center \(C_k\) using a distance measure \(D\).</p>
+<p>The distance measure should consider both the spatial and color distances:</p>
+<p>\begin{align*}
+d_c &amp;= \sqrt{(l_j - l_i)^2 + (a_j - a_i)^2 + (b_j - b_i)^2}\\
+d_s &amp;= \sqrt{(x_j - x_i)^2 + (y_j - y_i)^2}\\
+D&rsquo; &amp;= \sqrt{\Big(\frac{d_c}{N_c}\Big)^2 + \Big(\frac{d_s}{N_s}\Big)^2}
+\end{align*}</p>
+<p>The individual distances should be normalized by their respective maximums since the range of CIELAB values is different from the variable maximum of \(N_s\), which is based on the image size.
+Here, \(N_s\) corresponds to the sampling size \(\sqrt{N/k}\).</p>
+<p>The authors found that normalizing this way was inconsistent since the color distances vary greatly from cluster to cluster.
+They turn this normalization into a hyperparameter constant \(m\) so that the user can control the importance between spatial and color proximity.</p>
+<p>\[
+D = \sqrt{d_c^2 + \Big(\frac{d_s}{S}\Big)^2 m^2}
+\]</p>
+<p>A smaller \(m\) results in superpixels that adhere more to image boundaries, where a larger value promotes compact superpixels.</p>
+<h3 id="results">Results</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_20-24-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Comparison of SLIC against other superpixel methods (Achanta et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Comparison of SLIC against other superpixel methods (Achanta et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_20-26-00_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Images segmented using a varying number of clusters (Achanta et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Images segmented using a varying number of clusters (Achanta et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="superpixels-in-recent-work">Superpixels in Recent Work</h2>
+<p>Superpixels are useful for reducing the dimensionality of the feature space.
+Their applications include tracking, segmentation, and object detection.
+Methods that extract superpixels do not work out of the box with deep learning methods
+due to their non-differentiable formulation.
+Deep learning methods rely on gradient descent to optimize their parameters.
+This requires that the functions used in a deep network be differentiable.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_20-47-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Superpixels optimized for semantic segmentation (Jampani et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>Superpixels optimized for semantic segmentation (Jampani et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Superpixel Sampling Networks, proposed by Jampani et al., introduce the first attempt at integrating superpixel extraction methods with deep learning models &lt;&amp;jampaniSuperpixelSamplingNetworks2018&gt;.
+In this work, they adapt SLIC as a differentiable layer in a deep network which result in superpixels that are fine-tuned for specific tasks.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_21-45-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Model diagram for SSN (Jampani et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 10: </span>Model diagram for SSN (Jampani et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The train their model on a semantic segmentation task which fine tunes the learned superpixels such that they adhere more closely to segmentation boundaries.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_21-51-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Results on semantic segmentation (Jampani et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 11: </span>Results on semantic segmentation (Jampani et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In a more recent work, Yang et al. propose a deep network that directly produces the superpixels as opposed to using a soft K-Means layer &lt;&amp;yangSuperpixelSegmentationFully2020&gt;.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_22-05-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 12: </span>Model comparison between Jampani et al. and Yang et al. (Yang et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Similar to SSN, they experiment on the Berkeley Image Segmentation Dataset.
+Their results are competitive with other deep learning-based approaches.
+The authors note that their method generalizes better in segmentation tasks by being robust to fine details and noise.
+Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-03_22-14-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of results on competing methods (Yang et al.)" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 13: </span>Comparison of results on competing methods (Yang et al.)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="references">References</h2>
+<p>&lt;/home/alex/ajdillhoff@gmail.com/bibliography/master.bib&gt;</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/active_contours/">Active Contours</a></li>
+          
+          <li><a href="/notes/image_segmentation/">Image Segmentation</a></li>
+          
+          <li><a href="/notes/random_sample_consensus/">RANdom SAmple Consensus</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

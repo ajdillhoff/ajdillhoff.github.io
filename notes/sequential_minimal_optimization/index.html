@@ -30,9 +30,8 @@
     
   
   <meta name="description" content="Table of Contents Introduction Box Constraints Updating the Lagrangians The Algorithm Implementation Introduction Paper link: https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/
-Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently. Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.
-The two key components of SMO are
-an analytic method to solving for two Lagrange multipliers at a time and a heuristic for choosing which multipliers to optimize.">
+Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently (Platt, n.d.). Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.
+The two key components of SMO are">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/sequential_minimal_optimization/">
@@ -142,14 +141,13 @@ an analytic method to solving for two Lagrange multipliers at a time and a heuri
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/sequential_minimal_optimization/">
   <meta property="og:title" content="Sequential Minimal Optimization | Alex Dillhoff">
   <meta property="og:description" content="Table of Contents Introduction Box Constraints Updating the Lagrangians The Algorithm Implementation Introduction Paper link: https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/
-Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently. Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.
-The two key components of SMO are
-an analytic method to solving for two Lagrange multipliers at a time and a heuristic for choosing which multipliers to optimize."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently (Platt, n.d.). Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.
+The two key components of SMO are"><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-07-04T00:00:00-05:00">
   
-  <meta property="article:modified_time" content="2022-07-04T00:00:00-05:00">
+  <meta property="article:modified_time" content="2024-02-01T00:00:00&#43;00:00">
   
 
   
@@ -387,7 +385,7 @@ an analytic method to solving for two Lagrange multipliers at a time and a heuri
 
 
 <meta content="2022-07-04 00:00:00 -0500 CDT" itemprop="datePublished">
-<meta content="2022-07-04 00:00:00 -0500 CDT" itemprop="dateModified">
+<meta content="2024-02-01 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -411,8 +409,10 @@ an analytic method to solving for two Lagrange multipliers at a time and a heuri
     
     
       
+          Last updated on
+      
     
-    <time>Jul 4, 2022</time>
+    <time>Feb 1, 2024</time>
   </span>
   
 
@@ -562,7 +562,7 @@ an analytic method to solving for two Lagrange multipliers at a time and a heuri
 <!--endtoc-->
 <h2 id="introduction">Introduction</h2>
 <p><strong>Paper link:</strong> <a href="https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/" target="_blank" rel="noopener noreferrer">https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/</a></p>
-<p>Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently. Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.</p>
+<p>Sequential Minimal Optimization (SMO) is an algorithm to solve the SVM Quadratic Programming (QP) problem efficiently (<a href="#citeproc_bib_item_1">Platt, n.d.</a>). Developed by John Platt at Microsoft Research, SMO deals with the constraints of the SVM objective by breaking it down into a smaller optimization problem at each step.</p>
 <p>The two key components of SMO are</p>
 <ol>
 <li>an analytic method to solving for two Lagrange multipliers at a time</li>
@@ -745,11 +745,15 @@ It does this by breaking down the larger optimization problem into a small and s
 Solving for one would not be possible without violating KKT conditions.
 There are two components to Sequential Minimal Optimization: the first is how the Lagrangians are selected and the second is the actual optimization step.</p>
 <h3 id="choosing-the-first-lagrangian">Choosing the First Lagrangian</h3>
-<p>The algorithm first determines which samples in the dataset violate the given KKT conditions.
-Only those violating the conditions are eligible for optimization.
-Additionally, samples that are not on the bounds are selected (those with \(\alpha_i \neq 0\) and \(\alpha_i \neq C\)).
+<p>The algorithm first determines which samples in the dataset violate the given KKT conditions. Only those violating the conditions are eligible for optimization. A solution is found when the following are true for all \(i\):</p>
+<p>\begin{align*}
+\alpha_i = 0 \iff y_i u_i \geq 1,\\
+0 &lt; \alpha_i &lt; C \iff y_i u_i = 1,\\
+\alpha_i = C \iff y_i u_i \leq 1.
+\end{align*}</p>
+<p>Additionally, samples that are not on the bounds are selected (those with \(\alpha_i \neq 0\) and \(\alpha_i \neq C\)).
 This continues through the dataset until no sample violates the KKT constraints within \(\epsilon\).</p>
-<p>As a last step, SMO searches the entire dataset to look for any bound samples that violate KKT conditions.</p>
+<p>As a last step, SMO searches the entire dataset to look for any bound samples that violate KKT conditions. It is possible that updating a non-bound sample would cause a bound sample to violate the KKT conditions.</p>
 <h3 id="choosing-the-second-lagrangian">Choosing the Second Lagrangian</h3>
 <p>The second Lagrangian is chosen to maximize the size of the step taken during joint optimization.
 Noting that the step size is based on</p>
@@ -794,6 +798,10 @@ u = \sum_{i=1}^N y_i \alpha_i K(\mathbf{x}_i, \mathbf{x}) - b.
 \]</p>
 <h2 id="implementation">Implementation</h2>
 <p>An implementation of SMO in Python is available at <a href="https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb" target="_blank" rel="noopener noreferrer">https://github.com/ajdillhoff/CSE6363/blob/main/svm/smo.ipynb</a></p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Platt, John C. n.d. “Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines,” 21.</div>
+</div>
 
     </div>
 

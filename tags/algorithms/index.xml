@@ -61,7 +61,7 @@ If the second property doesn&amp;rsquo;t hold, the algorithm is not correct &amp
 &lt;blockquote&gt;
 &lt;p&gt;&amp;ldquo;Whenever a recurrence is stated without an explicit base case, we assume that the recurrence is algorithmic.&amp;rdquo; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;This assumption means that the algorithm is correct and terminates in finite time, so there must be a base case. The base case is less important for analysis than the recursive case.&lt;/p&gt;
+&lt;p&gt;This assumption means that the algorithm is correct and terminates in finite time, so there must be a base case. The base case is less important for analysis than the recursive case. For example, your base case might work with 100 elements, and that would still be \(\Theta(1)\) because it is a constant.&lt;/p&gt;
 &lt;p&gt;It is common to break up each subproblem uniformly, but it is not always the best way to do it. For example, an application such as matrix multiplication is typically broken up uniformly since there is no spatial or temporal relationship to consider. Algorithms for image processing, on the other hand, may have input values that are locally correlated, so it may be better to break up the input in a way that preserves this correlation.&lt;/p&gt;
 &lt;h2 id=&#34;solving-recurrences&#34;&gt;Solving Recurrences&lt;/h2&gt;
 &lt;ul&gt;
@@ -188,6 +188,28 @@ If the second property doesn&amp;rsquo;t hold, the algorithm is not correct &amp
 &lt;p&gt;In this approach, the matrix will be split into block matrices of size \(n/2\). Each submatrix can be multiplied with the corresponding submatrix of the other matrix. The resulting submatrices can be added together to form the final matrix. This is permissible based on the definition of matrix multiplication.&lt;/p&gt;
 &lt;p&gt;Base case is \(n=1\) where only a single addition and multiplication are performed. This is \(T(1) = \Theta(1)\). For \(n &amp;gt; 1\), the recursive algorithm starts by splitting into 8 subproblems of size \(n/2\). There are 8 subproblems because there are 4 submatrices in each matrix, and each submatrix is multiplied with the corresponding submatrix in the other matrix.&lt;/p&gt;
 &lt;p&gt;Each recursive call contributes \(T(n/2)\) to the running time. There are 8 recursive calls, so the total running time is \(8T(n/2) + \Theta(n^2)\). There is no need to implement a combine step since the matrix is updated in place. The final running time is \(T(n) = 8T(n/2) + \Theta(1)\) &lt;strong&gt;for the recursive portion&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;This method easily adapts to parallel processing. The size of each &lt;em&gt;tile&lt;/em&gt; can be adjusted to fit the number of processors available. The algorithm can be parallelized by assigning each processor to a subproblem.&lt;/p&gt;
+&lt;p&gt;We now walk through an example on a \(4 \times 4\) matrix. Assume that each \(A_{ij}\) and \(B_{ij}\) is a \(2 \times 2\) matrix.&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+A_{11} &amp;amp; A_{12} \\
+A_{21} &amp;amp; A_{22}
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;\begin{bmatrix}
+B_{11} &amp;amp; B_{12} \\
+B_{21} &amp;amp; B_{22}
+\end{bmatrix}&lt;/p&gt;
+&lt;p&gt;These matrices are already partitioned. They currently don&amp;rsquo;t meet the base case, so 8 recursive calls are made which compute the following products:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(A_{11}B_{11}\)&lt;/li&gt;
+&lt;li&gt;\(A_{12}B_{21}\)&lt;/li&gt;
+&lt;li&gt;\(A_{11}B_{12}\)&lt;/li&gt;
+&lt;li&gt;\(A_{12}B_{22}\)&lt;/li&gt;
+&lt;li&gt;\(A_{21}B_{11}\)&lt;/li&gt;
+&lt;li&gt;\(A_{22}B_{21}\)&lt;/li&gt;
+&lt;li&gt;\(A_{21}B_{12}\)&lt;/li&gt;
+&lt;li&gt;\(A_{22}B_{22}\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Peeking into the first recursive call, the \(2 \times 2\) matrices are partitioned into 4 \(1 \times 1\) matrices, or scalars. The base case is reached, and the product is computed. The same process is repeated for the other 7 recursive calls. The final matrix is then formed by adding the products together.&lt;/p&gt;
 &lt;h2 id=&#34;example-convex-hull&#34;&gt;Example: Convex Hull&lt;/h2&gt;
 &lt;p&gt;Given \(n\) points in plane, the convex hull is the smallest convex polygon that contains all the points.&lt;/p&gt;
 &lt;ul&gt;
@@ -228,7 +250,16 @@ If the second property doesn&amp;rsquo;t hold, the algorithm is not correct &amp
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This runs in \(\Theta(n)\) time.&lt;/p&gt;
 &lt;p&gt;Removing the lines that are not part of the convex hull require the cut and paste operations. Starting at the upper tangent, move clockwise along the right convex hull until you reach the point in the lower tangent of the right convex hull. Make the connection to the corresponding point on the left convex hull based on the lower tangent, then move clockwise until you reach the upper tangent of the left convex hull. This is \(\Theta(n)\).&lt;/p&gt;
 &lt;h2 id=&#34;example-median-search&#34;&gt;Example: Median Search&lt;/h2&gt;
-&lt;p&gt;Given a set of \(n\) numbers, defined \(rank(X)\) as the number in the set that are less than or equal to \(X\).&lt;/p&gt;
+&lt;p&gt;Finding the median value of a set can be performed in linear time without fully sorting the data. The recurrence is based on discarding a constant fraction of the elements at each step.&lt;/p&gt;
+&lt;h3 id=&#34;algorithm&#34;&gt;Algorithm&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Divide&lt;/strong&gt;&lt;/strong&gt;: Partition the set into groups of 5 elements. Depending on the size of the set, there may be less than 5 elements in the last set.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Conquer&lt;/strong&gt;&lt;/strong&gt;: Sort each group and find the median of each group. Since the subsets are of constant size, this is done in constant time.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Combine&lt;/strong&gt;&lt;/strong&gt;: Given the median of each group from step 2, find the median of medians. This value will be used as a pivot for the next step.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Partition&lt;/strong&gt;&lt;/strong&gt;: Use the pivot to separate values smaller and larger than the pivot.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Select&lt;/strong&gt;&lt;/strong&gt;: If the given pivot is the true median based on its position in the original set, select it. If not, recursively select the median from the appropriate partition.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Given a set of \(n\) numbers, define \(rank(X)\) as the number in the set that are less than or equal to \(X\).&lt;/p&gt;
 &lt;p&gt;\(Select(S, i)\)&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Pick \(x \in S\)&lt;/li&gt;

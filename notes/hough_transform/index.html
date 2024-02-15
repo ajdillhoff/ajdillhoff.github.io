@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Algorithm Rectangle Detection based on a Windowed Hough Transform Introduction Fitting a model to a set of data by consensus, as in RANdom SAmple Consensus, produces a parameter estimate that is robust to outliers. A similar technique for detecting shapes in images is the Hough Transform. Originally it was designed for detecting simple lines, but it can be extended to detect arbitrary shapes.
+The transform is computed given an edge image.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/hough_transform/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/hough_transform/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/hough_transform/">
+  <meta property="og:title" content="Hough Transform | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Algorithm Rectangle Detection based on a Windowed Hough Transform Introduction Fitting a model to a set of data by consensus, as in RANdom SAmple Consensus, produces a parameter estimate that is robust to outliers. A similar technique for detecting shapes in images is the Hough Transform. Originally it was designed for detecting simple lines, but it can be extended to detect arbitrary shapes.
+The transform is computed given an edge image."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-02-17T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-02-11T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Hough Transform | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Hough Transform</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-02-17 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-02-11 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Feb 11, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/hough_transform/&amp;text=Hough%20Transform" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/hough_transform/&amp;t=Hough%20Transform" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Hough%20Transform&amp;body=https://ajdillhoff.github.io/notes/hough_transform/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/hough_transform/&amp;title=Hough%20Transform" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Hough%20Transform%20https://ajdillhoff.github.io/notes/hough_transform/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/hough_transform/&amp;title=Hough%20Transform" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#algorithm">Algorithm</a></li>
+<li><a href="#rectangle-detection-based-on-a-windowed-hough-transform">Rectangle Detection based on a Windowed Hough Transform</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Fitting a model to a set of data by consensus, as in <a href="/notes/random_sample_consensus/">RANdom SAmple Consensus</a>, produces a parameter estimate that is robust to outliers. A similar technique for detecting shapes in images is the <strong>Hough Transform</strong>.
+Originally it was designed for detecting simple lines, but it can be extended to detect <a href="https://en.wikipedia.org/wiki/Generalised_Hough_transform" target="_blank" rel="noopener noreferrer">arbitrary shapes</a>.</p>
+<p>The transform is computed given an edge image. Each edge pixel in the image casts a vote for a line given a set of parameters.
+This vote is added to an accumulator array which tallies the votes over all pixels for all parameter choices.</p>
+<h2 id="algorithm">Algorithm</h2>
+<p>An accumulator array holds the votes for each edge point.
+The indices to this array represent the line parameters \((\rho, \theta)\), where</p>
+<p>\[
+\rho = x \cos \theta + y \sin \theta.
+\]</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-17_16-47-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Parameterization of a line in a Hough transform. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Parameterization of a line in a Hough transform. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In this parameterization, \((\rho, \theta)\) represents a vector that is normal to the line.
+For each edge pixel in the original image, a range of \(\theta\) values are tested.
+The resolution of \(\theta\) values used is set as a hyperparameter to the algorithm.
+A vote is cast for every single line within the resolution of \(\theta\) by incrementing the accumulator array at entry \((\rho, \theta)\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-17_16-54-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Visualization of voting procedure. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Visualization of voting procedure. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>After all edge pixels are evaluated, the accumulator array must be post processed to select the lines with the most agreement.
+Since the accumulator array is 2D, it can be visualized as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-17_16-58-06_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visualization of accumulator array. Source: Wikipedia" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Visualization of accumulator array. Source: Wikipedia
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="rectangle-detection-based-on-a-windowed-hough-transform">Rectangle Detection based on a Windowed Hough Transform</h2>
+<p>As mentioned in the introduction, Hough transforms can be extended to detect arbitrary shapes.
+In their <a href="http://sibgrapi.sid.inpe.br/col/sid.inpe.br/banon/2004/08.03.17.14/doc/1.pdf" target="_blank" rel="noopener noreferrer">2004 publication</a>, Jung and Schramm approach the problem of detecting rectangles in an image via Hough transforms.
+By analyzing the spatial relationship of peaks in a standard Hough transform, rectangles can reliably be detected.</p>
+<h3 id="detecting-rectangles-via-hough-peaks">Detecting Rectangles via Hough peaks</h3>
+<p>If we consider pixel located at the center of a rectangle, a few key symmetries can be observed.</p>
+<ol>
+<li>The detected peaks from the Hough window will be in pairs, equidistant from the center.</li>
+<li>Two pairs will be separated by \(90^{\circ}\) with respect to the \(\theta\) axis.</li>
+<li>The distance between the peaks of a pair are the sides of the rectangle.</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-19_16-33-06_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Rectangle centered at the origin." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Rectangle centered at the origin.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-19_16-33-56_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;The resulting Hough transform of the previous figure." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>The resulting Hough transform of the previous figure.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="the-algorithm">The Algorithm</h3>
+<p>Each pixel in the image is evaluated using a sliding window approach.
+Consider a pixel centered on \((x_c, y_c)\).
+The size of the window determines the maximum size of the rectangle that can be detected in a given window.
+The authors use a circular threshold with a minimum and maximum diameter \(D_{min}\) and \(D_{max}\).
+That is, the search region is a circle such that the smallest detectable rectangle has a side length of no less than \(D_{min}\) and a diagonal length of no more than \(D_{max}\). The figure below visualizes this region.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-19_18-56-46_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Search region based on a circle. Source: Jung and Schramm 2004." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Search region based on a circle. Source: Jung and Schramm 2004.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>With the search region defined, a hough transform for that region is computed.
+The paper mentions an optimization step when selecting the discretization steps \(d_{\theta}\) and \(d_{\rho}\).
+If the input image is large, the resulting Hough transform will also be large.
+They recommend picking \(d_{\theta} = \frac{3 \pi}{4 D_{max}}\) and \(d_{\rho} = \frac{3}{4}\).</p>
+<p>The Hough image is further processed in order to extra local extrema.
+These peaks should correspond to the lines of the rectangle.
+First, an enhanced image is created following</p>
+<p>\[
+C_{\text{enh}}(\rho, \theta) = h w \frac{C(\rho, \theta)^2}{\int_{-h/2}^{h/2}\int_{-w/2}^{h/2} C(\rho + y, \theta + x)dx dy}.
+\]</p>
+<p><strong><strong>How is such an integral computed?</strong></strong>
+The integral is the &ldquo;area under the curve&rdquo; of a given signal. In this case, the accumulator image is a 2D signal for which a discrete approximation of the integral can be computed.
+This can be implemented via convolution.
+The local maxima of this enhanced image are those such that \(C(\rho, \theta) \geq T_C\), where \(T_C = 0.5D_{min}\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-02-19_19-46-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Original Hough image (left) and enhanced (right) (Jung and Schramm 2004)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Original Hough image (left) and enhanced (right) (Jung and Schramm 2004).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>With the detected peaks from the enhanced image, four peaks are selected with satisfy the symmetries of rectangles as listed above. This is shown as equation 3 in the paper:</p>
+<p>\begin{align*}
+&amp;\Delta \theta = |\theta_i - \theta_j| &lt; T_{\theta},\\
+&amp;\Delta \rho = |\rho_i + \rho_j| &lt; T_{\rho},\\
+&amp;|C(\rho_{i}, \theta_i) - C(\rho_j, \theta_j)| &lt; T_{L}\frac{C(\rho_i, \theta_i) + C(\rho_j, \theta_j)}{2}.
+\end{align*}</p>
+<p>\(T_{\theta}\) is used to threshold peaks corresponding to parallel lines (\(\theta_i \approx \theta_j\)).
+\(T_{\rho}\) is a threshold for symmetry (equal distance between lines and center).
+\(T_L\) ensures that line segments have approximately the same length.</p>
+<p>For peaks that satisfy the equations above, an extended peak \(P_k = (\pm \xi, \alpha_k)\) is formed, where</p>
+<p>\[
+\alpha_k = \frac{1}{2}(\theta_i + \theta_j) \text{ and } \xi_k = \frac{1}{2}|\rho_i - \rho_j|.
+\]</p>
+<p>Finally, a rectangle is detected if the pairs of lines are orthogonal. That is, if</p>
+<p>\[
+\Delta \alpha = ||\alpha_k - \alpha_l| - 90^{\circ}| &lt; T_{\alpha}.
+\]</p>
+<p>The rectangle parameters are encoded by \(\alpha_k\) being its orientation and \(2\xi_k\) and \(2\xi_l\) being its sides.</p>
+<p>The final step in the paper is to remove duplicates since, depending on the threshold choices, multiple candidates for a rectangle may be detected.
+The intuition behind this step is to create an error measure that summarizes how well the symmetries defined by the conditions required for a rectangle are respected.</p>
+<p>\[
+E(P_k, P_l) = \sqrt{a(\Delta \theta_k^2 + \Delta \theta_l^2 + \Delta \alpha^2) + b(\Delta \rho_k^2 + \Delta \rho_l^2)}
+\]</p>
+<p>In this error measure, \(a\) and \(b\) are used to weight the angular and distance errors differently since a change in 1 pixel would be more significant than a change of 1 degree.</p>
+<p>If the difference in orientation for each line detected in the sides is greater, the orientation error increases.
+Likewise, the more that the pairs of lines stray from orthogonality, the greater the error becomes.
+For the distance measure, the more offset the lines are with respect to the center, the greater the error becomes.
+Thus, the rectangle that meets these criteria best will have the lowest error.</p>
+
+    </div>
+
+    
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
