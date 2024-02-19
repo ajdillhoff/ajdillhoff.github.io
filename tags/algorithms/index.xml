@@ -18,10 +18,57 @@
       <pubDate>Sun, 04 Feb 2024 17:49:00 -0600</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/master_theorem/</guid>
-      <description>&lt;p&gt;In the study of &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;, a recurrence tree can be used to determine the runtime complexity. These notes focus on the &lt;strong&gt;master theorem&lt;/strong&gt;, a blueprint for solving any recurrence of the form&lt;/p&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#example-merge-sort&#34;&gt;Example: Merge Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-median-finding&#34;&gt;Example: Median Finding&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-cormen-et-al-dot-exercise-4-dot-5-2&#34;&gt;Example: Cormen et al. Exercise 4.5-2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;In the study of &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;, a recurrence tree can be used to determine the runtime complexity. These notes focus on the &lt;strong&gt;master theorem&lt;/strong&gt;, a blueprint for solving any recurrence of the form&lt;/p&gt;
 &lt;p&gt;\[
 T(n) = aT(n/b) + f(n).
 \]&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(n\) is the size of the problem,&lt;/li&gt;
+&lt;li&gt;\(a \geq 1\) is the number of subproblems,&lt;/li&gt;
+&lt;li&gt;\(b &amp;gt; 1\) is the factor by which the problem size is reduced, and&lt;/li&gt;
+&lt;li&gt;\(f(n)\) is the cost of the work done outside of the recursive calls.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Each recurrence is solved in \(T(n/b)\) time, and \(f(n)\) would include the cost of dividing and recombining the problem. The full theorem as described in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; is restated below (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Master Theorem&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Let \(a &amp;gt; 0\) and \(b &amp;gt; 1\) be constants, and let \(f(n)\) be a driving function that is defined and nonnegative on all sufficiently large reals. Define the recurrence \(T(n)\) on \(n \in \mathbb{N}\) by&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = aT(n/b) + f(n),
+\]&lt;/p&gt;
+&lt;p&gt;where \(aT(n/b)\) actually means \(a&amp;rsquo;T(\lfloor n/b \rfloor) + a{&amp;rsquo;&amp;rsquo;}T(\lceil n / b \rceil)\) for some constants \(a&amp;rsquo; \geq 0\) and \(a&amp;rsquo;&amp;rsquo; \geq 0\) such that \(a = a&amp;rsquo; + a&amp;rsquo;&amp;rsquo;\). Then \(T(n)\) has the following asymptotic bounds:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;If \(f(n) = O(n^{\log_b a - \epsilon})\) for some constant \(\epsilon &amp;gt; 0\), then \(T(n) = \Theta(n^{\log_b a})\).&lt;/li&gt;
+&lt;li&gt;If \(f(n) = \Theta(n^{\log_b a} \log^k n)\) for some constant \(k \geq 0\), then \(T(n) = \Theta(n^{\log_b a} \log^{k+1} n)\).&lt;/li&gt;
+&lt;li&gt;If \(f(n) = \Omega(n^{\log_b a + \epsilon})\) for some constant \(\epsilon &amp;gt; 0\), and if \(a f(n/b) \leq k f(n)\) for some constant \(k &amp;lt; 1\) and all sufficiently large \(n\), then \(T(n) = \Theta(f(n))\).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;theorem-breakdown&#34;&gt;Theorem Breakdown&lt;/h3&gt;
+&lt;p&gt;The common function \(n^{\log_b a}\) is called the &lt;strong&gt;watershed function&lt;/strong&gt;. The driving function \(f(n)\) is compared to it to determine which case applies. If the watershed function grows at a faster rate than \(f(n)\), case 1 applies. If they grow at the same rate, case 2 applies. If \(f(n)\) grows at a faster rate, case 3 applies.&lt;/p&gt;
+&lt;p&gt;In case 1, the watershed function should grow faster than \(f(n)\) by a factor of \(n^\epsilon\) for some \(\epsilon &amp;gt; 0\). In case 2, technically the watershed function should grow at least the same rate as \(f(n)\), if not faster. That is, it grows faster by a factor of \(\Theta(\log^k n)\), where \(k \geq 0\). You can think of the extra \(\log^k n\) as an augmentation to the watershed function to ensure that they grow at the same rate. In most cases, \(k = 0\) which results in \(T(n) = \Theta(n^{\log_b a} \log n)\).&lt;/p&gt;
+&lt;p&gt;Since case 2 allows for the watershed function to grow faster than \(f(n)\), case 3 requires that it grow at least &lt;strong&gt;polynomially&lt;/strong&gt; faster. \(f(n)\) should grow faster by at least a factor of \(\Theta(n^\epsilon)\) for some \(\epsilon &amp;gt; 0\). Additionally, the driving function must satisfy the regularity condition \(a f(n/b) \leq k f(n)\) for some constant \(k &amp;lt; 1\) and all sufficiently large \(n\). This condition ensures that the cost of the work done outside of the recursive calls is not too large.&lt;/p&gt;
+&lt;h3 id=&#34;application-of-the-master-method&#34;&gt;Application of the Master Method&lt;/h3&gt;
+&lt;p&gt;In most cases, the master method can be applied by looking at the recurrence and applying the relevant case. If the driving and watershed functions are not immediately obvious, you can use a different method as discussed in &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;When this can be applied, it is much simpler than the other methods. Let&amp;rsquo;s revisit some of the main problems we&amp;rsquo;ve explored before discussing applications for which the master method could not be used.&lt;/p&gt;
+&lt;h2 id=&#34;example-merge-sort&#34;&gt;Example: Merge Sort&lt;/h2&gt;
+&lt;p&gt;Merge Sort has a recurrence of the form \(T(n) = 2T(n/2) + \Theta(n)\). The driving function is \(f(n) = \Theta(n)\). The constants \(a\) and \(b\) are both 2, so the watershed function is \(n^{\log^2 2}\), which is \(n\). Since \(f(n)\) grows at the same rate as the watershed function, case 2 applies. Therefore, \(T(n) = \Theta(n \log n)\).&lt;/p&gt;
+&lt;h2 id=&#34;example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/h2&gt;
+&lt;p&gt;The recurrence of the divide and conquer version of matrix multiplication for square matrices is \(T(n) = 8T(n/2) + \Theta(1)\). Given \(a = 8\) and \(b = 2\), we can see that the complexity is inherent in the recurrence, not the driving function. The watershed function is \(n^{\log_2 8}\), which is \(n^3\). This grows at a faster rate than \(\Theta(1)\), so case 1 applies. Therefore, \(T(n) = \Theta(n^3)\).&lt;/p&gt;
+&lt;h2 id=&#34;example-median-finding&#34;&gt;Example: Median Finding&lt;/h2&gt;
+&lt;p&gt;Median finding has a recurrence of the form \(T(n) = T(n/5) + T(7n/10) + \Theta(n)\). Given the two recurrence factors, how do we evaluate the driving function? The form itself does not fit the master theorem, so it cannot be applied in this case. We could use the substitution method, recurrence trees, or the Akra-Bazzi theorem to solve this one.&lt;/p&gt;
+&lt;h2 id=&#34;example-cormen-et-al-dot-exercise-4-dot-5-2&#34;&gt;Example: Cormen et al. Exercise 4.5-2&lt;/h2&gt;
+&lt;p&gt;In this exercise from &lt;em&gt;Introduction to Algorithms&lt;/em&gt;, we are asked to find the largest integer value \(a\) such that an algorithm with the recurrence \(T(n) = aT(n/4) + \Theta(n^2)\) is asymptotically faster than \(\Theta(n^{\log_2 7})\). Since \(b = 4\), the largest integer \(a\) will be the smallest integer such that \(\log_4 a &amp;lt; \log_2 7\). Solving for the inequality shows that \(a = 48\) is the largest such integer.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -276,6 +323,19 @@ Sort each column descending (linear time).
 Find &amp;ldquo;median of medians&amp;rdquo; as \(X\)&lt;/p&gt;
 &lt;p&gt;If the columns are sorted, it is trivial to find the median of each column.&lt;/p&gt;
 &lt;p&gt;Half of the groups contribute at least 3 elements greater than \(X\), except for the last group. We have one group that contains \(x\).&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Given a set \(A = \{a_1, a_2, \ldots, a_n\}\), the median search algorithm returns the $k$th smallest element of \(A\). We now analyze the runtime of this algorithm.&lt;/p&gt;
+&lt;h4 id=&#34;divide&#34;&gt;Divide&lt;/h4&gt;
+&lt;p&gt;In the &lt;strong&gt;divide&lt;/strong&gt; step, the set is partitioned into \(\lceil n/5 \rceil\) groups of 5 elements each. This is done in linear time.&lt;/p&gt;
+&lt;h4 id=&#34;conquer&#34;&gt;Conquer&lt;/h4&gt;
+&lt;p&gt;Each group is sorted using insertion sort or some other algorithm. Even though the search itself may have a higher complexity, the sorting of the groups is \(\Theta(1)\) since the groups are of constant size. Collectively across all groups, the sorting is \(\Theta(n)\).&lt;/p&gt;
+&lt;h4 id=&#34;combine&#34;&gt;Combine&lt;/h4&gt;
+&lt;p&gt;The median of each group is found, introducing a recurrence of \(T(\lceil n/5 \rceil)\). Once each median is found, the median of medians is computed.&lt;/p&gt;
+&lt;h4 id=&#34;partition&#34;&gt;Partition&lt;/h4&gt;
+&lt;p&gt;As reasoned above, the median of medians is used as a pivot to partition the set into two groups. At least 30% of the elements are greater than the pivot. This leaves a search space of at most \(7n/10\). Partitioning is done in linear time.&lt;/p&gt;
+&lt;h4 id=&#34;select&#34;&gt;Select&lt;/h4&gt;
+&lt;p&gt;If the pivot is the $k$th smallest element, the algorithm terminates. Otherwise, the algorithm recursively searches the appropriate partition. Comparing the size of the partition to the size of the original set, the recurrence is \(T(7n/10)\).&lt;/p&gt;
+&lt;p&gt;Pseudocode is available &lt;a href=&#34;https://en.wikipedia.org/wiki/Median_of_medians&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;

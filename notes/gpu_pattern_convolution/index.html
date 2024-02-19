@@ -793,7 +793,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 </code></pre><p>This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
 </code></pre><p>The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, <a href="https://google.github.io/styleguide/cppguide.html#Constant_Names" target="_blank" rel="noopener noreferrer">Google&rsquo;s C++</a> style guide recommends naming constant variables with a <code>k</code> prefix. I have adopted this convention here.</p>
-<p>At this point, <code>F_d</code> is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.</p>
+<p>At this point, <code>kFilter_d</code> is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *output,
                        int r, int width, int height) {
     int outCol = blockIdx.x * blockDim.x + threadIdx.x;
@@ -837,7 +837,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 
 </figure>
 
-<p>The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.</p>
+<p>The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key difference in this case is that the input tile size will be larger than the output tile size. This size difference would further be complicated if we left the kernel size as a parameter.</p>
 <p>Following the design presented by (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define FILTER_RADIUS 1
 #define IN_TILE_DIM 4

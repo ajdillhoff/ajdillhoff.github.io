@@ -7,10 +7,105 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 05 Feb 2024 15:47:00 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 14 Feb 2024 20:09:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/gpgpu/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Parallel Scan</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/</link>
+      <pubDate>Wed, 14 Feb 2024 20:09:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-is-it&#34;&gt;What is it?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#naive-parallel-reduction&#34;&gt;Naive Parallel Reduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#kogge-stone-algorithm&#34;&gt;Kogge-Stone Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;what-is-it&#34;&gt;What is it?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Parallelizes sequential problems.&lt;/li&gt;
+&lt;li&gt;Works with computations that can be described in terms of a recursion.&lt;/li&gt;
+&lt;li&gt;Used as a primitive operation for sorting, tree operations, and recurrences.&lt;/li&gt;
+&lt;li&gt;Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;example-inclusive-scan&#34;&gt;Example: Inclusive Scan&lt;/h3&gt;
+&lt;p&gt;Given an array of numbers, the inclusive scan computes the sum of all elements up to a given index. For example, given the array [1, 2, 3, 4, 5], the inclusive scan would produce [1, 3, 6, 10, 15]. You could solve this recursively, but it would be horribly inefficient. A sequential solution is achievable with dynamic programming. However, a parallel solution is much more efficient.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sequential_scan&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y, uint N) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    y[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (uint i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; N; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        y[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; y[i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; x[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;naive-parallel-reduction&#34;&gt;Naive Parallel Reduction&lt;/h2&gt;
+&lt;p&gt;If we have \(n\) elements, we could have \(n\) threads each compute the sum of a single element. How many operations would that take? The first thread computes the sum of 1 element, or 0 operations. The second thread computes the sum of 2 elements, 1 operation, and so on. This can be described as a sum of the first \(n\) natural numbers, which is \(n(n + 1)/2\). This parallel solution is worse than the sequential solution, coming in at \(O(n^2)\).&lt;/p&gt;
+&lt;h2 id=&#34;kogge-stone-algorithm&#34;&gt;Kogge-Stone Algorithm&lt;/h2&gt;
+&lt;p&gt;The first solution to this problem relies on &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_pattern_reduction/&#34;&gt;GPU Pattern: Reduction&lt;/a&gt; and is called the Kogge-Stone algorithm. The algorithm was published in 1973 by Peter M. Kogge and Harold S. Stone during their time at Stanford University.&lt;/p&gt;
+&lt;h3 id=&#34;adapting-the-reduction-tree&#34;&gt;Adapting the Reduction Tree&lt;/h3&gt;
+&lt;p&gt;Design reduction tree so that each thread has access to relevant inputs. The input matrix is modified to that input \(A_i\) contains the sum of up to \(2^k\) elements after \(k\) iterations. For example, after iteration 2, \(A_3\) contains the sum \(A_0 + A_1 + A_2 + A_3\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-18_18-31-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This is implemented in the following code:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void Kogge_Stone_scan_kernel(float *X, float *Y, unsigned int N) {
+        __shared__ float A[SECTION_SIZE];
+        unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i &amp;lt; N) {
+            A[threadIdx.x] = X[i];
+        } else {
+            A[threadIdx.x] = 0;
+        }
+
+        for (unsigned int stride = 1; stride &amp;lt; blockDim.x; stride *= 2) {
+            __syncthreads();
+            float temp;
+            if (threadIdx.x &amp;gt;= stride) {
+                temp = A[threadIdx.x] + A[threadIdx.x - stride];
+            }
+            __syncthreads();
+            if (threadIdx.x &amp;gt;= stride) {
+                A[threadIdx.x] = temp;
+            }
+        }
+
+        if (i &amp;lt; N) {
+            Y[i] = A[threadIdx.x];
+        }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It is not possible to guarantee that a block can cover the entire input, so &lt;code&gt;SECTION_SIZE&lt;/code&gt; is used to ensure that the input is covered. This should be the same as the block size. Each thread starts off by loading its initial input into shared memory. Starting with thread 2, each thread computes a sum of the value assigned to its thread as well as the one before it by a factor of &lt;code&gt;stride&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The loop itself is moving &lt;em&gt;down&lt;/em&gt; the reduction tree, which is bounded logarithmically. The local variable &lt;code&gt;temp&lt;/code&gt; is used to store the intermediate result before barrier synchronization takes place. Otherwise there would be a possibility of a &lt;em&gt;write-after-read&lt;/em&gt; race condition.&lt;/p&gt;
+&lt;h3 id=&#34;double-buffering&#34;&gt;Double Buffering&lt;/h3&gt;
+&lt;p&gt;The temporary variable and second call to &lt;code&gt;__syncthreads()&lt;/code&gt; are necessary since a thread may read from a location that another thread is writing to. If the input and output arrays were represented by two different areas of shared memory, this call could be removed. This approach is called &lt;strong&gt;double-buffering&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;It works as follows: the input array is read from global memory into shared memory. At each iteration the data read from the first array is used to write new values to the second array. Since the values used in that iteration are only read from the first array, the second array can be used as the input array for the next iteration. This cycle continues back and forth until the final result is written to the output array.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Reduction</title>
@@ -1006,7 +1101,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, &lt;a href=&#34;https://google.github.io/styleguide/cppguide.html#Constant_Names&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Google&amp;rsquo;s C++&lt;/a&gt; style guide recommends naming constant variables with a &lt;code&gt;k&lt;/code&gt; prefix. I have adopted this convention here.&lt;/p&gt;
-&lt;p&gt;At this point, &lt;code&gt;F_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
+&lt;p&gt;At this point, &lt;code&gt;kFilter_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *output,
                        int r, int width, int height) {
     int outCol = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1050,7 +1145,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 
 &lt;/figure&gt;
 
-&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
+&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key difference in this case is that the input tile size will be larger than the output tile size. This size difference would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
 &lt;p&gt;Following the design presented by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 1
 #define IN_TILE_DIM 4
@@ -3046,7 +3141,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 &lt;li&gt;&lt;a href=&#34;#k-means-clustering&#34;&gt;K-Means Clustering&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#references&#34;&gt;References&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -3487,8 +3581,7 @@ Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.&lt;/p&gt;
 
 &lt;/figure&gt;
 
-&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
-&lt;p&gt;&amp;lt;/home/alex/ajdillhoff@gmail.com/bibliography/master.bib&amp;gt;&lt;/p&gt;
+&lt;p&gt;#print_bibliography: t&lt;/p&gt;
 </description>
     </item>
     

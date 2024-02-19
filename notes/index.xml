@@ -7,10 +7,105 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 05 Feb 2024 15:47:00 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 14 Feb 2024 20:09:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Parallel Scan</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/</link>
+      <pubDate>Wed, 14 Feb 2024 20:09:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-is-it&#34;&gt;What is it?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#naive-parallel-reduction&#34;&gt;Naive Parallel Reduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#kogge-stone-algorithm&#34;&gt;Kogge-Stone Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;what-is-it&#34;&gt;What is it?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Parallelizes sequential problems.&lt;/li&gt;
+&lt;li&gt;Works with computations that can be described in terms of a recursion.&lt;/li&gt;
+&lt;li&gt;Used as a primitive operation for sorting, tree operations, and recurrences.&lt;/li&gt;
+&lt;li&gt;Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;example-inclusive-scan&#34;&gt;Example: Inclusive Scan&lt;/h3&gt;
+&lt;p&gt;Given an array of numbers, the inclusive scan computes the sum of all elements up to a given index. For example, given the array [1, 2, 3, 4, 5], the inclusive scan would produce [1, 3, 6, 10, 15]. You could solve this recursively, but it would be horribly inefficient. A sequential solution is achievable with dynamic programming. However, a parallel solution is much more efficient.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sequential_scan&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y, uint N) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    y[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (uint i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; N; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        y[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; y[i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; x[i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;naive-parallel-reduction&#34;&gt;Naive Parallel Reduction&lt;/h2&gt;
+&lt;p&gt;If we have \(n\) elements, we could have \(n\) threads each compute the sum of a single element. How many operations would that take? The first thread computes the sum of 1 element, or 0 operations. The second thread computes the sum of 2 elements, 1 operation, and so on. This can be described as a sum of the first \(n\) natural numbers, which is \(n(n + 1)/2\). This parallel solution is worse than the sequential solution, coming in at \(O(n^2)\).&lt;/p&gt;
+&lt;h2 id=&#34;kogge-stone-algorithm&#34;&gt;Kogge-Stone Algorithm&lt;/h2&gt;
+&lt;p&gt;The first solution to this problem relies on &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_pattern_reduction/&#34;&gt;GPU Pattern: Reduction&lt;/a&gt; and is called the Kogge-Stone algorithm. The algorithm was published in 1973 by Peter M. Kogge and Harold S. Stone during their time at Stanford University.&lt;/p&gt;
+&lt;h3 id=&#34;adapting-the-reduction-tree&#34;&gt;Adapting the Reduction Tree&lt;/h3&gt;
+&lt;p&gt;Design reduction tree so that each thread has access to relevant inputs. The input matrix is modified to that input \(A_i\) contains the sum of up to \(2^k\) elements after \(k\) iterations. For example, after iteration 2, \(A_3\) contains the sum \(A_0 + A_1 + A_2 + A_3\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-18_18-31-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;This is implemented in the following code:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void Kogge_Stone_scan_kernel(float *X, float *Y, unsigned int N) {
+        __shared__ float A[SECTION_SIZE];
+        unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i &amp;lt; N) {
+            A[threadIdx.x] = X[i];
+        } else {
+            A[threadIdx.x] = 0;
+        }
+
+        for (unsigned int stride = 1; stride &amp;lt; blockDim.x; stride *= 2) {
+            __syncthreads();
+            float temp;
+            if (threadIdx.x &amp;gt;= stride) {
+                temp = A[threadIdx.x] + A[threadIdx.x - stride];
+            }
+            __syncthreads();
+            if (threadIdx.x &amp;gt;= stride) {
+                A[threadIdx.x] = temp;
+            }
+        }
+
+        if (i &amp;lt; N) {
+            Y[i] = A[threadIdx.x];
+        }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It is not possible to guarantee that a block can cover the entire input, so &lt;code&gt;SECTION_SIZE&lt;/code&gt; is used to ensure that the input is covered. This should be the same as the block size. Each thread starts off by loading its initial input into shared memory. Starting with thread 2, each thread computes a sum of the value assigned to its thread as well as the one before it by a factor of &lt;code&gt;stride&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The loop itself is moving &lt;em&gt;down&lt;/em&gt; the reduction tree, which is bounded logarithmically. The local variable &lt;code&gt;temp&lt;/code&gt; is used to store the intermediate result before barrier synchronization takes place. Otherwise there would be a possibility of a &lt;em&gt;write-after-read&lt;/em&gt; race condition.&lt;/p&gt;
+&lt;h3 id=&#34;double-buffering&#34;&gt;Double Buffering&lt;/h3&gt;
+&lt;p&gt;The temporary variable and second call to &lt;code&gt;__syncthreads()&lt;/code&gt; are necessary since a thread may read from a location that another thread is writing to. If the input and output arrays were represented by two different areas of shared memory, this call could be removed. This approach is called &lt;strong&gt;double-buffering&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;It works as follows: the input array is read from global memory into shared memory. At each iteration the data read from the first array is used to write new values to the second array. Since the values used in that iteration are only read from the first array, the second array can be used as the input array for the next iteration. This cycle continues back and forth until the final result is written to the output array.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Reduction</title>
@@ -240,10 +335,57 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
       <pubDate>Sun, 04 Feb 2024 17:49:00 -0600</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/master_theorem/</guid>
-      <description>&lt;p&gt;In the study of &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;, a recurrence tree can be used to determine the runtime complexity. These notes focus on the &lt;strong&gt;master theorem&lt;/strong&gt;, a blueprint for solving any recurrence of the form&lt;/p&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#example-merge-sort&#34;&gt;Example: Merge Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-median-finding&#34;&gt;Example: Median Finding&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#example-cormen-et-al-dot-exercise-4-dot-5-2&#34;&gt;Example: Cormen et al. Exercise 4.5-2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;In the study of &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;, a recurrence tree can be used to determine the runtime complexity. These notes focus on the &lt;strong&gt;master theorem&lt;/strong&gt;, a blueprint for solving any recurrence of the form&lt;/p&gt;
 &lt;p&gt;\[
 T(n) = aT(n/b) + f(n).
 \]&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(n\) is the size of the problem,&lt;/li&gt;
+&lt;li&gt;\(a \geq 1\) is the number of subproblems,&lt;/li&gt;
+&lt;li&gt;\(b &amp;gt; 1\) is the factor by which the problem size is reduced, and&lt;/li&gt;
+&lt;li&gt;\(f(n)\) is the cost of the work done outside of the recursive calls.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Each recurrence is solved in \(T(n/b)\) time, and \(f(n)\) would include the cost of dividing and recombining the problem. The full theorem as described in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; is restated below (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Master Theorem&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Let \(a &amp;gt; 0\) and \(b &amp;gt; 1\) be constants, and let \(f(n)\) be a driving function that is defined and nonnegative on all sufficiently large reals. Define the recurrence \(T(n)\) on \(n \in \mathbb{N}\) by&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = aT(n/b) + f(n),
+\]&lt;/p&gt;
+&lt;p&gt;where \(aT(n/b)\) actually means \(a&amp;rsquo;T(\lfloor n/b \rfloor) + a{&amp;rsquo;&amp;rsquo;}T(\lceil n / b \rceil)\) for some constants \(a&amp;rsquo; \geq 0\) and \(a&amp;rsquo;&amp;rsquo; \geq 0\) such that \(a = a&amp;rsquo; + a&amp;rsquo;&amp;rsquo;\). Then \(T(n)\) has the following asymptotic bounds:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;If \(f(n) = O(n^{\log_b a - \epsilon})\) for some constant \(\epsilon &amp;gt; 0\), then \(T(n) = \Theta(n^{\log_b a})\).&lt;/li&gt;
+&lt;li&gt;If \(f(n) = \Theta(n^{\log_b a} \log^k n)\) for some constant \(k \geq 0\), then \(T(n) = \Theta(n^{\log_b a} \log^{k+1} n)\).&lt;/li&gt;
+&lt;li&gt;If \(f(n) = \Omega(n^{\log_b a + \epsilon})\) for some constant \(\epsilon &amp;gt; 0\), and if \(a f(n/b) \leq k f(n)\) for some constant \(k &amp;lt; 1\) and all sufficiently large \(n\), then \(T(n) = \Theta(f(n))\).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;theorem-breakdown&#34;&gt;Theorem Breakdown&lt;/h3&gt;
+&lt;p&gt;The common function \(n^{\log_b a}\) is called the &lt;strong&gt;watershed function&lt;/strong&gt;. The driving function \(f(n)\) is compared to it to determine which case applies. If the watershed function grows at a faster rate than \(f(n)\), case 1 applies. If they grow at the same rate, case 2 applies. If \(f(n)\) grows at a faster rate, case 3 applies.&lt;/p&gt;
+&lt;p&gt;In case 1, the watershed function should grow faster than \(f(n)\) by a factor of \(n^\epsilon\) for some \(\epsilon &amp;gt; 0\). In case 2, technically the watershed function should grow at least the same rate as \(f(n)\), if not faster. That is, it grows faster by a factor of \(\Theta(\log^k n)\), where \(k \geq 0\). You can think of the extra \(\log^k n\) as an augmentation to the watershed function to ensure that they grow at the same rate. In most cases, \(k = 0\) which results in \(T(n) = \Theta(n^{\log_b a} \log n)\).&lt;/p&gt;
+&lt;p&gt;Since case 2 allows for the watershed function to grow faster than \(f(n)\), case 3 requires that it grow at least &lt;strong&gt;polynomially&lt;/strong&gt; faster. \(f(n)\) should grow faster by at least a factor of \(\Theta(n^\epsilon)\) for some \(\epsilon &amp;gt; 0\). Additionally, the driving function must satisfy the regularity condition \(a f(n/b) \leq k f(n)\) for some constant \(k &amp;lt; 1\) and all sufficiently large \(n\). This condition ensures that the cost of the work done outside of the recursive calls is not too large.&lt;/p&gt;
+&lt;h3 id=&#34;application-of-the-master-method&#34;&gt;Application of the Master Method&lt;/h3&gt;
+&lt;p&gt;In most cases, the master method can be applied by looking at the recurrence and applying the relevant case. If the driving and watershed functions are not immediately obvious, you can use a different method as discussed in &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;When this can be applied, it is much simpler than the other methods. Let&amp;rsquo;s revisit some of the main problems we&amp;rsquo;ve explored before discussing applications for which the master method could not be used.&lt;/p&gt;
+&lt;h2 id=&#34;example-merge-sort&#34;&gt;Example: Merge Sort&lt;/h2&gt;
+&lt;p&gt;Merge Sort has a recurrence of the form \(T(n) = 2T(n/2) + \Theta(n)\). The driving function is \(f(n) = \Theta(n)\). The constants \(a\) and \(b\) are both 2, so the watershed function is \(n^{\log^2 2}\), which is \(n\). Since \(f(n)\) grows at the same rate as the watershed function, case 2 applies. Therefore, \(T(n) = \Theta(n \log n)\).&lt;/p&gt;
+&lt;h2 id=&#34;example-matrix-multiplication&#34;&gt;Example: Matrix Multiplication&lt;/h2&gt;
+&lt;p&gt;The recurrence of the divide and conquer version of matrix multiplication for square matrices is \(T(n) = 8T(n/2) + \Theta(1)\). Given \(a = 8\) and \(b = 2\), we can see that the complexity is inherent in the recurrence, not the driving function. The watershed function is \(n^{\log_2 8}\), which is \(n^3\). This grows at a faster rate than \(\Theta(1)\), so case 1 applies. Therefore, \(T(n) = \Theta(n^3)\).&lt;/p&gt;
+&lt;h2 id=&#34;example-median-finding&#34;&gt;Example: Median Finding&lt;/h2&gt;
+&lt;p&gt;Median finding has a recurrence of the form \(T(n) = T(n/5) + T(7n/10) + \Theta(n)\). Given the two recurrence factors, how do we evaluate the driving function? The form itself does not fit the master theorem, so it cannot be applied in this case. We could use the substitution method, recurrence trees, or the Akra-Bazzi theorem to solve this one.&lt;/p&gt;
+&lt;h2 id=&#34;example-cormen-et-al-dot-exercise-4-dot-5-2&#34;&gt;Example: Cormen et al. Exercise 4.5-2&lt;/h2&gt;
+&lt;p&gt;In this exercise from &lt;em&gt;Introduction to Algorithms&lt;/em&gt;, we are asked to find the largest integer value \(a\) such that an algorithm with the recurrence \(T(n) = aT(n/4) + \Theta(n^2)\) is asymptotically faster than \(\Theta(n^{\log_2 7})\). Since \(b = 4\), the largest integer \(a\) will be the smallest integer such that \(\log_4 a &amp;lt; \log_2 7\). Solving for the inequality shows that \(a = 48\) is the largest such integer.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -762,6 +904,19 @@ Sort each column descending (linear time).
 Find &amp;ldquo;median of medians&amp;rdquo; as \(X\)&lt;/p&gt;
 &lt;p&gt;If the columns are sorted, it is trivial to find the median of each column.&lt;/p&gt;
 &lt;p&gt;Half of the groups contribute at least 3 elements greater than \(X\), except for the last group. We have one group that contains \(x\).&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Given a set \(A = \{a_1, a_2, \ldots, a_n\}\), the median search algorithm returns the $k$th smallest element of \(A\). We now analyze the runtime of this algorithm.&lt;/p&gt;
+&lt;h4 id=&#34;divide&#34;&gt;Divide&lt;/h4&gt;
+&lt;p&gt;In the &lt;strong&gt;divide&lt;/strong&gt; step, the set is partitioned into \(\lceil n/5 \rceil\) groups of 5 elements each. This is done in linear time.&lt;/p&gt;
+&lt;h4 id=&#34;conquer&#34;&gt;Conquer&lt;/h4&gt;
+&lt;p&gt;Each group is sorted using insertion sort or some other algorithm. Even though the search itself may have a higher complexity, the sorting of the groups is \(\Theta(1)\) since the groups are of constant size. Collectively across all groups, the sorting is \(\Theta(n)\).&lt;/p&gt;
+&lt;h4 id=&#34;combine&#34;&gt;Combine&lt;/h4&gt;
+&lt;p&gt;The median of each group is found, introducing a recurrence of \(T(\lceil n/5 \rceil)\). Once each median is found, the median of medians is computed.&lt;/p&gt;
+&lt;h4 id=&#34;partition&#34;&gt;Partition&lt;/h4&gt;
+&lt;p&gt;As reasoned above, the median of medians is used as a pivot to partition the set into two groups. At least 30% of the elements are greater than the pivot. This leaves a search space of at most \(7n/10\). Partitioning is done in linear time.&lt;/p&gt;
+&lt;h4 id=&#34;select&#34;&gt;Select&lt;/h4&gt;
+&lt;p&gt;If the pivot is the $k$th smallest element, the algorithm terminates. Otherwise, the algorithm recursively searches the appropriate partition. Comparing the size of the partition to the size of the original set, the recurrence is \(T(7n/10)\).&lt;/p&gt;
+&lt;p&gt;Pseudocode is available &lt;a href=&#34;https://en.wikipedia.org/wiki/Median_of_medians&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
@@ -1316,7 +1471,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, &lt;a href=&#34;https://google.github.io/styleguide/cppguide.html#Constant_Names&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Google&amp;rsquo;s C++&lt;/a&gt; style guide recommends naming constant variables with a &lt;code&gt;k&lt;/code&gt; prefix. I have adopted this convention here.&lt;/p&gt;
-&lt;p&gt;At this point, &lt;code&gt;F_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
+&lt;p&gt;At this point, &lt;code&gt;kFilter_d&lt;/code&gt; is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2D(float *input, float *output,
                        int r, int width, int height) {
     int outCol = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1360,7 +1515,7 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 
 &lt;/figure&gt;
 
-&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key different in this case is that the input tile size will be larger than the output tile size. This size different would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
+&lt;p&gt;The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key difference in this case is that the input tile size will be larger than the output tile size. This size difference would further be complicated if we left the kernel size as a parameter.&lt;/p&gt;
 &lt;p&gt;Following the design presented by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;#define FILTER_RADIUS 1
 #define IN_TILE_DIM 4
@@ -13722,6 +13877,773 @@ that result in the smallest increase in error.&lt;/p&gt;
     </item>
     
     <item>
+      <title>Tracking</title>
+      <link>https://ajdillhoff.github.io/notes/tracking/</link>
+      <pubDate>Mon, 07 Mar 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/tracking/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tracking-with-optical-flow&#34;&gt;Tracking with Optical Flow&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#kalman-filters&#34;&gt;Kalman Filters&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Tracking features and objects is required in many applications ranging from autonomous driving to security. Vision tracking systems are often used for live sports broadcasts to keep track of players, the ball, and other visual queues related to the game.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;Introduction/2022-03-08_21-16-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: &amp;lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&amp;gt;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: &lt;a href=&#34;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&lt;/a&gt;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Naive tracking will detect an object per frame without any regard for prior information.
+More sophisticated trackers will consider the previous frame as a starting point to their search space.
+However, even these trackers many need to initialize after a certain amount of time if their estimate drifts too far away from the object&amp;rsquo;s actual location.&lt;/p&gt;
+&lt;p&gt;Example of the importance of reliable tracking for driving assistance:
+&lt;a href=&#34;https://youtu.be/NSDTZQdo6H8?t=898&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://youtu.be/NSDTZQdo6H8?t=898&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;tracking-with-optical-flow&#34;&gt;Tracking with Optical Flow&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Image motion&lt;/strong&gt; can be described as complex changes in image intensity from one time to another,
+displaced by \(\delta\).&lt;/p&gt;
+&lt;p&gt;The displacement can be modeled as an &lt;em&gt;affine motion field&lt;/em&gt; where the point is warped and translated by \(d\):&lt;/p&gt;
+&lt;p&gt;\[
+\delta = D\mathbf{x} + \mathbf{x},
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+D = \begin{bmatrix}
+d_{xx} &amp;amp; d_{xy}\\
+d_{yx} &amp;amp; d_{yy}
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;When comparing features between an image at \(t\) and \(t-1\), the feature centered at \(\mathbf{x}\) is transformed by&lt;/p&gt;
+&lt;p&gt;\[
+\textbf{I}_{t}(A\mathbf{x} + \mathbf{d}) = \textbf{I}_{t-1}(\mathbf{x}).
+\]&lt;/p&gt;
+&lt;p&gt;Here, \(A = I_2 + D\), where \(I_2\) is the \(2 \times 2\) identity matrix.
+This addition will be explained later.&lt;/p&gt;
+&lt;p&gt;Smaller variations between frames are less reliable for parameter estimation, so a pure translational model is better in these cases. That is&lt;/p&gt;
+&lt;p&gt;\[
+\delta = \mathbf{d}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;computing-image-motion&#34;&gt;Computing Image Motion&lt;/h3&gt;
+&lt;p&gt;Computing image motion then becomes a minimization problem.&lt;/p&gt;
+&lt;p&gt;\[
+\epsilon = \int \int_{W} \big[\mathbf{I}_{t}(A\mathbf{x} + \mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\big]^2 w(\mathbf{x}) d\mathbf{x}
+\]&lt;/p&gt;
+&lt;p&gt;This is used in a minimization problem which will minimize the dissimilarity between the tracked features between frames.
+The point is weighted by a function \(w\) over a window \(W\).&lt;/p&gt;
+&lt;p&gt;Minimization of this error involves taking the derivative of \(\epsilon\) with respect to the unknowns in \(D\) and displacement vector \(\mathbf{d}\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\frac{1}{2}\frac{\partial \epsilon}{\partial D} &amp;amp;= \int \int_W \Big[\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\Big]\mathbf{g}\mathbf{x}^T w d\mathbf{x} = 0\\
+\frac{1}{2}\frac{\partial \epsilon}{\partial \mathbf{d}} &amp;amp;= \int \int_W \Big[\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\Big]\mathbf{g} w d\mathbf{x} = 0\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{g} = \bigg(\frac{\partial \mathbf{I}_t}{\partial x}, \frac{\partial \mathbf{I}_t}{\partial y}\bigg)^T
+\]&lt;/p&gt;
+&lt;p&gt;is this spatial gradient of the image intensity.
+We have computed these image gradients before!&lt;/p&gt;
+&lt;p&gt;To linearlize \(\mathbf{I}_{t}\), a Taylor series expansion of it can be used, taking just the linear term:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) = \mathbf{I}_t(\mathbf{x})+\mathbf{g}^T(\mathbf{u}),
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{u} = D\mathbf{x}+\mathbf{d}.
+\]&lt;/p&gt;
+&lt;p&gt;The authors argue that this approximation is reasonable assuming the motion in the images is small.&lt;/p&gt;
+&lt;p&gt;Plugging this back into the derivatives above yields&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\int \int_W \mathbf{g}\mathbf{x}^T(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t\big]\mathbf{g}\mathbf{x}^T w d\mathbf{x}\\
+\int \int_W \mathbf{g}(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t\big]\mathbf{g} w d\mathbf{x}\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This is solved iteratively, following the Newton method, starting with the following values at \(t=0\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+D_0 &amp;amp;= I\\
+\mathbf{d}_0 &amp;amp;= \mathbf{0}\\
+\mathbf{I}_0 &amp;amp;= \mathbf{I}(\mathbf{x}).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;At step \(i\) the values are updated to&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+D_i\\
+\mathbf{d}_i\\
+\mathbf{I}_i &amp;amp;= \mathbf{I}_{i-1}(A_i \mathbf{x} + \mathbf{d}_i).
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;a-more-compact-representation&#34;&gt;A More Compact Representation&lt;/h3&gt;
+&lt;p&gt;At this point, the authors convert this representation into a more compact form in which the unknowns in \(D\) and the values of \(\mathbf{d}\) are separated from the function. To achieve this, we start with our current system of equations.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\int \int_W \mathbf{g}\mathbf{x}^T(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g}\mathbf{x}^T w d\mathbf{x}\\
+\int \int_W \mathbf{g}(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g} w d\mathbf{x}\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;To achieve this, the &lt;a href=&#34;https://en.wikipedia.org/wiki/Kronecker_product&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Kronecker product&lt;/a&gt; is used. This is a generalization of the outer product from vectors to matrices.
+For two matrices \(A \in \mathbb{R}^{p \times q}\) and \(B \in \mathbf{R}^{m \times n}\), \(A \otimes B\) is a \(p \times q\) block matrix&lt;/p&gt;
+&lt;p&gt;\[
+A \otimes B = \begin{bmatrix}
+a_{11}B &amp;amp; \cdots &amp;amp; a_{1q}\\
+\vdots &amp;amp; \ddots &amp;amp; \vdots\\
+a_{p1}B &amp;amp; \cdots &amp;amp; a_{pq}B
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;It has two particularly useful properties for this problem:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(A^T \otimes B^T = (A \otimes B)^T\)&lt;/li&gt;
+&lt;li&gt;\(v(AXB) = (B^T \otimes A)v(X)\), where \(v\) is the &lt;a href=&#34;https://en.wikipedia.org/wiki/Vectorization_%28mathematics%29&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;vectorization&lt;/a&gt; operator.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Using this product and the properties just listed, we can extract the unknowns \(D\) and \(\mathbf{d}\) from the equations above.&lt;/p&gt;
+&lt;p&gt;First, note that \(\mathbf{g}^T \mathbf{u}\) appear in both of the equations. These can then be rewritten as follows.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{g}^T \mathbf{u} &amp;amp;= \mathbf{g}^T(D\mathbf{x} + \mathbf{d})\\
+&amp;amp;= \mathbf{g}^T D \mathbf{x} + \mathbf{g}^T \mathbf{d}\\
+&amp;amp;= v(\mathbf{g}^T D \mathbf{x}) + \mathbf{g}^T \mathbf{d} &amp;amp;\text{ vectorization }\\
+&amp;amp;= (\mathbf{x}^T \otimes \mathbf{g}^T)v(D) + \mathbf{g}^T \mathbf{d} &amp;amp;\text{ property 2 }\\
+&amp;amp;= (\mathbf{x} \otimes \mathbf{g})^T v(D) + \mathbf{g}^T \mathbf{d} &amp;amp;\text{ property 1 }
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Likewise, the term \(\mathbf{g}\mathbf{x}^T\) that appears on the right side of the first equation in our set to solve can be written as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+v(\mathbf{g}\mathbf{x}^T) &amp;amp;= v(\mathbf{g}1\mathbf{x}^T)\\
+&amp;amp;= \mathbf{x} \otimes \mathbf{g}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Plugging this into the first equation to solve from above yields&lt;/p&gt;
+&lt;p&gt;\[
+\int \int_W (\mathbf{x} \otimes \mathbf{g})((\mathbf{x} \otimes \mathbf{g})^T v(D) + \mathbf{g}^T\mathbf{d})w d\mathbf{x} = \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big](\mathbf{x} \otimes \mathbf{g}) w d\mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;Expanding these terms out produces&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\bigg(\int \int_W (\mathbf{x} \otimes \mathbf{g})(\mathbf{x} \otimes \mathbf{g})^T w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W (\mathbf{x} \otimes \mathbf{g}) \mathbf{g}^T w d\mathbf{x}\bigg) \mathbf{d}\\
+= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big](\mathbf{x} \otimes \mathbf{g}) w d\mathbf{x}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The authors further simplify this equation using the following variables:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+U(\mathbf{x}) &amp;amp;= (\mathbf{x} \otimes \mathbf{g})(\mathbf{x} \otimes \mathbf{g})^T\\
+V(\mathbf{x}) &amp;amp;= (\mathbf{x} \otimes \mathbf{g})\mathbf{g}^T\\
+\mathbf{b}(\mathbf{x}) &amp;amp;= \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_{t}(\mathbf{x})\big]v(\mathbf{g}\mathbf{x}^T).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then the above equation can be written as&lt;/p&gt;
+&lt;p&gt;\[
+\bigg(\int \int_W U(\mathbf{x}) w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W V(\mathbf{x}) w d\mathbf{x}\bigg) \mathbf{d} = \int \int_W \mathbf{b}(\mathbf{x}) w d\mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;To write the second equation in a similar way, the authors introduce two additional variables&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+Z(\mathbf{x}) &amp;amp;= \mathbf{g}\mathbf{g}^T\\
+\mathbf{x}(\mathbf{x}) &amp;amp;= \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Then,&lt;/p&gt;
+&lt;p&gt;\[
+\bigg(\int \int_W V^T(\mathbf{x}) w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W Z(\mathbf{x}) w d\mathbf{x}\bigg) \mathbf{d} = \int \int_W \mathbf{c}(\mathbf{x}) w d\mathbf{x}.
+\]&lt;/p&gt;
+&lt;p&gt;These equations can be written in a simple form: \(A\mathbf{x} + B\mathbf{y} = \mathbf{z}\).
+A symmetric block matrix \(T \in \mathbb{R}^{6 \times 6}\) is then introduced:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T &amp;amp;= \int \int_W \begin{bmatrix}
+U &amp;amp; V\\
+V^T &amp;amp; Z
+\end{bmatrix} w d\mathbf{x}\\
+&amp;amp;= \int \int_W \begin{bmatrix}
+x^2g_x^2 &amp;amp; x^2 g_x g_y &amp;amp; x y g_x^2 &amp;amp; x y g_x g_y &amp;amp; x g_x^2 &amp;amp; x g_x g_y\\
+x^2 g_x g_y &amp;amp; x^2 g_y^2 &amp;amp; x y g_x g_y &amp;amp; x y g_y^2 &amp;amp; x g_x g_y &amp;amp; x g_y^2\\
+x y g_x^2 &amp;amp; x y g_x g_y &amp;amp; y^2 g_x^2 &amp;amp; y^2 g_x g_y &amp;amp; y g_x^2 &amp;amp; y g_x g_y\\
+x y g_x g_y &amp;amp; x y g_y^2 &amp;amp; y^2 g_x g_y &amp;amp; y^2 g_y^2 &amp;amp; y g_x g_y &amp;amp; y g_y^2\\
+x g_x^2 &amp;amp; x g_x g_y &amp;amp; y g_x^2 &amp;amp; y g_x g_y &amp;amp; g_x^2 &amp;amp; g_x g_y\\
+x g_x g_y &amp;amp; x g_y^2 &amp;amp; y g_x g_y &amp;amp; y g_y^2 &amp;amp; g_x g_y &amp;amp; g_y^2
+\end{bmatrix}w d \mathbf{x}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Look very closely at \(Z\)&lt;/strong&gt;. Does that remind you of anything?
+Harris corner detection!&lt;/p&gt;
+&lt;p&gt;The unknowns are vectorized as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{z} = \begin{bmatrix}
+v(D)\\
+\mathbf{d}
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;The product vector is defined as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{a} &amp;amp;= \int \int_W \begin{bmatrix}
+\mathbf{b}\\
+\mathbf{c}
+\end{bmatrix} w d \mathbf{x}\\
+&amp;amp;= \int \int_W \Big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\Big]\begin{bmatrix}
+x g_x\\
+x g_y\\
+y g_x\\
+y g_y\\
+g_x\\
+g_y
+\end{bmatrix} w d \mathbf{x}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Thus, the iterative solution requires solving the \(6 \times 6\) linear system&lt;/p&gt;
+&lt;p&gt;\[
+T \mathbf{z} = \mathbf{a}.
+\]&lt;/p&gt;
+&lt;h3 id=&#34;back-to-computing-image-motion&#34;&gt;Back to Computing Image Motion&lt;/h3&gt;
+&lt;p&gt;With this more compact representation, the iterative solution is easier to achieve.
+The authors conveniently note that the deformation of the feature window between frames will be relatively small, so \(D\) could be set to 0 for tracking.
+This leads to the solution of a much smaller system for each time step:&lt;/p&gt;
+&lt;p&gt;\[
+Z \mathbf{d} = \begin{bmatrix}
+g_x\\
+g_y
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;Note that this is only true for small steps between frames.
+It is also important to measure the dissimilarity between the feature at the initial frame as it changes over time with the iterative estimates.
+If it changes too much, the dissimilarity will be high, indicating that it is no longer a reliable feature to track.&lt;/p&gt;
+&lt;h3 id=&#34;picking-the-best-feature&#34;&gt;Picking the Best Feature&lt;/h3&gt;
+&lt;p&gt;Shi and Tomasi posit that the best feature is one that can be tracked well.&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;We can track a window from frame to frame if this system represents good measurements, and if it can be solved reliably.&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;They analyze the basic equation \(Z \mathbf{d} = \mathbf{e}\), which is solved during tracking.
+If both eigenvalues of \(Z\) are large and do not differ by several orders of magnitude, the feature can be tracked reliably.
+That is, they accept a window if the eigenvalues of \(Z\) satisfy&lt;/p&gt;
+&lt;p&gt;\[
+\min(\lambda_1, \lambda_2) &amp;gt; \lambda.
+\]&lt;/p&gt;
+&lt;p&gt;In practice, \(\lambda\) is determined by selecting a lower bound based on a region of uniform brightness in the image as well as an upper bound based on features such as corners.
+The selected value of \(\lambda\) is somewhere in between.&lt;/p&gt;
+&lt;h3 id=&#34;measuring-dissimilarity&#34;&gt;Measuring dissimilarity&lt;/h3&gt;
+&lt;p&gt;To determine if a feature is still reliable over a longer time period, a measure of dissimilarity is used to measure the original feature versus its warped version at the current frame.
+Consider the sequence below over 21 frames.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-53-48_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Source: Shi and Tomasi.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Source: Shi and Tomasi.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Their method successfully tracks the speed limit sign, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-54-43_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Source: Shi and Tomasi.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Source: Shi and Tomasi.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-57-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Source: Shi and Tomasi.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Source: Shi and Tomasi.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;They note the importance of using an affine deformation to track reliable features.
+The figure below plots the dissimilarity using translation versus the deformation matrix over time.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-56-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Dissimilarity over time using translation (dashed) versus affine (solid) (Shi and Tomasi).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Dissimilarity over time using translation (dashed) versus affine (solid) (Shi and Tomasi).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;They also present a case when the feature is lost to occlusion, thus the dissimilarity of both approaches increases greatly over time.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-59-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Source: Shi and Tomasi.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Source: Shi and Tomasi.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-59-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Source: Shi and Tomasi.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Source: Shi and Tomasi.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-08_20-59-52_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Sign tracking (plusses) versus window tracking (circles) (Shi and Tomasi).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Sign tracking (plusses) versus window tracking (circles) (Shi and Tomasi).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;kalman-filters&#34;&gt;Kalman Filters&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;Kalman filter&lt;/strong&gt; is a linear dynamic model that models conditional probabilities following normal distributions.
+It is an simple and effective model for tracking motion even in the presence of noise from measurements.
+Kalman filters keep an estimate of the state and can update their estimates based on the given observations.&lt;/p&gt;
+&lt;p&gt;\(\mathbf{X}_i\) - State of object at step \(i\)&lt;/p&gt;
+&lt;p&gt;\(\mathbf{Y}_i\) - Measurement at step \(i\)&lt;/p&gt;
+&lt;p&gt;There are two primary tasks to deal with, the real-time tracking task and the offline smoothing task.
+We are more interested in the tracking task, so we will focus on that.&lt;/p&gt;
+&lt;p&gt;Tracking task: \(P(X_k|Y_0, \dots, Y_k)\)&lt;/p&gt;
+&lt;p&gt;Smoothing task: \(P(X_k|X_0, \dots, Y_n)\)&lt;/p&gt;
+&lt;p&gt;Assumptions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(P(Y_k|X_0, \dots, X_N, Y_0, \dots, Y_N) = P(Y_k|X_k)\)&lt;/li&gt;
+&lt;li&gt;\(P(X_k|X_0, \dots, X_{k-1}) = P(X_k|X_{k-1})\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;prediction-task&#34;&gt;Prediction Task&lt;/h3&gt;
+&lt;p&gt;When tracking an object, we use the model to first predict a state and then update its current parameters given some measurement.
+We want to predict the state given measurements: \(P(\mathbf{X}_i|\mathbf{Y}_0 = \mathbf{y}_0, \dots, \mathbf{Y}_{k-1}=\mathbf{y}_{k-1})\).&lt;/p&gt;
+&lt;p&gt;Given the previous observations up to \(k-1\), what is our model&amp;rsquo;s estimate of the current state?
+This can help establish a search location if we were looking to narrow our detection algorithm.&lt;/p&gt;
+&lt;h3 id=&#34;correction&#34;&gt;Correction&lt;/h3&gt;
+&lt;p&gt;\(P(\mathbf{X}_i|\mathbf{Y}_0 = \mathbf{y}_0, \dots, \mathbf{Y}_{i}=\mathbf{y}_{i})\) is the cur  rent distribution.
+This is the estimate given the actual observation at \(i\).
+Note that this observation could be given from a noisy measurement.&lt;/p&gt;
+&lt;h3 id=&#34;linear-dynamics&#34;&gt;Linear Dynamics&lt;/h3&gt;
+&lt;p&gt;Assuming linear models, the problem becomes much simpler.
+We can model the observations and state using normal distributions.&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \Sigma)
+\]&lt;/p&gt;
+&lt;p&gt;The measurements themselves can be modeled as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{y}_k \sim \mathcal{N}(\mathcal{B}_k \mathbf{x}_k, \Sigma_k),
+\]&lt;/p&gt;
+&lt;p&gt;where \(k\) is the current step.&lt;/p&gt;
+&lt;p&gt;For the future, the model will be represented as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{x}_i &amp;amp;\sim \mathcal{N}(\mathcal{D}_i \mathbf{x}_{i-1}; \Sigma_{d_i})\\
+\mathbf{y}_i &amp;amp;\sim \mathcal{N}(\mathcal{M}_i \mathbf{x}_i; \Sigma_{m_i}).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;For covering the algorithm, we will use notation following Forsyth and Ponce.
+\(\bar{\mathbf{x}}_i^-\) is the mean of \(P(\mathbf{x}_i|y_0, \dots, y_{i-1})\) and \(\bar{\mathbf{x}}_i^+\) is the mean of \(P(\mathbf{x}_i|y_0, \dots, y_{i})\).
+\(\Sigma_i^-\) and \(\Sigma_i^+\) are the covariances of those distributions.&lt;/p&gt;
+&lt;p&gt;However, by making a convenient assumption about the observation model, we will mainly need to focus on the state model.
+That is, the matrix \(\mathcal{M}_i\) is defined so that the mean is simply the state position at step \(i\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What does our state represent?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In a simple model, \(\mathbf{x} = \begin{bmatrix}p_x\\p_y\\v_x\\v_y\end{bmatrix}\).
+That is the 2D position and velocity of the object being tracked.
+The corresponding covariance matrix is \(\mathbf{x}\mathbf{x}^T\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How do we predict the position and velocity of the next time step?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{p}_k &amp;amp;= \mathbf{p}_{k-1} + \Delta t \mathbf{v}_{k-1}\\
+\mathbf{v}_k &amp;amp;= \mathbf{v}_{k-1}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This is making a simple, yet surprisingly effective, assumption that the velocity is constant.
+We can write this as a matrix vector product:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}_k = \begin{bmatrix}
+1 &amp;amp; 0 &amp;amp; \Delta t &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 0 &amp;amp; \Delta t\\
+0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1
+\end{bmatrix}
+\mathbf{x}_{k-1}
+\]&lt;/p&gt;
+&lt;p&gt;Compactly, the prediction for step \(t\) is \(\bar{\mathbf{x}}_k^- = D_i \bar{\mathbf{x}}_{k-1}^+\).&lt;/p&gt;
+&lt;p&gt;Since we updated every point \(\mathbf{x}_{k-1}\), we also need to make a prediction about the covariance matrix.
+This is also achieved by multiplying every point by \(D_i\)&lt;/p&gt;
+&lt;p&gt;\[
+\Sigma_{i}^- = D_i\Sigma_{i-1}^+D_i^T
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What if we want to add additional knowledge like acceleration?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Our position prediction then follows&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{p}_i &amp;amp;= \mathbf{p}_{i-1} + \Delta t \mathbf{v}_{i-1} + \frac{1}{2} \Delta t^2 \mathbf{a}_{i-1}\\
+\mathbf{v}_i &amp;amp;= \mathbf{v}_{i-1} + \Delta t \mathbf{a}_{i-1}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can simplify this and assume constant acceleration, then \(\mathbf{a}_i = \mathbf{a}_{i-1}\).
+The resulting update equation for \(\mathbf{x}_k\) becomes&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}_k = \begin{bmatrix}
+1 &amp;amp; 0 &amp;amp; \Delta t &amp;amp; 0 &amp;amp; \frac{1}{2}\Delta t^2 \mathbf{a} &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 0 &amp;amp; \Delta t &amp;amp; 0 &amp;amp; \frac{1}{2}\Delta t^2 \mathbf{a}\\
+0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; \Delta t &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; \Delta t\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\
+\end{bmatrix}
+\mathbf{x}_{k-1}
+\]&lt;/p&gt;
+&lt;p&gt;However, if something like acceleration is a known &lt;strong&gt;control&lt;/strong&gt; factor in our system, then it does not need to be part of the state.
+In this case, we could separate the update vector into&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}_k = \mathcal{D}_i\mathbf{x}_{k-1} + B_k \mathbf{u}_{k},
+\]&lt;/p&gt;
+&lt;p&gt;where \(B_k\) is the &lt;strong&gt;control matrix&lt;/strong&gt; and \(\mathbf{u}_k\) is the &lt;strong&gt;control vector&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;One last consideration is that of uncertainty due to factors outside of our system.
+This can also be modeled using a Gaussian with zero mean and covariance \(\Sigma_d\):&lt;/p&gt;
+&lt;p&gt;\[
+\xi_k \sim \mathcal{N}(\mathbf{0}, \Sigma_d).
+\]&lt;/p&gt;
+&lt;p&gt;With this added noise, the prediction step becomes&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\bar{\mathbf{x}}_k^- &amp;amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
+\Sigma_k^- &amp;amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;In words, \(\bar{\mathbf{x}}_k^-\) is the prediction of our current state based on the previous best estimate with an added correction term based on known factors (acceleration).
+\(\Sigma_k^-\) is the updated uncertainty based on the old uncertainty with added Gaussian noise to reflect unknown factors.&lt;/p&gt;
+&lt;h3 id=&#34;making-corrections&#34;&gt;Making Corrections&lt;/h3&gt;
+&lt;p&gt;As we are tracking an object, we may have some way of getting measurements.
+This could be through an object detector or other physical sensor.
+The new measurement can refine our current set of parameters.
+Kalman filters work well even if the measurement is noisy.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-10_22-34-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;1D Kalman Filter. Source: Forsyth and Ponce&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;1D Kalman Filter. Source: Forsyth and Ponce
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the initial prediction has a large amount of uncertainty.
+After updating with the current measurement, the uncertainty is reduced.&lt;/p&gt;
+&lt;p&gt;The goal here is to reconcile the uncertainty of our predicted state with the uncertainty of the measurement.
+That is, we want to know the distribution over the union of these two distributions.
+This is achieved by multiplying the Gaussians together.&lt;/p&gt;
+&lt;p&gt;\[
+\mathcal{N}(\bar{\mathbf{x}}_i^+, \Sigma_i^+) = \mathcal{N}(\bar{\mathbf{x}}_i^-, \Sigma_i^-) * \mathcal{N}(\mathbf{y}_i, \Sigma_{m_i})
+\]&lt;/p&gt;
+&lt;p&gt;Solving for \(\bar{\mathbf{x}}_i^+\) and \(\Sigma_i^+\) yields&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\bar{\mathbf{x}}_i^+ &amp;amp;= \bar{\mathbf{x}}_i^- + \mathcal{K}_i(\mathbf{y}_i - \bar{\mathbf{x}}_i^-)\\
+\Sigma_i^+ &amp;amp;= \Sigma_i^- - \mathcal{K}_i \Sigma_i^-,
+\end{align*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\mathcal{K}_i = \Sigma_i^-(\Sigma_i^- + \Sigma_{m_i})^{-1}.
+\]&lt;/p&gt;
+&lt;p&gt;\(\mathcal{K}_i\) is called the &lt;strong&gt;Kalman gain&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Let&amp;rsquo;s combine the prediction and correction steps&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;We have a state distribution with mean and variance&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\bar{\mathbf{x}}_k^- &amp;amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
+\Sigma_k^- &amp;amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k
+\end{align*}&lt;/p&gt;
+&lt;p&gt;as well as an observation distribution with mean and variance \(\mathbf{y}_k\) and \(\Sigma_{m_k}\).&lt;/p&gt;
+&lt;p&gt;Plugging these into the update equations yield&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\bar{\mathbf{x}}_i^+ &amp;amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + \mathcal{K}_i(\mathbf{y}_i - \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+)\\
+\Sigma_i^+ &amp;amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T - \mathcal{K}_i \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T,
+\end{align*}&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\mathcal{K}_i = \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T(\mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \Sigma_{m_i})^{-1}.
+\]&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Optical Flow</title>
+      <link>https://ajdillhoff.github.io/notes/optical_flow/</link>
+      <pubDate>Sun, 06 Mar 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/optical_flow/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#motion-features&#34;&gt;Motion Features&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#assumptions-of-small-motion&#34;&gt;Assumptions of Small Motion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Optical flow refers to the apparent motion in a 2D image.
+A motion field refers to the true motion of objects in 3D.
+The idea of optical flow features is a simple concept.
+If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO&lt;/strong&gt; Frame differencing figure&lt;/p&gt;
+&lt;p&gt;Consider a sphere with Lambertian reflectance.&lt;/p&gt;
+&lt;p&gt;If the sphere is rotated:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;What does the motion field look like?&lt;/li&gt;
+&lt;li&gt;What does the optical flow look like?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;If, instead, a point light is rotated around the sphere:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;What does the motion field look like?&lt;/li&gt;
+&lt;li&gt;What does the optical flow look like?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;motion-features&#34;&gt;Motion Features&lt;/h2&gt;
+&lt;p&gt;Motion features are used a wide variety of tasks from compression, image segmentation, tracking, detection, video de-noising, and more.
+Consider a fixed camera with a sphere centered in the middle of the frame.
+As the frame moves towards the camera, its apparent size will become larger.
+If we were to analyze the optical flow of such a sequence, we would see that the flow is radial as the sphere, projected as a circle, grows.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-06_17-16-16_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;From &amp;#34;Computer Vision - A Modern Approach&amp;#34; by Forsyth and Ponce&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;From &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo; by Forsyth and Ponce
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;At \(t=1\), the radius of the circle is given as \(R\).
+At \(t=2\), the radius is \(r = f\frac{R}{Z}\), where \(f\) is some function of the motion and \(Z\) is the distance between the sphere and the camera.
+From this, we can also compute the speed at which the sphere is travelling towards the camera as \(V=\frac{dZ}{dt}\).
+The apparent rate of growth as observed by the camera is \(\frac{dr}{dt} = -f\frac{RV}{Z^2}\).
+We can also determine the time to contact with the camera as \(-\frac{Z}{V}\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-06_18-06-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Optical flow on different parts of the image as observed from a moving camera whose direction of focus is perpendicular to the white plane. Source: &amp;#34;Computer Vision - A Modern Approach&amp;#34; by Forsyth and Ponce&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Optical flow on different parts of the image as observed from a moving camera whose direction of focus is perpendicular to the white plane. Source: &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo; by Forsyth and Ponce
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the observer is moving at a constant rate to the left.
+The points in the image appear to translate towards the right edge of the frame.
+Points that are close to the camera appear to move faster than those that are farther away.
+This can be used to estimate the apparent depth between objects in a scene.&lt;/p&gt;
+&lt;h2 id=&#34;computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/h2&gt;
+&lt;p&gt;A popular assumption for optical flow, as discussed in &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;, is that of brightness constancy.
+That is, a local feature has the same image intensity in one frame as it does in the subsequent frame.&lt;/p&gt;
+&lt;p&gt;\[
+I(x + u, y + v, t + 1) = I(x, y, t)
+\]&lt;/p&gt;
+&lt;p&gt;To formulate the problem as a differentiable function, an additional spatial smoothness assumption is made.
+It is assumed that a pixel&amp;rsquo;s neighbors will also have the same optical flow as the pixel in question.
+This is a reasonable assumption that asserts that patches are locally rigid and will exhibit uniform motion.&lt;/p&gt;
+&lt;p&gt;Given these two constraints, we can formulate an objective function.
+First, the objective function assuming brightness constancy is given by&lt;/p&gt;
+&lt;p&gt;\[
+E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I(x_s + u_s, y_s + v_s, t + 1) - I(x, y, t))^2.
+\]&lt;/p&gt;
+&lt;p&gt;Adding in the assumption of uniform motion in a local region yields the term&lt;/p&gt;
+&lt;p&gt;\[
+E_S(\mathbf{u}, \mathbf{v}) = \sum_{n\in G(s)}(u_s - u_n)^2 + \sum_{n \in G(s)}(v_s - v_n)^2.
+\]&lt;/p&gt;
+&lt;p&gt;Putting these together, with a weighting term, yields&lt;/p&gt;
+&lt;p&gt;\[
+E(\mathbf{u}, \mathbf{v}) = E_D + \lambda E_S.
+\]&lt;/p&gt;
+&lt;p&gt;This energy function \(E_D\) is minimized by differentiating and setting the equation to 0:&lt;/p&gt;
+&lt;p&gt;\[
+I_x u + I_y v + I_t = 0.
+\]&lt;/p&gt;
+&lt;p&gt;The entire energy to be minimized is then&lt;/p&gt;
+&lt;p&gt;\[
+E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I_{x,s}u_s + I_{y,s}v_s + I_{t,s})^2 + \lambda \sum_{n\in G(s)}(u_s - u_n)^2 + \sum_{n \in G(s)}(v_s - v_n)^2.
+\]&lt;/p&gt;
+&lt;p&gt;Differentiating this and setting to 0 yields two equations in \(u\) and \(v\):&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\sum_s{(I_{x,s}^2 u_s + I_{x,s}I_{y,s}v_s + I_{x,s}I_{t,s}) + \lambda \sum_{n \in G(s)}(u_s - u_n)} &amp;amp;= 0\\
+\sum_s{(I_{x,s}I_{y,s} u_s + I_{y,s}^2v_s + I_{y,s}I_{t,s}) + \lambda \sum_{n \in G(s)}(v_s - v_n)} &amp;amp;= 0\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Note that this is computed for every pixel in the image.
+This system is no longer underspecified because of the assumption that neighbors will exhibit the same flow.
+We now have 5 equations per pixel.
+In more recent works, larger neighborhood grids (\(5 \times 5\)) are used.
+Then, we have 25 equations per pixel.
+Since this is a system of linear equations, it could be computed directly using the normal equations.&lt;/p&gt;
+&lt;p&gt;However, Horn and Schunck did not have very fast computers in 1981.
+So, they introduced an iterative solution &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;.&lt;/p&gt;
+&lt;h2 id=&#34;assumptions-of-small-motion&#34;&gt;Assumptions of Small Motion&lt;/h2&gt;
+&lt;p&gt;One of the core assumptions in early formulations of optical flow is that motion is very small (&amp;lt;1 pixel).
+In reality, some objects may move over 100 pixels within a single frame.
+A simple solution to this problem was proposed by Bergen et al. in 1992 &amp;lt;&amp;amp;bergenHierarchicalModelbasedMotion&amp;gt;.
+By creating an image pyramid over several resolutions, the assumption of small motion at each scale is still reasonable.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-06_19-37-48_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Hierarchical motion estimation (Bergen et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hierarchical motion estimation (Bergen et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;At one scale, the warping parameters are estimated.
+Next, they are used to warp the image to match the one at \(t-1\).
+The warped image and true image at \(t-1\) are compared to refine the parameters.
+The refined parameters are then sent to the next scale layer.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Segmentation via Clustering</title>
       <link>https://ajdillhoff.github.io/notes/segmentation_via_clustering-2/</link>
       <pubDate>Thu, 24 Feb 2022 00:00:00 -0600</pubDate>
@@ -13735,7 +14657,6 @@ that result in the smallest increase in error.&lt;/p&gt;
 &lt;li&gt;&lt;a href=&#34;#k-means-clustering&#34;&gt;K-Means Clustering&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#references&#34;&gt;References&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -14176,8 +15097,465 @@ Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.&lt;/p&gt;
 
 &lt;/figure&gt;
 
-&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
-&lt;p&gt;&amp;lt;/home/alex/ajdillhoff@gmail.com/bibliography/master.bib&amp;gt;&lt;/p&gt;
+&lt;p&gt;#print_bibliography: t&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Segmentation via Clustering</title>
+      <link>https://ajdillhoff.github.io/notes/segmentation_via_clustering/</link>
+      <pubDate>Thu, 24 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/segmentation_via_clustering/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#agglomerative-clustering&#34;&gt;Agglomerative Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#k-means-clustering&#34;&gt;K-Means Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The goal of segmentation is fairly broad: group visual elements together.
+For any given task, the question is &lt;em&gt;how are elements grouped?&lt;/em&gt;
+At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity.
+Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.&lt;/p&gt;
+&lt;p&gt;Segmentation by thresholding works in cases where the boundaries between features are clearly defined.
+However, thresholding is not very robust to complex images with noise.
+Consider a simple image and its intensity histogram as noise is added.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_10-27-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;From left to right, a noiseless image with increasing amounts of Gaussian noise added. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Even with some noise added, as seen in the middle image, thresholding is still relatively straightforward.
+Once enough noise is added, thresholding via pixel intensities will not work.
+A more sophisticated approach is needed in this case.&lt;/p&gt;
+&lt;p&gt;Clustering is a fairly intuitive way to think about segmentation.
+Instead of a fine-grained representation of an image as a collection of pixels, it is represented as groups or clusters that share some common features.
+The general process of clustering is simple.
+The image is represented as a collection of feature vectors (intensity, pixel color, etc.).
+Feature vectors are assigned to a single cluster. These clusters represent some segment of the image.&lt;/p&gt;
+&lt;p&gt;When it comes to clustering methods, there are two main approaches: agglomerative and divisive.
+Simply, one is a bottom-up approach. The other is a top-down approach.
+After briefly introductin agglomerative clustering, we will explore specific implementations of segmentation using k-means clustering as well as segmentation using superpixels (Achanta et al. 2012).&lt;/p&gt;
+&lt;h2 id=&#34;agglomerative-clustering&#34;&gt;Agglomerative Clustering&lt;/h2&gt;
+&lt;p&gt;Agglomerative clustering methods start by assuming every element is a separate cluster.
+Elements are formed based on some local similarities.
+As these methods iterate, the number of clusters decreases.
+Deciding which elements to merge depends on &lt;strong&gt;inter-cluster distance&lt;/strong&gt;.
+The exact choice of distance is dependent on the task. Some examples include:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Single-link clustering&lt;/strong&gt;: The distance between the closest elements.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Complete-link clustering&lt;/strong&gt;: The maximum distance between an element of the first cluster and one of the second.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Group average clustering&lt;/strong&gt;: Average distance of elements in a cluster.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;How many clusters are or should be in a single image?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This is a difficult question to answer for many reasons. The answer will be largely dependent on the task at hand.
+It is a problem of learning the underlying generative process of the visual elements in the image.
+By defining the specific goal of segmentation (segment by color, shape, etc.), we are introducing a prior about the underlying generative processes which formed the image.&lt;/p&gt;
+&lt;p&gt;&lt;a id=&#34;figure--fig1&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_16-24-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;3D-PointCapsNet learns point segmentations on only 1% of the training data (Zhao et al.).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;There are approaches which attempt to segment objects in semi-supervised settings.
+As seen in &lt;a href=&#34;#figure--fig1&#34;&gt;Figure 1&lt;/a&gt;, Zhao et al. propose a part segmentation model for 3D objects which only utilizes 1-5% of the training part labels (Zhao et al. 2019).&lt;/p&gt;
+&lt;p&gt;For example, if we divised an algorithm that would segment an image by color values, it might be able to segment the hand wearing a solid color glove relatively easily.
+If we wanted to segment the hand into its individual joints, we would have to introduce a visual prior such as asking the subject to wear a multicolored glove.
+We could also add prior information about the hand shape and joint configuration into the model itself.&lt;/p&gt;
+&lt;p&gt;&lt;a id=&#34;figure--joint-pc&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_22-08-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;An image-based joint regression model predicts joint locations (left) along with a point cloud generated from the joint estimates (right).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the &lt;a href=&#34;#figure--joint-pc&#34;&gt;figure above&lt;/a&gt;, the kinematic hand model could be used to segment the hand by assigning points in the point cloud to the nearest joint as estimated by the model.&lt;/p&gt;
+&lt;p&gt;One way to visualize the cluster relationships is a &lt;em&gt;dendrogram&lt;/em&gt;.
+Initially, each element is its own cluster. As the process evolves and clusters are merged based on some similarity,
+the hierarchy is updated to show how the connections are formed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_18-16-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Example output from scikit-image.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Example output from scikit-image.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;k-means-clustering&#34;&gt;K-Means Clustering&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://huggingface.co/spaces/SLU-CSCI5750-SP2022/homework03_DigitClassificationKNN&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;K-Means Variant KNN Demo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html#sphx-glr-auto-examples-cluster-plot-color-quantization-py&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;K-Means clustering is a popular machine learning method used in both supervised and unsupervised settings.
+It works by iteratively updating a set of &lt;em&gt;centroids&lt;/em&gt; or means until some stopping criteria is achieved.&lt;/p&gt;
+&lt;p&gt;To use this with image segmentation, we start by treating our image features as vectors.
+In the RGB case, each pixel is a vector of 3 values.
+It starts out by initializing \(k\) clusters randomly with means \(\mathbf{m}_i\).
+The next step is to compute the distance between the clusters and each point in the image.
+Points are assigned to the cluster that is closest.&lt;/p&gt;
+&lt;p&gt;\[
+\text{arg}\min_{C} \sum_{i=1}^k \sum_{\mathbf{z}\in C_i}\|\mathbf{z} - \mathbf{m}_i\|^2,
+\]&lt;/p&gt;
+&lt;p&gt;where \(C = \{C_1, \dots, C_k\}\) is the cluster set.&lt;/p&gt;
+&lt;p&gt;K-Means uses Expectation Maximization to update its parameters.
+That is, it first computes the expected values given its current cluster centers before updating the cluster centers based on the new assignments.
+The standard algorithm is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Initialize clusters&lt;/strong&gt; - Randomly select \(k\) points as cluster centers \(\mathbf{m}_i\).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Assign samples to clusters&lt;/strong&gt; - Assign each sample to the closest cluster center based on some distance metric.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Update the means&lt;/strong&gt; - Compute a new value for the cluster centers based on the assignments in the previous step.
+\[
+\mathbf{m}_i = \frac{1}{|C_i|}\sum_{\mathbf{z} \in C_i}\mathbf{z}, \quad i = 1, \dots, k
+\]&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Test for convergence&lt;/strong&gt; - Compute the distances between the means at time \(t\) and time \(t - 1\) as \(E\). Stop if the difference is less than some threshold: \(E \leq T\).&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_21-41-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Image segmented using k-means with k=3. Source: Pearson Education, Inc.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Image segmented using k-means with k=3. Source: Pearson Education, Inc.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;simple-linear-iterative-clustering--slic&#34;&gt;Simple Linear Iterative Clustering (SLIC)&lt;/h2&gt;
+&lt;p&gt;Simple Linear Iterative Clustering (SLIC) is widely used algorithm based on K-Means clustering for image segmentation (Achanta et al. 2012).&lt;/p&gt;
+&lt;p&gt;As discussed in the original paper, the authors state that SLIC h   as two main advantages over traditional K-Means:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;The search space for assigning points is reduced, leading to an increase in performance.&lt;/li&gt;
+&lt;li&gt;By weighting the distance measure, color and spatial proximity are both considered when forming clusters.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The algorithm itself is simple to understand and implement, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-01_23-39-33_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;SLIC Algorithm (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;SLIC Algorithm (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;initialization&#34;&gt;Initialization&lt;/h3&gt;
+&lt;p&gt;To keep the search space smaller, the individual search regions are spaced \(S = \sqrt{N/k}\) pixels apart, where \(N\) is the number of pixels and \(k\) is the number of cluster centers.&lt;/p&gt;
+&lt;p&gt;The image itself is represented in &lt;a href=&#34;https://en.wikipedia.org/wiki/CIELAB_color_space&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;CIELAB color space&lt;/a&gt;.
+This color space was chosen because it is &lt;em&gt;perceputally uniform&lt;/em&gt;.
+That is, it is useful for detecting small differences in color.&lt;/p&gt;
+&lt;p&gt;Each of the \(k\) pixel clusters is then defined as a superpixel consisting of the CIELAB color and position:&lt;/p&gt;
+&lt;p&gt;\[
+C_i = [l_i\ a_i\ b_i\ x_i\ y_i]^T.
+\]&lt;/p&gt;
+&lt;p&gt;For stability, the seed locations are moved to the lowest gradient position in a \(3 \times 3\) neighborhood.
+If the superpixels are building locally distinct regions, it is better to avoid placing them on an edge (boundary) pixel.&lt;/p&gt;
+&lt;h3 id=&#34;search-space-and-distance&#34;&gt;Search Space and Distance&lt;/h3&gt;
+&lt;p&gt;The search space for a cluster center is a region \(2S \times 2S\) around the cluster.
+Each pixel in this region is compared to the cluster center \(C_k\) using a distance measure \(D\).&lt;/p&gt;
+&lt;p&gt;The distance measure should consider both the spatial and color distances:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+d_c &amp;amp;= \sqrt{(l_j - l_i)^2 + (a_j - a_i)^2 + (b_j - b_i)^2}\\
+d_s &amp;amp;= \sqrt{(x_j - x_i)^2 + (y_j - y_i)^2}\\
+D&amp;rsquo; &amp;amp;= \sqrt{\Big(\frac{d_c}{N_c}\Big)^2 + \Big(\frac{d_s}{N_s}\Big)^2}
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The individual distances should be normalized by their respective maximums since the range of CIELAB values is different from the variable maximum of \(N_s\), which is based on the image size.
+Here, \(N_s\) corresponds to the sampling size \(\sqrt{N/k}\).&lt;/p&gt;
+&lt;p&gt;The authors found that normalizing this way was inconsistent since the color distances vary greatly from cluster to cluster.
+They turn this normalization into a hyperparameter constant \(m\) so that the user can control the importance between spatial and color proximity.&lt;/p&gt;
+&lt;p&gt;\[
+D = \sqrt{d_c^2 + \Big(\frac{d_s}{S}\Big)^2 m^2}
+\]&lt;/p&gt;
+&lt;p&gt;A smaller \(m\) results in superpixels that adhere more to image boundaries, where a larger value promotes compact superpixels.&lt;/p&gt;
+&lt;h3 id=&#34;results&#34;&gt;Results&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-24-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Comparison of SLIC against other superpixel methods (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Comparison of SLIC against other superpixel methods (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-26-00_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Images segmented using a varying number of clusters (Achanta et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Images segmented using a varying number of clusters (Achanta et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;superpixels-in-recent-work&#34;&gt;Superpixels in Recent Work&lt;/h2&gt;
+&lt;p&gt;Superpixels are useful for reducing the dimensionality of the feature space.
+Their applications include tracking, segmentation, and object detection.
+Methods that extract superpixels do not work out of the box with deep learning methods
+due to their non-differentiable formulation.
+Deep learning methods rely on gradient descent to optimize their parameters.
+This requires that the functions used in a deep network be differentiable.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_20-47-51_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Superpixels optimized for semantic segmentation (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Superpixels optimized for semantic segmentation (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Superpixel Sampling Networks, proposed by Jampani et al., introduce the first attempt at integrating superpixel extraction methods with deep learning models (Jampani et al. 2018).
+In this work, they adapt SLIC as a differentiable layer in a deep network which result in superpixels that are fine-tuned for specific tasks.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_21-45-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Model diagram for SSN (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Model diagram for SSN (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The train their model on a semantic segmentation task which fine tunes the learned superpixels such that they adhere more closely to segmentation boundaries.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_21-51-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;Results on semantic segmentation (Jampani et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Results on semantic segmentation (Jampani et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In a more recent work, Yang et al. propose a deep network that directly produces the superpixels as opposed to using a soft K-Means layer (Yang et al. 2020).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_22-05-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Similar to SSN, they experiment on the Berkeley Image Segmentation Dataset.
+Their results are competitive with other deep learning-based approaches.
+The authors note that their method generalizes better in segmentation tasks by being robust to fine details and noise.
+Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-03_22-14-22_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 13: &amp;lt;/span&amp;gt;Comparison of results on competing methods (Yang et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of results on competing methods (Yang et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;#print_bibliography: t&lt;/p&gt;
 </description>
     </item>
     

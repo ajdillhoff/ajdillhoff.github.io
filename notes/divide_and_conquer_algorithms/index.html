@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    11 min read
+    12 min read
   </span>
   
 
@@ -788,6 +788,19 @@ Sort each column descending (linear time).
 Find &ldquo;median of medians&rdquo; as \(X\)</p>
 <p>If the columns are sorted, it is trivial to find the median of each column.</p>
 <p>Half of the groups contribute at least 3 elements greater than \(X\), except for the last group. We have one group that contains \(x\).</p>
+<h3 id="analysis">Analysis</h3>
+<p>Given a set \(A = \{a_1, a_2, \ldots, a_n\}\), the median search algorithm returns the $k$th smallest element of \(A\). We now analyze the runtime of this algorithm.</p>
+<h4 id="divide">Divide</h4>
+<p>In the <strong>divide</strong> step, the set is partitioned into \(\lceil n/5 \rceil\) groups of 5 elements each. This is done in linear time.</p>
+<h4 id="conquer">Conquer</h4>
+<p>Each group is sorted using insertion sort or some other algorithm. Even though the search itself may have a higher complexity, the sorting of the groups is \(\Theta(1)\) since the groups are of constant size. Collectively across all groups, the sorting is \(\Theta(n)\).</p>
+<h4 id="combine">Combine</h4>
+<p>The median of each group is found, introducing a recurrence of \(T(\lceil n/5 \rceil)\). Once each median is found, the median of medians is computed.</p>
+<h4 id="partition">Partition</h4>
+<p>As reasoned above, the median of medians is used as a pivot to partition the set into two groups. At least 30% of the elements are greater than the pivot. This leaves a search space of at most \(7n/10\). Partitioning is done in linear time.</p>
+<h4 id="select">Select</h4>
+<p>If the pivot is the $k$th smallest element, the algorithm terminates. Otherwise, the algorithm recursively searches the appropriate partition. Comparing the size of the partition to the size of the original set, the recurrence is \(T(7n/10)\).</p>
+<p>Pseudocode is available <a href="https://en.wikipedia.org/wiki/Median_of_medians" target="_blank" rel="noopener noreferrer">here</a>.</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
