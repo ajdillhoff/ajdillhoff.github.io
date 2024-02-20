@@ -24,6 +24,8 @@
 &lt;li&gt;&lt;a href=&#34;#what-is-it&#34;&gt;What is it?&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#naive-parallel-reduction&#34;&gt;Naive Parallel Reduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#kogge-stone-algorithm&#34;&gt;Kogge-Stone Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#brent-kung-algorithm&#34;&gt;Brent-Kung Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#adding-coarsening&#34;&gt;Adding Coarsening&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -56,7 +58,7 @@
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-18_18-31-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-19_18-08-45_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Visualization of parallel inclusive scan based on the Kogge-Stone algorithm (Source: NVIDIA DLI).&#34; &gt;
 
 
 
@@ -104,6 +106,162 @@
 &lt;h3 id=&#34;double-buffering&#34;&gt;Double Buffering&lt;/h3&gt;
 &lt;p&gt;The temporary variable and second call to &lt;code&gt;__syncthreads()&lt;/code&gt; are necessary since a thread may read from a location that another thread is writing to. If the input and output arrays were represented by two different areas of shared memory, this call could be removed. This approach is called &lt;strong&gt;double-buffering&lt;/strong&gt;.&lt;/p&gt;
 &lt;p&gt;It works as follows: the input array is read from global memory into shared memory. At each iteration the data read from the first array is used to write new values to the second array. Since the values used in that iteration are only read from the first array, the second array can be used as the input array for the next iteration. This cycle continues back and forth until the final result is written to the output array.&lt;/p&gt;
+&lt;h3 id=&#34;efficiency-analysis&#34;&gt;Efficiency Analysis&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Work efficiency&lt;/strong&gt; is a measure of how efficient a particular algorithm is compared to the minimum number of operations required. For inclusive scan, the minimum number of add operations required is \(n - 1\), yielding an efficiency of \(O(n)\). During each iteration of the Kogge-Stone algorithm, each thread iterates over a loop that is logarithmic in size. That is, it starts with a stride of 2, then 4, 8, \(\dots \frac{n}{2}\). This yields a complexity of \(O(n \log_2 n)\).&lt;/p&gt;
+&lt;p&gt;Due to the parallel nature of the algorithm, it still requires fewer steps than the sequential algorithm. The details muddy the water a bit as threads that stop execution early still expend resources from the device. In general, we can say that the parallel algorithm takes \(\frac{1}{m} n \log_2 n\) steps, where \(m\) is the number of execution units. If we have as many execution units as we have elements, then we only need \(\log_2 n\) steps.&lt;/p&gt;
+&lt;h2 id=&#34;brent-kung-algorithm&#34;&gt;Brent-Kung Algorithm&lt;/h2&gt;
+&lt;p&gt;Sharing intermediate results
+Distribute to different threads
+Reduction tree
+Sub-sums used to calculate some of the scan output values
+Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency.&lt;/p&gt;
+&lt;p&gt;Use reduction tree on the first \(n/2\) elements, then use the results to reverse the tree.&lt;/p&gt;
+&lt;p&gt;At the start of the reverse direction, the elements with index \(2^i - 1\), for \(i = 1, 2, \dots, \log_2 n\), already have the correct value.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-18_18-31-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Visualization of parallel inclusive scan based on the Brent-Kung algorithm (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Visualization of parallel inclusive scan based on the Brent-Kung algorithm (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above shows the state of the algorithm before the reverse direction begins. The second half is better seen as a table of values. The row labeled &lt;code&gt;Initial&lt;/code&gt; contains the state of the array after the first half of the algorithm is completed. For the values that already have their correct value, no update is needed. The two rows following &lt;code&gt;Initial&lt;/code&gt; show the state of the array after the first and second iterations of the reverse direction.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Initial&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;1&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;3&lt;/td&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;4&amp;hellip;5&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;7&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Iteration 1&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;5&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Iteration 2&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;2&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;4&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;0&amp;hellip;6&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;implementing-the-forward-half&#34;&gt;Implementing the Forward Half&lt;/h3&gt;
+&lt;p&gt;The relevant reduction tree phase of Brent-Kung is implemented in CUDA C++ below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;for (uint stride = 1; stride &amp;lt;= blockDim.x; stride *= 2) {
+    __syncthreads();
+    if ((threadIdx.x + 1) % (stride * 2) == 0) {
+        A[threadIdx.x] += A[threadIdx.x - stride];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;From the perspective of &lt;code&gt;threadIdx.x = 7&lt;/code&gt;, the first iteration would add the value from &lt;code&gt;threadIdx.x = 6&lt;/code&gt; to its own value. On the next iteration, the stride offset would add &lt;code&gt;threadIdx.x = 5&lt;/code&gt;. Thread 5 already has the sum from 4 and 5 before being added to 7, so 7 now has the sums from indices 4 through 7. On its last iteration, the value for stride is now 4, and 7 adds the value from 3 to its own value. This is the final result for the first half of the algorithm.&lt;/p&gt;
+&lt;p&gt;There is a lot of control divergence present in this code. Since fewer threads stay active as the loop goes on, it is better to organize the threads such that they are contiguous. We can do that with slightly more complicated indexing, so that contiguous threads use data from the active portions of the array.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;for (uint stride = 1; stride &amp;lt;= blockDim.x; stride *= 2) {
+    __syncthreads();
+    int index = (threadIdx.x + 1) * 2 * stride - 1;
+    if (index &amp;lt; blockDim.x) {
+        A[index] += A[index - stride];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Thread 0 maps to index, thread 1 maps to index 3, thread 2 to index 5, and so on. Only when the number of active threads drops below the warp size does control divergence become a problem.&lt;/p&gt;
+&lt;h3 id=&#34;implementing-the-reverse-half&#34;&gt;Implementing the Reverse Half&lt;/h3&gt;
+&lt;p&gt;The reverse half of the algorithm is implemented in CUDA C++ below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;for (uint stride = blockDim.x / 4; stride &amp;gt; 0; stride /= 2) {
+    __syncthreads();
+    int index = (threadIdx.x + 1) * 2 * stride - 1;
+    if (index + stride &amp;lt; blockDim.x) {
+        A[index + stride] += A[index];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Continuing the example from above, the first thread &lt;code&gt;threadIdx.x = 0&lt;/code&gt; maps to index 3. This will load the value from index 3 and add it to the value at index 5. At that point, the value at index 5 will be the sum of the values from indices 0 through 5.&lt;/p&gt;
+&lt;h3 id=&#34;efficiency-analysis&#34;&gt;Efficiency Analysis&lt;/h3&gt;
+&lt;p&gt;The reduction tree of the first half of the algorithm require \(n - 1\) operations. For \(n\) elements, the reverse half requires \((2 - 1) + (4 - 1) + \dots + (n/2 - 1)\) operations for a total of \(N - 1 - \log_2 n\). This yields a work efficiency of \(O(n)\). Even though the theoretical work efficiency is better than Kogge-Stone, doesn&amp;rsquo;t mean its performance will always be better in practice. The drop off in active threads for Brent-Kung is much more severe than Kogge-Stone. It also requires additional steps to perform the reverse half. In general, Kogge-Stone is a better choice when we have more execution units, owing to its better parallelism.&lt;/p&gt;
+&lt;p&gt;The full code is given below.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void Brent_Kung_scan_kernel(float *X, float *Y, uint N) {
+    __shared__ float A[SECTION_SIZE];
+    unsigned int i = 2 * blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i &amp;lt; N) {
+        A[threadIdx.x] = X[i];
+    }
+    if (i + blockDim.x &amp;lt; N) {
+        A[threadIdx.x + blockDim.x] = X[i + blockDim.x];
+    }
+
+    for (uint stride = 1; stride &amp;lt;= blockDim.x; stride *= 2) {
+        __syncthreads();
+        int index = (threadIdx.x + 1) * 2 * stride - 1;
+        if (index &amp;lt; blockDim.x) {
+            A[index] += A[index - stride];
+        }
+    }
+
+    for (uint stride = blockDim.x / 4; stride &amp;gt; 0; stride /= 2) {
+        __syncthreads();
+        int index = (threadIdx.x + 1) * 2 * stride - 1;
+        if (index + stride &amp;lt; blockDim.x) {
+            A[index + stride] += A[index];
+        }
+    }
+    __syncthreads();
+
+    if (i &amp;lt; N) {
+        Y[i] = A[threadIdx.x];
+    }
+    if (i + blockDim.x &amp;lt; N) {
+        Y[i + blockDim.x] = A[threadIdx.x + blockDim.x];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;adding-coarsening&#34;&gt;Adding Coarsening&lt;/h2&gt;
+&lt;p&gt;Similar to other problems such as tiled matrix multiplication, if the hardware does not meet the capacity ti parallelize the entire problem, the price for parallelization is wasted. In such cases, we can coarsen the problem so that the available resources are fully utilized. Each thread will execute a &lt;em&gt;phase&lt;/em&gt; of sequential scan, which is more work efficiency than other of the solutions presented above.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Visualization of coarsening scan&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Such a solution starts off by performing a sequential scan. The threads can also collaborate in the beginning to load data into shared memory. In the next phase, the threads execute a parallel scan via Kogge-Stone or Brent-Kung. Since each thread has already performed a sequential scan. This phase starts off with the last element assigned to each thread. In the last phase, each thread adds its last value to the first \(n-1\) elements of the next section, where \(n\) is the number of elements assigned to each thread.&lt;/p&gt;
 </description>
     </item>
     
