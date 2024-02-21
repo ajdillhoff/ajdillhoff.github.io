@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>machine learning on Alex Dillhoff</title>
+    <title>Machine Learning on Alex Dillhoff</title>
     <link>https://ajdillhoff.github.io/tags/machine-learning/</link>
-    <description>Recent content in machine learning on Alex Dillhoff</description>
+    <description>Recent content in Machine Learning on Alex Dillhoff</description>
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
@@ -1846,6 +1846,406 @@ Starting with \(\hat{\mu}_{jk}\), it can be estimated by dividing the expected v
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;RABINER, LAWRENCE R. 1989. “A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition.” &lt;i&gt;Proceedings of the Ieee&lt;/i&gt; 77 (2): 30.&lt;/div&gt;
 &lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>RANdom SAmple Consensus</title>
+      <link>https://ajdillhoff.github.io/notes/random_sample_consensus/</link>
+      <pubDate>Tue, 15 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/random_sample_consensus/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#finding-the-best-fit-model&#34;&gt;Finding the Best Fit Model&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Unless our data is perfect, we will not be able to find parameters that fit the data in the presence of outliers.
+Consider fitting the data in the figure below using a least squares method.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-20_19-46-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Points sample along a line with many outliers around it. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Points sample along a line with many outliers around it. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If we were to fit a naive least squares model, the outliers would surely produce parameters for a line that does not fit the most amount of data possible.&lt;/p&gt;
+&lt;p&gt;Consider the figures below. In the first one, a least squares model is fit to points generated from a line.
+With the addition of just a single outlier, the model no longer fits the line.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-20_19-46-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Least squares can easily fit a line with great accuracy.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Least squares can easily fit a line with great accuracy.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-20_19-46-52_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;A single outlier leads to a bad fit for linear regression.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A single outlier leads to a bad fit for linear regression.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Ideally, we want a model that is robust to outliers.
+That is, the model should be fit such that it matches the largest number of samples, or &lt;strong&gt;inliers&lt;/strong&gt;.
+One such approach to this problem is &lt;strong&gt;RANdom SAmple Consensus (RANSAC)&lt;/strong&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-20_19-47-10_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;RANSAC fit to most inliers while ignoring the outliers. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;RANSAC fit to most inliers while ignoring the outliers. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The general process is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Randomly select source samples and their matching targets.&lt;/li&gt;
+&lt;li&gt;Fit a model to the data such that transforming the input by the model parameters yields a close approximation to the targets.&lt;/li&gt;
+&lt;li&gt;Measure the error of how well ALL data fits and select the number of inliers with error less than \(t\).&lt;/li&gt;
+&lt;li&gt;If the error is lower than the previous best error, fit a new model to these inliers.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-20_19-47-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;RANSAC fitting random samples and counting the number of inliers. Source: Wikipedia&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;RANSAC fitting random samples and counting the number of inliers. Source: Wikipedia
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The algorithm can be found on the &lt;a href=&#34;https://en.wikipedia.org/wiki/Random_sample_consensus&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Wikipedia page&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;finding-the-best-fit-model&#34;&gt;Finding the Best Fit Model&lt;/h2&gt;
+&lt;p&gt;When it comes to finding the parameters of a transformation matrix that converts points in one image to another, how do we solve for that matrix? We are looking for some \(A\) such that&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+A\mathbf{x} = \mathbf{\hat{x}}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;In a perfect world, \(\mathbf{\hat{x}}\) will match the target point \(\mathbf{y}\). In other words,&lt;/p&gt;
+&lt;p&gt;\(\|\mathbf{\hat{x}} - \mathbf{y}\|_{2} = 0\).&lt;/p&gt;
+&lt;p&gt;For an affine transformation, we would have some transformation matrix&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+A =
+\begin{bmatrix}
+a_{11} &amp;amp; a_{12} &amp;amp; a_{13}\\
+a_{21} &amp;amp; a_{22} &amp;amp; a_{23}
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Then we compute each component of \(A\mathbf{x}\) as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\hat{x}_1 &amp;amp;= a_{11} * x_1 + a_{12} * x_2 + a_{13} * 1\\
+\hat{x}_2 &amp;amp;= a_{21} * x_1 + a_{22} * x_2 + a_{23} * 1\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can fit this using a least squares approach by the following construction.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+x_1^{(1)} &amp;amp; x_2^{(1)} &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; x_1^{(1)} &amp;amp; x_2^{(1)} &amp;amp; 1\\
+&amp;amp;&amp;amp; \vdots\\
+x_1^{(n)} &amp;amp; x_2^{(n)} &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; x_1^{(n)} &amp;amp; x_2^{(n)} &amp;amp; 1\\
+\end{bmatrix}
+\begin{bmatrix}
+a_{11}\\
+a_{12}\\
+a_{13}\\
+a_{21}\\
+a_{22}\\
+a_{23}\\
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}_1^{(1)}\\
+\hat{x}_2^{(1)}\\
+\vdots\\
+\hat{x}_1^{(n)}\\
+\hat{x}_2^{(n)}\\
+\end{bmatrix}
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;We can solve this analytically! Recall the &lt;strong&gt;normal equations&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;\[
+A^T A \mathbf{x} = A^T \mathbf{b}.
+\]&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s test this on a couple of images&amp;hellip;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_19-20-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Two images taken with matching features shared between them.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Two images taken with matching features shared between them.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;First, we use some feature detector such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&#34;&gt;SIFT&lt;/a&gt; to find keypoints in each image.
+Then, we can take a brute force approach to determine which keypoints match between them.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_19-24-24_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;We&amp;#39;ve got a lot of potential matches here.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;We&amp;rsquo;ve got a lot of potential matches here.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;After running RANSAC, we end up with a model that fits the following inlier points.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_19-25-31_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Many of the outliers were removed and we are left with the following matches.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Many of the outliers were removed and we are left with the following matches.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;We can use the found transformation matrix to warp our source image to fit our destination image as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-15_19-31-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Images stitched together... not perfect!&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Images stitched together&amp;hellip; not perfect!
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;finding-a-better-transformation&#34;&gt;Finding a better transformation&lt;/h3&gt;
+&lt;p&gt;The transformation matrix was an affine transformation matrix.
+What we really want is a projective transformation!
+We can extend our approach to finding an affine matrix from earlier by remembering that projective transformations are completed following a perspective divide (usually denoted by \(w\)).&lt;/p&gt;
+&lt;p&gt;Instead of a constant 1 in the third position of the affine vector, we have a value \(w\):&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+a_{11} &amp;amp; a_{12} &amp;amp; a_{13}\\
+a_{21} &amp;amp; a_{22} &amp;amp; a_{23}\\
+a_{31} &amp;amp; a_{32} &amp;amp; a_{33}\\
+\end{bmatrix}
+\begin{bmatrix}
+x\\
+y\\
+w
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}\\
+\hat{y}\\
+\hat{w}
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Dividing by \(\hat{w}\) completes the perspective projection:&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+\frac{\hat{x}}{\hat{w}}\\
+\frac{\hat{y}}{\hat{w}}\\
+1
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;Again, we can write out the individual equation for each component as&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\hat{x} &amp;amp;= (a_{11} * x + a_{12} * y + a_{13} * w) \div (a_{31} * x + a_{32} * y + a_{33} * w)\\
+\hat{y} &amp;amp;= (a_{21} * x + a_{22} * y + a_{23} * w) \div (a_{31} * x + a_{32} * y + a_{33} * w)\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We may assume that \(w = 1\) for the original points (before transformation).
+Additionally, \(a_{33}\) is typically set to 1 when constructing a transformation matrix.
+These are safe enough assumptions to make considering that we will make many attempts at finding the best fitting parameters.&lt;/p&gt;
+&lt;p&gt;Solving for \(\hat{x}\) and \(\hat{y}\) in terms of a linear combination of elements yields&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\hat{x} &amp;amp;= a_{11} * x + a_{12} * y + a_{13} - \hat{x} * a_{31} * x - \hat{x} * a_{32} * y\\
+\hat{y} &amp;amp;= a_{21} * x + a_{22} * y + a_{23} - \hat{y} * a_{31} * x - \hat{y} * a_{32} * y\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;We can fit this using a least squares approach by the following construction.&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+x_1^{(1)} &amp;amp; x_2^{(1)} &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; -x_1^{(1)}\hat{x}_1^{(1)} &amp;amp; -x_2^{(1)}\hat{x}_1^{(1)}\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; x_1^{(1)} &amp;amp; x_2^{(1)} &amp;amp; 1 &amp;amp; -x_1^{(1)}\hat{x}_2^{(1)} &amp;amp; -x_2^{(1)}\hat{x}_2^{(1)}\\
+&amp;amp;&amp;amp; \vdots\\
+x_1^{(n)} &amp;amp; x_2^{(n)} &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; -x_1^{(n)}\hat{x}_1^{(n)} &amp;amp; -x_2^{(n)}\hat{x}_1^{(n)}\\
+0 &amp;amp; 0 &amp;amp; 0 &amp;amp; x_1^{(n)} &amp;amp; x_2^{(n)} &amp;amp; 1 &amp;amp; -x_1^{(n)}\hat{x}_2^{(n)} &amp;amp; -x_2^{(n)}\hat{x}_2^{(n)}
+\end{bmatrix}
+\begin{bmatrix}
+a_{11}\\
+a_{12}\\
+a_{13}\\
+a_{21}\\
+a_{22}\\
+a_{23}\\
+a_{31}\\
+a_{32}
+\end{bmatrix}=
+\begin{bmatrix}
+\hat{x}_1^{(1)}\\
+\hat{x}_2^{(1)}\\
+\vdots\\
+\hat{x}_1^{(n)}\\
+\hat{x}_2^{(n)}
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;We can use the normal equations as before to solve for this system.&lt;/p&gt;
+&lt;p&gt;The figure below shows the final result of image stitching using a perspective projection instead of an affine matrix.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-16_17-59-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;Stitching using a perspective projection.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Stitching using a perspective projection.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 </description>
     </item>
     
