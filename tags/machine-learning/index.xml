@@ -1206,7 +1206,7 @@ If yes, branch to the left; if no, branch to the right.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-03-18_13-03-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-22_11-11-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy).&#34; &gt;
 
 
 
@@ -1226,7 +1226,7 @@ If yes, branch to the left; if no, branch to the right.&lt;/p&gt;
 &lt;p&gt;\[
 f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
 \]&lt;/p&gt;
-&lt;p&gt;where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value.&lt;/p&gt;
+&lt;p&gt;where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value. Note that this is &lt;strong&gt;not&lt;/strong&gt; a differentiable function due to the indicator function.&lt;/p&gt;
 &lt;h2 id=&#34;example-iris-dataset&#34;&gt;Example: Iris Dataset&lt;/h2&gt;
 &lt;p&gt;To see this on real data, consider the Iris flower dataset.
 For example, we will look at a decision tree model that classifies each flower into either &lt;strong&gt;setosa&lt;/strong&gt;, &lt;strong&gt;versicolor&lt;/strong&gt;, or &lt;strong&gt;virginica&lt;/strong&gt;.&lt;/p&gt;
@@ -1283,11 +1283,15 @@ For a regression task, the cost function is typically defined as&lt;/p&gt;
 &lt;p&gt;Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.&lt;/p&gt;
 &lt;p&gt;As their alternative name implies, decision trees can also be used for classification.
 The splits are still based on features and threshold values at each branch.
-When a split is considered, a class-conditional probability is estimated for that data.
-Given data satisfying \(X_j &amp;lt; t\), the class-conditional probability is&lt;/p&gt;
+When a split is considered, a class-conditional probability is estimated for that data.&lt;/p&gt;
+&lt;h3 id=&#34;splitting-the-data&#34;&gt;Splitting the Data&lt;/h3&gt;
+&lt;p&gt;Given a set of data that makes it to node \(i\), denoted \(\mathcal{D}_i\), a fitting procedure must select the feature and threshold value that minimizes the cost. If the feature is continuous, the range of search values is selected by sorting a list of unique values from the subset of data. For each unique value, the cost is computed by splitting the data into two groups based on the threshold value. The threshold value that minimizes the cost is selected.&lt;/p&gt;
+&lt;p&gt;In the case of categorical data, we would intuitively split the data into a set of data that contains the category and a set that does not. The cost is then computed for each category. The category that minimizes the cost is selected.&lt;/p&gt;
+&lt;p&gt;Given data satisfying \(X_j &amp;lt; t\), the class-conditional probability is&lt;/p&gt;
 &lt;p&gt;\[
 \hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
 \]&lt;/p&gt;
+&lt;h3 id=&#34;error-functions&#34;&gt;Error Functions&lt;/h3&gt;
 &lt;p&gt;The common error functions used for classification are &lt;strong&gt;misclassification rate&lt;/strong&gt;, &lt;strong&gt;entropy&lt;/strong&gt;, and &lt;strong&gt;Gini index&lt;/strong&gt;.
 Misclassification rate is computed by summing the number of misclassifications:&lt;/p&gt;
 &lt;p&gt;\[

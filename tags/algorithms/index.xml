@@ -7,10 +7,88 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 04 Feb 2024 17:49:00 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 21 Feb 2024 14:58:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/algorithms/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Heapsort</title>
+      <link>https://ajdillhoff.github.io/notes/heapsort/</link>
+      <pubDate>Wed, 21 Feb 2024 14:58:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/heapsort/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#maintaining-the-heap-property&#34;&gt;Maintaining the Heap Property&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;ul&gt;
+&lt;li&gt;Running time is \(O(n \lg n)\).&lt;/li&gt;
+&lt;li&gt;Sorts in place, only a constant number of elements needed in addition to the input.&lt;/li&gt;
+&lt;li&gt;Manages data with a &lt;strong&gt;heap&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A &lt;strong&gt;binary heap&lt;/strong&gt; can be represented as a binary tree, but is stored as an array. The root is the first element of the array. The left subnode for the element at index \(i\) is located at \(2i\) and the right subnode is located at \(2i + 1\). &lt;strong&gt;This assumes a 1-based indexing&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Using 0-based indexing, we can use \(2i + 1\) for the left and \(2i + 2\) for the right. The parent could be accessed via \(\lfloor \frac{i-1}{2} \rfloor\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-21_15-22-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A binary tree as a heap with its array representation (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A binary tree as a heap with its array representation (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Heaps come in two flavors: &lt;strong&gt;max-heaps&lt;/strong&gt; and &lt;strong&gt;min-heaps&lt;/strong&gt;. They can be identified by satisfying a &lt;strong&gt;heap property&lt;/strong&gt;.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;max-heap property&lt;/strong&gt;: \(A[parent(i)] \geq A[i]\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;min-heap property&lt;/strong&gt;: \(A[parent(i)] \leq A[i]\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;These properties imply that the root is the largest element in a max-heap and the smallest element in a min-heap.&lt;/p&gt;
+&lt;p&gt;When it comes to heapsort, a max-heap is used. Min-heaps are used in priority queues. These notes will cover both.&lt;/p&gt;
+&lt;h2 id=&#34;maintaining-the-heap-property&#34;&gt;Maintaining the Heap Property&lt;/h2&gt;
+&lt;p&gt;When using heapsort, the heap should always satisfy the &lt;strong&gt;max-heap&lt;/strong&gt; property. This relies on a procedure called &lt;code&gt;max_heapify&lt;/code&gt;. This function assumes that the root element may violate the max-heap property, but the subtrees rooted by its subnodes are valid max-heaps. The function then swaps nodes down the tree until the misplaced element is in the correct position.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heapify&lt;/span&gt;(A, i, heap_size):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    l &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; left(i)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; right(i)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; l &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; heap_size &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[l] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; A[i]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; l
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; r &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; heap_size &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[r] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; A[largest]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; r
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; largest &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; i:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[i], A[largest] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[largest], A[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        max_heapify(A, largest, heap_size)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis-of-max-heapify&#34;&gt;Analysis of Max Heapify&lt;/h3&gt;
+&lt;p&gt;Given that &lt;code&gt;max_heapify&lt;/code&gt; is a recursive function, we can analyze it with a recurrence. The driving function in this case would be the fix up that happens between the current node and its two subnodes, which is a constant time operation. The recurrence is based on how many elements are in the subheap rooted at the current node.&lt;/p&gt;
+&lt;p&gt;In the worst case of a binary tree, the last level of the tree is half full. That means that the left subtree has height \(h + 1\) compared to the right subtree&amp;rsquo;s height of \(h\). For a tree of size \(n\), the left subtree has \(2^{h+2}-1\) nodes and the right subtree has \(2^{h+1}-1\) nodes. This is based on a geometric series.&lt;/p&gt;
+&lt;p&gt;We now have that the number of nodes in the tree is equal to \(1 + (2^{h+2}-1) + (2^{h+1}-1)\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+n &amp;amp;= 1 + 2^{h+2} - 1 + 2^{h+1} - 1 \\
+n &amp;amp;= 2^{h+2} + 2^{h+1} - 1 \\
+n &amp;amp;= 2^{h+1}(2 + 1) - 1 \\
+n &amp;amp;= 3 \cdot 2^{h+1} - 1
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This implies that \(2^{h+1} = \frac{n+1}{3}\). That means that, in the worst case, the left subtree would have \(2^{h+2} - 1 = \frac{2(n+1)}{3} - 1\) nodes which is bounded by \(\frac{2n}{3}\). Thus, the recurrence for the worst case of &lt;code&gt;max_heapify&lt;/code&gt; is \(T(n) = T(\frac{2n}{3}) + O(1)\).&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Master Theorem</title>

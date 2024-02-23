@@ -912,7 +912,7 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
 <p>This ratio increases with the size of the filter.</p>
 <h2 id="caching-the-halo-cells">Caching the Halo Cells</h2>
 <p>In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as <em>halo cells</em>.</p>
-<p>This implementation is going to take advantage of the caching behavior in the chip itself. Values that have been recently used are more likely to already be in L2 cache. The full kernel is given below.</p>
+<p>This implementation is going to take advantage of the caching behavior in the chip itself. <strong>Values that have been recently used are more likely to already be in L2 cache.</strong> This is a safe assumption since the neighboring blocks will have loaded these values into shared memory. This means that the input and output tile sizes can be the same; there is no need to waste any threads in the block. The full kernel is given below.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2DTiledCachedConstKernel(float *input, float *output,
                                              int width, int height) {
     __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];

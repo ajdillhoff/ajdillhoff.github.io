@@ -143,7 +143,7 @@
   
   <meta property="article:published_time" content="2022-03-18T00:00:00-05:00">
   
-  <meta property="article:modified_time" content="2022-03-18T00:00:00-05:00">
+  <meta property="article:modified_time" content="2024-02-22T00:00:00&#43;00:00">
   
 
   
@@ -381,7 +381,7 @@
 
 
 <meta content="2022-03-18 00:00:00 -0500 CDT" itemprop="datePublished">
-<meta content="2022-03-18 00:00:00 -0500 CDT" itemprop="dateModified">
+<meta content="2024-02-22 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -405,8 +405,10 @@
     
     
       
+          Last updated on
+      
     
-    <time>Mar 18, 2022</time>
+    <time>Feb 22, 2024</time>
   </span>
   
 
@@ -415,7 +417,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    6 min read
+    7 min read
   </span>
   
 
@@ -572,7 +574,7 @@ If yes, branch to the left; if no, branch to the right.</p>
 
 <figure>
 
-<img src="Introduction/2022-03-18_13-03-12_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)." >
+<img src="/ox-hugo/2024-02-22_11-11-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)." >
 
 
 
@@ -592,7 +594,7 @@ If yes, branch to the left; if no, branch to the right.</p>
 <p>\[
 f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
 \]</p>
-<p>where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value.</p>
+<p>where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value. Note that this is <strong>not</strong> a differentiable function due to the indicator function.</p>
 <h2 id="example-iris-dataset">Example: Iris Dataset</h2>
 <p>To see this on real data, consider the Iris flower dataset.
 For example, we will look at a decision tree model that classifies each flower into either <strong>setosa</strong>, <strong>versicolor</strong>, or <strong>virginica</strong>.</p>
@@ -649,11 +651,15 @@ For a regression task, the cost function is typically defined as</p>
 <p>Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.</p>
 <p>As their alternative name implies, decision trees can also be used for classification.
 The splits are still based on features and threshold values at each branch.
-When a split is considered, a class-conditional probability is estimated for that data.
-Given data satisfying \(X_j &lt; t\), the class-conditional probability is</p>
+When a split is considered, a class-conditional probability is estimated for that data.</p>
+<h3 id="splitting-the-data">Splitting the Data</h3>
+<p>Given a set of data that makes it to node \(i\), denoted \(\mathcal{D}_i\), a fitting procedure must select the feature and threshold value that minimizes the cost. If the feature is continuous, the range of search values is selected by sorting a list of unique values from the subset of data. For each unique value, the cost is computed by splitting the data into two groups based on the threshold value. The threshold value that minimizes the cost is selected.</p>
+<p>In the case of categorical data, we would intuitively split the data into a set of data that contains the category and a set that does not. The cost is then computed for each category. The category that minimizes the cost is selected.</p>
+<p>Given data satisfying \(X_j &lt; t\), the class-conditional probability is</p>
 <p>\[
 \hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
 \]</p>
+<h3 id="error-functions">Error Functions</h3>
 <p>The common error functions used for classification are <strong>misclassification rate</strong>, <strong>entropy</strong>, and <strong>Gini index</strong>.
 Misclassification rate is computed by summing the number of misclassifications:</p>
 <p>\[

@@ -761,7 +761,7 @@ It additionally was adapted to other challenges and won first place on ImageNet 
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-03-08_21-16-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: &amp;lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&amp;gt;&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-22_18-19-53_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: &amp;lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&amp;gt;&#34; &gt;
 
 
 
@@ -1338,6 +1338,7 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#review-of-szeliski&#34;&gt;Review of Szeliski&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#motion-features&#34;&gt;Motion Features&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/a&gt;&lt;/li&gt;
@@ -1345,11 +1346,14 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;h2 id=&#34;review-of-szeliski&#34;&gt;Review of Szeliski&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Estimating motion&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Error metric&lt;/li&gt;
+&lt;li&gt;Search function&lt;/li&gt;
+&lt;/ol&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;Optical flow refers to the apparent motion in a 2D image.
-A motion field refers to the true motion of objects in 3D.
-The idea of optical flow features is a simple concept.
-If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
+&lt;p&gt;Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a &lt;strong&gt;motion field&lt;/strong&gt;, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;TODO&lt;/strong&gt; Frame differencing figure&lt;/p&gt;
 &lt;p&gt;Consider a sphere with Lambertian reflectance.&lt;/p&gt;
 &lt;p&gt;If the sphere is rotated:&lt;/p&gt;
@@ -1425,7 +1429,7 @@ The points in the image appear to translate towards the right edge of the frame.
 Points that are close to the camera appear to move faster than those that are farther away.
 This can be used to estimate the apparent depth between objects in a scene.&lt;/p&gt;
 &lt;h2 id=&#34;computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/h2&gt;
-&lt;p&gt;A popular assumption for optical flow, as discussed in &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;, is that of brightness constancy.
+&lt;p&gt;A popular assumption for optical flow, as discussed in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;), is that of brightness constancy.
 That is, a local feature has the same image intensity in one frame as it does in the subsequent frame.&lt;/p&gt;
 &lt;p&gt;\[
 I(x + u, y + v, t + 1) = I(x, y, t)
@@ -1466,11 +1470,11 @@ In more recent works, larger neighborhood grids (\(5 \times 5\)) are used.
 Then, we have 25 equations per pixel.
 Since this is a system of linear equations, it could be computed directly using the normal equations.&lt;/p&gt;
 &lt;p&gt;However, Horn and Schunck did not have very fast computers in 1981.
-So, they introduced an iterative solution &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;.&lt;/p&gt;
+So, they introduced an iterative solution (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;assumptions-of-small-motion&#34;&gt;Assumptions of Small Motion&lt;/h2&gt;
 &lt;p&gt;One of the core assumptions in early formulations of optical flow is that motion is very small (&amp;lt;1 pixel).
 In reality, some objects may move over 100 pixels within a single frame.
-A simple solution to this problem was proposed by Bergen et al. in 1992 &amp;lt;&amp;amp;bergenHierarchicalModelbasedMotion&amp;gt;.
+A simple solution to this problem was proposed by Bergen et al. in 1992 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Bergen et al., n.d.&lt;/a&gt;).
 By creating an image pyramid over several resolutions, the assumption of small motion at each scale is still reasonable.&lt;/p&gt;
 
 
@@ -1500,6 +1504,11 @@ By creating an image pyramid over several resolutions, the assumption of small m
 Next, they are used to warp the image to match the one at \(t-1\).
 The warped image and true image at \(t-1\) are compared to refine the parameters.
 The refined parameters are then sent to the next scale layer.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Bergen, James R, P Anandan, Keith J Hanna, and Rajesh Hingorani. n.d. “Hierarchical Model-Based Motion Estimation,” 16.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Horn, Berthold K. P., and Brian G. Schunck. 1980. “Determining Optical Flow.” &lt;a href=&#34;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&#34;&gt;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

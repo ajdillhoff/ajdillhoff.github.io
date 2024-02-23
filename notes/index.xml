@@ -7,10 +7,88 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Wed, 14 Feb 2024 20:09:00 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 21 Feb 2024 14:58:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Heapsort</title>
+      <link>https://ajdillhoff.github.io/notes/heapsort/</link>
+      <pubDate>Wed, 21 Feb 2024 14:58:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/heapsort/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#maintaining-the-heap-property&#34;&gt;Maintaining the Heap Property&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;ul&gt;
+&lt;li&gt;Running time is \(O(n \lg n)\).&lt;/li&gt;
+&lt;li&gt;Sorts in place, only a constant number of elements needed in addition to the input.&lt;/li&gt;
+&lt;li&gt;Manages data with a &lt;strong&gt;heap&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A &lt;strong&gt;binary heap&lt;/strong&gt; can be represented as a binary tree, but is stored as an array. The root is the first element of the array. The left subnode for the element at index \(i\) is located at \(2i\) and the right subnode is located at \(2i + 1\). &lt;strong&gt;This assumes a 1-based indexing&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Using 0-based indexing, we can use \(2i + 1\) for the left and \(2i + 2\) for the right. The parent could be accessed via \(\lfloor \frac{i-1}{2} \rfloor\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-21_15-22-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A binary tree as a heap with its array representation (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A binary tree as a heap with its array representation (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Heaps come in two flavors: &lt;strong&gt;max-heaps&lt;/strong&gt; and &lt;strong&gt;min-heaps&lt;/strong&gt;. They can be identified by satisfying a &lt;strong&gt;heap property&lt;/strong&gt;.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;max-heap property&lt;/strong&gt;: \(A[parent(i)] \geq A[i]\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;min-heap property&lt;/strong&gt;: \(A[parent(i)] \leq A[i]\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;These properties imply that the root is the largest element in a max-heap and the smallest element in a min-heap.&lt;/p&gt;
+&lt;p&gt;When it comes to heapsort, a max-heap is used. Min-heaps are used in priority queues. These notes will cover both.&lt;/p&gt;
+&lt;h2 id=&#34;maintaining-the-heap-property&#34;&gt;Maintaining the Heap Property&lt;/h2&gt;
+&lt;p&gt;When using heapsort, the heap should always satisfy the &lt;strong&gt;max-heap&lt;/strong&gt; property. This relies on a procedure called &lt;code&gt;max_heapify&lt;/code&gt;. This function assumes that the root element may violate the max-heap property, but the subtrees rooted by its subnodes are valid max-heaps. The function then swaps nodes down the tree until the misplaced element is in the correct position.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heapify&lt;/span&gt;(A, i, heap_size):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    l &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; left(i)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; right(i)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; l &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; heap_size &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[l] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; A[i]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; l
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; r &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; heap_size &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[r] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; A[largest]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        largest &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; r
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; largest &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; i:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[i], A[largest] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[largest], A[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        max_heapify(A, largest, heap_size)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis-of-max-heapify&#34;&gt;Analysis of Max Heapify&lt;/h3&gt;
+&lt;p&gt;Given that &lt;code&gt;max_heapify&lt;/code&gt; is a recursive function, we can analyze it with a recurrence. The driving function in this case would be the fix up that happens between the current node and its two subnodes, which is a constant time operation. The recurrence is based on how many elements are in the subheap rooted at the current node.&lt;/p&gt;
+&lt;p&gt;In the worst case of a binary tree, the last level of the tree is half full. That means that the left subtree has height \(h + 1\) compared to the right subtree&amp;rsquo;s height of \(h\). For a tree of size \(n\), the left subtree has \(2^{h+2}-1\) nodes and the right subtree has \(2^{h+1}-1\) nodes. This is based on a geometric series.&lt;/p&gt;
+&lt;p&gt;We now have that the number of nodes in the tree is equal to \(1 + (2^{h+2}-1) + (2^{h+1}-1)\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+n &amp;amp;= 1 + 2^{h+2} - 1 + 2^{h+1} - 1 \\
+n &amp;amp;= 2^{h+2} + 2^{h+1} - 1 \\
+n &amp;amp;= 2^{h+1}(2 + 1) - 1 \\
+n &amp;amp;= 3 \cdot 2^{h+1} - 1
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This implies that \(2^{h+1} = \frac{n+1}{3}\). That means that, in the worst case, the left subtree would have \(2^{h+2} - 1 = \frac{2(n+1)}{3} - 1\) nodes which is bounded by \(\frac{2n}{3}\). Thus, the recurrence for the worst case of &lt;code&gt;max_heapify&lt;/code&gt; is \(T(n) = T(\frac{2n}{3}) + O(1)\).&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Parallel Scan</title>
@@ -1748,7 +1826,7 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
 &lt;p&gt;This ratio increases with the size of the filter.&lt;/p&gt;
 &lt;h2 id=&#34;caching-the-halo-cells&#34;&gt;Caching the Halo Cells&lt;/h2&gt;
 &lt;p&gt;In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as &lt;em&gt;halo cells&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;This implementation is going to take advantage of the caching behavior in the chip itself. Values that have been recently used are more likely to already be in L2 cache. The full kernel is given below.&lt;/p&gt;
+&lt;p&gt;This implementation is going to take advantage of the caching behavior in the chip itself. &lt;strong&gt;Values that have been recently used are more likely to already be in L2 cache.&lt;/strong&gt; This is a safe assumption since the neighboring blocks will have loaded these values into shared memory. This means that the input and output tile sizes can be the same; there is no need to waste any threads in the block. The full kernel is given below.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void conv2DTiledCachedConstKernel(float *input, float *output,
                                              int width, int height) {
     __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
@@ -13822,7 +13900,7 @@ If yes, branch to the left; if no, branch to the right.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-03-18_13-03-12_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-22_11-11-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy).&#34; &gt;
 
 
 
@@ -13842,7 +13920,7 @@ If yes, branch to the left; if no, branch to the right.&lt;/p&gt;
 &lt;p&gt;\[
 f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
 \]&lt;/p&gt;
-&lt;p&gt;where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value.&lt;/p&gt;
+&lt;p&gt;where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value. Note that this is &lt;strong&gt;not&lt;/strong&gt; a differentiable function due to the indicator function.&lt;/p&gt;
 &lt;h2 id=&#34;example-iris-dataset&#34;&gt;Example: Iris Dataset&lt;/h2&gt;
 &lt;p&gt;To see this on real data, consider the Iris flower dataset.
 For example, we will look at a decision tree model that classifies each flower into either &lt;strong&gt;setosa&lt;/strong&gt;, &lt;strong&gt;versicolor&lt;/strong&gt;, or &lt;strong&gt;virginica&lt;/strong&gt;.&lt;/p&gt;
@@ -13899,11 +13977,15 @@ For a regression task, the cost function is typically defined as&lt;/p&gt;
 &lt;p&gt;Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.&lt;/p&gt;
 &lt;p&gt;As their alternative name implies, decision trees can also be used for classification.
 The splits are still based on features and threshold values at each branch.
-When a split is considered, a class-conditional probability is estimated for that data.
-Given data satisfying \(X_j &amp;lt; t\), the class-conditional probability is&lt;/p&gt;
+When a split is considered, a class-conditional probability is estimated for that data.&lt;/p&gt;
+&lt;h3 id=&#34;splitting-the-data&#34;&gt;Splitting the Data&lt;/h3&gt;
+&lt;p&gt;Given a set of data that makes it to node \(i\), denoted \(\mathcal{D}_i\), a fitting procedure must select the feature and threshold value that minimizes the cost. If the feature is continuous, the range of search values is selected by sorting a list of unique values from the subset of data. For each unique value, the cost is computed by splitting the data into two groups based on the threshold value. The threshold value that minimizes the cost is selected.&lt;/p&gt;
+&lt;p&gt;In the case of categorical data, we would intuitively split the data into a set of data that contains the category and a set that does not. The cost is then computed for each category. The category that minimizes the cost is selected.&lt;/p&gt;
+&lt;p&gt;Given data satisfying \(X_j &amp;lt; t\), the class-conditional probability is&lt;/p&gt;
 &lt;p&gt;\[
 \hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
 \]&lt;/p&gt;
+&lt;h3 id=&#34;error-functions&#34;&gt;Error Functions&lt;/h3&gt;
 &lt;p&gt;The common error functions used for classification are &lt;strong&gt;misclassification rate&lt;/strong&gt;, &lt;strong&gt;entropy&lt;/strong&gt;, and &lt;strong&gt;Gini index&lt;/strong&gt;.
 Misclassification rate is computed by summing the number of misclassifications:&lt;/p&gt;
 &lt;p&gt;\[
@@ -14059,7 +14141,7 @@ that result in the smallest increase in error.&lt;/p&gt;
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-03-08_21-16-34_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: &amp;lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&amp;gt;&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-22_18-19-53_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: &amp;lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&amp;gt;&#34; &gt;
 
 
 
@@ -14636,6 +14718,7 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#review-of-szeliski&#34;&gt;Review of Szeliski&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#motion-features&#34;&gt;Motion Features&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/a&gt;&lt;/li&gt;
@@ -14643,11 +14726,14 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
+&lt;h2 id=&#34;review-of-szeliski&#34;&gt;Review of Szeliski&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Estimating motion&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Error metric&lt;/li&gt;
+&lt;li&gt;Search function&lt;/li&gt;
+&lt;/ol&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;Optical flow refers to the apparent motion in a 2D image.
-A motion field refers to the true motion of objects in 3D.
-The idea of optical flow features is a simple concept.
-If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
+&lt;p&gt;Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a &lt;strong&gt;motion field&lt;/strong&gt;, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;TODO&lt;/strong&gt; Frame differencing figure&lt;/p&gt;
 &lt;p&gt;Consider a sphere with Lambertian reflectance.&lt;/p&gt;
 &lt;p&gt;If the sphere is rotated:&lt;/p&gt;
@@ -14723,7 +14809,7 @@ The points in the image appear to translate towards the right edge of the frame.
 Points that are close to the camera appear to move faster than those that are farther away.
 This can be used to estimate the apparent depth between objects in a scene.&lt;/p&gt;
 &lt;h2 id=&#34;computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/h2&gt;
-&lt;p&gt;A popular assumption for optical flow, as discussed in &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;, is that of brightness constancy.
+&lt;p&gt;A popular assumption for optical flow, as discussed in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;), is that of brightness constancy.
 That is, a local feature has the same image intensity in one frame as it does in the subsequent frame.&lt;/p&gt;
 &lt;p&gt;\[
 I(x + u, y + v, t + 1) = I(x, y, t)
@@ -14764,11 +14850,11 @@ In more recent works, larger neighborhood grids (\(5 \times 5\)) are used.
 Then, we have 25 equations per pixel.
 Since this is a system of linear equations, it could be computed directly using the normal equations.&lt;/p&gt;
 &lt;p&gt;However, Horn and Schunck did not have very fast computers in 1981.
-So, they introduced an iterative solution &amp;lt;&amp;amp;hornDeterminingOpticalFlow1980&amp;gt;.&lt;/p&gt;
+So, they introduced an iterative solution (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;assumptions-of-small-motion&#34;&gt;Assumptions of Small Motion&lt;/h2&gt;
 &lt;p&gt;One of the core assumptions in early formulations of optical flow is that motion is very small (&amp;lt;1 pixel).
 In reality, some objects may move over 100 pixels within a single frame.
-A simple solution to this problem was proposed by Bergen et al. in 1992 &amp;lt;&amp;amp;bergenHierarchicalModelbasedMotion&amp;gt;.
+A simple solution to this problem was proposed by Bergen et al. in 1992 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Bergen et al., n.d.&lt;/a&gt;).
 By creating an image pyramid over several resolutions, the assumption of small motion at each scale is still reasonable.&lt;/p&gt;
 
 
@@ -14798,6 +14884,11 @@ By creating an image pyramid over several resolutions, the assumption of small m
 Next, they are used to warp the image to match the one at \(t-1\).
 The warped image and true image at \(t-1\) are compared to refine the parameters.
 The refined parameters are then sent to the next scale layer.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Bergen, James R, P Anandan, Keith J Hanna, and Rajesh Hingorani. n.d. “Hierarchical Model-Based Motion Estimation,” 16.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Horn, Berthold K. P., and Brian G. Schunck. 1980. “Determining Optical Flow.” &lt;a href=&#34;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&#34;&gt;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
