@@ -7,10 +7,92 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 04 Feb 2024 17:49:00 -0600</lastBuildDate>
+    <lastBuildDate>Sat, 24 Feb 2024 14:10:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/computer-science/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Priority Queues</title>
+      <link>https://ajdillhoff.github.io/notes/priority_queues/</link>
+      <pubDate>Sat, 24 Feb 2024 14:10:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/priority_queues/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#quick-facts&#34;&gt;Quick Facts&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#implementation&#34;&gt;Implementation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#exercises&#34;&gt;Exercises&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;quick-facts&#34;&gt;Quick Facts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Time Complexity&lt;/strong&gt;&lt;/strong&gt;: \(O(\lg n)\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;strong&gt;Space Complexity&lt;/strong&gt;&lt;/strong&gt;: \(O(n)\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Besides being the primary data structure for &lt;a href=&#34;https://ajdillhoff.github.io/notes/heapsort/&#34;&gt;Heapsort&lt;/a&gt;, a heap is also used to implement a priority queue. A priority queue is a key-value data structure in which the keys are used to determine the priority of each element in the queue. There are two variants, maximum and minimum, and they support the following operations:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Insert: Add a new element to the queue.&lt;/li&gt;
+&lt;li&gt;Extract: Remove the element with the maximum/minimum key.&lt;/li&gt;
+&lt;li&gt;Maximum/Minimum: Return the element with the maximum/minimum key without removing it.&lt;/li&gt;
+&lt;li&gt;Increase/Decrease Key: Increase or decrease the key of a given element.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;You could probably imagine a few use cases for such a queue. For example, a priority queue could be used to schedule tasks in a multitasking operating system. The tasks with the highest priority would be executed first. Another example would be a network router that uses a priority queue to schedule packets for transmission. The packets with the highest priority would be transmitted first. In high performance computing, a priority queue could be used to schedule jobs on a supercomputer. The jobs with the highest priority would be executed first. SLURM is an example of a job scheduler that uses a priority queue.&lt;/p&gt;
+&lt;p&gt;For simple applications, you could reference your application object directly inside the heap. If the objects themselves are too complex, it is optimal to simply set the &lt;em&gt;value&lt;/em&gt; of the heap as a reference to the object. A &lt;strong&gt;handle&lt;/strong&gt; is a reference that is added to both the heap and the object; it requires little overhead. This requires that your priority queue update both its own index as well as the object&amp;rsquo;s index as changes are made.&lt;/p&gt;
+&lt;p&gt;An alternative approach is to establish the map using a hash table. In this case, the priority queue is the only data structure that needs to be updated.&lt;/p&gt;
+&lt;h2 id=&#34;implementation&#34;&gt;Implementation&lt;/h2&gt;
+&lt;p&gt;Let us now consider the implementation and analysis of the require operations for a priority queue.&lt;/p&gt;
+&lt;h3 id=&#34;extract&#34;&gt;Extract&lt;/h3&gt;
+&lt;p&gt;The &lt;em&gt;keys&lt;/em&gt; in a priority queue represent the priority. The &lt;em&gt;values&lt;/em&gt; will need to be moved around with them as the priority queue is constructed. Getting the maximum or minimum value is a constant time operation and is executed by returning the first element in the array. To extract the item with the highest priority, the first element is removed and the heap is then heapified.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heap_maximum&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; len(A) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;raise&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ValueError&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Heap underflow&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heap_extract_max&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    max_val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max_heap_maximum(A)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    max_heapify(A, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; max_val
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As we saw with &lt;a href=&#34;https://ajdillhoff.github.io/notes/heapsort/&#34;&gt;Heapsort&lt;/a&gt;, &lt;code&gt;max_heapify&lt;/code&gt; runs in \(O(\lg n)\) time. The call to &lt;code&gt;max_heap_extract_max&lt;/code&gt; only adds a few constant operations on top of that, so it runs in \(O(\lg n)\) time as well.&lt;/p&gt;
+&lt;h3 id=&#34;increase&#34;&gt;Increase&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;max_heap_increase_key&lt;/code&gt; function is used to increase the key of a given element. The function first checks if the new key is less than the current key. If it is, an error is raised. The function then updates the key and then traverses up the heap to ensure that the heap property is maintained.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heap_increase_key&lt;/span&gt;(A, obj, key):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; key &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; obj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;key:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;raise&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ValueError&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;New key is smaller than current key&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    obj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;index(obj) &lt;span style=&#34;color:#75715e&#34;&gt;# gets the index of the object&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; A[parent(i)]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;key &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; A[i]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;key:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[i], A[parent(i)] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[parent(i)], A[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parent(i)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Moving through the height of the tree is done in \(O(\lg n)\) time. Depending on the how the index of the object is found, the complexity could be higher. In most cases, the index is found in constant time.&lt;/p&gt;
+&lt;h3 id=&#34;insert&#34;&gt;Insert&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;max_heap_insert&lt;/code&gt; function is used to insert a new element into the heap. The function first appends the new element to the end of the array. It then sets the key of the new element to a very small value and then calls &lt;code&gt;max_heap_increase_key&lt;/code&gt; to update the key to the correct value.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;max_heap_insert&lt;/span&gt;(A, obj, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; len(A) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; n:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;raise&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ValueError&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Heap overflow&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-inf&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    obj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(obj)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# map obj to the last index -- dependent on the implementation&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    max_heap_increase_key(A, obj, key)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The call to &lt;code&gt;max_heap_increase_key&lt;/code&gt; runs in \(O(\lg n)\) time, so the &lt;code&gt;max_heap_insert&lt;/code&gt; function also runs in \(O(\lg n)\) time in addition to the time it takes to map the object to its index.&lt;/p&gt;
+&lt;h2 id=&#34;exercises&#34;&gt;Exercises&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Implement a minimum priority queue.&lt;/li&gt;
+&lt;li&gt;Implement a decrease key function for a maximum priority queue.&lt;/li&gt;
+&lt;li&gt;Simulate a job scheduler using a priority queue that considers the priority of the job and the time it was submitted.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Master Theorem</title>

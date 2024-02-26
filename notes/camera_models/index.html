@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/camera_models/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/camera_models/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/camera_models/">
+  <meta property="og:title" content="Camera Models | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-03-11T00:00:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-02-25T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Camera Models | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Camera Models</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-03-11 00:00:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-02-25 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Feb 25, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    15 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/camera_models/&amp;text=Camera%20Models" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/camera_models/&amp;t=Camera%20Models" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Camera%20Models&amp;body=https://ajdillhoff.github.io/notes/camera_models/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/camera_models/&amp;title=Camera%20Models" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Camera%20Models%20https://ajdillhoff.github.io/notes/camera_models/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/camera_models/&amp;title=Camera%20Models" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#reading">Reading</a></li>
+<li><a href="#outline">Outline</a></li>
+<li><a href="#pinhole-model">Pinhole Model</a></li>
+<li><a href="#from-world-space-to-image-space">From World Space to Image Space</a></li>
+<li><a href="#camera-parameters">Camera Parameters</a></li>
+<li><a href="#camera-calibration">Camera Calibration</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="reading">Reading</h2>
+<ul>
+<li>Chapters 1 and 7 (Forsyth and Ponce)</li>
+<li><a href="https://www.scratchapixel.com/" target="_blank" rel="noopener noreferrer">https://www.scratchapixel.com/</a></li>
+<li><a href="https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p" target="_blank" rel="noopener noreferrer">https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p</a></li>
+<li><a href="http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf" target="_blank" rel="noopener noreferrer">http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf</a></li>
+<li><a href="http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf" target="_blank" rel="noopener noreferrer">http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf</a></li>
+</ul>
+<h2 id="outline">Outline</h2>
+<ul>
+<li>Pinhole model</li>
+<li>Coordinates of a pinhole model</li>
+<li>Perspective projections</li>
+<li>Homogeneous coordinates</li>
+<li>Computer graphics perspective</li>
+<li>Lenses</li>
+<li>Intrinsic and extrensic parameters</li>
+<li>From world to camera to image space</li>
+<li>Camera calibration</li>
+</ul>
+<h2 id="pinhole-model">Pinhole Model</h2>
+<p>Imagine piercing a small hole into a plate and placing it in front of a black screen.
+The light that enters through the pinhole will show an inverted image against the back plane.
+If we place a virtual screen in front of the pinhole plate, we can project the image onto it.
+This is the basic idea behind a <strong>pinhole camera model</strong>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-14_17-02-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Pinhole camera model (Forsyth and Ponce)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Pinhole camera model (Forsyth and Ponce).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="virtual-camera-coordinates">Virtual Camera Coordinates</h3>
+<p>There are two sets of coordinates for each object in the pinhole camera model.
+First are the actual coordinates of the visible points as seen from the camera.
+For real images, these points are continuous. For virtual images, these are discrete.
+To produce an actual image, a set of 3D coordinates are projected onto the image plane.
+<strong>These 3D coordinates are with respect to the camera&rsquo;s coordinate system.</strong></p>
+<p>We can represent the transformation from camera coordinates to image coordinates with a projection matrix.
+There are many properties of the camera that must be considered, such as the lens, resolution, etc.
+We will start with a simple projection matrix.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-14_19-06-36_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Derivation of simple perspective projection." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Derivation of simple perspective projection.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, the camera is located at point \(A\) with its viewing plane defined by \(BC\).
+The \(y\) value of the world space coordinate is given by \(DE\).
+Notice that there are two right triangles (\(\Delta ABC\) and \(\Delta ADE\)).
+As such, the ratio between their sides is constant:</p>
+<p>\[
+\frac{BC}{DE} = \frac{AB}{AD}.
+\]</p>
+<p>Solving for \(y&rsquo; = BC\) yields \(BC = \frac{AB * DE}{AD}\).
+A similar relationship follows for the \(x\) value.
+In a more common notation, this is written as</p>
+<p>\begin{align*}
+x&rsquo; &amp;= \frac{x}{z}\\
+y&rsquo; &amp;= \frac{y}{z}
+\end{align*}</p>
+<p>This can be represented as a transformation matrix and point vector by using <strong>homogeneous coordinates</strong>.
+These coordinate are to projective geometry as Cartesian coordinates are to Euclidean geometry.
+For a 3D point \(\mathbf{p} = (X, Y, Z)\), its corresponding homogeneous coordinate is \(\mathbf{p}_w = (x, y, z, w)\).
+The relationship between the original coordinate and its homogeneous coordinate is given by</p>
+<p>\[
+X = \frac{x}{w},\quad Y = \frac{y}{w}, \quad Z = \frac{z}{w}.
+\]</p>
+<p>With homogeneous coordinates, we can easily project 3D points to an image plane.
+First, let the projection matrix be defined as</p>
+<p>\[
+M = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 1 &amp; 0\\
+\end{bmatrix}
+\]</p>
+<p>and a general homogeneous coordinate is given by</p>
+<p>\[
+\mathbf{p} = \begin{bmatrix}
+x\\
+y\\
+z\\
+w
+\end{bmatrix}.
+\]</p>
+<p>Then,</p>
+<p>\[
+M\mathbf{p} = \begin{bmatrix}
+x\\
+y\\
+z\\
+z
+\end{bmatrix}
+\]</p>
+<p>and the perspective divide is applied to finish the transformation.
+That is, divide each component by \(w\) and dropping the last component.</p>
+<p>\[
+\mathbf{p}&rsquo; = \begin{bmatrix}
+\frac{x}{z}\\
+\frac{y}{z}\\
+1
+\end{bmatrix}
+\]</p>
+<h3 id="physical-camera-coordinates">Physical Camera Coordinates</h3>
+<p>If we are simulating a physical camera, then the sensor should be <em>behind</em> the lens.
+In that case, the points will be inverted as compared to the virtual model.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-15_12-10-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visualization of the projection equation (Forsyth and Ponce)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Visualization of the projection equation (Forsyth and Ponce).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Remember that this is not taking optics into account.
+This is a simple projective model.
+The figure below shows the relationship between the virtual image plane and sensor image plane.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_12-36-32_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Sensor plane versus virtual plane." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Sensor plane versus virtual plane.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To calculate the points projected to the sensor plane using our simple matrix from above, we only need to negate the \(z\) and \(w\) values:</p>
+<p>\[
+M = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+\end{bmatrix}
+\]</p>
+<p>Then the transformed point becomes</p>
+<p>\[
+M\mathbf{p} = \begin{bmatrix}
+x\\
+y\\
+-z\\
+-z
+\end{bmatrix}.
+\]</p>
+<p>Applying the perspective divide yields the 3D point \((-\frac{x}{z}, -\frac{y}{z}, 1)\).</p>
+<h4 id="considering-the-focal-length">Considering the Focal Length</h4>
+<p>An important property that all cameras have is the focal length \(f\).
+That is the distance between the lens and the camera&rsquo;s sensor.
+In computer graphics terms, the focal length may also refer to the distance between the virtual image plane and camera.
+This is then called the <strong>near plane</strong> instead.</p>
+<p>For the following examples, we will follow OpenGL&rsquo;s projective matrix in which the \(x\) and \(y\) values are scaled by a relationship between the focal length and image window size:</p>
+<p>\[
+\frac{2n}{r - l},
+\]</p>
+<p>where \(n\) is the near plane distance (related to \(f\)), \(r\) is the value of the right side of the window, and \(l\) is the value of the left side of the window.
+For a square window of size \([-1, 1]\), this reduces to \(n\) (or \(f\)).
+Then the projection matrix is given as</p>
+<p>\[
+M = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -\frac{1}{f} &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+\end{bmatrix}.
+\]</p>
+<p><strong>Why does \(M(3, 3) = -\frac{1}{f}\)?</strong></p>
+<p>The projected point should be \(f\) units away from the lens.
+Projecting a point using the matrix above yields</p>
+<p>\[
+M\mathbf{p} = \begin{bmatrix}
+x\\
+y\\
+-\frac{z}{f}\\
+-z
+\end{bmatrix}.
+\]</p>
+<p>Then applying the perspective divide to compute the projected coordinate results in</p>
+<p>\[
+\mathbf{p&rsquo;} = \begin{bmatrix}
+-\frac{fx}{z}\\
+-\frac{fy}{z}\\
+\end{bmatrix}.
+\]</p>
+<p>We first computed the 3D homogeneous coordinate and then applied the relationship to 2D homogeneous coordinates using the resulting \((x, y, z)\) triplet.
+Applying the final divide which establishes the relationship between 2D Cartesian and homogeneous coordinates results in \(\mathbf{p&rsquo;}\).</p>
+<p>Be aware that computer graphics implementations may apply this process differently using a matrix that looks something like this</p>
+<p>\[
+M = \begin{bmatrix}
+f &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; f &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+\end{bmatrix}.
+\]</p>
+<p>If we apply this to a point in 3D space using homogeneous coordinates, it results in the point</p>
+<p>\[
+M\mathbf{p} = \begin{bmatrix}
+fx\\
+fy\\
+-z\\
+-z
+\end{bmatrix}.
+\]</p>
+<p>Then the resulting 3D point is</p>
+<p>\[
+\mathbf{p&rsquo;} = \begin{bmatrix}
+-\frac{fx}{z}\\
+-\frac{fy}{z}\\
+1\\
+\end{bmatrix},
+\]</p>
+<p>which gives us the same \(x\) and \(y\) values of the projected point as before.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_13-44-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;3D points (green) projected onto the virtual plane (red) and sensor plane (blue)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>3D points (green) projected onto the virtual plane (red) and sensor plane (blue).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="from-world-space-to-image-space">From World Space to Image Space</h2>
+<p>The process of projecting points in camera space onto an image plane is fairly simple, but gets slightly more complicated
+when considering each entity from the <em>world</em> perspective.
+Objects in the world appear differently depending on the viewpoint of the camera.
+To model this mathematically, we need to be able to describe the points in 3 different spaces:</p>
+<ol>
+<li>World space</li>
+<li>Camera space</li>
+<li>Image space</li>
+</ol>
+<p>To fully describe the possibilities that our camera&rsquo;s perspective can take, we need to define scaling, translation, and rotations.
+These allow us to describe the different positions and orientations are camera may be in with respect to the world around it.</p>
+<h3 id="translation">Translation</h3>
+<p>Consider the points of a pyramid observed by a virtual camera, as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_16-11-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Points of a pyramid as seen from our virtual camera." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Points of a pyramid as seen from our virtual camera.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>If we move the camera away from the points, the will appear smaller (assuming a perspective projection).
+This movement is described by a translation with respect to the origin in world space.
+In the above figure, the camera is position at the origin.
+The figure below shows the camera moved down the $z$-axis by 2 units.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_16-14-47_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Translating the camera backwards by 2 units. The project points appear smaller." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Translating the camera backwards by 2 units. The project points appear smaller.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>This is described with a matrix as</p>
+<p>\[
+T = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; -2\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}.
+\]</p>
+<p>In general, a translation in 3D can be described with the following matrix</p>
+<p>\[
+T = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; T_x\\
+0 &amp; 1 &amp; 0 &amp; T_y\\
+0 &amp; 0 &amp; 1 &amp; T_z\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}.
+\]</p>
+<h3 id="scaling">Scaling</h3>
+<p>Projected objects can appear larger or smaller depending on the <strong>focal length</strong> and <strong>field of view</strong>.
+Recall the perspective projection matrix from the previous section:</p>
+<p>\[
+P = \begin{bmatrix}
+f &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; f &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+\end{bmatrix}.
+\]</p>
+<p>The projections we have seen so far are with a focal length of 1.
+We can make the objects in the image appear larger by increasing the focal length, as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_16-23-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Focal length doubled. The projected image appears larger." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Focal length doubled. The projected image appears larger.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="rotation">Rotation</h3>
+<p>Finally, we can rotate our camera about the \(x\), \(y\), or \(z\) axis.
+Following a <a href="https://en.wikipedia.org/wiki/Right-hand_rule" target="_blank" rel="noopener noreferrer">right-handed coordinate system</a>, these rotations are given by</p>
+<p>\begin{align*}
+R_x(\theta) &amp;= \begin{bmatrix}
+1 &amp; 0 &amp; 0\\
+0 &amp; \cos \theta &amp; -\sin \theta\\
+0 &amp; \sin \theta &amp; \cos \theta
+\end{bmatrix}\\
+R_y(\theta) &amp;= \begin{bmatrix}
+\cos \theta &amp; 0 &amp; \sin \theta\\
+0 &amp; 1 &amp; 0\\
+-\sin \theta &amp; 0 &amp; \cos \theta
+\end{bmatrix}\\
+R_z(\theta) &amp;= \begin{bmatrix}
+\cos \theta &amp; -\sin \theta &amp; 0\\
+\sin \theta &amp; \cos \theta &amp; 0\\
+0 &amp; 0 &amp; 1
+\end{bmatrix}\\
+\end{align*}</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-16_16-42-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Rotating the camera about the y-axis. The points now appear on the right side of the image plane." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>Rotating the camera about the y-axis. The points now appear on the right side of the image plane.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="camera-parameters">Camera Parameters</h2>
+<p>When relating points in the world to those of the image space, two sets of parameters are typically used:
+the <strong>intrinsic</strong> and <strong>extrinsic</strong> parameters of a camera.
+Intrinsic parameters relate the points in the camera&rsquo;s reference frame to those of the image plane.
+Extrinsic parameters relate the camera&rsquo;s coordinate system to a world coordinate system as well as describing its position and orientation.</p>
+<h3 id="intrinsic-parameters">Intrinsic Parameters</h3>
+<p>Which parameters are required to project a point to the image plane?
+The intrinsic parameters are those which convert the points on the physical sensor into a normalized image frame.
+We start with a basic projection matrix</p>
+<p>\[
+M = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+0 &amp; 0 &amp; -1 &amp; 0\\
+\end{bmatrix}.
+\]</p>
+<p>A physical sensor may not have square pixels, so there are two additional scale parameters \(k\) and \(l\).
+Along with the focal length \(f\), the projected values become</p>
+<p>\begin{align*}
+x &amp;= kf\frac{X}{Z} = kf\hat{x}\\
+y &amp;= lf\frac{Y}{Z} = lf\hat{y}\\
+\end{align*}</p>
+<p>The focal length and scale factors \(k\) and \(l\) are dependent and can be written as \(\alpha = kf\) and \(\beta = lf\).</p>
+<p>The physical sensor has an origin at the corner whereas the normalized image frame has an origin at the center.
+To account for this offset, a translation parameter for both \(x\) and \(y\) is necessary.
+The pixel conversion is now represented as</p>
+<p>\begin{align*}
+x &amp;= \alpha \hat{x} + x_0\\
+y &amp;= \beta \hat{y} + y_0\\
+\end{align*}</p>
+<p>Finally, the sensor may not be perfectly center.
+There may also be additional defects that cause the sensor to be warped or skewed.
+This is error that can be accounted for by a rotation.</p>
+<p>\begin{align*}
+x &amp;= \alpha \hat{x} - \alpha \cot \theta \hat{y} + x_0\\
+y &amp;= \frac{\beta}{\sin \theta} \hat{y} + y_0\\
+\end{align*}</p>
+<p>To recap, the 5 intrinsic parameters are</p>
+<ol>
+<li>\(\alpha\) - scale parameter for \(x\)</li>
+<li>\(\frac{\beta}{\sin \theta}\) - scale parameter for \(y\), also accounts for skew</li>
+<li>\(-\alpha \cot \theta\) - skew coefficient between the \(x\) and \(y\) axis</li>
+<li>\(x_0\) - the principal point for \(x\)</li>
+<li>\(y_0\) - the principal point for \(y\)</li>
+</ol>
+<p>The third parameter \(-\alpha \cot \theta\) is sometimes represented as \(\gamma\) and will be set to 0 in most cases.
+A typical intrinsic matrix is then</p>
+<p>\[
+K = \begin{bmatrix}
+\alpha &amp; \gamma &amp; x_0\\
+0 &amp; \beta &amp; y_0\\
+0 &amp; 0 &amp; 1\\
+\end{bmatrix}.
+\]</p>
+<h3 id="extrinsic-parameters">Extrinsic Parameters</h3>
+<p>Given a point with respect to the world frame, \([\mathbf{p}]_W\), we are interested in a change of basis matrix which transforms the world space coordinate to the camera&rsquo;s basis.
+This is represented by a change of basis matrix which converts a point in world space to the camera&rsquo;s coordinate frame.</p>
+<p>The matrix is defined as a rigid transformation involving a rotation and translation.
+The rotation components \(R\) are composed following the 3 rotation matrices described earlier.
+This only requires 3 parameters if using something like <a href="https://en.wikipedia.org/wiki/Euler_angles" target="_blank" rel="noopener noreferrer">Euler angles</a>.
+Euler angles represent the rotational angle around each axis by individual parameters \(\phi\), \(\theta\), and \(\psi\).</p>
+<p>\[
+R = \begin{bmatrix}
+r_{11} &amp; r_{12} &amp; r_{13}\\
+r_{21} &amp; r_{22} &amp; r_{23}\\
+r_{31} &amp; r_{32} &amp; r_{33}\\
+\end{bmatrix}
+\]</p>
+<p>The translational component is represented using an additional 3 parameters \(t_x\), \(t_y\), and \(t_z\).
+This can be represented as a matrix</p>
+<p>\[
+T = \begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; t_x\\
+0 &amp; 1 &amp; 0 &amp; t_y\\
+0 &amp; 0 &amp; 1 &amp; t_z\\
+\end{bmatrix}.
+\]</p>
+<p>For convenience, the extrinsic parameters can be represented as a single matrix</p>
+<p>\[
+M = \begin{bmatrix}
+r_{11} &amp; r_{12} &amp; r_{13} &amp; t_x\\
+r_{21} &amp; r_{22} &amp; r_{23} &amp; t_y\\
+r_{31} &amp; r_{32} &amp; r_{33} &amp; t_z\\
+\end{bmatrix}
+\]</p>
+<p>The full transformation from world space to image space is then represented as</p>
+<p>\[
+\mathbf{p} = KM[\mathbf{p}]_W,
+\]</p>
+<p>where \([\mathbf{p}]_W = \begin{bmatrix}x\\y\\z\\1\end{bmatrix}\).</p>
+<h2 id="camera-calibration">Camera Calibration</h2>
+<p>There are many applications which require that we know the exact camera parameters, including augmented reality, inpainting techniques, and depth estimation.
+We now investigate how, given a fixed world coordinate system with known structure, we can approximate the camera parameters.</p>
+<p>Popular software solutions for calibrating cameras are provided by <a href="http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example.html" target="_blank" rel="noopener noreferrer">MATLAB</a> and <a href="https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html" target="_blank" rel="noopener noreferrer">OpenCV</a>.
+These are based off of work by <a href="https://www.microsoft.com/en-us/research/project/a-flexible-new-technique-for-camera-calibration-2/?from=https%3A%2F%2Fresearch.microsoft.com%2F%7Ezhang%2FCalib%2F" target="_blank" rel="noopener noreferrer">Zhengyou Zhang</a>.
+We will follow the original publication to explain the solutions to camera calibration.
+As such, the notation will change a bit.</p>
+<p>The first goal is to relate the model points \(\mathbf{M}\) to the image points \(\mathbf{m}\) by a homography \(\mathbf{H}\) such that</p>
+<p>\[
+s\hat{\mathbf{m}} = \mathbf{H} \hat{\mathbf{M}},
+\]</p>
+<p>where \(\hat{\mathbf{m}}\) is the homogeneous coordinate of \(\mathbf{m}\) (likewise for \(\mathbf{M}\)) and \(s\) is a scale factor.</p>
+<p>To relate this to the notation in the previous section,</p>
+<p>\[
+s\tilde{\mathbf{m}} = \mathbf{H} \tilde{\mathbf{M}} \equiv \mathbf{p} = KM[\mathbf{p}]_W.
+\]</p>
+<p>In the paper, \(\mathbf{H} = \mathbf{A}[\mathbf{R}\quad \mathbf{t}]\), where</p>
+<p>\[
+\mathbf{A} = \begin{bmatrix}
+\alpha &amp; \gamma &amp; u_0\\
+0 &amp; \beta &amp; v_0\\
+0 &amp; 0 &amp; 1\\
+\end{bmatrix}.
+\]</p>
+<p>\([\mathbf{R}\quad \mathbf{t}]\) is the matrix \(M\) from the previous section.</p>
+<h3 id="estimating-the-homography">Estimating the Homography</h3>
+<p>If we have an image of the model plan, we can estimate \(\mathbf{H}\) using maximum-likelihood estimation as follows.
+Assume that \(\mathbf{m}_i\) is affected by Gaussian noise with zero mean and covariance \(\mathbf{\Lambda}_{\mathbf{m}_i}\).
+The objective is then to minimize</p>
+<p>\[
+\sum_i (\mathbf{m}_i - \hat{\mathbf{m}_i})^T \mathbf{\Lambda_{\mathbf{m}_i}^{-1}}(\mathbf{m}_i - \hat{\mathbf{m}_i}),
+\]</p>
+<p>where</p>
+<p>\[
+\hat{\mathbf{m}_i} = \frac{1}{\bar{\mathbf{h}}_3^T \mathbf{M}_i} \begin{bmatrix}
+\bar{\mathbf{h}}_1^T \mathbf{M}_i\\
+\bar{\mathbf{h}}_2^T \mathbf{M}_i\\
+\end{bmatrix}.
+\]</p>
+<p>\(\bar{\mathbf{h}}_i\) represents the $i$th row of \(\mathbf{H}\).</p>
+<p>The approach now constructs a matrix of model points similar to the approach used by <a href="/notes/random_sample_consensus/">RANSAC</a>.
+First, let \(\mathbf{x} = [\bar{\mathbf{h}}_1^T\  \bar{\mathbf{h}}_2^T\ \bar{\mathbf{h}}_3^T]\).
+Recalling that \(\widetilde{\mathbf{M}}^T \in [X, Y, 1]^T\),</p>
+<p>\[
+\begin{bmatrix}
+\widetilde{\mathbf{M}}^T &amp; \mathbf{0}^T &amp; -u \widetilde{\mathbf{M}}^T\\
+\mathbf{0}^T &amp; \widetilde{\mathbf{M}}^T &amp; -v \widetilde{\mathbf{M}}^T\\
+\end{bmatrix}\mathbf{x} = \mathbf{0}.
+\]</p>
+<p>Writing this as \(\mathbf{L}\mathbf{x} = \mathbf{0}\), where \(\mathbf{L} \in \mathbb{R}^{2n \times 9}\) with \(n\) being the number of points, the solution the eigenvector of \(\mathbf{L}^T\mathbf{L}\) corresponding to the smallest eigenvalue.
+This can be computed using <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition" target="_blank" rel="noopener noreferrer">Singular Value Decomposition</a> without computing \(\mathbf{L}^T\mathbf{L}\) directly.
+Factorize \(\mathbf{L} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T\) using SVD.
+Then the parameters that minimizes the objective is the column vector in \(\mathbf{V}\) corresponding to the smallest eigenvalue.</p>
+<p>It is noted that since the columns of the rotation matrix are orthonormal, the following constraints are observed:</p>
+<p>\begin{align*}
+\mathbf{h}_1^T \mathbf{A}^{-T} \mathbf{A}^{-1} \mathbf{h}_2 &amp;= 0\\
+\mathbf{h}_1^T \mathbf{A}^{-T} \mathbf{A}^{-1} \mathbf{h}_1 &amp;= \mathbf{h}_2^T \mathbf{A}^{-T} \mathbf{A}^{-1} \mathbf{h}_2\\
+\end{align*}</p>
+<h3 id="solving-for-the-camera-parameters">Solving for the Camera Parameters</h3>
+<p>With the homography \(\mathbf{H}\) and constraints given in the last section, Zhang proposes a two step solution that first estimates the parameters using a closed form solution.
+These serve as a starting point for a non-linear optimization using <a href="https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm" target="_blank" rel="noopener noreferrer">Levenberg-Marquardt</a>.</p>
+<p>First, let</p>
+<p>\[
+\mathbf{B} = \mathbf{A}^{-T} \mathbf{A}^{-1} = \begin{bmatrix}
+\frac{1}{\alpha^2} &amp; -\frac{\gamma}{\alpha^2\beta} &amp; \frac{v_0\gamma - u_0\beta}{\alpha^2 \beta}\\
+-\frac{\gamma}{\alpha^2\beta} &amp; \frac{\gamma^2}{\alpha^2\beta^2} + \frac{1}{\beta^2} &amp; -\frac{\gamma(v_0\gamma-u_0\beta)}{\alpha^2\beta^2}-\frac{v_0}{\beta^2}\\
+\frac{v_0\gamma - u_0\beta}{\alpha^2 \beta} &amp; -\frac{\gamma(v_0\gamma-u_0\beta)}{\alpha^2\beta^2}-\frac{v_0}{\beta^2} &amp; \frac{(v_0\gamma-u_0\beta)^2}{\alpha^2\beta^2}+\frac{v_0^2}{\beta^2}+1
+\end{bmatrix}.
+\]</p>
+<p>This is a symmetric matrix which can be represented more compactly as</p>
+<p>\[
+\mathbf{b} = [B_{11}\ B_{12}\ B_{22}\ B_{13}\ B_{23}\ B_{33}]^T.
+\]</p>
+<p>We can then write \(\mathbf{h}_1^T \mathbf{A}^{-T} \mathbf{A}^{-1} \mathbf{h}_2 = 0\) as</p>
+<p>\[
+\mathbf{h}_i^T \mathbf{B} \mathbf{h}_j = \mathbf{v}_{ij}^T \mathbf{b},
+\]</p>
+<p>where</p>
+<p>\[
+\mathbf{v}_{ij} = [h_{i1}h_{j1}, h_{i1}h_{j2} + h_{i2}h_{j1}, h_{i2}h_{j2}, h_{i3}h_{j1} + h_{i1}h_{j3}, h_{i3}h_{j2}+h_{i2}h_{j3}, h_{i3}h_{j3}]^T.
+\]</p>
+<p>This permits us to write the constraints from the previous section as two homogeneous equations in \(\mathbf{b}\)</p>
+<p>\[
+\begin{bmatrix}
+\mathbf{v}_{12}^T\\
+(\mathbf{v}_{11} - \mathbf{v}_{22})^T
+\end{bmatrix} \mathbf{b} = \mathbf{0}.
+\]</p>
+<p>If we compute the homography, as above, on \(n\) images, we end up with \(n\) equations like the one directly above.
+Stacking this yields</p>
+<p>\[
+\mathbf{V}\mathbf{b} = \mathbf{0},
+\]</p>
+<p>where \(\mathbf{V} \in \mathbb{R}^{2n \times 6}\).</p>
+<p>The initial set of parameters is then solved following the solution for each homography \(\mathbf{H}\).
+With \(\mathbf{b}\) estimated, the intrinsic parameters are</p>
+<p>\begin{align*}
+v_0 &amp;= (B_{12}B_{13} - B_{11}B_{23})/(B_{11}B_{22} - B_{12}^2)\\
+\lambda &amp;= B_{33} - [B_{13}^2 + v_0(B_{12}B_{13} - B_{11}B_{23})]/B_{11}\\
+\alpha &amp;= \sqrt{\lambda / B_{11}}\\
+\beta &amp;= \sqrt{\lambda B_{11}/(B_{11}B_{22} - B_{12}^2)}\\
+\gamma &amp;= -B_{12}\alpha^2\beta / \lambda\\
+u_0 &amp;= \gamma v_0 / \alpha - B_{13} \alpha^2 / \lambda.
+\end{align*}</p>
+<p>The parameters \(\alpha, \beta, \gamma, u_0, v_0\) make up our intrinsic parameter matrix \(\mathbf{A}\).
+These can be used to compute the extrinsic parameters following</p>
+<p>\begin{align*}
+\lambda &amp;= 1 / \|\mathbf{A}^{-1}\mathbf{h}_1\|\\
+\mathbf{r}_1 &amp;= \lambda \mathbf{A}^{-1}\mathbf{h}_1\\
+\mathbf{r}_2 &amp;= \lambda \mathbf{A}^{-1}\mathbf{h}_2\\
+\mathbf{r}_3 &amp;= \mathbf{r}_1 \times \mathbf{r}_2\\
+\mathbf{t} &amp;= \lambda \mathbf{A}^{-1}\mathbf{h}_3\\
+\end{align*}</p>
+<h3 id="refining-the-estimates">Refining the Estimates</h3>
+<p>The approach in the last section is produced by minimizing algebraic distances.
+These values are further refined using maximum-likelihood estimation by way of a nonlinear optimizer.
+If there are \(m\) points on each of the \(n\) images, the objective function to minimize is given by</p>
+<p>\[
+\sum_{i=1}^n \sum_{j=1}^m \|\mathbf{m}_{ij} - \hat{\mathbf{m}}(\mathbf{A}, \mathbf{R}_i, \mathbf{t}_i, \mathbf{M}_j)\|^2,
+\]</p>
+<p>where \(\hat{\mathbf{m}}(\mathbf{A}, \mathbf{R}_i, \mathbf{t}_i, \mathbf{M}_j)\) is a projection of point \(\mathbf{M}_j\) in image \(i\).
+This function is minimized using the <a href="https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm" target="_blank" rel="noopener noreferrer">Levenberg-Marquardt</a> algorithm.</p>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/hidden_markov_models/">Hidden Markov Models</a></li>
+          
+          <li><a href="/notes/random_sample_consensus/">RANdom SAmple Consensus</a></li>
+          
+          <li><a href="/notes/kernels/">Kernels</a></li>
+          
+          <li><a href="/notes/naive_bayes/">Naive Bayes</a></li>
+          
+          <li><a href="/notes/neural_networks/">Neural Networks</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
