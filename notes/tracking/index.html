@@ -29,7 +29,8 @@
   
     
   
-  <meta name="description" content="">
+  <meta name="description" content="Table of Contents Introduction Tracking with Optical Flow Kalman Filters Introduction Tracking features and objects is required in many applications ranging from autonomous driving to security. Vision tracking systems are often used for live sports broadcasts to keep track of players, the ball, and other visual queues related to the game.
+Figure 1: Source: https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/ Naive tracking will detect an object per frame without any regard for prior information. More sophisticated trackers will consider the previous frame as a starting point to their search space.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/tracking/">
@@ -138,7 +139,8 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/tracking/">
   <meta property="og:title" content="Tracking | Alex Dillhoff">
-  <meta property="og:description" content=""><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Introduction Tracking with Optical Flow Kalman Filters Introduction Tracking features and objects is required in many applications ranging from autonomous driving to security. Vision tracking systems are often used for live sports broadcasts to keep track of players, the ball, and other visual queues related to the game.
+Figure 1: Source: https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/ Naive tracking will detect an object per frame without any regard for prior information. More sophisticated trackers will consider the previous frame as a starting point to their search space."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-03-07T00:00:00-06:00">
@@ -415,7 +417,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    0 min read
+    15 min read
   </span>
   
 
@@ -543,7 +545,596 @@
   <div class="article-container">
 
     <div class="article-style" itemprop="articleBody">
-      
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#tracking-with-optical-flow">Tracking with Optical Flow</a></li>
+<li><a href="#kalman-filters">Kalman Filters</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Tracking features and objects is required in many applications ranging from autonomous driving to security. Vision tracking systems are often used for live sports broadcasts to keep track of players, the ball, and other visual queues related to the game.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-22_18-19-53_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: &lt;https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/&gt;" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Source: <a href="https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/" target="_blank" rel="noopener noreferrer">https://azbigmedia.com/lifestyle/ball-tracking-technology-changes-way-fans-consume-practice-sport-of-golf/</a>
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Naive tracking will detect an object per frame without any regard for prior information.
+More sophisticated trackers will consider the previous frame as a starting point to their search space.
+However, even these trackers many need to initialize after a certain amount of time if their estimate drifts too far away from the object&rsquo;s actual location.</p>
+<p>Example of the importance of reliable tracking for driving assistance:
+<a href="https://youtu.be/NSDTZQdo6H8?t=898" target="_blank" rel="noopener noreferrer">https://youtu.be/NSDTZQdo6H8?t=898</a></p>
+<h2 id="tracking-with-optical-flow">Tracking with Optical Flow</h2>
+<p><strong>Image motion</strong> can be described as complex changes in image intensity from one time to another,
+displaced by \(\delta\).</p>
+<p>The displacement can be modeled as an <em>affine motion field</em> where the point is warped and translated by \(d\):</p>
+<p>\[
+\delta = D\mathbf{x} + \mathbf{x},
+\]</p>
+<p>where</p>
+<p>\[
+D = \begin{bmatrix}
+d_{xx} &amp; d_{xy}\\
+d_{yx} &amp; d_{yy}
+\end{bmatrix}.
+\]</p>
+<p>When comparing features between an image at \(t\) and \(t-1\), the feature centered at \(\mathbf{x}\) is transformed by</p>
+<p>\[
+\textbf{I}_{t}(A\mathbf{x} + \mathbf{d}) = \textbf{I}_{t-1}(\mathbf{x}).
+\]</p>
+<p>Here, \(A = I_2 + D\), where \(I_2\) is the \(2 \times 2\) identity matrix.
+This addition will be explained later.</p>
+<p>Smaller variations between frames are less reliable for parameter estimation, so a pure translational model is better in these cases. That is</p>
+<p>\[
+\delta = \mathbf{d}.
+\]</p>
+<h3 id="computing-image-motion">Computing Image Motion</h3>
+<p>Computing image motion then becomes a minimization problem.</p>
+<p>\[
+\epsilon = \int \int_{W} \big[\mathbf{I}_{t}(A\mathbf{x} + \mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\big]^2 w(\mathbf{x}) d\mathbf{x}
+\]</p>
+<p>This is used in a minimization problem which will minimize the dissimilarity between the tracked features between frames.
+The point is weighted by a function \(w\) over a window \(W\).</p>
+<p>Minimization of this error involves taking the derivative of \(\epsilon\) with respect to the unknowns in \(D\) and displacement vector \(\mathbf{d}\):</p>
+<p>\begin{align*}
+\frac{1}{2}\frac{\partial \epsilon}{\partial D} &amp;= \int \int_W \Big[\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\Big]\mathbf{g}\mathbf{x}^T w d\mathbf{x} = 0\\
+\frac{1}{2}\frac{\partial \epsilon}{\partial \mathbf{d}} &amp;= \int \int_W \Big[\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) - \mathbf{I}_{t-1}(\mathbf{x})\Big]\mathbf{g} w d\mathbf{x} = 0\\
+\end{align*}</p>
+<p>where</p>
+<p>\[
+\mathbf{g} = \bigg(\frac{\partial \mathbf{I}_t}{\partial x}, \frac{\partial \mathbf{I}_t}{\partial y}\bigg)^T
+\]</p>
+<p>is this spatial gradient of the image intensity.
+We have computed these image gradients before!</p>
+<p>The transformation of a point from \(t\) to \(t+1\) is complex because of the potential rotation, scaling, and translation that can occur. Specifically, \(A\mathbf{x} + \mathbf{d}\) is a nonlinear transformation. To solve this with less friction, the term can be approximated.</p>
+<p>To linearlize \(\mathbf{I}_{t}\), a Taylor series expansion of it can be used, taking just the linear term:</p>
+<p>\[
+\mathbf{I}_t(A\mathbf{x}+\mathbf{d}) = \mathbf{I}_t(\mathbf{x})+\mathbf{g}^T(\mathbf{u}),
+\]</p>
+<p>where</p>
+<p>\[
+\mathbf{u} = D\mathbf{x}+\mathbf{d}.
+\]</p>
+<p>The authors argue that this approximation is reasonable assuming the motion in the images is small.</p>
+<p>Plugging this back into the derivatives above yields</p>
+<p>\begin{align*}
+\int \int_W \mathbf{g}\mathbf{x}^T(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t\big]\mathbf{g}\mathbf{x}^T w d\mathbf{x}\\
+\int \int_W \mathbf{g}(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t\big]\mathbf{g} w d\mathbf{x}\\
+\end{align*}</p>
+<p>This is solved iteratively, following the Newton method, starting with the following values at \(t=0\):</p>
+<p>\begin{align*}
+D_0 &amp;= I\\
+\mathbf{d}_0 &amp;= \mathbf{0}\\
+\mathbf{I}_0 &amp;= \mathbf{I}(\mathbf{x}).
+\end{align*}</p>
+<p>At step \(i\) the values are updated to</p>
+<p>\begin{align*}
+D_i\\
+\mathbf{d}_i\\
+\mathbf{I}_i &amp;= \mathbf{I}_{i-1}(A_i \mathbf{x} + \mathbf{d}_i).
+\end{align*}</p>
+<h3 id="a-more-compact-representation">A More Compact Representation</h3>
+<p>At this point, the authors convert this representation into a more compact form in which the unknowns in \(D\) and the values of \(\mathbf{d}\) are separated from the function. We start with our current system of equations.</p>
+<p>\begin{align*}
+\int \int_W \mathbf{g}\mathbf{x}^T(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g}\mathbf{x}^T w d\mathbf{x}\\
+\int \int_W \mathbf{g}(\mathbf{g}^T\mathbf{u})w d\mathbf{x} &amp;= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g} w d\mathbf{x}\\
+\end{align*}</p>
+<p>To achieve this, the <a href="https://en.wikipedia.org/wiki/Kronecker_product" target="_blank" rel="noopener noreferrer">Kronecker product</a> is used. This is a generalization of the outer product from vectors to matrices.
+For two matrices \(A \in \mathbb{R}^{p \times q}\) and \(B \in \mathbf{R}^{m \times n}\), \(A \otimes B\) is a \(p \times q\) block matrix</p>
+<p>\[
+A \otimes B = \begin{bmatrix}
+a_{11}B &amp; \cdots &amp; a_{1q}\\
+\vdots &amp; \ddots &amp; \vdots\\
+a_{p1}B &amp; \cdots &amp; a_{pq}B
+\end{bmatrix}.
+\]</p>
+<p>It has two particularly useful properties for this problem:</p>
+<ol>
+<li>\(A^T \otimes B^T = (A \otimes B)^T\)</li>
+<li>\(v(AXB) = (B^T \otimes A)v(X)\), where \(v\) is the <a href="https://en.wikipedia.org/wiki/Vectorization_%28mathematics%29" target="_blank" rel="noopener noreferrer">vectorization</a> operator.</li>
+</ol>
+<p>Using this product and the properties just listed, we can extract the unknowns \(D\) and \(\mathbf{d}\) from the equations above.</p>
+<p>First, note that \(\mathbf{g}^T \mathbf{u}\) appear in both of the equations. These can then be rewritten as follows.</p>
+<p>\begin{align*}
+\mathbf{g}^T \mathbf{u} &amp;= \mathbf{g}^T(D\mathbf{x} + \mathbf{d})\\
+&amp;= \mathbf{g}^T D \mathbf{x} + \mathbf{g}^T \mathbf{d}\\
+&amp;= v(\mathbf{g}^T D \mathbf{x}) + \mathbf{g}^T \mathbf{d} &amp;\text{ vectorization }\\
+&amp;= (\mathbf{x}^T \otimes \mathbf{g}^T)v(D) + \mathbf{g}^T \mathbf{d} &amp;\text{ property 2 }\\
+&amp;= (\mathbf{x} \otimes \mathbf{g})^T v(D) + \mathbf{g}^T \mathbf{d} &amp;\text{ property 1 }
+\end{align*}</p>
+<p>Likewise, the term \(\mathbf{g}\mathbf{x}^T\) that appears on the right side of the first equation in our set to solve can be written as</p>
+<p>\begin{align*}
+v(\mathbf{g}\mathbf{x}^T) &amp;= v(\mathbf{g}1\mathbf{x}^T)\\
+&amp;= \mathbf{x} \otimes \mathbf{g}.
+\end{align*}</p>
+<p>Plugging this into the first equation to solve from above yields</p>
+<p>\[
+\int \int_W (\mathbf{x} \otimes \mathbf{g})((\mathbf{x} \otimes \mathbf{g})^T v(D) + \mathbf{g}^T\mathbf{d})w d\mathbf{x} = \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big](\mathbf{x} \otimes \mathbf{g}) w d\mathbf{x}.
+\]</p>
+<p>Expanding these terms out produces</p>
+<p>\begin{align*}
+\bigg(\int \int_W (\mathbf{x} \otimes \mathbf{g})(\mathbf{x} \otimes \mathbf{g})^T w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W (\mathbf{x} \otimes \mathbf{g}) \mathbf{g}^T w d\mathbf{x}\bigg) \mathbf{d}\\
+= \int \int_W \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big](\mathbf{x} \otimes \mathbf{g}) w d\mathbf{x}.
+\end{align*}</p>
+<p>The authors further simplify this equation using the following variables:</p>
+<p>\begin{align*}
+U(\mathbf{x}) &amp;= (\mathbf{x} \otimes \mathbf{g})(\mathbf{x} \otimes \mathbf{g})^T\\
+V(\mathbf{x}) &amp;= (\mathbf{x} \otimes \mathbf{g})\mathbf{g}^T\\
+\mathbf{b}(\mathbf{x}) &amp;= \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_{t}(\mathbf{x})\big]v(\mathbf{g}\mathbf{x}^T).
+\end{align*}</p>
+<p>Then the above equation can be written as</p>
+<p>\[
+\bigg(\int \int_W U(\mathbf{x}) w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W V(\mathbf{x}) w d\mathbf{x}\bigg) \mathbf{d} = \int \int_W \mathbf{b}(\mathbf{x}) w d\mathbf{x}.
+\]</p>
+<p>To write the second equation in a similar way, the authors introduce two additional variables</p>
+<p>\begin{align*}
+Z(\mathbf{x}) &amp;= \mathbf{g}\mathbf{g}^T\\
+\mathbf{x}(\mathbf{x}) &amp;= \big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\big]\mathbf{g}.
+\end{align*}</p>
+<p>Then,</p>
+<p>\[
+\bigg(\int \int_W V^T(\mathbf{x}) w d\mathbf{x}\bigg) v(D) + \bigg(\int \int_W Z(\mathbf{x}) w d\mathbf{x}\bigg) \mathbf{d} = \int \int_W \mathbf{c}(\mathbf{x}) w d\mathbf{x}.
+\]</p>
+<p>These equations can be written in a simple form: \(A\mathbf{x} + B\mathbf{y} = \mathbf{z}\).
+A symmetric block matrix \(T \in \mathbb{R}^{6 \times 6}\) is then introduced:</p>
+<p>\begin{align*}
+T &amp;= \int \int_W \begin{bmatrix}
+U &amp; V\\
+V^T &amp; Z
+\end{bmatrix} w d\mathbf{x}\\
+&amp;= \int \int_W \begin{bmatrix}
+x^2g_x^2 &amp; x^2 g_x g_y &amp; x y g_x^2 &amp; x y g_x g_y &amp; x g_x^2 &amp; x g_x g_y\\
+x^2 g_x g_y &amp; x^2 g_y^2 &amp; x y g_x g_y &amp; x y g_y^2 &amp; x g_x g_y &amp; x g_y^2\\
+x y g_x^2 &amp; x y g_x g_y &amp; y^2 g_x^2 &amp; y^2 g_x g_y &amp; y g_x^2 &amp; y g_x g_y\\
+x y g_x g_y &amp; x y g_y^2 &amp; y^2 g_x g_y &amp; y^2 g_y^2 &amp; y g_x g_y &amp; y g_y^2\\
+x g_x^2 &amp; x g_x g_y &amp; y g_x^2 &amp; y g_x g_y &amp; g_x^2 &amp; g_x g_y\\
+x g_x g_y &amp; x g_y^2 &amp; y g_x g_y &amp; y g_y^2 &amp; g_x g_y &amp; g_y^2
+\end{bmatrix}w d \mathbf{x}.
+\end{align*}</p>
+<p><strong>Look very closely at \(Z\)</strong>. Does that remind you of anything?
+Harris corner detection!</p>
+<p>The unknowns are vectorized as</p>
+<p>\[
+\mathbf{z} = \begin{bmatrix}
+v(D)\\
+\mathbf{d}
+\end{bmatrix}.
+\]</p>
+<p>The product vector is defined as</p>
+<p>\begin{align*}
+\mathbf{a} &amp;= \int \int_W \begin{bmatrix}
+\mathbf{b}\\
+\mathbf{c}
+\end{bmatrix} w d \mathbf{x}\\
+&amp;= \int \int_W \Big[\mathbf{I}_{t-1}(\mathbf{x}) - \mathbf{I}_t(\mathbf{x})\Big]\begin{bmatrix}
+x g_x\\
+x g_y\\
+y g_x\\
+y g_y\\
+g_x\\
+g_y
+\end{bmatrix} w d \mathbf{x}.
+\end{align*}</p>
+<p>Thus, the iterative solution requires solving the \(6 \times 6\) linear system</p>
+<p>\[
+T \mathbf{z} = \mathbf{a}.
+\]</p>
+<h3 id="back-to-computing-image-motion">Back to Computing Image Motion</h3>
+<p>With this more compact representation, the iterative solution is easier to achieve.
+The authors conveniently note that the deformation of the feature window between frames will be relatively small, so \(D\) could be set to 0 for tracking.
+This leads to the solution of a much smaller system for each time step:</p>
+<p>\[
+Z \mathbf{d} = \begin{bmatrix}
+g_x\\
+g_y
+\end{bmatrix}.
+\]</p>
+<p>Note that this is only true for small steps between frames.
+It is also important to measure the dissimilarity between the feature at the initial frame as it changes over time with the iterative estimates.
+If it changes too much, the dissimilarity will be high, indicating that it is no longer a reliable feature to track.</p>
+<h3 id="picking-the-best-feature">Picking the Best Feature</h3>
+<p>Shi and Tomasi posit that the best feature is one that can be tracked well.</p>
+<p>&ldquo;We can track a window from frame to frame if this system represents good measurements, and if it can be solved reliably.&rdquo;</p>
+<p>They analyze the basic equation \(Z \mathbf{d} = \mathbf{e}\), which is solved during tracking.
+If both eigenvalues of \(Z\) are large and do not differ by several orders of magnitude, the feature can be tracked reliably.
+That is, they accept a window if the eigenvalues of \(Z\) satisfy</p>
+<p>\[
+\min(\lambda_1, \lambda_2) &gt; \lambda.
+\]</p>
+<p>In practice, \(\lambda\) is determined by selecting a lower bound based on a region of uniform brightness in the image as well as an upper bound based on features such as corners.
+The selected value of \(\lambda\) is somewhere in between.</p>
+<h3 id="measuring-dissimilarity">Measuring dissimilarity</h3>
+<p>To determine if a feature is still reliable over a longer time period, a measure of dissimilarity is used to measure the original feature versus its warped version at the current frame.
+Consider the sequence below over 21 frames.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-53-48_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Source: Shi and Tomasi." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Source: Shi and Tomasi.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Their method successfully tracks the speed limit sign, as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-54-43_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Source: Shi and Tomasi." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Source: Shi and Tomasi.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-57-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Source: Shi and Tomasi." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Source: Shi and Tomasi.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>They note the importance of using an affine deformation to track reliable features.
+The figure below plots the dissimilarity using translation versus the deformation matrix over time.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-56-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Dissimilarity over time using translation (dashed) versus affine (solid) (Shi and Tomasi)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Dissimilarity over time using translation (dashed) versus affine (solid) (Shi and Tomasi).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>They also present a case when the feature is lost to occlusion, thus the dissimilarity of both approaches increases greatly over time.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-59-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Source: Shi and Tomasi." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Source: Shi and Tomasi.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-59-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Source: Shi and Tomasi." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Source: Shi and Tomasi.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-08_20-59-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Sign tracking (plusses) versus window tracking (circles) (Shi and Tomasi)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Sign tracking (plusses) versus window tracking (circles) (Shi and Tomasi).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="kalman-filters">Kalman Filters</h2>
+<p>A <strong>Kalman filter</strong> is a linear dynamic model that models conditional probabilities following normal distributions.
+It is an simple and effective model for tracking motion even in the presence of noise from measurements.
+Kalman filters keep an estimate of the state and can update their estimates based on the given observations.</p>
+<p>\(\mathbf{X}_i\) - State of object at step \(i\)</p>
+<p>\(\mathbf{Y}_i\) - Measurement at step \(i\)</p>
+<p>There are two primary tasks to deal with, the real-time tracking task and the offline smoothing task.
+We are more interested in the tracking task, so we will focus on that.</p>
+<p>Tracking task: \(P(X_k|Y_0, \dots, Y_k)\)</p>
+<p>Smoothing task: \(P(X_k|X_0, \dots, Y_n)\)</p>
+<p>Assumptions:</p>
+<ul>
+<li>\(P(Y_k|X_0, \dots, X_N, Y_0, \dots, Y_N) = P(Y_k|X_k)\)</li>
+<li>\(P(X_k|X_0, \dots, X_{k-1}) = P(X_k|X_{k-1})\)</li>
+</ul>
+<h3 id="prediction-task">Prediction Task</h3>
+<p>When tracking an object, we use the model to first predict a state and then update its current parameters given some measurement.
+We want to predict the state given measurements: \(P(\mathbf{X}_i|\mathbf{Y}_0 = \mathbf{y}_0, \dots, \mathbf{Y}_{k-1}=\mathbf{y}_{k-1})\).</p>
+<p>Given the previous observations up to \(k-1\), what is our model&rsquo;s estimate of the current state?
+This can help establish a search location if we were looking to narrow our detection algorithm.</p>
+<h3 id="correction">Correction</h3>
+<p>\(P(\mathbf{X}_i|\mathbf{Y}_0 = \mathbf{y}_0, \dots, \mathbf{Y}_{i}=\mathbf{y}_{i})\) is the cur  rent distribution.
+This is the estimate given the actual observation at \(i\).
+Note that this observation could be given from a noisy measurement.</p>
+<h3 id="linear-dynamics">Linear Dynamics</h3>
+<p>Assuming linear models, the problem becomes much simpler.
+We can model the observations and state using normal distributions.</p>
+<p>\[
+\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \Sigma)
+\]</p>
+<p>The measurements themselves can be modeled as</p>
+<p>\[
+\mathbf{y}_k \sim \mathcal{N}(\mathcal{B}_k \mathbf{x}_k, \Sigma_k),
+\]</p>
+<p>where \(k\) is the current step.</p>
+<p>In other words, our model does not know the true position and velocity of objects at all times. If this were the case, tracking would be a trivial pursuit. This uncertainty is captured using Gaussian distributions. This is a reasonable assumption to make in many cases. It becomes more complex if we think about acceleration, but we could always model that as well.</p>
+<p>By the way, position and velocity are correlated. If the velocity of the current object is 0, you would probably bet that its position in the next frame will be the same. A covariance matrix tracks this correlation between the variables. The problem is starting to take shape. We have input and observation variables as well as a covariance matrix that defines the relationship between our position and velocity.</p>
+<p>For the future, the model will be represented as</p>
+<p>\begin{align*}
+\mathbf{x}_i &amp;\sim \mathcal{N}(\mathcal{D}_i \mathbf{x}_{i-1}; \Sigma_{d_i})\\
+\mathbf{y}_i &amp;\sim \mathcal{N}(\mathcal{M}_i \mathbf{x}_i; \Sigma_{m_i}).
+\end{align*}</p>
+<p>The mean parameter in both of these look a little strange; we usually see \(\mu\) here. The matrix \(\mathcal{D}_i\), for example, transforms the center of the Gaussian to an updated location. Consider a bird flying through the sky in a relatively straight pattern. Of course, there will be some variation due to external factors or the bird&rsquo;s desire to move about. Modeling this motion with a Gaussian centered at the mean \(\mathbf{x}_{i-1}\) would be insufficient.</p>
+<p>For one, the likelihood that the bird would instantly change course is physically impossible. It could start to turn, but the resolution of our update steps would track this over a sequence of frames. Instead, we transform the value \(\mathbf{x}_{i-1}\) based on our current perception of the bird&rsquo;s movement dynamics. This translates the Gaussian to a new location. It also has the possibility of changing its shape.</p>
+<p>For covering the algorithm, we will use notation following Forsyth and Ponce.
+\(\bar{\mathbf{x}}_i^-\) is the mean of \(P(\mathbf{x}_i|y_0, \dots, y_{i-1})\) and \(\bar{\mathbf{x}}_i^+\) is the mean of \(P(\mathbf{x}_i|y_0, \dots, y_{i})\).
+\(\Sigma_i^-\) and \(\Sigma_i^+\) are the covariances of those distributions.</p>
+<p>However, by making a convenient assumption about the observation model, we will mainly need to focus on the state model.
+That is, the matrix \(\mathcal{M}_i\) is defined so that the mean is simply the state position at step \(i\).</p>
+<p><strong>What does our state represent?</strong></p>
+<p>In a simple model, \(\mathbf{x} = \begin{bmatrix}p_x\\p_y\\v_x\\v_y\end{bmatrix}\).
+That is the 2D position and velocity of the object being tracked.
+The corresponding covariance matrix is \(\mathbf{x}\mathbf{x}^T\).</p>
+<p><strong>How do we predict the position and velocity of the next time step?</strong></p>
+<p>\begin{align*}
+\mathbf{p}_k &amp;= \mathbf{p}_{k-1} + \Delta t \mathbf{v}_{k-1}\\
+\mathbf{v}_k &amp;= \mathbf{v}_{k-1}
+\end{align*}</p>
+<p>This is making a simple, yet surprisingly effective, assumption that the velocity is constant.
+We can write this as a matrix vector product:</p>
+<p>\[
+\mathbf{x}_k = \begin{bmatrix}
+1 &amp; 0 &amp; \Delta t &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; \Delta t\\
+0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\mathbf{x}_{k-1}
+\]</p>
+<p>Compactly, the prediction for step \(t\) is \(\bar{\mathbf{x}}_k^- = \mathcal{D}_i \bar{\mathbf{x}}_{k-1}^+\).</p>
+<p>Since we updated every point \(\mathbf{x}_{k-1}\), we also need to make a prediction about the covariance matrix.
+This is also achieved by multiplying every point by \(\mathcal{D}_i\)</p>
+<p>\[
+\Sigma_{i}^- = \mathcal{D}_i\Sigma_{i-1}^+\mathcal{D}_i^T
+\]</p>
+<p><strong>What if we want to add additional knowledge like acceleration?</strong></p>
+<p>Our position prediction then follows</p>
+<p>\begin{align*}
+\mathbf{p}_i &amp;= \mathbf{p}_{i-1} + \Delta t \mathbf{v}_{i-1} + \frac{1}{2} \Delta t^2 \mathbf{a}_{i-1}\\
+\mathbf{v}_i &amp;= \mathbf{v}_{i-1} + \Delta t \mathbf{a}_{i-1}
+\end{align*}</p>
+<p>We can simplify this and assume constant acceleration, then \(\mathbf{a}_i = \mathbf{a}_{i-1}\).
+The resulting update equation for \(\mathbf{x}_k\) becomes</p>
+<p>\[
+\mathbf{x}_k = \begin{bmatrix}
+1 &amp; 0 &amp; \Delta t &amp; 0 &amp; \frac{1}{2}\Delta t^2 \mathbf{a} &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; \Delta t &amp; 0 &amp; \frac{1}{2}\Delta t^2 \mathbf{a}\\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; \Delta t &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; \Delta t\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}
+\mathbf{x}_{k-1}
+\]</p>
+<p>However, if something like acceleration is a known <strong>control</strong> factor in our system, then it does not need to be part of the state.
+In this case, we could separate the update vector into</p>
+<p>\[
+\mathbf{x}_k = \mathcal{D}_i\mathbf{x}_{k-1} + B_k \mathbf{u}_{k},
+\]</p>
+<p>where \(B_k\) is the <strong>control matrix</strong> and \(\mathbf{u}_k\) is the <strong>control vector</strong>.</p>
+<p>One last consideration is that of uncertainty due to factors outside of our system.
+This can also be modeled using a Gaussian with zero mean and covariance \(\Sigma_d\):</p>
+<p>\[
+\xi_k \sim \mathcal{N}(\mathbf{0}, \Sigma_d).
+\]</p>
+<p>With this added noise, the prediction step becomes</p>
+<p>\begin{align*}
+\bar{\mathbf{x}}_k^- &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
+\Sigma_k^- &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k.
+\end{align*}</p>
+<p>In words, \(\bar{\mathbf{x}}_k^-\) is the prediction of our current state based on the previous best estimate with an added correction term based on known factors (acceleration).
+\(\Sigma_k^-\) is the updated uncertainty based on the old uncertainty with added Gaussian noise to reflect unknown factors.</p>
+<h3 id="making-corrections">Making Corrections</h3>
+<p>As we are tracking an object, we may have some way of getting measurements.
+This could be through an object detector or other physical sensor.
+The new measurement can refine our current set of parameters.
+Kalman filters work well even if the measurement is noisy.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2022-03-10_22-34-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;1D Kalman Filter. Source: Forsyth and Ponce" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>1D Kalman Filter. Source: Forsyth and Ponce
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, the initial prediction has a large amount of uncertainty.
+After updating with the current measurement, the uncertainty is reduced.</p>
+<p>The goal here is to reconcile the uncertainty of our predicted state with the uncertainty of the measurement.
+That is, we want to know the distribution over the union of these two distributions.
+This is achieved by multiplying the Gaussians together.</p>
+<p>\[
+\mathcal{N}(\bar{\mathbf{x}}_i^+, \Sigma_i^+) = \mathcal{N}(\bar{\mathbf{x}}_i^-, \Sigma_i^-) * \mathcal{N}(\mathbf{y}_i, \Sigma_{m_i})
+\]</p>
+<p>Solving for \(\bar{\mathbf{x}}_i^+\) and \(\Sigma_i^+\) yields</p>
+<p>\begin{align*}
+\bar{\mathbf{x}}_i^+ &amp;= \bar{\mathbf{x}}_i^- + \mathcal{K}_i(\mathbf{y}_i - \bar{\mathbf{x}}_i^-)\\
+\Sigma_i^+ &amp;= \Sigma_i^- - \mathcal{K}_i \Sigma_i^-,
+\end{align*}</p>
+<p>where</p>
+<p>\[
+\mathcal{K}_i = \Sigma_i^-(\Sigma_i^- + \Sigma_{m_i})^{-1}.
+\]</p>
+<p>\(\mathcal{K}_i\) is called the <strong>Kalman gain</strong>.</p>
+<p><strong>Let&rsquo;s combine the prediction and correction steps</strong></p>
+<p>We have a state distribution with mean and variance</p>
+<p>\begin{align*}
+\bar{\mathbf{x}}_k^- &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
+\Sigma_k^- &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k
+\end{align*}</p>
+<p>as well as an observation distribution with mean and variance \(\mathbf{y}_k\) and \(\Sigma_{m_k}\).</p>
+<p>Plugging these into the update equations yield</p>
+<p>\begin{align*}
+\bar{\mathbf{x}}_i^+ &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + \mathcal{K}_i(\mathbf{y}_i - \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+)\\
+\Sigma_i^+ &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T - \mathcal{K}_i \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T,
+\end{align*}</p>
+<p>where</p>
+<p>\[
+\mathcal{K}_i = \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T(\mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \Sigma_{m_i})^{-1}.
+\]</p>
+
     </div>
 
     
