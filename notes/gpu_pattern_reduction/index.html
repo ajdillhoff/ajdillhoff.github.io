@@ -613,7 +613,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         }
 }
 </code></pre><p>Each thread is assigned to a single write location <code>2 * threadIdx.x</code>. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.</p>
-<p><strong>TODO: Visualization of kernel execution</strong></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-03_19-24-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Execution of kernel reduction (Source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Execution of kernel reduction (Source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <p>You can see that the kernel is simple, but it is also inefficient. There is a great deal of control divergence that will be addressed in the next section.</p>
 <h2 id="minimizing-control-divergence">Minimizing Control Divergence</h2>
 <p>As we just saw, the key to optimizing a reduction kernel is to minimize control divergence and make sure as many threads stay active as possible. A warp of 32 threads would consume the execution resources even if half of them are inactive. As each stage of the reduction tree is completed, the amount of wasted resources increases. Depending on the input size, entire warps could be launched and then immediately become inactive.</p>
@@ -625,7 +648,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 <p>For an input of size \(N = 1024\), the number of resources consumed is \((80 + 8 + 4 + 2 + 1) * 32 = 3040\). The total number of results committed by the active threads is equal to the number of operations performed, which is \(N - 1 = 1023\). The efficiency of the kernel is then \(\frac{1023}{3040} = 0.34\). Only around 34% of the resources are used to perform the reduction.</p>
 <h3 id="rearranging-the-threads">Rearranging the Threads</h3>
 <p>A simple rearrangement of where the active results are stored can improve the efficiency of the kernel by reducing control divergence. The idea is to keep the threads that own the results of the reduction close together. Instead of increasing the stride, it should be decreased. The figure below shows the rearrangement of the threads.</p>
-<p><strong>TODO: Visualization of rearranged kernel execution</strong></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-03_21-28-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Optimized reduction kernel execution (Source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Optimized reduction kernel execution (Source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceKernel(float *input, float *output) {
     unsigned int i = threadIdx.x;
 
@@ -647,7 +693,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 <p>At each iteration, half of warps become inactive and no longer consume resources. The last warp will consume execution resources for all 32 threads, even though the number of active threads is less than 32. For our input of size \(N = 1024\), the number of resources consumed is \((16 + 8 + 4 + 2 + 1 + 5) * 32 = 1152\), resulting in an efficiency of \(\frac{1023}{1152} = 0.89\). This is a significant improvement over the original kernel. This will increase based on the input size.</p>
 <h2 id="memory-divergence-of-reduction">Memory Divergence of Reduction</h2>
 <p>Does this kernel take advantage of memory coalescing? Each thread reads and writes from and to its <em>assigned</em> location. It also makes a read from a location that is a stride away. These locations are certainly not adjacent and will not be coalesced.</p>
-<p>Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separate of <code>stride</code>, the <code>64 * 4</code> bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.</p>
+<p>Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separation of <code>stride</code>, the <code>64 * 4</code> bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.</p>
 <p>The convergent kernel from the last section takes advantage of memory coalescing, leading to fewer memory requests.</p>
 <h2 id="reducing-the-number-of-global-memory-requests">Reducing the number of global memory requests</h2>
 <p>As we saw with tiling in <a href="/notes/gpu_performance_basics/">GPU Performance Basics</a>, we can reduce the number of global memory requests by using shared memory. Threads write their results to global memory, which is read again in the next iteration. By keeping the intermediate results in shared memory, we can reduce the number of global memory requests. If implemented correctly, only the original input values will need to be read from global memory.</p>
@@ -671,7 +717,6 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 <p>This approach not only requires fewer global memory requests, but the original input is left unmodified.</p>
 <h2 id="hierarchical-reduction">Hierarchical Reduction</h2>
 <p>One major assumption that has been made in each of these kernels is that they are running on a single block. Thread synchronization is critical to the success of the reduction. If we want to reduce a larger number of input across multiple blocks, the kernel should allow for independent execution. This is achieved by segmenting the input and performing a reduction on each segment. The final reduction is then performed on the results of the segment reductions.</p>
-<p><strong>TODO: Visualization of hierarchical reduction</strong></p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceHierarchicalKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     unsigned int segment = 2 * blockDim.x * blockIdx.x;
@@ -692,8 +737,8 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 }
 </code></pre><p>Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.</p>
 <h2 id="thread-coarsening-back-again">Thread Coarsening - Back Again</h2>
-<p>Thread coarsening was first analyzed in the context of matrix multiplication in <a href="/notes/gpu_performance_basics/">GPU Performance Basics</a>. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improve data locality.</p>
-<p>For reduction, successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.</p>
+<p>Thread coarsening was first analyzed in the context of matrix multiplication in <a href="/notes/gpu_performance_basics/">GPU Performance Basics</a>. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improved data locality.</p>
+<p>Successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ coarsenedSumReductionKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     uint segment = COARSE_FACTOR * 2 * blockDim.x * blockIdx.x;
@@ -717,8 +762,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         atomicAdd(output, input_s[0]);
     }
 }
-</code></pre><p><strong><strong>TODO: Add visualization of thread coarsening</strong></strong></p>
-<p>In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.</p>
+</code></pre><p>In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.</p>
 
     </div>
 

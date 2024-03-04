@@ -560,14 +560,11 @@ Histograms Examples of histograms include: Frequency of words in a document Dist
 <p>These notes follow the presentation of the parallel histogram pattern in the book <strong>Programming Massively Parallel Processors: A Hands-on Approach</strong> (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).</p>
 <h2 id="histograms">Histograms</h2>
 <ul>
-<li>Examples of histograms include:
-<ul>
+<li>Examples of histograms include:</li>
 <li>Frequency of words in a document</li>
 <li>Distribution of pixel intensities in an image</li>
 <li>Distribution of particle energies in a physics simulation</li>
 <li>Distribution of thread block execution times in a GPU kernel</li>
-</ul>
-</li>
 </ul>
 <p>Consider the program below which computes a histogram of the letters in a string. The input is assumed to be lower case.
 Since this is executed sequentially, there is no risk of multiple threads writing to the same memory location at the same time.</p>
@@ -580,7 +577,7 @@ Since this is executed sequentially, there is no risk of multiple threads writin
 <h3 id="race-conditions">Race Conditions</h3>
 <p>For example, thread 1 and thread 2 may have the letter &lsquo;a&rsquo; as their input. They will both issue a <em>read-modify-write</em> procedure where the current value of the histogram is read, incremented, and then written back to memory. If thread 1 reads the value of the histogram before thread 2 writes to it, the value that thread 1 writes back will be incorrect. This is a classic example of a <em>race condition</em>. Depending on the timing, one thread could have read the updated value from the other thread, or both threads could have read the same value and incremented it, resulting in a loss of data.</p>
 <h3 id="atomic-operations">Atomic Operations</h3>
-<p>One solution to this problem is to perform atomic operations. This is a special type of operations that locks a memory location while it is being updated. This prevents other thread from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.</p>
+<p>One solution to this problem is to perform atomic operations. This is a special type of operation that locks a memory location while it is being updated. This prevents other threads from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.</p>
 <p>The CUDA API provides several atomic operations:</p>
 <ul>
 <li><code>atomicAdd</code></li>
@@ -752,7 +749,7 @@ __global__ void histogram_privatized_ic(char *data, unsigned int length, unsigne
         }
     }
 }
-</code></pre><p>In the code above, the main difference is the second <code>for</code> loop. The index <code>i</code> is incremented by <code>blockDim.x * gridDim.x</code>. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures above and below.</p>
+</code></pre><p>In the code above, the main difference is the second <code>for</code> loop. The index <code>i</code> is incremented by <code>blockDim.x * gridDim.x</code>. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures.</p>
 <h2 id="aggregation">Aggregation</h2>
 <p>It is not uncommon that the input data will have a skewed distribution. There may be sections of the input that are locally dense. This will lead to a large number of atomic operations within a small area. To reduce the number of atomic operations, the input can be aggregated into a larger update before being committed to the global histogram. Consider the code below.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void histogram_aggregate(char *data, unsigned int length, unsigned int *histo) {

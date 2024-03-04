@@ -7,10 +7,257 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sat, 24 Feb 2024 14:10:00 -0600</lastBuildDate>
+    <lastBuildDate>Tue, 27 Feb 2024 19:12:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Substitution Method</title>
+      <link>https://ajdillhoff.github.io/notes/substitution_method/</link>
+      <pubDate>Tue, 27 Feb 2024 19:12:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/substitution_method/</guid>
+      <description>&lt;p&gt;The &lt;strong&gt;substitution method&lt;/strong&gt; is a technique for solving recurrences. It works in two steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Guess the solution&lt;/li&gt;
+&lt;li&gt;Use mathematical induction to verify the guess&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;This can work very well, especially if we already have some intuition about the problem. Let&amp;rsquo;s start with a simple example: The Tower of Hanoi. In this classic puzzle, we have three pegs and a number of disks of different sizes which can slide onto any peg. The puzzle starts with the disks in a neat stack in ascending order of size on one peg, with the smallest disk on top. The objective is to move the entire stack to another peg, obeying the following rules:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Only one disk can be moved at a time&lt;/li&gt;
+&lt;li&gt;Each move consists of taking the top disk from one of the stacks and placing it on top of another stack&lt;/li&gt;
+&lt;li&gt;No disk may be placed on top of a smaller disk&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The number of moves required to solve the Tower of Hanoi puzzle is given by the recurrence relation \(T(n) = 2T(n-1) + 1\) with the initial condition \(T(1) = 1\). We can solve this recurrence using the substitution method.&lt;/p&gt;
+&lt;p&gt;Our hypothesis might be that \(T(n) \leq c2^n\) for all \(n \geq n_0\), where \(c &amp;gt; 0\) and \(n_0 &amp;gt; 0\). For the base case, we have \(T(1) = c * 2^1 = 1\), so \(c = 1/2\). Now we need to show that \(T(n) \leq c2^n\) for all \(n \geq n_0\). We assume that \(T(k) \leq c2^k\) for all \(k &amp;lt; n\). Then we have:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\leq 2T(n-1) + 1 \\
+&amp;amp;\leq 2\left(\frac{2^{n-1}}{2}\right) + 1 \\
+&amp;amp;= 2^n - 1 \\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;What if we made a bad guess? Let&amp;rsquo;s try \(T(n) \leq cn\) for all \(n \geq n_0\). We have \(T(1) = c = 1\), so \(c = 1\). Now we need to show that \(T(n) \leq cn\) for all \(n \geq n_0\). We assume that \(T(k) \leq ck\) for all \(k &amp;lt; n\). Then we have:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\leq 2T(n-1) + 1 \\
+&amp;amp;\leq 2c(n-1) + 1 \\
+&amp;amp;= 2cn - 2c + 1 \\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This does not work because \(2cn - 2c + 1 &amp;gt; cn\) for all \(c &amp;gt; 1\). Therefore, our guess was wrong.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Quicksort</title>
+      <link>https://ajdillhoff.github.io/notes/quicksort/</link>
+      <pubDate>Sun, 25 Feb 2024 17:24:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/quicksort/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#basic-quicksort&#34;&gt;Basic Quicksort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#performance&#34;&gt;Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#randomized-quicksort&#34;&gt;Randomized Quicksort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#paranoid-quicksort&#34;&gt;Paranoid Quicksort&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Quicksort is a popular sorting algorithm implemented in many language libraries that has a worst-case running time of \(\Theta(n^2)\). &lt;strong&gt;Why would anyone choose this as the default sorting algorithm if one like mergesort has better worst-case performance?&lt;/strong&gt; As you will see, the devil is in the details. Quicksort is often faster in practice. It also has a small memory footprint and is easy to implement.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TODO: Discuss distinct values and the impact on quicksort&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;basic-quicksort&#34;&gt;Basic Quicksort&lt;/h2&gt;
+&lt;p&gt;Quicksort follows a divide-and-conquer approach to sorting. Given an input array of \(n\) elements, it selects a pivot element and partitions the array into two sub-arrays: one with elements less than the pivot and one with elements greater than the pivot. It then recursively sorts the sub-arrays. Since the subarrays are recursively sorted, there is no need for a merge step as in mergesort.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;quicksort&lt;/span&gt;(arr, p, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; partition(arr, p, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    quicksort(arr, p, q &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    quicksort(arr, q &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, r)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This algorithm looks deceptively simple. The complexity is hidden in the partitioning step. This procedure will rearrange the elements in the array such that the pivot element is in its final position and all elements less than the pivot are to the left of it and all elements greater than the pivot are to the right of it.&lt;/p&gt;
+&lt;h3 id=&#34;partitioning&#34;&gt;Partitioning&lt;/h3&gt;
+&lt;p&gt;For basic quicksort, the first or last element is chosen as the pivot. Picking it this way yields a fairly obvious recurrence of \(T(n) = T(n-1) + O(n)\), which is \(\Theta(n^2)\). As mentioned before, this algorithm is executed in-place, meaning there is no need for additional memory to store the sub-arrays. It is done through a clever use of indices.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;partition&lt;/span&gt;(arr, p, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; arr[r]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(p, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; arr[j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; x:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            arr[i], arr[j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; arr[j], arr[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    arr[i &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;], arr[r] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; arr[r], arr[i &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The indices are used to define the following loop invariant.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Left:&lt;/strong&gt; if \(p \leq k \leq i\), then \(A[k] \leq x\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Middle:&lt;/strong&gt; if \(i + 1 \leq k \leq j - 1\), then \(A[k] &amp;gt; x\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Right:&lt;/strong&gt; if \(k = r\), then \(A[k] = x\)&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-25_19-18-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Operation of partition (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Operation of partition (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above is from CRLS which shows an example run of the partitioning algorithm. It starts with \(i, p, j\) on the left and \(r\) on the right. Since the value at \(j\) is less than the pivot, \(i\) is incremented and the values at \(i\) and \(j\) are swapped. In the next iteration, the value at \(j\) is greater than the pivot, so nothing is done. This continues until \(j\) reaches \(r\). At this point, the pivot is swapped with the value at \(i + 1\).&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-26_16-34-22_Quicksort%20Example.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Example of Quicksort.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Example of Quicksort.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The example above starts with an unsorted array. The second row shows the array after the first call to &lt;code&gt;partition&lt;/code&gt;. The left and right subarrays are called recursively. The first subarray in row 3 has a pivot 3 and is already partitioned. The right subarray follows the same convenience.&lt;/p&gt;
+&lt;p&gt;On row 4, the left subarray is modified by swapping the pivot of 2 with 1. The right subarray first swaps 5 and 7 before swapping 6 and 7. The final array is sorted as shown on the last row.&lt;/p&gt;
+&lt;h2 id=&#34;performance&#34;&gt;Performance&lt;/h2&gt;
+&lt;p&gt;The performance of quicksort is dependent on the pivot. If the subarrays on either side of the pivot are balanced, the running time is asymptotically similar to mergesort. In the worst case, it will run in quadratic time.&lt;/p&gt;
+&lt;p&gt;The worst partitioning occurs when the pivot is the smallest or largest element in the array. This creates a subarray of size \(n - 1\) and another of size 0. The partitioning itself takes \(\Theta(n)\) time, yielding a recurrence of \(T(n) = T(n - 1) + \Theta(n)\). We can use the substitution method to solve this recurrence and find that the worst-case running time is \(\Theta(n^2)\). This can happen even if the input is already sorted before hand.&lt;/p&gt;
+&lt;p&gt;Cormen et al. present a recursive analysis of the running time where, at each level, the partition produces a 9-to-1 split. This is visualized in the sketch below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-02-26_18-20-51_Quicksort%20Recursion%2001%20Artboard%201%20%282%29.jpg&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Recursion tree for quicksort.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Recursion tree for quicksort.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The subtree for the \(\frac{1}{10}\) split eventually bottoms out after being called \(\log_{10} n\) times. Until this happens, the cost of each level of the tree is \(n\). After the left-tree bottoms out, the right tree continues with an upper bound of \(\leq n\). The right tree completes after \(\log_{10/9} n = \Theta(\lg n)\) levels. Since each level of the tree cost no more than \(n\), the total cost is \(\Theta(n \lg n)\).&lt;/p&gt;
+&lt;h3 id=&#34;best-case&#34;&gt;Best Case&lt;/h3&gt;
+&lt;p&gt;In the best-case, the pivot is the median of the array and two balanced subarrays are created: one of size \(n/2\) and another of size \(\lfloor (n-1)/2 \rfloor\). The recurrence is \(T(n) = 2T(n/2) + \Theta(n)\), which is \(\Theta(n \log n)\).&lt;/p&gt;
+&lt;p&gt;Using the substitution method, we can show the best-case running time. We start with the fact that the partitioning produces two subproblems with a total size of \(n-1\). This gives the following recurrence:&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = \min_{0 \leq q \leq n-1} \{T(q) + T(n - q - 1)\} + \Theta(n).
+\]&lt;/p&gt;
+&lt;p&gt;The minimum function accounts for the minimum time taken to sort any partition of the array, where \(q\) represents the pivot element&amp;rsquo;s position.&lt;/p&gt;
+&lt;p&gt;Our &lt;strong&gt;hypothesis&lt;/strong&gt; will be that&lt;/p&gt;
+&lt;p&gt;\[
+T(n) \geq cn \lg n = \Omega(n \lg n).
+\]&lt;/p&gt;
+&lt;p&gt;Plugging in our hypothesis, we get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\geq \min_{0 \leq q \leq n-1} \{cq \lg q + c(n - q - 1) \lg (n - q - 1)\} + \Theta(n) \\
+&amp;amp; c \min_{0 \leq q \leq n-1} \{q \lg q + (n - q - 1) \lg (n - q - 1)\} + \Theta(n).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;If we take the derivative of the function inside the minimum with respect to \(q\), we get&lt;/p&gt;
+&lt;p&gt;\[
+\frac{d}{dq} \{q \lg q + (n - q - 1) \lg (n - q - 1)\} = c\{\frac{q}{q} + \lg q - \lg (n - q - 1) - \frac{(n - q - 1)}{(n - q - 1)}\}.
+\]&lt;/p&gt;
+&lt;p&gt;Setting this equal to zero and solving for \(q\) yields&lt;/p&gt;
+&lt;p&gt;\[
+q = \frac{n - 1}{2}.
+\]&lt;/p&gt;
+&lt;p&gt;We can then plug this value of \(q\) into the original function to get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\geq c \frac{n - 1}{2} \lg \frac{n - 1}{2} + c \frac{n - 1}{2} \lg \frac{n - 1}{2} + \Theta(n) \\
+&amp;amp;= cn \lg (n - 1) + c (n - 1) + \Theta(n) \\
+&amp;amp;= cn \lg (n - 1) + \Theta(n) \\
+&amp;amp;\geq cn \lg n \\
+&amp;amp;= \Omega(n \lg n).
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;average-case&#34;&gt;Average Case&lt;/h3&gt;
+&lt;p&gt;As it turns out, the average-case running time is \(\Theta(n \log n)\) (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). Quicksort is highly dependent on the relative ordering of the input. Consider the case of a randomly ordered array. The cost of partitioning the original input is \(O(n)\). Let&amp;rsquo;s say that the pivot was the last element, yielding a split of 0 and \(n - 1\). Now, let&amp;rsquo;s say we get lucky on the next iteration and get a balanced split. Even if the rest of the algorithm splits between the median and the last element, the upper bound on the running time is \(\Theta(n \log n)\). It is highly unlikely that the split will be unbalanced on every iteration given a random initial ordering.&lt;/p&gt;
+&lt;p&gt;We can make this a tad more formal by defining a lucky \(L(n) = 2U(n/2) + \Theta(n)\) and an unlucky split \(U(n) = L(n-1) + \Theta(n)\). We can solve for \(L(n)\) by plugging in the definition of \(U(n)\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+L(n) &amp;amp;= 2U(n/2) + \Theta(n) \\
+&amp;amp;= 2(L(n/2 - 1) + \Theta(n/2)) + \Theta(n) \\
+&amp;amp;= 2L(n/2 - 1) + \Theta(n) \\
+&amp;amp;= \Theta(n \log n)
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;randomized-quicksort&#34;&gt;Randomized Quicksort&lt;/h2&gt;
+&lt;p&gt;The intuition of the crude analysis above is that we would have to be extremely unlucky to get a quadratic running time if the input is randomly ordered. Randomized quicksort builds on this intuition by selection a random pivot on each iteration. This is done by swapping the pivot with a random element before partitioning.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; random
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;randomized_partition&lt;/span&gt;(arr, p, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; random&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;randint(p, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    arr[i], arr[r] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; arr[r], arr[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; partition(arr, p, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;randomized_quicksort&lt;/span&gt;(arr, p, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; r:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; randomized_partition(arr, p, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        randomized_quicksort(arr, p, q &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        randomized_quicksort(arr, q &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, r)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;The lightweight analysis above reasoned that, as long as each split puts a constant amount of elements to one side of the split, then the running time is \(\Theta(n \log n)\).&lt;/p&gt;
+&lt;p&gt;We can understand this analysis simply by asking the right questions. First, our primary question: &lt;strong&gt;What is the running time of Quicksort dependent on?&lt;/strong&gt; The biggest bottleneck is the partitioning function. At most, we get really unlucky and the first pivot is picked every time. This means it is called \(n\) times yielding \(O(n)\). The variable part of this is figuring out how many element comparisons are made. The running time is then \(O(n + X)\).&lt;/p&gt;
+&lt;h4 id=&#34;the-expected-value-of-x&#34;&gt;The Expected Value of \(X\)&lt;/h4&gt;
+&lt;p&gt;The number of comparisons can be expressed as&lt;/p&gt;
+&lt;p&gt;\[
+X = \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} X_{ij},
+\]&lt;/p&gt;
+&lt;p&gt;where \(X_{ij}\) is the indicator random variable that is 1 if \(A[i]\) and \(A[j]\) are compared and 0 otherwise. This works with our worst case analysis. If we always get a split of 0 and \(n - 1\), then the indicator random variable is 1 for every comparison, yielding \(O(n^2)\). Taking the expectation of both sides:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+E[X] &amp;amp;= E\left[\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} X_{ij}\right] \\
+&amp;amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} E[X_{ij}] \\
+&amp;amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} P(X_{ij} = 1).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What is P(X&lt;sub&gt;ij&lt;/sub&gt; = 1)?&lt;/strong&gt; Let \(z_i, \dots, z_j\) be the indices of elements in a sorted version of the array. Under this assumption, \(z_i\) is compared to \(z_j\) only if \(z_i\) or \(z_j\) is the first pivot chosen from the subarray \(A[i \dots j]\). In a set of distinct elements, the probability of picking any pivot from the array from \(i\) to \(j\) is \(\frac{1}{j - i + 1}\). This means that the probability of comparing \(z_i\) and \(z_j\) is \(\frac{2}{j - i + 1}\). We can now finish the calculation.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+E[X] &amp;amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \frac{2}{j - i + 1} \\
+&amp;amp;= \sum_{i=1}^{n-1} \sum_{k=1}^{n-i} \frac{2}{k + 1} \\
+&amp;amp;&amp;lt; \sum_{i=1}^{n-1} \sum_{k=1}^{n-i} \frac{2}{k} \\
+&amp;amp;= \sum_{i=1}^{n-1} O(\log n) \\
+&amp;amp;= O(n \log n).
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;paranoid-quicksort&#34;&gt;Paranoid Quicksort&lt;/h2&gt;
+&lt;p&gt;Repeat the following until the partitioning until the left or right subarray is less than or equal to \(\frac{3}{4}\) of the original array.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Choose a random pivot.&lt;/li&gt;
+&lt;li&gt;Partition the array.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Priority Queues</title>
@@ -651,7 +898,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each thread is assigned to a single write location &lt;code&gt;2 * threadIdx.x&lt;/code&gt;. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of kernel execution&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-03_19-24-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Execution of kernel reduction (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Execution of kernel reduction (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;You can see that the kernel is simple, but it is also inefficient. There is a great deal of control divergence that will be addressed in the next section.&lt;/p&gt;
 &lt;h2 id=&#34;minimizing-control-divergence&#34;&gt;Minimizing Control Divergence&lt;/h2&gt;
 &lt;p&gt;As we just saw, the key to optimizing a reduction kernel is to minimize control divergence and make sure as many threads stay active as possible. A warp of 32 threads would consume the execution resources even if half of them are inactive. As each stage of the reduction tree is completed, the amount of wasted resources increases. Depending on the input size, entire warps could be launched and then immediately become inactive.&lt;/p&gt;
@@ -663,7 +933,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;For an input of size \(N = 1024\), the number of resources consumed is \((80 + 8 + 4 + 2 + 1) * 32 = 3040\). The total number of results committed by the active threads is equal to the number of operations performed, which is \(N - 1 = 1023\). The efficiency of the kernel is then \(\frac{1023}{3040} = 0.34\). Only around 34% of the resources are used to perform the reduction.&lt;/p&gt;
 &lt;h3 id=&#34;rearranging-the-threads&#34;&gt;Rearranging the Threads&lt;/h3&gt;
 &lt;p&gt;A simple rearrangement of where the active results are stored can improve the efficiency of the kernel by reducing control divergence. The idea is to keep the threads that own the results of the reduction close together. Instead of increasing the stride, it should be decreased. The figure below shows the rearrangement of the threads.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of rearranged kernel execution&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-03_21-28-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Optimized reduction kernel execution (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Optimized reduction kernel execution (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceKernel(float *input, float *output) {
     unsigned int i = threadIdx.x;
 
@@ -685,7 +978,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;At each iteration, half of warps become inactive and no longer consume resources. The last warp will consume execution resources for all 32 threads, even though the number of active threads is less than 32. For our input of size \(N = 1024\), the number of resources consumed is \((16 + 8 + 4 + 2 + 1 + 5) * 32 = 1152\), resulting in an efficiency of \(\frac{1023}{1152} = 0.89\). This is a significant improvement over the original kernel. This will increase based on the input size.&lt;/p&gt;
 &lt;h2 id=&#34;memory-divergence-of-reduction&#34;&gt;Memory Divergence of Reduction&lt;/h2&gt;
 &lt;p&gt;Does this kernel take advantage of memory coalescing? Each thread reads and writes from and to its &lt;em&gt;assigned&lt;/em&gt; location. It also makes a read from a location that is a stride away. These locations are certainly not adjacent and will not be coalesced.&lt;/p&gt;
-&lt;p&gt;Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separate of &lt;code&gt;stride&lt;/code&gt;, the &lt;code&gt;64 * 4&lt;/code&gt; bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.&lt;/p&gt;
+&lt;p&gt;Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separation of &lt;code&gt;stride&lt;/code&gt;, the &lt;code&gt;64 * 4&lt;/code&gt; bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.&lt;/p&gt;
 &lt;p&gt;The convergent kernel from the last section takes advantage of memory coalescing, leading to fewer memory requests.&lt;/p&gt;
 &lt;h2 id=&#34;reducing-the-number-of-global-memory-requests&#34;&gt;Reducing the number of global memory requests&lt;/h2&gt;
 &lt;p&gt;As we saw with tiling in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;, we can reduce the number of global memory requests by using shared memory. Threads write their results to global memory, which is read again in the next iteration. By keeping the intermediate results in shared memory, we can reduce the number of global memory requests. If implemented correctly, only the original input values will need to be read from global memory.&lt;/p&gt;
@@ -709,7 +1002,6 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;This approach not only requires fewer global memory requests, but the original input is left unmodified.&lt;/p&gt;
 &lt;h2 id=&#34;hierarchical-reduction&#34;&gt;Hierarchical Reduction&lt;/h2&gt;
 &lt;p&gt;One major assumption that has been made in each of these kernels is that they are running on a single block. Thread synchronization is critical to the success of the reduction. If we want to reduce a larger number of input across multiple blocks, the kernel should allow for independent execution. This is achieved by segmenting the input and performing a reduction on each segment. The final reduction is then performed on the results of the segment reductions.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of hierarchical reduction&lt;/strong&gt;&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceHierarchicalKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     unsigned int segment = 2 * blockDim.x * blockIdx.x;
@@ -730,8 +1022,8 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.&lt;/p&gt;
 &lt;h2 id=&#34;thread-coarsening-back-again&#34;&gt;Thread Coarsening - Back Again&lt;/h2&gt;
-&lt;p&gt;Thread coarsening was first analyzed in the context of matrix multiplication in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improve data locality.&lt;/p&gt;
-&lt;p&gt;For reduction, successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.&lt;/p&gt;
+&lt;p&gt;Thread coarsening was first analyzed in the context of matrix multiplication in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improved data locality.&lt;/p&gt;
+&lt;p&gt;Successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ coarsenedSumReductionKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     uint segment = COARSE_FACTOR * 2 * blockDim.x * blockIdx.x;
@@ -755,8 +1047,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         atomicAdd(output, input_s[0]);
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;&lt;strong&gt;TODO: Add visualization of thread coarsening&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.&lt;/p&gt;
 </description>
     </item>
     
@@ -880,14 +1171,11 @@ T(n) = aT(n/b) + f(n),
 &lt;p&gt;These notes follow the presentation of the parallel histogram pattern in the book &lt;strong&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/strong&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;histograms&#34;&gt;Histograms&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;Examples of histograms include:
-&lt;ul&gt;
+&lt;li&gt;Examples of histograms include:&lt;/li&gt;
 &lt;li&gt;Frequency of words in a document&lt;/li&gt;
 &lt;li&gt;Distribution of pixel intensities in an image&lt;/li&gt;
 &lt;li&gt;Distribution of particle energies in a physics simulation&lt;/li&gt;
 &lt;li&gt;Distribution of thread block execution times in a GPU kernel&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Consider the program below which computes a histogram of the letters in a string. The input is assumed to be lower case.
 Since this is executed sequentially, there is no risk of multiple threads writing to the same memory location at the same time.&lt;/p&gt;
@@ -900,7 +1188,7 @@ Since this is executed sequentially, there is no risk of multiple threads writin
 &lt;h3 id=&#34;race-conditions&#34;&gt;Race Conditions&lt;/h3&gt;
 &lt;p&gt;For example, thread 1 and thread 2 may have the letter &amp;lsquo;a&amp;rsquo; as their input. They will both issue a &lt;em&gt;read-modify-write&lt;/em&gt; procedure where the current value of the histogram is read, incremented, and then written back to memory. If thread 1 reads the value of the histogram before thread 2 writes to it, the value that thread 1 writes back will be incorrect. This is a classic example of a &lt;em&gt;race condition&lt;/em&gt;. Depending on the timing, one thread could have read the updated value from the other thread, or both threads could have read the same value and incremented it, resulting in a loss of data.&lt;/p&gt;
 &lt;h3 id=&#34;atomic-operations&#34;&gt;Atomic Operations&lt;/h3&gt;
-&lt;p&gt;One solution to this problem is to perform atomic operations. This is a special type of operations that locks a memory location while it is being updated. This prevents other thread from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.&lt;/p&gt;
+&lt;p&gt;One solution to this problem is to perform atomic operations. This is a special type of operation that locks a memory location while it is being updated. This prevents other threads from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.&lt;/p&gt;
 &lt;p&gt;The CUDA API provides several atomic operations:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;atomicAdd&lt;/code&gt;&lt;/li&gt;
@@ -1072,7 +1360,7 @@ __global__ void histogram_privatized_ic(char *data, unsigned int length, unsigne
         }
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the code above, the main difference is the second &lt;code&gt;for&lt;/code&gt; loop. The index &lt;code&gt;i&lt;/code&gt; is incremented by &lt;code&gt;blockDim.x * gridDim.x&lt;/code&gt;. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures above and below.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the code above, the main difference is the second &lt;code&gt;for&lt;/code&gt; loop. The index &lt;code&gt;i&lt;/code&gt; is incremented by &lt;code&gt;blockDim.x * gridDim.x&lt;/code&gt;. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures.&lt;/p&gt;
 &lt;h2 id=&#34;aggregation&#34;&gt;Aggregation&lt;/h2&gt;
 &lt;p&gt;It is not uncommon that the input data will have a skewed distribution. There may be sections of the input that are locally dense. This will lead to a large number of atomic operations within a small area. To reduce the number of atomic operations, the input can be aggregated into a larger update before being committed to the global histogram. Consider the code below.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void histogram_aggregate(char *data, unsigned int length, unsigned int *histo) {
@@ -1671,7 +1959,7 @@ Find &amp;ldquo;median of medians&amp;rdquo; as \(X\)&lt;/p&gt;
         inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every threads collectively store the previous and next planes in registers.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every thread collectively store the previous and next planes in registers.&lt;/p&gt;
 &lt;p&gt;The larger the stencil size, the more registers are required per thread. In this case, a tradeoff between shared memory space and register usage could be made. This will be explored in your lab.&lt;/p&gt;
 &lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
 &lt;p&gt;Stencils are a useful pattern for solving differential equations. They have some similarities to convolutions, but present unique challenges in terms of optimization. The sparsity of the pattern means that shared memory is not as effective as it is for convolutions. Thread coarsening and register tiling are two techniques that can be used to improve performance.&lt;/p&gt;

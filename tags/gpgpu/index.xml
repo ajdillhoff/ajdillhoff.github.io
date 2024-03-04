@@ -400,7 +400,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each thread is assigned to a single write location &lt;code&gt;2 * threadIdx.x&lt;/code&gt;. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of kernel execution&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-03_19-24-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Execution of kernel reduction (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Execution of kernel reduction (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;You can see that the kernel is simple, but it is also inefficient. There is a great deal of control divergence that will be addressed in the next section.&lt;/p&gt;
 &lt;h2 id=&#34;minimizing-control-divergence&#34;&gt;Minimizing Control Divergence&lt;/h2&gt;
 &lt;p&gt;As we just saw, the key to optimizing a reduction kernel is to minimize control divergence and make sure as many threads stay active as possible. A warp of 32 threads would consume the execution resources even if half of them are inactive. As each stage of the reduction tree is completed, the amount of wasted resources increases. Depending on the input size, entire warps could be launched and then immediately become inactive.&lt;/p&gt;
@@ -412,7 +435,30 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;For an input of size \(N = 1024\), the number of resources consumed is \((80 + 8 + 4 + 2 + 1) * 32 = 3040\). The total number of results committed by the active threads is equal to the number of operations performed, which is \(N - 1 = 1023\). The efficiency of the kernel is then \(\frac{1023}{3040} = 0.34\). Only around 34% of the resources are used to perform the reduction.&lt;/p&gt;
 &lt;h3 id=&#34;rearranging-the-threads&#34;&gt;Rearranging the Threads&lt;/h3&gt;
 &lt;p&gt;A simple rearrangement of where the active results are stored can improve the efficiency of the kernel by reducing control divergence. The idea is to keep the threads that own the results of the reduction close together. Instead of increasing the stride, it should be decreased. The figure below shows the rearrangement of the threads.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of rearranged kernel execution&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-03_21-28-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Optimized reduction kernel execution (Source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Optimized reduction kernel execution (Source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceKernel(float *input, float *output) {
     unsigned int i = threadIdx.x;
 
@@ -434,7 +480,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;At each iteration, half of warps become inactive and no longer consume resources. The last warp will consume execution resources for all 32 threads, even though the number of active threads is less than 32. For our input of size \(N = 1024\), the number of resources consumed is \((16 + 8 + 4 + 2 + 1 + 5) * 32 = 1152\), resulting in an efficiency of \(\frac{1023}{1152} = 0.89\). This is a significant improvement over the original kernel. This will increase based on the input size.&lt;/p&gt;
 &lt;h2 id=&#34;memory-divergence-of-reduction&#34;&gt;Memory Divergence of Reduction&lt;/h2&gt;
 &lt;p&gt;Does this kernel take advantage of memory coalescing? Each thread reads and writes from and to its &lt;em&gt;assigned&lt;/em&gt; location. It also makes a read from a location that is a stride away. These locations are certainly not adjacent and will not be coalesced.&lt;/p&gt;
-&lt;p&gt;Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separate of &lt;code&gt;stride&lt;/code&gt;, the &lt;code&gt;64 * 4&lt;/code&gt; bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.&lt;/p&gt;
+&lt;p&gt;Adjacent threads do not access adjacent locations. The warp itself is unable to coalesce the thread requests into a single global memory request. Each data element is 4 bytes. Since each of the 32 threads in a warp are accessing their assigned locations with a separation of &lt;code&gt;stride&lt;/code&gt;, the &lt;code&gt;64 * 4&lt;/code&gt; bytes will require two 128 byte memory requests to access the data. With each iteration, the assigned locations will always be separated such that two 128 byte memory requests will need to be made. Only on the last iteration, where only a single thread accesses a single assigned location, will a single memory request be made.&lt;/p&gt;
 &lt;p&gt;The convergent kernel from the last section takes advantage of memory coalescing, leading to fewer memory requests.&lt;/p&gt;
 &lt;h2 id=&#34;reducing-the-number-of-global-memory-requests&#34;&gt;Reducing the number of global memory requests&lt;/h2&gt;
 &lt;p&gt;As we saw with tiling in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;, we can reduce the number of global memory requests by using shared memory. Threads write their results to global memory, which is read again in the next iteration. By keeping the intermediate results in shared memory, we can reduce the number of global memory requests. If implemented correctly, only the original input values will need to be read from global memory.&lt;/p&gt;
@@ -458,7 +504,6 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;This approach not only requires fewer global memory requests, but the original input is left unmodified.&lt;/p&gt;
 &lt;h2 id=&#34;hierarchical-reduction&#34;&gt;Hierarchical Reduction&lt;/h2&gt;
 &lt;p&gt;One major assumption that has been made in each of these kernels is that they are running on a single block. Thread synchronization is critical to the success of the reduction. If we want to reduce a larger number of input across multiple blocks, the kernel should allow for independent execution. This is achieved by segmenting the input and performing a reduction on each segment. The final reduction is then performed on the results of the segment reductions.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of hierarchical reduction&lt;/strong&gt;&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void sumReduceHierarchicalKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     unsigned int segment = 2 * blockDim.x * blockIdx.x;
@@ -479,8 +524,8 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.&lt;/p&gt;
 &lt;h2 id=&#34;thread-coarsening-back-again&#34;&gt;Thread Coarsening - Back Again&lt;/h2&gt;
-&lt;p&gt;Thread coarsening was first analyzed in the context of matrix multiplication in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improve data locality.&lt;/p&gt;
-&lt;p&gt;For reduction, successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.&lt;/p&gt;
+&lt;p&gt;Thread coarsening was first analyzed in the context of matrix multiplication in &lt;a href=&#34;https://ajdillhoff.github.io/notes/gpu_performance_basics/&#34;&gt;GPU Performance Basics&lt;/a&gt;. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improved data locality.&lt;/p&gt;
+&lt;p&gt;Successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ coarsenedSumReductionKernel(float *input, float *output) {
     __shared__ float input_s[BLOCK_DIM];
     uint segment = COARSE_FACTOR * 2 * blockDim.x * blockIdx.x;
@@ -504,8 +549,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
         atomicAdd(output, input_s[0]);
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;&lt;strong&gt;TODO: Add visualization of thread coarsening&lt;/strong&gt;&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.&lt;/p&gt;
 </description>
     </item>
     
@@ -530,14 +574,11 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 &lt;p&gt;These notes follow the presentation of the parallel histogram pattern in the book &lt;strong&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/strong&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;histograms&#34;&gt;Histograms&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;Examples of histograms include:
-&lt;ul&gt;
+&lt;li&gt;Examples of histograms include:&lt;/li&gt;
 &lt;li&gt;Frequency of words in a document&lt;/li&gt;
 &lt;li&gt;Distribution of pixel intensities in an image&lt;/li&gt;
 &lt;li&gt;Distribution of particle energies in a physics simulation&lt;/li&gt;
 &lt;li&gt;Distribution of thread block execution times in a GPU kernel&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Consider the program below which computes a histogram of the letters in a string. The input is assumed to be lower case.
 Since this is executed sequentially, there is no risk of multiple threads writing to the same memory location at the same time.&lt;/p&gt;
@@ -550,7 +591,7 @@ Since this is executed sequentially, there is no risk of multiple threads writin
 &lt;h3 id=&#34;race-conditions&#34;&gt;Race Conditions&lt;/h3&gt;
 &lt;p&gt;For example, thread 1 and thread 2 may have the letter &amp;lsquo;a&amp;rsquo; as their input. They will both issue a &lt;em&gt;read-modify-write&lt;/em&gt; procedure where the current value of the histogram is read, incremented, and then written back to memory. If thread 1 reads the value of the histogram before thread 2 writes to it, the value that thread 1 writes back will be incorrect. This is a classic example of a &lt;em&gt;race condition&lt;/em&gt;. Depending on the timing, one thread could have read the updated value from the other thread, or both threads could have read the same value and incremented it, resulting in a loss of data.&lt;/p&gt;
 &lt;h3 id=&#34;atomic-operations&#34;&gt;Atomic Operations&lt;/h3&gt;
-&lt;p&gt;One solution to this problem is to perform atomic operations. This is a special type of operations that locks a memory location while it is being updated. This prevents other thread from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.&lt;/p&gt;
+&lt;p&gt;One solution to this problem is to perform atomic operations. This is a special type of operation that locks a memory location while it is being updated. This prevents other threads from reading or writing to the same location until the operation is complete. Each thread attempting to access a memory location will be forced to wait until the lock is released.&lt;/p&gt;
 &lt;p&gt;The CUDA API provides several atomic operations:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;atomicAdd&lt;/code&gt;&lt;/li&gt;
@@ -722,7 +763,7 @@ __global__ void histogram_privatized_ic(char *data, unsigned int length, unsigne
         }
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the code above, the main difference is the second &lt;code&gt;for&lt;/code&gt; loop. The index &lt;code&gt;i&lt;/code&gt; is incremented by &lt;code&gt;blockDim.x * gridDim.x&lt;/code&gt;. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures above and below.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the code above, the main difference is the second &lt;code&gt;for&lt;/code&gt; loop. The index &lt;code&gt;i&lt;/code&gt; is incremented by &lt;code&gt;blockDim.x * gridDim.x&lt;/code&gt;. This ensures that the threads of each block access memory in a contiguous manner rather than each thread being contiguous. The differences are visualized in the figures.&lt;/p&gt;
 &lt;h2 id=&#34;aggregation&#34;&gt;Aggregation&lt;/h2&gt;
 &lt;p&gt;It is not uncommon that the input data will have a skewed distribution. There may be sections of the input that are locally dense. This will lead to a large number of atomic operations within a small area. To reduce the number of atomic operations, the input can be aggregated into a larger update before being committed to the global histogram. Consider the code below.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void histogram_aggregate(char *data, unsigned int length, unsigned int *histo) {
@@ -1050,7 +1091,7 @@ __global__ void histogram_privatized_ic(char *data, unsigned int length, unsigne
         inCurr_s[threadIdx.y][threadIdx.x] = inNext_s[threadIdx.y][threadIdx.x];
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every threads collectively store the previous and next planes in registers.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The kernel always has the active plane in shared memory. Every thread collectively store the previous and next planes in registers.&lt;/p&gt;
 &lt;p&gt;The larger the stencil size, the more registers are required per thread. In this case, a tradeoff between shared memory space and register usage could be made. This will be explored in your lab.&lt;/p&gt;
 &lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
 &lt;p&gt;Stencils are a useful pattern for solving differential equations. They have some similarities to convolutions, but present unique challenges in terms of optimization. The sparsity of the pattern means that shared memory is not as effective as it is for convolutions. Thread coarsening and register tiling are two techniques that can be used to improve performance.&lt;/p&gt;

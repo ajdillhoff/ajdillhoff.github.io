@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Basic Quicksort Performance Randomized Quicksort Paranoid Quicksort Quicksort is a popular sorting algorithm implemented in many language libraries that has a worst-case running time of \(\Theta(n^2)\). Why would anyone choose this as the default sorting algorithm if one like mergesort has better worst-case performance? As you will see, the devil is in the details. Quicksort is often faster in practice. It also has a small memory footprint and is easy to implement.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/quicksort/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/quicksort/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/quicksort/">
+  <meta property="og:title" content="Quicksort | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Basic Quicksort Performance Randomized Quicksort Paranoid Quicksort Quicksort is a popular sorting algorithm implemented in many language libraries that has a worst-case running time of \(\Theta(n^2)\). Why would anyone choose this as the default sorting algorithm if one like mergesort has better worst-case performance? As you will see, the devil is in the details. Quicksort is often faster in practice. It also has a small memory footprint and is easy to implement."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-02-25T17:24:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-02-25T17:24:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Quicksort | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Quicksort</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-02-25 17:24:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-02-25 17:24:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Feb 25, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/quicksort/&amp;text=Quicksort" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/quicksort/&amp;t=Quicksort" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Quicksort&amp;body=https://ajdillhoff.github.io/notes/quicksort/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/quicksort/&amp;title=Quicksort" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Quicksort%20https://ajdillhoff.github.io/notes/quicksort/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/quicksort/&amp;title=Quicksort" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#basic-quicksort">Basic Quicksort</a></li>
+<li><a href="#performance">Performance</a></li>
+<li><a href="#randomized-quicksort">Randomized Quicksort</a></li>
+<li><a href="#paranoid-quicksort">Paranoid Quicksort</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Quicksort is a popular sorting algorithm implemented in many language libraries that has a worst-case running time of \(\Theta(n^2)\). <strong>Why would anyone choose this as the default sorting algorithm if one like mergesort has better worst-case performance?</strong> As you will see, the devil is in the details. Quicksort is often faster in practice. It also has a small memory footprint and is easy to implement.</p>
+<p><strong>TODO: Discuss distinct values and the impact on quicksort</strong></p>
+<h2 id="basic-quicksort">Basic Quicksort</h2>
+<p>Quicksort follows a divide-and-conquer approach to sorting. Given an input array of \(n\) elements, it selects a pivot element and partitions the array into two sub-arrays: one with elements less than the pivot and one with elements greater than the pivot. It then recursively sorts the sub-arrays. Since the subarrays are recursively sorted, there is no need for a merge step as in mergesort.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">quicksort</span>(arr, p, r):
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> partition(arr, p, r)
+</span></span><span style="display:flex;"><span>    quicksort(arr, p, q <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    quicksort(arr, q <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, r)
+</span></span></code></pre></div><p>This algorithm looks deceptively simple. The complexity is hidden in the partitioning step. This procedure will rearrange the elements in the array such that the pivot element is in its final position and all elements less than the pivot are to the left of it and all elements greater than the pivot are to the right of it.</p>
+<h3 id="partitioning">Partitioning</h3>
+<p>For basic quicksort, the first or last element is chosen as the pivot. Picking it this way yields a fairly obvious recurrence of \(T(n) = T(n-1) + O(n)\), which is \(\Theta(n^2)\). As mentioned before, this algorithm is executed in-place, meaning there is no need for additional memory to store the sub-arrays. It is done through a clever use of indices.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">partition</span>(arr, p, r):
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> arr[r]
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> p <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(p, r):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> arr[j] <span style="color:#f92672">&lt;=</span> x:
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            arr[i], arr[j] <span style="color:#f92672">=</span> arr[j], arr[i]
+</span></span><span style="display:flex;"><span>    arr[i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>], arr[r] <span style="color:#f92672">=</span> arr[r], arr[i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><p>The indices are used to define the following loop invariant.</p>
+<ol>
+<li><strong>Left:</strong> if \(p \leq k \leq i\), then \(A[k] \leq x\)</li>
+<li><strong>Middle:</strong> if \(i + 1 \leq k \leq j - 1\), then \(A[k] &gt; x\)</li>
+<li><strong>Right:</strong> if \(k = r\), then \(A[k] = x\)</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-25_19-18-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Operation of partition (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Operation of partition (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The figure above is from CRLS which shows an example run of the partitioning algorithm. It starts with \(i, p, j\) on the left and \(r\) on the right. Since the value at \(j\) is less than the pivot, \(i\) is incremented and the values at \(i\) and \(j\) are swapped. In the next iteration, the value at \(j\) is greater than the pivot, so nothing is done. This continues until \(j\) reaches \(r\). At this point, the pivot is swapped with the value at \(i + 1\).</p>
+<h3 id="example">Example</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-26_16-34-22_Quicksort%20Example.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Example of Quicksort." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Example of Quicksort.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The example above starts with an unsorted array. The second row shows the array after the first call to <code>partition</code>. The left and right subarrays are called recursively. The first subarray in row 3 has a pivot 3 and is already partitioned. The right subarray follows the same convenience.</p>
+<p>On row 4, the left subarray is modified by swapping the pivot of 2 with 1. The right subarray first swaps 5 and 7 before swapping 6 and 7. The final array is sorted as shown on the last row.</p>
+<h2 id="performance">Performance</h2>
+<p>The performance of quicksort is dependent on the pivot. If the subarrays on either side of the pivot are balanced, the running time is asymptotically similar to mergesort. In the worst case, it will run in quadratic time.</p>
+<p>The worst partitioning occurs when the pivot is the smallest or largest element in the array. This creates a subarray of size \(n - 1\) and another of size 0. The partitioning itself takes \(\Theta(n)\) time, yielding a recurrence of \(T(n) = T(n - 1) + \Theta(n)\). We can use the substitution method to solve this recurrence and find that the worst-case running time is \(\Theta(n^2)\). This can happen even if the input is already sorted before hand.</p>
+<p>Cormen et al. present a recursive analysis of the running time where, at each level, the partition produces a 9-to-1 split. This is visualized in the sketch below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-02-26_18-20-51_Quicksort%20Recursion%2001%20Artboard%201%20%282%29.jpg" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Recursion tree for quicksort." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Recursion tree for quicksort.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The subtree for the \(\frac{1}{10}\) split eventually bottoms out after being called \(\log_{10} n\) times. Until this happens, the cost of each level of the tree is \(n\). After the left-tree bottoms out, the right tree continues with an upper bound of \(\leq n\). The right tree completes after \(\log_{10/9} n = \Theta(\lg n)\) levels. Since each level of the tree cost no more than \(n\), the total cost is \(\Theta(n \lg n)\).</p>
+<h3 id="best-case">Best Case</h3>
+<p>In the best-case, the pivot is the median of the array and two balanced subarrays are created: one of size \(n/2\) and another of size \(\lfloor (n-1)/2 \rfloor\). The recurrence is \(T(n) = 2T(n/2) + \Theta(n)\), which is \(\Theta(n \log n)\).</p>
+<p>Using the substitution method, we can show the best-case running time. We start with the fact that the partitioning produces two subproblems with a total size of \(n-1\). This gives the following recurrence:</p>
+<p>\[
+T(n) = \min_{0 \leq q \leq n-1} \{T(q) + T(n - q - 1)\} + \Theta(n).
+\]</p>
+<p>The minimum function accounts for the minimum time taken to sort any partition of the array, where \(q\) represents the pivot element&rsquo;s position.</p>
+<p>Our <strong>hypothesis</strong> will be that</p>
+<p>\[
+T(n) \geq cn \lg n = \Omega(n \lg n).
+\]</p>
+<p>Plugging in our hypothesis, we get</p>
+<p>\begin{align*}
+T(n) &amp;\geq \min_{0 \leq q \leq n-1} \{cq \lg q + c(n - q - 1) \lg (n - q - 1)\} + \Theta(n) \\
+&amp; c \min_{0 \leq q \leq n-1} \{q \lg q + (n - q - 1) \lg (n - q - 1)\} + \Theta(n).
+\end{align*}</p>
+<p>If we take the derivative of the function inside the minimum with respect to \(q\), we get</p>
+<p>\[
+\frac{d}{dq} \{q \lg q + (n - q - 1) \lg (n - q - 1)\} = c\{\frac{q}{q} + \lg q - \lg (n - q - 1) - \frac{(n - q - 1)}{(n - q - 1)}\}.
+\]</p>
+<p>Setting this equal to zero and solving for \(q\) yields</p>
+<p>\[
+q = \frac{n - 1}{2}.
+\]</p>
+<p>We can then plug this value of \(q\) into the original function to get</p>
+<p>\begin{align*}
+T(n) &amp;\geq c \frac{n - 1}{2} \lg \frac{n - 1}{2} + c \frac{n - 1}{2} \lg \frac{n - 1}{2} + \Theta(n) \\
+&amp;= cn \lg (n - 1) + c (n - 1) + \Theta(n) \\
+&amp;= cn \lg (n - 1) + \Theta(n) \\
+&amp;\geq cn \lg n \\
+&amp;= \Omega(n \lg n).
+\end{align*}</p>
+<h3 id="average-case">Average Case</h3>
+<p>As it turns out, the average-case running time is \(\Theta(n \log n)\) (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). Quicksort is highly dependent on the relative ordering of the input. Consider the case of a randomly ordered array. The cost of partitioning the original input is \(O(n)\). Let&rsquo;s say that the pivot was the last element, yielding a split of 0 and \(n - 1\). Now, let&rsquo;s say we get lucky on the next iteration and get a balanced split. Even if the rest of the algorithm splits between the median and the last element, the upper bound on the running time is \(\Theta(n \log n)\). It is highly unlikely that the split will be unbalanced on every iteration given a random initial ordering.</p>
+<p>We can make this a tad more formal by defining a lucky \(L(n) = 2U(n/2) + \Theta(n)\) and an unlucky split \(U(n) = L(n-1) + \Theta(n)\). We can solve for \(L(n)\) by plugging in the definition of \(U(n)\).</p>
+<p>\begin{align*}
+L(n) &amp;= 2U(n/2) + \Theta(n) \\
+&amp;= 2(L(n/2 - 1) + \Theta(n/2)) + \Theta(n) \\
+&amp;= 2L(n/2 - 1) + \Theta(n) \\
+&amp;= \Theta(n \log n)
+\end{align*}</p>
+<h2 id="randomized-quicksort">Randomized Quicksort</h2>
+<p>The intuition of the crude analysis above is that we would have to be extremely unlucky to get a quadratic running time if the input is randomly ordered. Randomized quicksort builds on this intuition by selection a random pivot on each iteration. This is done by swapping the pivot with a random element before partitioning.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">randomized_partition</span>(arr, p, r):
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> random<span style="color:#f92672">.</span>randint(p, r)
+</span></span><span style="display:flex;"><span>    arr[i], arr[r] <span style="color:#f92672">=</span> arr[r], arr[i]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> partition(arr, p, r)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">randomized_quicksort</span>(arr, p, r):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> p <span style="color:#f92672">&lt;</span> r:
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> randomized_partition(arr, p, r)
+</span></span><span style="display:flex;"><span>        randomized_quicksort(arr, p, q <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        randomized_quicksort(arr, q <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, r)
+</span></span></code></pre></div><h3 id="analysis">Analysis</h3>
+<p>The lightweight analysis above reasoned that, as long as each split puts a constant amount of elements to one side of the split, then the running time is \(\Theta(n \log n)\).</p>
+<p>We can understand this analysis simply by asking the right questions. First, our primary question: <strong>What is the running time of Quicksort dependent on?</strong> The biggest bottleneck is the partitioning function. At most, we get really unlucky and the first pivot is picked every time. This means it is called \(n\) times yielding \(O(n)\). The variable part of this is figuring out how many element comparisons are made. The running time is then \(O(n + X)\).</p>
+<h4 id="the-expected-value-of-x">The Expected Value of \(X\)</h4>
+<p>The number of comparisons can be expressed as</p>
+<p>\[
+X = \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} X_{ij},
+\]</p>
+<p>where \(X_{ij}\) is the indicator random variable that is 1 if \(A[i]\) and \(A[j]\) are compared and 0 otherwise. This works with our worst case analysis. If we always get a split of 0 and \(n - 1\), then the indicator random variable is 1 for every comparison, yielding \(O(n^2)\). Taking the expectation of both sides:</p>
+<p>\begin{align*}
+E[X] &amp;= E\left[\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} X_{ij}\right] \\
+&amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} E[X_{ij}] \\
+&amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} P(X_{ij} = 1).
+\end{align*}</p>
+<p><strong>What is P(X<sub>ij</sub> = 1)?</strong> Let \(z_i, \dots, z_j\) be the indices of elements in a sorted version of the array. Under this assumption, \(z_i\) is compared to \(z_j\) only if \(z_i\) or \(z_j\) is the first pivot chosen from the subarray \(A[i \dots j]\). In a set of distinct elements, the probability of picking any pivot from the array from \(i\) to \(j\) is \(\frac{1}{j - i + 1}\). This means that the probability of comparing \(z_i\) and \(z_j\) is \(\frac{2}{j - i + 1}\). We can now finish the calculation.</p>
+<p>\begin{align*}
+E[X] &amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \frac{2}{j - i + 1} \\
+&amp;= \sum_{i=1}^{n-1} \sum_{k=1}^{n-i} \frac{2}{k + 1} \\
+&amp;&lt; \sum_{i=1}^{n-1} \sum_{k=1}^{n-i} \frac{2}{k} \\
+&amp;= \sum_{i=1}^{n-1} O(\log n) \\
+&amp;= O(n \log n).
+\end{align*}</p>
+<h2 id="paranoid-quicksort">Paranoid Quicksort</h2>
+<p>Repeat the following until the partitioning until the left or right subarray is less than or equal to \(\frac{3}{4}\) of the original array.</p>
+<ol>
+<li>Choose a random pivot.</li>
+<li>Partition the array.</li>
+</ol>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/algorithms/">algorithms</a>
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/priority_queues/">Priority Queues</a></li>
+          
+          <li><a href="/notes/master_theorem/">Master Theorem</a></li>
+          
+          <li><a href="/notes/divide_and_conquer_algorithms/">Divide and Conquer Algorithms</a></li>
+          
+          <li><a href="/notes/minimum_spanning_trees/">Minimum Spanning Trees</a></li>
+          
+          <li><a href="/notes/single_source_shortest_paths/">Single-Source Shortest Paths</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.5328943609f83580d0f13f6d5b5f2587.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
