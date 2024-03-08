@@ -14390,6 +14390,212 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
     </item>
     
     <item>
+      <title>Stereo Vision</title>
+      <link>https://ajdillhoff.github.io/notes/stereo_vision/</link>
+      <pubDate>Wed, 23 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/stereo_vision/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#epipolar-geometry&#34;&gt;Epipolar Geometry&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#calibration-with-known-intrinsic-parameters-and-world-points&#34;&gt;Calibration with Known Intrinsic Parameters and World Points&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#estimating-depth&#34;&gt;Estimating Depth&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Binocular vision permits depth perception.
+It is an important part of many tasks such as robotic vision, pose estimation, and scene understanding.
+The goal of steropsis is to reconstruct a 3D representation of the world given correspondences between two or more cameras.&lt;/p&gt;
+&lt;p&gt;The process of computing these correspondences assumes two or more cameras with known intrinsic and extrinsic parameters.
+Methods exist to estimate the required transformation parameters using points based on matching image features.
+If some set of points which a fixed coordinate system is known, such as a calibration pattern, the problem becomes even simpler.
+Knowing the exact world point as it is projected in all image planes is essentially a ground truth.&lt;/p&gt;
+&lt;h2 id=&#34;epipolar-geometry&#34;&gt;Epipolar Geometry&lt;/h2&gt;
+&lt;p&gt;Epipolar geometry is the backbone of stereopsis.
+We will first define what epipolar geometry is, how it is used in the stereo vision problem, and the core constraint that limits our search space of point correspondences.
+It is defined visually below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-24_20-23-56_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Overview of epipolar geometry for stereopsis (Source: Szeliski).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Overview of epipolar geometry for stereopsis (Source: Szeliski).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Consider the point \(\mathbf{p}\) whose projection is \(\mathbf{x}_0\) with respect to camera \(\mathbf{c}_0\) and \(\mathbf{x}_1\) with respect to camera \(\mathbf{c}_1\).
+All 5 of these points lie on the &lt;strong&gt;epipolar plane&lt;/strong&gt;.
+Additionally, points \(\mathbf{e}_0\) and \(\mathbf{e}_1\) lie on the line defined by \(\mathbf{c}_0\) and \(\mathbf{c}_1\) as it intersects the image plane of each camera, respectively.
+These are called the &lt;strong&gt;epipoles&lt;/strong&gt;.
+These are also the projections of the other camera centers.&lt;/p&gt;
+&lt;p&gt;Fundamental to establishing the correspondences between the two cameras is the &lt;strong&gt;epipolar constraint&lt;/strong&gt;.
+If \(\mathbf{x}_0\) and \(\mathbf{x}_1\) represent projections of the same point, then \(\mathbf{x}_1\) must like on the epipolar line \(l_1\) associated with \(\mathbf{x}_0\) and vice versa.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-24_21-07-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The epipolar constraint restricts the search space for matching correspondences. (Source: Szeliski)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The epipolar constraint restricts the search space for matching correspondences. (Source: Szeliski)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;As seen in the figure above, potentional matches for \(\mathbf{x}_0\) must lie on the epipolar line defined by \(\mathbf{e}_1\) and \(\mathbf{x}_1\).&lt;/p&gt;
+&lt;p&gt;Our goal is to compute translation \(\mathbf{t}\) and rotation \(R\).
+To find these, we start by mathematically defining the epipolar constraint.
+The epipolar plane is defined by the lines \(\overrightarrow{\mathbf{c}_0 \mathbf{p}}\), \(\overrightarrow{\mathbf{c}_1 \mathbf{p}}\), and \(\overrightarrow{\mathbf{c}_0 \mathbf{c}_1}\).
+This can be written as&lt;/p&gt;
+&lt;p&gt;\[
+\overrightarrow{\mathbf{c}_0 \mathbf{p}} \cdot [\overrightarrow{\mathbf{c}_0 \mathbf{c}_1} \times \overrightarrow{\mathbf{c}_1 \mathbf{p}}] = 0.
+\]&lt;/p&gt;
+&lt;p&gt;We do not know \(\mathbf{p}\), but we do have \(\mathbf{x}_0\) and \(\mathbf{x}_1\), the projections of \(\mathbf{p}\) onto the image plane of each respective camera.
+Assuming that both camera are calibrated, we have a set of known intrinsic matrices \(\mathbf{K}_j\).&lt;/p&gt;
+&lt;p&gt;Although we do not have the exact \(z\) value of the point, we do know the point with respect to the camera calculcated as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{p}_0 = d_0 \hat{\mathbf{x}}_0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_0 = \mathbf{K}_0^{-1} \mathbf{x}_0.
+\]&lt;/p&gt;
+&lt;p&gt;The relationship between points \(\mathbf{p}_0\) and \(\mathbf{p}_1\) is&lt;/p&gt;
+&lt;p&gt;\[
+d_1 \hat{\mathbf{x}}_1 = R(d_0 \hat{\mathbf{x}}_0) + \mathbf{t},
+\]&lt;/p&gt;
+&lt;p&gt;where \(R\) is a rotation matrix and \(\mathbf{t}\) is an offset vector.
+These are the parameters that are solved from stereo calibration.&lt;/p&gt;
+&lt;p&gt;Since the vectors \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\) are coplanar, the plane can be represented by a normal vector.
+That is, the vector that is orthogonal to all points in the plane.
+Such a vector can be calculated by taking the cross product of both sides of the above equation with \(\mathbf{t}\):&lt;/p&gt;
+&lt;p&gt;\[
+d_1 [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+[\mathbf{t}]_{\times}=\begin{bmatrix}
+0 &amp;amp; -t_z &amp;amp; t_y\\
+t_z &amp;amp; 0 &amp;amp; -t_x\\
+-t_y &amp;amp; t_x &amp;amp; 0
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;It is true that, since the normal vector is orthogonal to \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\), taking the dot product of any of these vectors and the normal vector yields 0:&lt;/p&gt;
+&lt;p&gt;\[
+d_1 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0 = 0.
+\]&lt;/p&gt;
+&lt;p&gt;We have now established the epipolar constraint in terms of the rotation matrix \(R\) and translation \(\mathbf{t}\).
+These are the parameters that relate the points between both cameras.
+This constraint is more compactly written as&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_1^T E \hat{\mathbf{x}}_0 = 0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+E = [\mathbf{t}_{\times}]R.
+\]&lt;/p&gt;
+&lt;p&gt;\(E\) is called the &lt;strong&gt;essential matrix&lt;/strong&gt; which relates the projected points between the two cameras.
+Once we have the essential matrix, we can compute \(\mathbf{t}\) and \(R\).&lt;/p&gt;
+&lt;h2 id=&#34;calibration-with-known-intrinsic-parameters-and-world-points&#34;&gt;Calibration with Known Intrinsic Parameters and World Points&lt;/h2&gt;
+&lt;p&gt;We first look at the simplest case of stereo calibration.
+The intrinsic parameters of both cameras have been computed using a standard calibration technique.
+Additionally, we have a fixed calibration pattern used to establish a correspondence between
+the world points and the points with respect to each camera.&lt;/p&gt;
+&lt;p&gt;Given \(N\) measured correspondences \(\{(\mathbf{x}_{i0}, \mathbf{x}_{i1})\}\), we can form a linear system with equations of the form&lt;/p&gt;
+&lt;p&gt;\begin{alignat*}{3}
+x_{i0}x_{i1}e_{00} &amp;amp; {}+{} &amp;amp; y_{i0}x_{i1}e_{01} &amp;amp; {}+{} &amp;amp; x_{i1}e_{02} &amp;amp; {}+{} &amp;amp;\\
+x_{i0}y_{i1}e_{10} &amp;amp; {}+{} &amp;amp; y_{i0}y_{i1}e_{11} &amp;amp; {}+{} &amp;amp; y_{i1}e_{12} &amp;amp; {}+{} &amp;amp;\\
+x_{i0}e_{20} &amp;amp; {}+{} &amp;amp; y_{i0}e_{21} &amp;amp; {}+{} &amp;amp; e_{22} &amp;amp; {}={} &amp;amp; 0
+\end{alignat*}&lt;/p&gt;
+&lt;p&gt;Given at least 8 equations corresponding to the 8 unknowns of \(E\), we can use SVD to solve for \(E\).&lt;/p&gt;
+&lt;p&gt;\[
+E = [\mathbf{t}]_{\times}R = \mathbf{U \Sigma V^T} = \begin{bmatrix}
+\mathbf{u}_0 &amp;amp; \mathbf{u}_1 &amp;amp; \mathbf{t}
+\end{bmatrix}\begin{bmatrix}
+1 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 1\\
+\end{bmatrix}\begin{bmatrix}
+\mathbf{v}_0^T\\
+\mathbf{v}_1^T\\
+\mathbf{v}_2^T\\
+\end{bmatrix}
+\]&lt;/p&gt;
+&lt;h2 id=&#34;estimating-depth&#34;&gt;Estimating Depth&lt;/h2&gt;
+&lt;p&gt;Given the intrinsic parameters and parameters relating both calibrated cameras, we can estimate the depth of a point that is seen by both cameras.&lt;/p&gt;
+&lt;p&gt;We know that \(\mathbf{x}_0 = K_0 \hat{\mathbf{x}}_0\) and \(\mathbf{x}_1 = K_1 \hat{\mathbf{x}}_1\).
+With the stereo calibration complete, we also know \(A = [R\quad \mathbf{t}]\) and&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_0 = A\hat{\mathbf{x}}_1.
+\]&lt;/p&gt;
+&lt;p&gt;Plugging into the projection equation for the first camera yields&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}_0 = K_0 A\hat{\mathbf{x}}_1.
+\]&lt;/p&gt;
+&lt;p&gt;Our knowns are \(\mathbf{x}_0, \mathbf{x}_1, K_0, K_1, \text{ and } A\).
+The only unknown is \(\hat{\mathbf{x}}_1\).&lt;/p&gt;
+&lt;p&gt;We are left with 2 equations&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{x}_0 &amp;amp;= K_0 A\hat{\mathbf{x}}_1\\
+\mathbf{x}_1 &amp;amp;= K_1 \hat{\mathbf{x}}_1.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;If we let \(P = K_0 A\), we write the \(\mathbf{x}_0 = \begin{bmatrix}u_1\\v_1\\1\end{bmatrix}\) and&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+u_1\\
+v_1\\
+1
+\end{bmatrix}=\begin{bmatrix}
+p_{11} &amp;amp; p_{12} &amp;amp; p_{13} &amp;amp; p_{14}\\
+p_{21} &amp;amp; p_{22} &amp;amp; p_{23} &amp;amp; p_{24}\\
+p_{31} &amp;amp; p_{32} &amp;amp; p_{33} &amp;amp; p_{34}\\
+\end{bmatrix}\begin{bmatrix}
+X\\
+Y\\
+Z\\
+W
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This gives two equations for \(x_1\) and \(y_1\), the measured 2D feature locations:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+x_1 &amp;amp;= \frac{p_{11}X + p_{12}Y + p_{13}Z + p_{14}W}{p_{31}X + p_{32}Y + p_{33}Z + p_{34}W}\\
+y_1 &amp;amp;= \frac{p_{21}X + p_{22}Y + p_{23}Z + p_{24}W}{p_{31}X + p_{32}Y + p_{33}Z + p_{34}W}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Multiplying both equations by the denominator yields a set of equations that can be solved via linear least squares or SVD.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Decision Trees</title>
       <link>https://ajdillhoff.github.io/notes/decision_trees/</link>
       <pubDate>Fri, 18 Mar 2022 00:00:00 -0500</pubDate>
@@ -24140,6 +24346,35 @@ If we choose the \(\sin\) function as a basis function, we can more closely fit 
 
 &lt;/figure&gt;
 
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://ajdillhoff.github.io/notes/visual_profiler_quick_guide/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/visual_profiler_quick_guide/</guid>
+      <description>&lt;h1 id=&#34;nvidia-visual-profiler-quickstart-guide&#34;&gt;NVIDIA Visual Profiler Quickstart Guide&lt;/h1&gt;
+&lt;p&gt;NVIDIA Visual Profiler is installed on both the GPU machines and the workstations. The following guide will show you how to use the NVIDIA Visual Profiler to profile your CUDA code. For more details, please refer to the &lt;a href=&#34;https://docs.nvidia.com/cuda/profiler-users-guide/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;generate-a-profiling-report-for-your-kernel&#34;&gt;Generate a profiling report for your kernel&lt;/h2&gt;
+&lt;p&gt;First, a profiling report must be generated on the machine with a GPU. The following code should replace the current code in &lt;code&gt;benchmark.sh&lt;/code&gt; for Lab 3. Note that this is specific to the lab in ERB 125. If you&amp;rsquo;re running on your own machine with a GPU more recent than Pascal, it is highly recommended that you profile your code with &lt;a href=&#34;https://docs.nvidia.com/nsight-compute/NsightCompute/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NSight Compute&lt;/a&gt; instead.&lt;/p&gt;
+&lt;p&gt;The given script will first load CUDA Toolkit 11.5, which is compatible with the version installed on the workstations. It will then compile the code and run the benchmark with a 1024x1024x1024 matrix. The &lt;code&gt;nvprof&lt;/code&gt; command will generate a profiling report in the form of a &lt;code&gt;.nvvp&lt;/code&gt; file, which can be opened with NVIDIA Visual Profiler.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#SBATCH --export=/usr/local/cuda-11.5/bin&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#SBATCH --gres=gpu:1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;module load cuda/11.5
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make benchmark
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nvprof --analysis-metrics --export-profile matmul_benchmark.nvvp -f ./build/main/benchmark &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;module unload cuda/11.5
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;open-the-profiling-report&#34;&gt;Open the profiling report&lt;/h2&gt;
+&lt;p&gt;After running the script, you should have a file called &lt;code&gt;matmul_benchmark.nvvp&lt;/code&gt;. Copy this file from the GPU machine to your local workstation first. You can open this file with the following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nvvp matmul_benchmark.nvvp
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We will review the metrics reported from the report in class. You can use the provided guided analysis to get a feel for the output metrics and how to interpret them.&lt;/p&gt;
 </description>
     </item>
     
