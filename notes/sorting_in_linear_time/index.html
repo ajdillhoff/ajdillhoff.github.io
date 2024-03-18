@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Establishing a Lower Bound on Comparison Sorts Counting Sort Radix Sort Bucket Sort Questions and Exercises These are my personal notes for Chapter 8 of Introduction to Algorithms (Cormen et al. 2022). Readers should reference the book for more details when necessary.
+Introduction All sorting algorithms discussed up to this point are comparison based. You may have thought, as I did, that sorting cannot be done without a comparison.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/sorting_in_linear_time/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/sorting_in_linear_time/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/sorting_in_linear_time/">
+  <meta property="og:title" content="Sorting in Linear Time | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Establishing a Lower Bound on Comparison Sorts Counting Sort Radix Sort Bucket Sort Questions and Exercises These are my personal notes for Chapter 8 of Introduction to Algorithms (Cormen et al. 2022). Readers should reference the book for more details when necessary.
+Introduction All sorting algorithms discussed up to this point are comparison based. You may have thought, as I did, that sorting cannot be done without a comparison."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-03-11T17:10:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-03-11T17:10:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Sorting in Linear Time | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Sorting in Linear Time</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-03-11 17:10:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-03-11 17:10:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Mar 11, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    13 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/sorting_in_linear_time/&amp;text=Sorting%20in%20Linear%20Time" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/sorting_in_linear_time/&amp;t=Sorting%20in%20Linear%20Time" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Sorting%20in%20Linear%20Time&amp;body=https://ajdillhoff.github.io/notes/sorting_in_linear_time/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/sorting_in_linear_time/&amp;title=Sorting%20in%20Linear%20Time" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Sorting%20in%20Linear%20Time%20https://ajdillhoff.github.io/notes/sorting_in_linear_time/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/sorting_in_linear_time/&amp;title=Sorting%20in%20Linear%20Time" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#establishing-a-lower-bound-on-comparison-sorts">Establishing a Lower Bound on Comparison Sorts</a></li>
+<li><a href="#counting-sort">Counting Sort</a></li>
+<li><a href="#radix-sort">Radix Sort</a></li>
+<li><a href="#bucket-sort">Bucket Sort</a></li>
+<li><a href="#questions-and-exercises">Questions and Exercises</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>These are my personal notes for Chapter 8 of <em>Introduction to Algorithms</em> (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). Readers should reference the book for more details when necessary.</p>
+<h2 id="introduction">Introduction</h2>
+<p>All sorting algorithms discussed up to this point are <strong>comparison based</strong>. You may have thought, as I did, that sorting cannot be done without a comparison. If you have no way to evaluate the relative ordering of two different objects, how can you possibly arrange them in any order?</p>
+<p>The answer will become clear shortly and is investigated through <strong>counting sort</strong>, <strong>radix sort</strong>, and <strong>bucket sort</strong>. First, Cormen et al. make it clear that sorting algorithms cannot reach linear time. As we will see, any comparison sort <em>must</em> make \(\Omega (n \lg n)\) comparisons in the worst case to sort \(n\) elements. This bound is motivation enough to explore a different class of sorting algorithms.</p>
+<h2 id="establishing-a-lower-bound-on-comparison-sorts">Establishing a Lower Bound on Comparison Sorts</h2>
+<p>The basis of the proof presented in Chapter 8 it to consider that all comparison sorts can be viewed as a decision tree, where each leaf represents a unique permutation of the inputs. If there are \(n\) distinct elements in the original array, then there must be \(n!\) leaves in the decision tree. Consider the figure from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>) below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-11_17-45-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decision tree for comparison sort on three elements." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Decision tree for comparison sort on three elements.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, each node compares two values as \(a:b\). If \(a \leq b\), the left path is taken. The worst case of a comparison sort can be determined by the height of the tree. A proof on the lower bound goes as follows.</p>
+<p>Consider a binary tree of height \(h\) with \(l\) reachable leaves. Each of the \(n!\) permutations occurs as one of the leaves, so \(n! \leq l\) since there may be duplicate permutations in the leaves. A binary tree with height \(h\) has no more than \(2^h\) leaves, so \(n! \leq l \leq 2^h\). Taking the logarithm of this inequality implies that \(h \geq \lg n!\). Since \(\lg n! = \Theta(n \lg n)\), and is a lower bound on the height of the tree, then any comparison sort must make \(\Omega (n \lg n)\) comparisons.</p>
+<h2 id="counting-sort">Counting Sort</h2>
+<p>Counting sort can sort an array of integers in \(O(n+k)\) time, where \(k \geq 0\) is the largest integer in the set. It works by counting the number of elements less than or equal to each element \(x\).</p>
+<p>#+begin_src python
+def counting_sort(A, k):
+n = len(A)
+B = [0 for i in range(n)]
+C = [0 for i in range(k+1)]</p>
+<p>for i in range(2, n):
+C[A[i]] += 1</p>
+<p>for i in range(2, k):
+C[i] = C[i] + C[i-1]</p>
+<p>for i in range(n - 1, -1, -1):
+B[C[A[i]]] = A[i]
+C[A[i]] = C[A[i]] - 1</p>
+<pre><code>return B
+</code></pre>
+<p>#+end_src python</p>
+<p>The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).</p>
+<p>Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3] = 4\).</p>
+<p>Another example is shown in figure 8.2 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
+<h2 id="radix-sort">Radix Sort</h2>
+<p>Dating back to 1887 by Herman Hollerith&rsquo;s work on <a href="https://en.wikipedia.org/wiki/Tabulating_machine" target="_blank" rel="noopener noreferrer">tabulating machines</a>, this algorithm places numbers in one of \(k\) bins based on their <strong>radix</strong>, or the number of unique digits. It was used for sorting punch cards via multi-column sorting. It works by iteratively sorting a series of inputs based on a column starting with the least-significant digit. An example is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-12_10-34-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Radix sort in action (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Radix sort in action (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, the items are first sorted based on the least significant digits. By the end of the process, the data is numerically sorted in ascending order. The algorithm can be written simply:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">radix_sort</span>(A, d):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(d):
+</span></span><span style="display:flex;"><span>        A <span style="color:#f92672">=</span> counting_sort(A, len(A), <span style="color:#ae81ff">9</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> A
+</span></span></code></pre></div><p>Counting sort is the typical sorting algorithm that is used to sort the digits in each column. In fact, any <em>stable</em> sorting algorithm can be used in place of counting sort.</p>
+<h3 id="analysis">Analysis</h3>
+<p>We know that counting sort is \(\Theta(n + k)\), and that radix sort calls it \(d\) times. Therefore, the time complexity of radix sort is \(\Theta(d(n + k))\). If \(k = O(n)\), then the time complexity is \(\Theta(dn)\).</p>
+<h3 id="complex-keys">Complex Keys</h3>
+<p>What if the data is not just a single integer, but a complex key or series of keys? They keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$</p>
+<p><strong>What is the best choice of \(r\)?</strong> Consider what happens for different values of \(r\). As \(r\) increases, \(2^r\) increases. As it decreases, \(\frac{b}{r}\) increases. The best choice depends on whether \(b &lt; \lfloor \lg n \rfloor\). If \(b &lt; \lfloor \lg n \rfloor\), then \(r \leq b\) implies \((n + 2^r) = \Theta(n)\) since \(2^{\lg n} = n\). If \(b \geq \lfloor \lg n \rfloor\), then we should choose \(r \approx \lg n\). This would yield \(\Theta((b / \lg n)(n + n)) = \Theta(bn / \lg n)\).</p>
+<p><strong>You should spend some time to think about the choices for \(r\).</strong> Specifically, what will happen to the time complexity as \(r\) increases above \(\lg n\)? What about as \(r\) decreases below \(\lg n\)?</p>
+<h3 id="example-sorting-words">Example: Sorting words</h3>
+<p>Use radix sort to sort the following list of names: &ldquo;Beethoven&rdquo;, &ldquo;Bach&rdquo;, &ldquo;Mozart&rdquo;, &ldquo;Chopin&rdquo;, &ldquo;Liszt&rdquo;, &ldquo;Schubert&rdquo;, &ldquo;Haydn&rdquo;, &ldquo;Brahms&rdquo;, &ldquo;Wagner&rdquo;, &ldquo;Tchaikovsky&rdquo;. First, we need to figure out how to encode the names as integers. If we convert the input to lowercase, we only have to deal with \(k=26\) unique characters. This only requires 5 bits. Since each name has varying length, we can use a sentinel value of 0 to pad the shorter names. That is, 0 represents a padding character and the alphabet starts at 1. The names are then encoded as follows:</p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+</tbody>
+</table>
+<p>No changes will be made for the first 2 iterations of the sort. The third iteration will yield the following:</p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 3</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 4</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 5</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 6</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 7</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 8</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Iteration 9</strong></p>
+<table>
+<thead>
+<tr>
+<th>Original Name</th>
+<th>Encoded Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bach</td>
+<td>[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Beethoven</td>
+<td>[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]</td>
+</tr>
+<tr>
+<td>Brahms</td>
+<td>[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Chopin</td>
+<td>[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Haydn</td>
+<td>[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Liszt</td>
+<td>[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Mozart</td>
+<td>[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Schubert</td>
+<td>[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]</td>
+</tr>
+<tr>
+<td>Tchaikovsky</td>
+<td>[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]</td>
+</tr>
+<tr>
+<td>Wagner</td>
+<td>[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bucket-sort">Bucket Sort</h2>
+<p>The final sorting algorithm in Chapter 8 is bucket sort (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). As the name suggests, bucket sort distributes the input into a number of distinct buckets based on the input value. The key here is the assumption that the data is uniformly distributed. If the data were not uniformly distributed, then more elements would be concentrated. The uniformity ensures that a relatively equal number of data points are placed in each bucket. This is also a convenient assumption to have for a parallelized implementation.</p>
+<p>The algorithm works by placing values into a bucket based on their most significant digits. Once the values are assigned, then a simple sort, like insertion sort, is used to sort the values within each bucket. Once sorted, the buckets are concatenated together to produce the final output. Under the assumption of uniformity, each bucket will contain no more than \(1/n\) of the total elements. This implies that each call to <code>insertion_sort</code> will take \(O(1)\) time.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-12_11-54-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Bucket sort in action (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Bucket sort in action (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bucket_sort</span>(A):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(A)
+</span></span><span style="display:flex;"><span>    B <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        B[int(n <span style="color:#f92672">*</span> A[i])]<span style="color:#f92672">.</span>append(A[i])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        insertion_sort(B[i])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> B
+</span></span></code></pre></div><h3 id="analysis">Analysis</h3>
+<p>Initializing the array and placing each item into a bucket takes \(\Theta(n)\) time. The call to each insertion sort is \(O(n^2)\). Therefore, the recurrence is given as</p>
+<p>\[
+T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n^2).
+\]</p>
+<p>The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\). Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then</p>
+<p>\[
+E[n_i^2] = \text{Var}[n_i] + E[n_i]^2 = 1 - 1/n + 1 = 2 - 1/n.
+\]</p>
+<p>This gives way to the fact that \(E[T(n)] = \Theta(n) + \sum_{i=0}^{n-1} O(2 - 1/n) = \Theta(n) + O(n) = \Theta(n)\).</p>
+<h2 id="questions-and-exercises">Questions and Exercises</h2>
+<ol>
+<li>Come up with applications of counting sort when \(k = O(n)\).</li>
+<li>Paul wants to use radix sort to sort \(2^{16}\) 32-bit numbers. What is the best value of \(r\) to use? How many calls to a stable sort will be made?</li>
+<li>In what ways does radix sort differ from quicksort? When is one better than the other?</li>
+</ol>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/algorithms/">algorithms</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/substitution_method/">Substitution Method</a></li>
+          
+          <li><a href="/notes/quicksort/">Quicksort</a></li>
+          
+          <li><a href="/notes/priority_queues/">Priority Queues</a></li>
+          
+          <li><a href="/notes/master_theorem/">Master Theorem</a></li>
+          
+          <li><a href="/notes/divide_and_conquer_algorithms/">Divide and Conquer Algorithms</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Rod Cutting Matrix-chain Multiplication Applying Dynamic Programming Longest Common Subsequence Exercises Dynamic programming is a technique for solving problems by breaking them down into simpler subproblems, very much like divide and conquer algorithms. One primary difference is that the subproblems are designed in such a way that they do not need to be recomputed.
+Many common problems have efficience dynamic programming solutions, and we will investigate several of them in these notes.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/dynamic_programming/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/dynamic_programming/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/dynamic_programming/">
+  <meta property="og:title" content="Dynamic Programming | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Rod Cutting Matrix-chain Multiplication Applying Dynamic Programming Longest Common Subsequence Exercises Dynamic programming is a technique for solving problems by breaking them down into simpler subproblems, very much like divide and conquer algorithms. One primary difference is that the subproblems are designed in such a way that they do not need to be recomputed.
+Many common problems have efficience dynamic programming solutions, and we will investigate several of them in these notes."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-03-14T10:40:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-03-14T10:40:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Dynamic Programming | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Dynamic Programming</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-03-14 10:40:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-03-14 10:40:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Mar 14, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    20 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/dynamic_programming/&amp;text=Dynamic%20Programming" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/dynamic_programming/&amp;t=Dynamic%20Programming" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Dynamic%20Programming&amp;body=https://ajdillhoff.github.io/notes/dynamic_programming/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/dynamic_programming/&amp;title=Dynamic%20Programming" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Dynamic%20Programming%20https://ajdillhoff.github.io/notes/dynamic_programming/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/dynamic_programming/&amp;title=Dynamic%20Programming" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#rod-cutting">Rod Cutting</a></li>
+<li><a href="#matrix-chain-multiplication">Matrix-chain Multiplication</a></li>
+<li><a href="#applying-dynamic-programming">Applying Dynamic Programming</a></li>
+<li><a href="#longest-common-subsequence">Longest Common Subsequence</a></li>
+<li><a href="#exercises">Exercises</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Dynamic programming is a technique for solving problems by breaking them down into simpler subproblems, very much like divide and conquer algorithms. One primary difference is that the subproblems are designed in such a way that they do not need to be recomputed.</p>
+<p>Many common problems have efficience dynamic programming solutions, and we will investigate several of them in these notes. In general, a dynamic programming solution can be applied if the problem has the following features.</p>
+<ol>
+<li><strong>Optimal substructure:</strong> An optimal solution can be constructed by optimal solutions to the subproblems.</li>
+<li><strong>Overlapping subproblems:</strong> The problem can be broken down into subproblems which can be reused.</li>
+</ol>
+<p>For example, the Fibonacci sequence has <strong>optimal substructure</strong> because the value of the sequence at any index is the sum of the values at the two previous indices. It also has <strong>overlapping subproblems</strong> because the value of the sequence at any index is used in the calculation of the values at the two subsequent indices. A recursive solution to the Fibonacci sequence will have exponential time complexity, but a dynamic programming solution will have linear time complexity.</p>
+<p>The two main approaches to dynamic programming are top-down (memoization) and bottom-up (tabulation). <strong>Memoization</strong> involves writing a recursive solution that stores each sub=solution in a table so that it can be reused. <strong>Tabulation</strong> involves solving the problem by filling in a table of subproblems from the bottom up. In either case, a dynamic programming solution can be formulated with the following steps.</p>
+<ol>
+<li><strong>Identify subproblems</strong> so that the problem can be broken down.</li>
+<li><strong>Solve the subproblems</strong> following an optimal solution.</li>
+<li><strong>Store the solutions</strong> to avoid redundant computation.</li>
+<li><strong>Combine solutions</strong> from the subproblems to solve the original problem.</li>
+</ol>
+<h2 id="rod-cutting">Rod Cutting</h2>
+<p>Given a rod of length \(n\) and table of prices \(p_i\) for \(i = 1, 2, \ldots, n\), determine the maximum revenue \(r_n\) that can be obtained by cutting up the rod and selling the pieces.</p>
+<table>
+<thead>
+<tr>
+<th>Length</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Price</td>
+<td>1</td>
+<td>5</td>
+<td>8</td>
+<td>9</td>
+<td>10</td>
+<td>17</td>
+<td>17</td>
+<td>20</td>
+<td>24</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+<p>The table of prices is shown above. For a rod of length 4, there are 8 (\(2^{n-1}\), where \(n=4\)) different ways to cut the rod.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-14_11-47-26_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;8 different ways to cut a rod of length 4 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>8 different ways to cut a rod of length 4 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The maximum revenue for a rod of length \(n\) can be determined by the following optimization problem:</p>
+<p>\[
+r_n = \max(p_n, r_1 + r_{n-1}, r_2 + r_{n-2}, \ldots, r_{n-1} + r_1),
+\]</p>
+<p>where \(r_i\) is the maximum revenue for a rod of length \(i\). The maximum revenue for a rod of length \(n\) can be determined by solving the subproblems for rods of length \(i\) for \(i = 1, 2, \ldots, n-1\). Each of the terms \(r_i\) in the equation above implies a recursive solution to the problem. You should be able to see that solving this recursively would lead to many redundant computations. For example, \(r_1\) is computed at least twice in the equation above.</p>
+<p>This recursion is more compactly written as</p>
+<p>\[
+r_n = \max_{1 \leq i \leq n}(p_i + r_{n-i}).
+\]</p>
+<p>This problem has <strong>optimal substructure</strong>. If we cut the rod into smaller subsections, we can recursively solve this subproblems recursively and combine them. The recursive algorithm is as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">cut_rod</span>(p, n):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> max(q, p[i] <span style="color:#f92672">+</span> cut_rod(p, n<span style="color:#f92672">-</span>i))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> q
+</span></span></code></pre></div><p>If \(T(n)\) is a recurrence that represents the number of times <code>cur_rod</code> is called recursively, then we can write the following recurrence relation:</p>
+<p>\[
+T(n) = 1 + \sum_{j=0}^{n-1}T(j).
+\]</p>
+<p>Using the substitution method, we can show that \(T(n) = 2^n\).</p>
+<p>\begin{align*}
+T(n) &amp;= 1 + \sum_{j=0}^{n-1}2^j \\
+&amp;= 1 + (2^n - 1) \\
+&amp;= 2^n.
+\end{align*}</p>
+<h3 id="memoization-solution">Memoization Solution</h3>
+<p>To solve this with dynamic programming, the goal is to make sure that each subproblem is computed <em>only once</em>. This is accomplished by saving the result of each subproblem in a table so that it can be reused. This does incur a space complexity of \(O(n)\), but it reduces the time complexity to \(O(n^2)\).</p>
+<p>The solution requires a small modification to the recursive algorithm. When the solution to a subproblem is required, the table is first checked for a stored solution. If the solution is not found, the subproblem is solved recursively and the solution is stored in the table. The code is given below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">memoized_cut_rod</span>(p, n):
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span>float(<span style="color:#e6db74">&#39;inf&#39;</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> memoized_cut_rod_aux(p, n, r)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">memoized_cut_rod_aux</span>(p, n, r):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> r[n] <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> r[n]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            q <span style="color:#f92672">=</span> max(q, p[i] <span style="color:#f92672">+</span> memoized_cut_rod_aux(p, n<span style="color:#f92672">-</span>i, r))
+</span></span><span style="display:flex;"><span>    r[n] <span style="color:#f92672">=</span> q
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> q
+</span></span></code></pre></div><p>The algorithm starts off with a call to <code>memoized_cut_rod</code> which initializes the table <code>r</code> and then calls <code>memoized_cut_rod_aux</code>. The table <code>r</code> is initialized with \(-\infty\) so that we can check if a solution has been computed for a subproblem. Each subproblem is solved only ones, leading to \(O(1)\) lookups after that. The time complexity of this solution is \(O(n^2)\).</p>
+<h3 id="bottom-up-solution">Bottom-Up Solution</h3>
+<p>The other dynamic programming solution is to first sort the subproblems by their size, solve the smaller ones first, and build up to the larger ones. This is called <strong>tabulation</strong>. The time complexity of this solution is also \(O(n^2)\).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bottom_up_cut_rod</span>(p, n):
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            q <span style="color:#f92672">=</span> max(q, p[i] <span style="color:#f92672">+</span> r[j<span style="color:#f92672">-</span>i])
+</span></span><span style="display:flex;"><span>        r[j] <span style="color:#f92672">=</span> q
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> r[n]
+</span></span></code></pre></div><p>The first <code>for</code> loop effectively sorts the problem by size. It starts with a cut of size 1 and builds up to a cut of size \(n\).</p>
+<h3 id="subproblem-graphs">Subproblem Graphs</h3>
+<p>Subproblem graphs offer a concise way to visualize the subproblems and their dependencies. The subproblem graph for the rod cutting problem with \(n=4\) is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-14_14-54-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Subproblem graph for the rod cutting problem with (n=4) (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Subproblem graph for the rod cutting problem with (n=4) (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Subproblem \(n=4\) is dependent on subproblems \(n=3\), \(n=2\), and \(n=1\). The bottom-up approach follows this dependency by ensuring that the subproblems are solved in the correct order.</p>
+<p>Besides serving as a helpful visualization. Depicting the problem using a DAG can also help to identify the time complexity of the problem. This is the sum of the time needed to solve each subproblem. Each problem of size \(n\) requires \(n-1\) subproblems to be solved, and each subproblem of size \(n-1\) requires \(n-2\) subproblems to be solved. This leads to a time complexity of \(O(n^2)\).</p>
+<h3 id="reconstructing-a-solution">Reconstructing a Solution</h3>
+<p>The two dynamic programming solutions above return the maximum revenue that can be obtained by cutting up the rod. However, they do not return the actual cuts that should be made. This can be done by modifying the algorithms to store the cuts that are made. The code is given below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">extended_bottom_up_cut_rod</span>(p, n):
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    s <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        q <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> q <span style="color:#f92672">&lt;</span> p[i] <span style="color:#f92672">+</span> r[j<span style="color:#f92672">-</span>i]:
+</span></span><span style="display:flex;"><span>                q <span style="color:#f92672">=</span> p[i] <span style="color:#f92672">+</span> r[j<span style="color:#f92672">-</span>i]
+</span></span><span style="display:flex;"><span>                s[j] <span style="color:#f92672">=</span> i
+</span></span><span style="display:flex;"><span>        r[j] <span style="color:#f92672">=</span> q
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> r, s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_cut_rod_solution</span>(p, n):
+</span></span><span style="display:flex;"><span>    r, s <span style="color:#f92672">=</span> extended_bottom_up_cut_rod(p, n)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        print(s[n])
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">-=</span> s[n]
+</span></span></code></pre></div><p>In the bottom-up approach, the table <code>s</code> is used to store the size of the first piece to cut off. The function <code>print_cut_rod_solution</code> uses this table to print the cuts that should be made.</p>
+<h2 id="matrix-chain-multiplication">Matrix-chain Multiplication</h2>
+<p>The next problem covered by Cormen et al. is <strong>matrix-chain multiplication</strong> (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). Given a sequence of matrices \(A_1, A_2, \ldots, A_n\), where the dimensions of matrix \(A_i\) are \(p_{i-1} \times p_i\), determine the most efficient way to multiply the matrices. The problem is to determine the order in which the matrices should be multiplied so that the number of scalar multiplications is minimized.</p>
+<p>Understanding the solution to this problem requires understanding the problem itself. Depending on the order in which matrices are multiplied in a chain, the number of scalar multiplications can vary. Consider three matrices \(A \in \mathbb{R}^{10 \times 100}\), \(B \in \mathbb{R}^{100 \times 5}\), and \(C \in \mathbb{R}^{5 \times 50}\). The number of scalar multiplications required to compute \(A(BC)\) is \(10 \times 100 \times 5 + 10 \times 5 \times 50 = 7500\), while the number of scalar multiplications required to compute \((AB)C\) is \(10 \times 100 \times 50 + 100 \times 5 \times 50 = 75000\). The order in which the matrices are multiplied can have a significant impact on the number of scalar multiplications required.</p>
+<p>Matrix multiplication is associative, so the order in which the matrices are grouped does not matter. The key to solving this problem is to find the most efficient way to group the matrices. The first part of the solution is to determine the number of possible groupings, or parenthesizations, we can make.</p>
+<h3 id="determining-parenthesizations">Determining Parenthesizations</h3>
+<p>The number of possible parenthesizations of a chain of \(n\) matrices is given by \(P(n)\). When \(n \geq 2\), the number of possible parenthesizations is given by</p>
+<p>\[
+P(n) = \sum_{k=1}^{n-1}P(k)P(n-k).
+\]</p>
+<p>A brute force solution to this problem would require \(O(2^n)\) time (see Exercise 14.2-3 in (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>)).</p>
+<h3 id="dynamic-programming-solution">Dynamic Programming Solution</h3>
+<p>We now review the four step process to formulating a dynamic programming solution as put forth by Cormen et al. (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
+<h4 id="optimal-substructure">Optimal Substructure</h4>
+<p>What is the optimal substructure of this problem? Consider matrix-chain sequence \(A_{i:j} = A_i A_{i+1} \cdots A_j\). If we split the sequence at \(k\), then the optimal solution to the problem is the optimal solution to the subproblems \(A_{i:k}\) and \(A_{k+1:j}\). This is because the number of scalar multiplications required to compute \(A_{i:j}\) is the sum of the number of scalar multiplications required to compute \(A_{i:k}\) and \(A_{k+1:j}\) plus the number of scalar multiplications required to compute the product of the two subproblems.</p>
+<p><strong>How can we ensure that there is not a more optimal grouping of \(A_{h:l}\), where \(i \leq h &lt; k\) and \(k &lt; l \leq j\)?</strong> The answer lies in evaluating <strong>all</strong> possible splits.</p>
+<h4 id="recursive-solution">Recursive Solution</h4>
+<p>What is the cost of an optimal solution to the problem? We must first compute the minimum cost of parenthesizing \(A_{i:j}\) for \(1 \leq i \leq j \leq n\). Let \(m[i,j]\) be the minimum number of scalar multiplications needed to compute \(A_{i:j}\). Starting with the base case, \(m[i,i]\) is the cost to compute the multiplication of a single matrix, which is 0. Assuming optimal subproblems are chosen, \(m[i,j] = m[i,k] + m[k+1,j] + p_{i-1}p_kp_j\), where the last term is the cost of multiplying \(A_{i:k}A_{k+1:j}\).</p>
+<p>All possible splits must be evaluated. So, how many are there? Omitting the first and last matrices, there are \(j - i\) possible splits. We can now define the optimal solution in terms of the following recursion:</p>
+<p>\[
+m[i,j] = \min \{m[i,k] + m[k+1,j] + p_{i-1}p_kp_j : i \leq k &lt; j\}.
+\]</p>
+<h4 id="storing-the-solutions">Storing the Solutions</h4>
+<p>The problem is taking shape and we have a recursive formula. However, this is no better than the brute-force method until we figure out how to select the optimal subproblems and store their solutions. That is, we need to optimally select \(k\). A bottom-up approach involves computing the cost of all possible combinations of the \(n\) matrices and building up from there. This requires \(O(n^2)\) memory to store both the costs \(m[i, j]\) as well as the value of \(k\) that splits them \(s[i, j]\).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">matrix_chain_order</span>(p):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(p) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    m <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>    s <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> l <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">-</span>l<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>):
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> l <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            m[i][j] <span style="color:#f92672">=</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(i, j):
+</span></span><span style="display:flex;"><span>                q <span style="color:#f92672">=</span> m[i][k] <span style="color:#f92672">+</span> m[k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][j] <span style="color:#f92672">+</span> p[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>p[k]<span style="color:#f92672">*</span>p[j]
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> q <span style="color:#f92672">&lt;</span> m[i][j]:
+</span></span><span style="display:flex;"><span>                    m[i][j] <span style="color:#f92672">=</span> q
+</span></span><span style="display:flex;"><span>                    s[i][j] <span style="color:#f92672">=</span> k
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> m, s
+</span></span></code></pre></div><p>The function <code>matrix_chain_order</code> computes the cost of all possible combinations of the \(n\) matrices and stores the value of \(k\) that splits them. The outer-most <code>for</code> loop controls the length of the chain being evaluated. We start at 2 since the cost of a length 1 chain is 0. Intuition tells us that the triply-nested <code>for</code> loop has a time complexity of \(O(n^3)\).</p>
+<p>This algorithm computes the cost in ascending order of chain length. When \(l=2\), the cost of all chains of length 2 is computed. When \(l=3\), the cost of all chains of length 3 is computed, and so on. The recursion in the inner-most nested loop will only ever access the entries in <code>m</code> which have been previously computed.</p>
+<h4 id="reconstructing-a-solution">Reconstructing a Solution</h4>
+<p>We now have a solution which generates the optimal number of scalar multiplications needed for all possible combinations of the \(n\) matrices. However, we do not yet have a solution which tells us the order in which the matrices should be multiplied. This information is held in <code>s</code>, which records the value of \(k\) that splits the chain. The function <code>print_optimal_parens</code> is given below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_optimal_parens</span>(s, i, j):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> j:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;A_</span><span style="color:#e6db74">{</span>i<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>, end<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;(&#34;</span>, end<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>        print_optimal_parens(s, i, s[i][j])
+</span></span><span style="display:flex;"><span>        print_optimal_parens(s, s[i][j]<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, j)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;)&#34;</span>, end<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>)
+</span></span></code></pre></div><p>Using figure 14.5 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>) as a reference, we can test the function <code>print_optimal_parens</code>. It is first called as <code>print_optimal_parens(s, 1, 6)</code>. This recursively calls <code>print_optimal_parens(s, 1, 3)</code> and <code>print_optimal_parens(s, 4, 6)</code>. We will work from left to right, top to bottom and fill out the values.</p>
+<p><strong>Second call: <code>print_optimal_parens(s, 1, 3)</code></strong></p>
+<p>This recursively calls <code>print_optimal_parens(s, 1, 1)</code> and <code>print_optimal_parens(s, 2, 3)</code>. We can see that this first call has \(i==j\), so it prints \(A_1\). The second call prints \((A_2A_3)\). This initial call already set up the first set of parenthesis, so the intermediate result is \(((A_1(A_2A_3))\cdots)\).</p>
+<p><strong>Third call: <code>print_optimal_parens(s, 4, 6)</code></strong></p>
+<p>This recursively calls <code>print_optimal_parens(s, 4, 5)</code> and <code>print_optimal_parens(s, 6, 6)</code>. This first call will recursively call <code>print_optimal_parens(s, 4, 4)</code> and <code>print_optimal_parens(s, 5, 5)</code>. This produces \((A_4A_5)\) from the first subcall and \(A_6\) from the second subcall. The intermediate result is now \((\cdots((A_4A_5)A_6))\).</p>
+<p><strong>Putting it all together</strong></p>
+<p>Combining these results yields \(((A_1(A_2A_3))((A_4A_5)A_6))\). This is the optimal parenthesization of the matrix chain \(A_1A_2A_3A_4A_5A_6\).</p>
+<h2 id="applying-dynamic-programming">Applying Dynamic Programming</h2>
+<blockquote>
+<p>Section 14.3 of (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>) focuses on the two core components of a dynamic programming solution: <strong>optimal substructure</strong> and <strong>overlapping subproblems</strong>. By taking a closer look at how these two components were used in various dynamic programming solutions, you should have a greater understanding of how to apply dynamic programming to new problems.</p>
+</blockquote>
+<p>As shown in previous examples, determining the <strong>optimal substructure</strong> is the first step in formulating a dynamic programming solution. In most cases, this comes from understanding the problem itself well. It is the result of a natural way of analysis and decomposition of the problem. When learning a new concerto, a musician must have a strong command of technique and fundamental musical concepts. Similarly, a strong understanding of the problem is required to determine the optimal substructure.</p>
+<h3 id="determining-optimal-substructure">Determining Optimal Substructure</h3>
+<ol>
+<li>Show that a solution to a problem requires making a choice, like where to cut in the rod cutting problem.</li>
+<li>Assume that you are given an optimal choice.</li>
+<li>Identify the subproblems that result from this choice.</li>
+<li>Show that solutions to these subproblems are optimal.</li>
+</ol>
+<p>In the last step, we are typically looking for a contradiction. The assumption of step 2 means that if we end up finding a more optimal solution to a subproblem, then the original choice was not optimal. The result is that we have a better overall solution.</p>
+<p>The efficiency of a dynamic programming solution depends on the number of subproblems times the number of choices we have for each subproblem. When investigating solutions to a new problem, it is better to start with a simple case and expand outward as necessary. Using a subproblem graph is a great way to visualize the subproblems and their dependencies.</p>
+<h3 id="counter-example-the-longest-simple-path">Counter-Example: The Longest Simple Path</h3>
+<p>Consider the following problems which first appear to have optimal substructure.</p>
+<ol>
+<li><strong>Shortest path</strong>: find a path \(u \leadsto v\) with the fewest edges without cycles.</li>
+<li><strong>Longest simple path</strong>: find a path \(u \leadsto v\) with the most edges without cycles.</li>
+</ol>
+<p>The first problem has optimal substructure. If we suppose that the shortest path \(u \leadsto v\) is given by \(p\). Given some intermediate vertex \(w\), the optimal path from \(u \leadsto w\) is given by \(p_1\) and the optimal path from \(w \leadsto v\) is given by \(p_2\). If there were a shorter path \(p`_1\) from \(u \leadsto w\) then we could replace \(p_1\) with it and get a total path with fewer edges.</p>
+<p><strong>Check your understanding</strong></p>
+<p>Why does that argument reinforce the idea of optimal substructure? By showing that the optimal solution to a subproblem is the optimal solution to the original problem. This argument becomes clearer as we consider the longest simple path problem.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-15_13-43-21_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Subproblem graph for the longest simple path problem (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Subproblem graph for the longest simple path problem (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Consider the directed graph above. The path \(q \rightarrow r \rightarrow t\) is the longest simple path from \(q\) to \(t\). <strong>Keep in mind that the problem is to find a simple path with the most edges. If the substructure is optimal, then the subpaths must also exhibit maximal edges.</strong> The subpath \(q \leadsto r\) in this case is simply \(q \rightarrow r\), but the longest simple path from \(q\) to \(r\) is \(q \rightarrow s \rightarrow t \rightarrow r\). Therefore, the subpath \(q \leadsto r\) is not optimal. This is a counter-example to the idea that the longest simple path problem has optimal substructure.</p>
+<p>The longest simple path problem does not have <strong>independent</strong> subproblems. Consider a path from \(q\) to \(t\). This could be broken down into subproblem \(q \leadsto r\) and \(r \leadsto t\). For \(q \leadsto r\), we have \(q \rightarrow s \rightarrow t \rightarrow r\). This subproblem is dependent on \(s\) and \(t\), so we cannot use them in the second subproblem \(r \leadsto t\) without forming a path that is not simple. Specifically, the first subproblem includes \(t\), so the second subproblem cannot include \(t\). <strong>However, the second subproblem MUST include \(t\).</strong></p>
+<h4 id="questions">Questions</h4>
+<ol>
+<li>What are the independent subproblems in the rod cutting and matrix-chain multiplication problems?</li>
+</ol>
+<h3 id="using-overlapping-subproblems">Using Overlapping Subproblems</h3>
+<p>First, do not confuse the idea of <strong>overlapping subproblems</strong> with the need for the subproblems to be <strong>independent</strong>. Subproblems are independent if they do not share resources, which the longest simple path problem does not have. Overlapping subproblems means that a subproblem may require the result of another independent subproblem. This is the case in the rod cutting problem, where the value of a subproblem is used in the calculation of the value of the next subproblem.</p>
+<p>A desirable trait of any recursive problem is that it have a small number of unique subproblems. The running time of such a solution is dependent on the number of subproblems, so having more of them will naturally lead to a less efficient solution. Section 14.3 reviews the bottom-up solution to matrix-chain multiplication, specifically focusing on the number of times the solution of each subproblem is required. It is recommended to review this section for further understanding.</p>
+<h4 id="questions">Questions</h4>
+<ol>
+<li>How many subproblem solutions are reused in the rod cutting problem of \(n=4\)?</li>
+<li>How many subproblem solutions are reused when computing the Fibonacci sequence of \(n\)?</li>
+</ol>
+<h2 id="longest-common-subsequence">Longest Common Subsequence</h2>
+<p>A longest common subsequence (LCS) of two input sequences \(X = \langle x_1, x_2, \ldots, x_m \rangle\) and \(Y = \langle y_1, y_2, \ldots, y_n \rangle\) is a sequence \(Z = \langle z_1, z_2, \ldots, z_k \rangle\) such that \(Z\) is a subsequence of both \(X\) and \(Y\) and \(k\) is as large as possible. For example, given \(X = \langle A, B, C, B, D, A, B \rangle\) and \(Y = \langle B, D, C, A, B, A \rangle\), the LCS is \(\langle B, C, A, B \rangle\).</p>
+<p><strong>The subsequence is not necessarily consecutive!</strong> A subsequence \(Z\) is common to a sequence \(X\) if it corresponds to a strictly increasing sequence of indices such that \(x_{i_j} = z_j\).</p>
+<h3 id="naive-solution">Naive Solution</h3>
+<p>First, how would we solve this problem using a brute-force method? We could generate all possible subsequences of \(X\) and \(Y\) and then compare them. This would require \(O(n2^m)\) time.</p>
+<h3 id="dynamic-programming-solution">Dynamic Programming Solution</h3>
+<p>Following the four step process, we can formulate a dynamic programming solution to the LCS problem. Step 1 is to determine the optimal substructure of the problem.</p>
+<h4 id="optimal-substructure">Optimal Substructure</h4>
+<p>Let \(X = \langle x_1, x_2, \ldots, x_m \rangle\) and \(Y = \langle y_1, y_2, \ldots, y_n \rangle\). Let \(Z = \langle z_1, z_2, \ldots, z_k \rangle\) be an LCS of \(X\) and \(Y\).</p>
+<ol>
+<li>If \(x_m = y_n\), then \(z_k = x_m = y_n\) and \(Z_{k-1}\) is an LCS of \(X_{m-1}\) and \(Y_{n-1}\).</li>
+<li>If \(x_m \neq y_n\) and \(z_k \neq x_m\), then \(Z\) is an LCS of \(X_{m-1}\) and \(Y\).</li>
+<li>If \(x_m \neq y_n\) and \(z_k \neq y_n\), then \(Z\) is an LCS of \(X\) and \(Y_{n-1}\).</li>
+</ol>
+<p>The theorem above shows that the LCS problem has optimal substructure. Let&rsquo;s break this down a bit. Consider two sequences (words): rocinante and canterbury. The longest common subsequence is &ldquo;cante&rdquo;. Since the last characters of the two original words do not match, we can remove the last character from either word and find the LCS of the two remaining words. This implies that we could have found the LCS of the two original words by finding the LCS of a smaller subproblem.</p>
+<p><strong>What if the two words had the same last character?</strong> The LCS of the shorter strings is the same as the LCS of the original strings with the last character removed.</p>
+<h4 id="recursive-solution">Recursive Solution</h4>
+<p>The next step is to write a recursive solution to the problem. Given the substrucure just presented, a bottom-up approach seems intuitive. Starting with indices \(i=0\) and \(j=0\) which indicate the length of the current strings \(X_i\) and \(Y_j\), increase the length and compute the LCS as we go.</p>
+<p>Define \(c[i, j]\) as the LCS length of \(X_i\) and \(Y_j\). The goal is to compute \(c[m,n]\), where \(m\) and \(n\) are the lengths of \(X\) and \(Y\), respectively. The recursive formula is given by</p>
+<p>\[
+c[i, j] = \begin{cases}
+0 &amp; \text{if } i = 0 \text{ or } j = 0, \\
+c[i-1, j-1] + 1 &amp; \text{if } i, j &gt; 0 \text{ and } x_i = y_j, \\
+\max(c[i-1, j], c[i, j-1]) &amp; \text{if } i, j &gt; 0 \text{ and } x_i \neq y_j.
+\end{cases}
+\]</p>
+<!--list-separator-->
+<ul>
+<li>
+<p><strong>Example: &ldquo;atom&rdquo; and &ldquo;ant&rdquo;</strong></p>
+<p>The LCS of &ldquo;atom&rdquo; and &ldquo;ant&rdquo; is &ldquo;at&rdquo;. The tree below shows the recursive calls to each subproblem. A dashed line indicates that the subproblem has already been solved.</p>
+
+    
+    
+    
+    
+    
+    <figure>
+    
+    <img src="/ox-hugo/2024-03-16_10-33-21_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Recursion tree for the LCS problem (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+    
+    
+    
+    <figcaption data-pre="Figure " data-post=":" >
+      
+      <p>
+        <span class="figure-number">Figure 4: </span>Recursion tree for the LCS problem (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+        
+        
+        
+      </p> 
+    </figcaption>
+    
+    </figure>
+
+</li>
+</ul>
+<h4 id="storing-the-solutions">Storing the Solutions</h4>
+<p>The LCS problem has \(\Theta(mn)\) distinct subproblems, so storing the solutions to these subproblems will allow us to avoid redundant computation. A dynamic programming solution goes as follows:</p>
+<ol>
+<li>Store the lengths of the LCS of the prefixes of \(X\) and \(Y\) in a table \(c\).</li>
+<li>Additionally store the solution to the subproblems in a table \(b\) so that we can reconstruct the LCS.</li>
+<li>The entries are filled in a row-major order.</li>
+</ol>
+<p>The code is given below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lcs_length</span>(X, Y):
+</span></span><span style="display:flex;"><span>    m <span style="color:#f92672">=</span> len(X)
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(Y)
+</span></span><span style="display:flex;"><span>    b <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    c <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> X[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> Y[j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                c[i][j] <span style="color:#f92672">=</span> c[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                b[i][j] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;↖&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> c[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j] <span style="color:#f92672">&gt;=</span> c[i][j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                c[i][j] <span style="color:#f92672">=</span> c[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j]
+</span></span><span style="display:flex;"><span>                b[i][j] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;↑&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                c[i][j] <span style="color:#f92672">=</span> c[i][j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                b[i][j] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;←&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> c, b
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_lcs</span>(b, X, i, j):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> j <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> b[i][j] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;↖&#34;</span>:
+</span></span><span style="display:flex;"><span>        print_lcs(b, X, i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        print(X[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], end<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> b[i][j] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;↑&#34;</span>:
+</span></span><span style="display:flex;"><span>        print_lcs(b, X, i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, j)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print_lcs(b, X, i, j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span></code></pre></div><h4 id="reconstructing-a-solution">Reconstructing a Solution</h4>
+<p>Printing the solution starts with the last entry in the table \(b\). If the entry is &ldquo;↖&rdquo;, then the last characters of \(X\) and \(Y\) are the same and we print the character. If the entry is &ldquo;↑&rdquo;, then we move up in the table. If the entry is &ldquo;←&rdquo;, then we move left in the table.</p>
+<h2 id="exercises">Exercises</h2>
+<ol>
+<li><strong>Exercise 14.1-5</strong> from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</li>
+<li><strong>Exercise 14.2-1</strong> from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</li>
+<li>Write a recursive function to compute the Fibonacci sequence. What is the time complexity of this function? What is the time complexity of the dynamic programming solution?</li>
+<li>Write a function that prints a table similar to Figure 14.8 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>) for the LCS problem.</li>
+</ol>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-science/">computer science</a>
+  
+  <a class="badge badge-light" href="/tags/algorithms/">algorithms</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/medians_and_order_statistics/">Medians and Order Statistics</a></li>
+          
+          <li><a href="/notes/sorting_in_linear_time/">Sorting in Linear Time</a></li>
+          
+          <li><a href="/notes/substitution_method/">Substitution Method</a></li>
+          
+          <li><a href="/notes/quicksort/">Quicksort</a></li>
+          
+          <li><a href="/notes/priority_queues/">Priority Queues</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -7,10 +7,1582 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Tue, 27 Feb 2024 19:12:00 -0600</lastBuildDate>
+    <lastBuildDate>Thu, 14 Mar 2024 15:16:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Hash Tables</title>
+      <link>https://ajdillhoff.github.io/notes/hash_tables/</link>
+      <pubDate>Thu, 14 Mar 2024 15:16:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/hash_tables/</guid>
+      <description>&lt;p&gt;See &lt;a href=&#34;https://ajdillhoff.github.io/teaching/dasc5300/lectures/hash_maps.pdf&#34;&gt;these slides&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Dynamic Programming</title>
+      <link>https://ajdillhoff.github.io/notes/dynamic_programming/</link>
+      <pubDate>Thu, 14 Mar 2024 10:40:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/dynamic_programming/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#rod-cutting&#34;&gt;Rod Cutting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#matrix-chain-multiplication&#34;&gt;Matrix-chain Multiplication&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#applying-dynamic-programming&#34;&gt;Applying Dynamic Programming&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#longest-common-subsequence&#34;&gt;Longest Common Subsequence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#exercises&#34;&gt;Exercises&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Dynamic programming is a technique for solving problems by breaking them down into simpler subproblems, very much like divide and conquer algorithms. One primary difference is that the subproblems are designed in such a way that they do not need to be recomputed.&lt;/p&gt;
+&lt;p&gt;Many common problems have efficience dynamic programming solutions, and we will investigate several of them in these notes. In general, a dynamic programming solution can be applied if the problem has the following features.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Optimal substructure:&lt;/strong&gt; An optimal solution can be constructed by optimal solutions to the subproblems.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Overlapping subproblems:&lt;/strong&gt; The problem can be broken down into subproblems which can be reused.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;For example, the Fibonacci sequence has &lt;strong&gt;optimal substructure&lt;/strong&gt; because the value of the sequence at any index is the sum of the values at the two previous indices. It also has &lt;strong&gt;overlapping subproblems&lt;/strong&gt; because the value of the sequence at any index is used in the calculation of the values at the two subsequent indices. A recursive solution to the Fibonacci sequence will have exponential time complexity, but a dynamic programming solution will have linear time complexity.&lt;/p&gt;
+&lt;p&gt;The two main approaches to dynamic programming are top-down (memoization) and bottom-up (tabulation). &lt;strong&gt;Memoization&lt;/strong&gt; involves writing a recursive solution that stores each sub=solution in a table so that it can be reused. &lt;strong&gt;Tabulation&lt;/strong&gt; involves solving the problem by filling in a table of subproblems from the bottom up. In either case, a dynamic programming solution can be formulated with the following steps.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Identify subproblems&lt;/strong&gt; so that the problem can be broken down.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solve the subproblems&lt;/strong&gt; following an optimal solution.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Store the solutions&lt;/strong&gt; to avoid redundant computation.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Combine solutions&lt;/strong&gt; from the subproblems to solve the original problem.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;rod-cutting&#34;&gt;Rod Cutting&lt;/h2&gt;
+&lt;p&gt;Given a rod of length \(n\) and table of prices \(p_i\) for \(i = 1, 2, \ldots, n\), determine the maximum revenue \(r_n\) that can be obtained by cutting up the rod and selling the pieces.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Length&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;th&gt;8&lt;/th&gt;
+&lt;th&gt;9&lt;/th&gt;
+&lt;th&gt;10&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Price&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;10&lt;/td&gt;
+&lt;td&gt;17&lt;/td&gt;
+&lt;td&gt;17&lt;/td&gt;
+&lt;td&gt;20&lt;/td&gt;
+&lt;td&gt;24&lt;/td&gt;
+&lt;td&gt;30&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The table of prices is shown above. For a rod of length 4, there are 8 (\(2^{n-1}\), where \(n=4\)) different ways to cut the rod.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-14_11-47-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;8 different ways to cut a rod of length 4 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;8 different ways to cut a rod of length 4 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The maximum revenue for a rod of length \(n\) can be determined by the following optimization problem:&lt;/p&gt;
+&lt;p&gt;\[
+r_n = \max(p_n, r_1 + r_{n-1}, r_2 + r_{n-2}, \ldots, r_{n-1} + r_1),
+\]&lt;/p&gt;
+&lt;p&gt;where \(r_i\) is the maximum revenue for a rod of length \(i\). The maximum revenue for a rod of length \(n\) can be determined by solving the subproblems for rods of length \(i\) for \(i = 1, 2, \ldots, n-1\). Each of the terms \(r_i\) in the equation above implies a recursive solution to the problem. You should be able to see that solving this recursively would lead to many redundant computations. For example, \(r_1\) is computed at least twice in the equation above.&lt;/p&gt;
+&lt;p&gt;This recursion is more compactly written as&lt;/p&gt;
+&lt;p&gt;\[
+r_n = \max_{1 \leq i \leq n}(p_i + r_{n-i}).
+\]&lt;/p&gt;
+&lt;p&gt;This problem has &lt;strong&gt;optimal substructure&lt;/strong&gt;. If we cut the rod into smaller subsections, we can recursively solve this subproblems recursively and combine them. The recursive algorithm is as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cut_rod&lt;/span&gt;(p, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(q, p[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; cut_rod(p, n&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;i))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If \(T(n)\) is a recurrence that represents the number of times &lt;code&gt;cur_rod&lt;/code&gt; is called recursively, then we can write the following recurrence relation:&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = 1 + \sum_{j=0}^{n-1}T(j).
+\]&lt;/p&gt;
+&lt;p&gt;Using the substitution method, we can show that \(T(n) = 2^n\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;= 1 + \sum_{j=0}^{n-1}2^j \\
+&amp;amp;= 1 + (2^n - 1) \\
+&amp;amp;= 2^n.
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;memoization-solution&#34;&gt;Memoization Solution&lt;/h3&gt;
+&lt;p&gt;To solve this with dynamic programming, the goal is to make sure that each subproblem is computed &lt;em&gt;only once&lt;/em&gt;. This is accomplished by saving the result of each subproblem in a table so that it can be reused. This does incur a space complexity of \(O(n)\), but it reduces the time complexity to \(O(n^2)\).&lt;/p&gt;
+&lt;p&gt;The solution requires a small modification to the recursive algorithm. When the solution to a subproblem is required, the table is first checked for a stored solution. If the solution is not found, the subproblem is solved recursively and the solution is stored in the table. The code is given below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;memoized_cut_rod&lt;/span&gt;(p, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; memoized_cut_rod_aux(p, n, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;memoized_cut_rod_aux&lt;/span&gt;(p, n, r):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; r[n] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; r[n]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(q, p[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; memoized_cut_rod_aux(p, n&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;i, r))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r[n] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The algorithm starts off with a call to &lt;code&gt;memoized_cut_rod&lt;/code&gt; which initializes the table &lt;code&gt;r&lt;/code&gt; and then calls &lt;code&gt;memoized_cut_rod_aux&lt;/code&gt;. The table &lt;code&gt;r&lt;/code&gt; is initialized with \(-\infty\) so that we can check if a solution has been computed for a subproblem. Each subproblem is solved only ones, leading to \(O(1)\) lookups after that. The time complexity of this solution is \(O(n^2)\).&lt;/p&gt;
+&lt;h3 id=&#34;bottom-up-solution&#34;&gt;Bottom-Up Solution&lt;/h3&gt;
+&lt;p&gt;The other dynamic programming solution is to first sort the subproblems by their size, solve the smaller ones first, and build up to the larger ones. This is called &lt;strong&gt;tabulation&lt;/strong&gt;. The time complexity of this solution is also \(O(n^2)\).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bottom_up_cut_rod&lt;/span&gt;(p, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, j&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(q, p[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; r[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;i])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        r[j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; r[n]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The first &lt;code&gt;for&lt;/code&gt; loop effectively sorts the problem by size. It starts with a cut of size 1 and builds up to a cut of size \(n\).&lt;/p&gt;
+&lt;h3 id=&#34;subproblem-graphs&#34;&gt;Subproblem Graphs&lt;/h3&gt;
+&lt;p&gt;Subproblem graphs offer a concise way to visualize the subproblems and their dependencies. The subproblem graph for the rod cutting problem with \(n=4\) is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-14_14-54-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Subproblem graph for the rod cutting problem with (n=4) (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Subproblem graph for the rod cutting problem with (n=4) (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Subproblem \(n=4\) is dependent on subproblems \(n=3\), \(n=2\), and \(n=1\). The bottom-up approach follows this dependency by ensuring that the subproblems are solved in the correct order.&lt;/p&gt;
+&lt;p&gt;Besides serving as a helpful visualization. Depicting the problem using a DAG can also help to identify the time complexity of the problem. This is the sum of the time needed to solve each subproblem. Each problem of size \(n\) requires \(n-1\) subproblems to be solved, and each subproblem of size \(n-1\) requires \(n-2\) subproblems to be solved. This leads to a time complexity of \(O(n^2)\).&lt;/p&gt;
+&lt;h3 id=&#34;reconstructing-a-solution&#34;&gt;Reconstructing a Solution&lt;/h3&gt;
+&lt;p&gt;The two dynamic programming solutions above return the maximum revenue that can be obtained by cutting up the rod. However, they do not return the actual cuts that should be made. This can be done by modifying the algorithms to store the cuts that are made. The code is given below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;extended_bottom_up_cut_rod&lt;/span&gt;(p, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, j&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; q &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; p[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; r[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;i]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; p[i] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; r[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                s[j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        r[j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; r, s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;print_cut_rod_solution&lt;/span&gt;(p, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r, s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; extended_bottom_up_cut_rod(p, n)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(s[n])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        n &lt;span style=&#34;color:#f92672&#34;&gt;-=&lt;/span&gt; s[n]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In the bottom-up approach, the table &lt;code&gt;s&lt;/code&gt; is used to store the size of the first piece to cut off. The function &lt;code&gt;print_cut_rod_solution&lt;/code&gt; uses this table to print the cuts that should be made.&lt;/p&gt;
+&lt;h2 id=&#34;matrix-chain-multiplication&#34;&gt;Matrix-chain Multiplication&lt;/h2&gt;
+&lt;p&gt;The next problem covered by Cormen et al. is &lt;strong&gt;matrix-chain multiplication&lt;/strong&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). Given a sequence of matrices \(A_1, A_2, \ldots, A_n\), where the dimensions of matrix \(A_i\) are \(p_{i-1} \times p_i\), determine the most efficient way to multiply the matrices. The problem is to determine the order in which the matrices should be multiplied so that the number of scalar multiplications is minimized.&lt;/p&gt;
+&lt;p&gt;Understanding the solution to this problem requires understanding the problem itself. Depending on the order in which matrices are multiplied in a chain, the number of scalar multiplications can vary. Consider three matrices \(A \in \mathbb{R}^{10 \times 100}\), \(B \in \mathbb{R}^{100 \times 5}\), and \(C \in \mathbb{R}^{5 \times 50}\). The number of scalar multiplications required to compute \(A(BC)\) is \(10 \times 100 \times 5 + 10 \times 5 \times 50 = 7500\), while the number of scalar multiplications required to compute \((AB)C\) is \(10 \times 100 \times 50 + 100 \times 5 \times 50 = 75000\). The order in which the matrices are multiplied can have a significant impact on the number of scalar multiplications required.&lt;/p&gt;
+&lt;p&gt;Matrix multiplication is associative, so the order in which the matrices are grouped does not matter. The key to solving this problem is to find the most efficient way to group the matrices. The first part of the solution is to determine the number of possible groupings, or parenthesizations, we can make.&lt;/p&gt;
+&lt;h3 id=&#34;determining-parenthesizations&#34;&gt;Determining Parenthesizations&lt;/h3&gt;
+&lt;p&gt;The number of possible parenthesizations of a chain of \(n\) matrices is given by \(P(n)\). When \(n \geq 2\), the number of possible parenthesizations is given by&lt;/p&gt;
+&lt;p&gt;\[
+P(n) = \sum_{k=1}^{n-1}P(k)P(n-k).
+\]&lt;/p&gt;
+&lt;p&gt;A brute force solution to this problem would require \(O(2^n)\) time (see Exercise 14.2-3 in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)).&lt;/p&gt;
+&lt;h3 id=&#34;dynamic-programming-solution&#34;&gt;Dynamic Programming Solution&lt;/h3&gt;
+&lt;p&gt;We now review the four step process to formulating a dynamic programming solution as put forth by Cormen et al. (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;h4 id=&#34;optimal-substructure&#34;&gt;Optimal Substructure&lt;/h4&gt;
+&lt;p&gt;What is the optimal substructure of this problem? Consider matrix-chain sequence \(A_{i:j} = A_i A_{i+1} \cdots A_j\). If we split the sequence at \(k\), then the optimal solution to the problem is the optimal solution to the subproblems \(A_{i:k}\) and \(A_{k+1:j}\). This is because the number of scalar multiplications required to compute \(A_{i:j}\) is the sum of the number of scalar multiplications required to compute \(A_{i:k}\) and \(A_{k+1:j}\) plus the number of scalar multiplications required to compute the product of the two subproblems.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How can we ensure that there is not a more optimal grouping of \(A_{h:l}\), where \(i \leq h &amp;lt; k\) and \(k &amp;lt; l \leq j\)?&lt;/strong&gt; The answer lies in evaluating &lt;strong&gt;all&lt;/strong&gt; possible splits.&lt;/p&gt;
+&lt;h4 id=&#34;recursive-solution&#34;&gt;Recursive Solution&lt;/h4&gt;
+&lt;p&gt;What is the cost of an optimal solution to the problem? We must first compute the minimum cost of parenthesizing \(A_{i:j}\) for \(1 \leq i \leq j \leq n\). Let \(m[i,j]\) be the minimum number of scalar multiplications needed to compute \(A_{i:j}\). Starting with the base case, \(m[i,i]\) is the cost to compute the multiplication of a single matrix, which is 0. Assuming optimal subproblems are chosen, \(m[i,j] = m[i,k] + m[k+1,j] + p_{i-1}p_kp_j\), where the last term is the cost of multiplying \(A_{i:k}A_{k+1:j}\).&lt;/p&gt;
+&lt;p&gt;All possible splits must be evaluated. So, how many are there? Omitting the first and last matrices, there are \(j - i\) possible splits. We can now define the optimal solution in terms of the following recursion:&lt;/p&gt;
+&lt;p&gt;\[
+m[i,j] = \min \{m[i,k] + m[k+1,j] + p_{i-1}p_kp_j : i \leq k &amp;lt; j\}.
+\]&lt;/p&gt;
+&lt;h4 id=&#34;storing-the-solutions&#34;&gt;Storing the Solutions&lt;/h4&gt;
+&lt;p&gt;The problem is taking shape and we have a recursive formula. However, this is no better than the brute-force method until we figure out how to select the optimal subproblems and store their solutions. That is, we need to optimally select \(k\). A bottom-up approach involves computing the cost of all possible combinations of the \(n\) matrices and building up from there. This requires \(O(n^2)\) memory to store both the costs \(m[i, j]\) as well as the value of \(k\) that splits them \(s[i, j]\).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;matrix_chain_order&lt;/span&gt;(p):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(p) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; l &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;l&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; l &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            m[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(i, j):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; m[i][k] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; m[k&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;][j] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;p[k]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;p[j]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; q &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; m[i][j]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    m[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; q
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    s[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; m, s
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The function &lt;code&gt;matrix_chain_order&lt;/code&gt; computes the cost of all possible combinations of the \(n\) matrices and stores the value of \(k\) that splits them. The outer-most &lt;code&gt;for&lt;/code&gt; loop controls the length of the chain being evaluated. We start at 2 since the cost of a length 1 chain is 0. Intuition tells us that the triply-nested &lt;code&gt;for&lt;/code&gt; loop has a time complexity of \(O(n^3)\).&lt;/p&gt;
+&lt;p&gt;This algorithm computes the cost in ascending order of chain length. When \(l=2\), the cost of all chains of length 2 is computed. When \(l=3\), the cost of all chains of length 3 is computed, and so on. The recursion in the inner-most nested loop will only ever access the entries in &lt;code&gt;m&lt;/code&gt; which have been previously computed.&lt;/p&gt;
+&lt;h4 id=&#34;reconstructing-a-solution&#34;&gt;Reconstructing a Solution&lt;/h4&gt;
+&lt;p&gt;We now have a solution which generates the optimal number of scalar multiplications needed for all possible combinations of the \(n\) matrices. However, we do not yet have a solution which tells us the order in which the matrices should be multiplied. This information is held in &lt;code&gt;s&lt;/code&gt;, which records the value of \(k\) that splits the chain. The function &lt;code&gt;print_optimal_parens&lt;/code&gt; is given below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;print_optimal_parens&lt;/span&gt;(s, i, j):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; j:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A_&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;i&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, end&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;(&amp;#34;&lt;/span&gt;, end&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_optimal_parens(s, i, s[i][j])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_optimal_parens(s, s[i][j]&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, j)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;)&amp;#34;&lt;/span&gt;, end&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Using figure 14.5 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;) as a reference, we can test the function &lt;code&gt;print_optimal_parens&lt;/code&gt;. It is first called as &lt;code&gt;print_optimal_parens(s, 1, 6)&lt;/code&gt;. This recursively calls &lt;code&gt;print_optimal_parens(s, 1, 3)&lt;/code&gt; and &lt;code&gt;print_optimal_parens(s, 4, 6)&lt;/code&gt;. We will work from left to right, top to bottom and fill out the values.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Second call: &lt;code&gt;print_optimal_parens(s, 1, 3)&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This recursively calls &lt;code&gt;print_optimal_parens(s, 1, 1)&lt;/code&gt; and &lt;code&gt;print_optimal_parens(s, 2, 3)&lt;/code&gt;. We can see that this first call has \(i==j\), so it prints \(A_1\). The second call prints \((A_2A_3)\). This initial call already set up the first set of parenthesis, so the intermediate result is \(((A_1(A_2A_3))\cdots)\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Third call: &lt;code&gt;print_optimal_parens(s, 4, 6)&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This recursively calls &lt;code&gt;print_optimal_parens(s, 4, 5)&lt;/code&gt; and &lt;code&gt;print_optimal_parens(s, 6, 6)&lt;/code&gt;. This first call will recursively call &lt;code&gt;print_optimal_parens(s, 4, 4)&lt;/code&gt; and &lt;code&gt;print_optimal_parens(s, 5, 5)&lt;/code&gt;. This produces \((A_4A_5)\) from the first subcall and \(A_6\) from the second subcall. The intermediate result is now \((\cdots((A_4A_5)A_6))\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Putting it all together&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Combining these results yields \(((A_1(A_2A_3))((A_4A_5)A_6))\). This is the optimal parenthesization of the matrix chain \(A_1A_2A_3A_4A_5A_6\).&lt;/p&gt;
+&lt;h2 id=&#34;applying-dynamic-programming&#34;&gt;Applying Dynamic Programming&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Section 14.3 of (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;) focuses on the two core components of a dynamic programming solution: &lt;strong&gt;optimal substructure&lt;/strong&gt; and &lt;strong&gt;overlapping subproblems&lt;/strong&gt;. By taking a closer look at how these two components were used in various dynamic programming solutions, you should have a greater understanding of how to apply dynamic programming to new problems.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As shown in previous examples, determining the &lt;strong&gt;optimal substructure&lt;/strong&gt; is the first step in formulating a dynamic programming solution. In most cases, this comes from understanding the problem itself well. It is the result of a natural way of analysis and decomposition of the problem. When learning a new concerto, a musician must have a strong command of technique and fundamental musical concepts. Similarly, a strong understanding of the problem is required to determine the optimal substructure.&lt;/p&gt;
+&lt;h3 id=&#34;determining-optimal-substructure&#34;&gt;Determining Optimal Substructure&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Show that a solution to a problem requires making a choice, like where to cut in the rod cutting problem.&lt;/li&gt;
+&lt;li&gt;Assume that you are given an optimal choice.&lt;/li&gt;
+&lt;li&gt;Identify the subproblems that result from this choice.&lt;/li&gt;
+&lt;li&gt;Show that solutions to these subproblems are optimal.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;In the last step, we are typically looking for a contradiction. The assumption of step 2 means that if we end up finding a more optimal solution to a subproblem, then the original choice was not optimal. The result is that we have a better overall solution.&lt;/p&gt;
+&lt;p&gt;The efficiency of a dynamic programming solution depends on the number of subproblems times the number of choices we have for each subproblem. When investigating solutions to a new problem, it is better to start with a simple case and expand outward as necessary. Using a subproblem graph is a great way to visualize the subproblems and their dependencies.&lt;/p&gt;
+&lt;h3 id=&#34;counter-example-the-longest-simple-path&#34;&gt;Counter-Example: The Longest Simple Path&lt;/h3&gt;
+&lt;p&gt;Consider the following problems which first appear to have optimal substructure.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Shortest path&lt;/strong&gt;: find a path \(u \leadsto v\) with the fewest edges without cycles.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Longest simple path&lt;/strong&gt;: find a path \(u \leadsto v\) with the most edges without cycles.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The first problem has optimal substructure. If we suppose that the shortest path \(u \leadsto v\) is given by \(p\). Given some intermediate vertex \(w\), the optimal path from \(u \leadsto w\) is given by \(p_1\) and the optimal path from \(w \leadsto v\) is given by \(p_2\). If there were a shorter path \(p`_1\) from \(u \leadsto w\) then we could replace \(p_1\) with it and get a total path with fewer edges.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Check your understanding&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Why does that argument reinforce the idea of optimal substructure? By showing that the optimal solution to a subproblem is the optimal solution to the original problem. This argument becomes clearer as we consider the longest simple path problem.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-15_13-43-21_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Subproblem graph for the longest simple path problem (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Subproblem graph for the longest simple path problem (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Consider the directed graph above. The path \(q \rightarrow r \rightarrow t\) is the longest simple path from \(q\) to \(t\). &lt;strong&gt;Keep in mind that the problem is to find a simple path with the most edges. If the substructure is optimal, then the subpaths must also exhibit maximal edges.&lt;/strong&gt; The subpath \(q \leadsto r\) in this case is simply \(q \rightarrow r\), but the longest simple path from \(q\) to \(r\) is \(q \rightarrow s \rightarrow t \rightarrow r\). Therefore, the subpath \(q \leadsto r\) is not optimal. This is a counter-example to the idea that the longest simple path problem has optimal substructure.&lt;/p&gt;
+&lt;p&gt;The longest simple path problem does not have &lt;strong&gt;independent&lt;/strong&gt; subproblems. Consider a path from \(q\) to \(t\). This could be broken down into subproblem \(q \leadsto r\) and \(r \leadsto t\). For \(q \leadsto r\), we have \(q \rightarrow s \rightarrow t \rightarrow r\). This subproblem is dependent on \(s\) and \(t\), so we cannot use them in the second subproblem \(r \leadsto t\) without forming a path that is not simple. Specifically, the first subproblem includes \(t\), so the second subproblem cannot include \(t\). &lt;strong&gt;However, the second subproblem MUST include \(t\).&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;questions&#34;&gt;Questions&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;What are the independent subproblems in the rod cutting and matrix-chain multiplication problems?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;using-overlapping-subproblems&#34;&gt;Using Overlapping Subproblems&lt;/h3&gt;
+&lt;p&gt;First, do not confuse the idea of &lt;strong&gt;overlapping subproblems&lt;/strong&gt; with the need for the subproblems to be &lt;strong&gt;independent&lt;/strong&gt;. Subproblems are independent if they do not share resources, which the longest simple path problem does not have. Overlapping subproblems means that a subproblem may require the result of another independent subproblem. This is the case in the rod cutting problem, where the value of a subproblem is used in the calculation of the value of the next subproblem.&lt;/p&gt;
+&lt;p&gt;A desirable trait of any recursive problem is that it have a small number of unique subproblems. The running time of such a solution is dependent on the number of subproblems, so having more of them will naturally lead to a less efficient solution. Section 14.3 reviews the bottom-up solution to matrix-chain multiplication, specifically focusing on the number of times the solution of each subproblem is required. It is recommended to review this section for further understanding.&lt;/p&gt;
+&lt;h4 id=&#34;questions&#34;&gt;Questions&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;How many subproblem solutions are reused in the rod cutting problem of \(n=4\)?&lt;/li&gt;
+&lt;li&gt;How many subproblem solutions are reused when computing the Fibonacci sequence of \(n\)?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;longest-common-subsequence&#34;&gt;Longest Common Subsequence&lt;/h2&gt;
+&lt;p&gt;A longest common subsequence (LCS) of two input sequences \(X = \langle x_1, x_2, \ldots, x_m \rangle\) and \(Y = \langle y_1, y_2, \ldots, y_n \rangle\) is a sequence \(Z = \langle z_1, z_2, \ldots, z_k \rangle\) such that \(Z\) is a subsequence of both \(X\) and \(Y\) and \(k\) is as large as possible. For example, given \(X = \langle A, B, C, B, D, A, B \rangle\) and \(Y = \langle B, D, C, A, B, A \rangle\), the LCS is \(\langle B, C, A, B \rangle\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;The subsequence is not necessarily consecutive!&lt;/strong&gt; A subsequence \(Z\) is common to a sequence \(X\) if it corresponds to a strictly increasing sequence of indices such that \(x_{i_j} = z_j\).&lt;/p&gt;
+&lt;h3 id=&#34;naive-solution&#34;&gt;Naive Solution&lt;/h3&gt;
+&lt;p&gt;First, how would we solve this problem using a brute-force method? We could generate all possible subsequences of \(X\) and \(Y\) and then compare them. This would require \(O(n2^m)\) time.&lt;/p&gt;
+&lt;h3 id=&#34;dynamic-programming-solution&#34;&gt;Dynamic Programming Solution&lt;/h3&gt;
+&lt;p&gt;Following the four step process, we can formulate a dynamic programming solution to the LCS problem. Step 1 is to determine the optimal substructure of the problem.&lt;/p&gt;
+&lt;h4 id=&#34;optimal-substructure&#34;&gt;Optimal Substructure&lt;/h4&gt;
+&lt;p&gt;Let \(X = \langle x_1, x_2, \ldots, x_m \rangle\) and \(Y = \langle y_1, y_2, \ldots, y_n \rangle\). Let \(Z = \langle z_1, z_2, \ldots, z_k \rangle\) be an LCS of \(X\) and \(Y\).&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;If \(x_m = y_n\), then \(z_k = x_m = y_n\) and \(Z_{k-1}\) is an LCS of \(X_{m-1}\) and \(Y_{n-1}\).&lt;/li&gt;
+&lt;li&gt;If \(x_m \neq y_n\) and \(z_k \neq x_m\), then \(Z\) is an LCS of \(X_{m-1}\) and \(Y\).&lt;/li&gt;
+&lt;li&gt;If \(x_m \neq y_n\) and \(z_k \neq y_n\), then \(Z\) is an LCS of \(X\) and \(Y_{n-1}\).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The theorem above shows that the LCS problem has optimal substructure. Let&amp;rsquo;s break this down a bit. Consider two sequences (words): rocinante and canterbury. The longest common subsequence is &amp;ldquo;cante&amp;rdquo;. Since the last characters of the two original words do not match, we can remove the last character from either word and find the LCS of the two remaining words. This implies that we could have found the LCS of the two original words by finding the LCS of a smaller subproblem.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What if the two words had the same last character?&lt;/strong&gt; The LCS of the shorter strings is the same as the LCS of the original strings with the last character removed.&lt;/p&gt;
+&lt;h4 id=&#34;recursive-solution&#34;&gt;Recursive Solution&lt;/h4&gt;
+&lt;p&gt;The next step is to write a recursive solution to the problem. Given the substrucure just presented, a bottom-up approach seems intuitive. Starting with indices \(i=0\) and \(j=0\) which indicate the length of the current strings \(X_i\) and \(Y_j\), increase the length and compute the LCS as we go.&lt;/p&gt;
+&lt;p&gt;Define \(c[i, j]\) as the LCS length of \(X_i\) and \(Y_j\). The goal is to compute \(c[m,n]\), where \(m\) and \(n\) are the lengths of \(X\) and \(Y\), respectively. The recursive formula is given by&lt;/p&gt;
+&lt;p&gt;\[
+c[i, j] = \begin{cases}
+0 &amp;amp; \text{if } i = 0 \text{ or } j = 0, \\
+c[i-1, j-1] + 1 &amp;amp; \text{if } i, j &amp;gt; 0 \text{ and } x_i = y_j, \\
+\max(c[i-1, j], c[i, j-1]) &amp;amp; \text{if } i, j &amp;gt; 0 \text{ and } x_i \neq y_j.
+\end{cases}
+\]&lt;/p&gt;
+&lt;!--list-separator--&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Example: &amp;ldquo;atom&amp;rdquo; and &amp;ldquo;ant&amp;rdquo;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The LCS of &amp;ldquo;atom&amp;rdquo; and &amp;ldquo;ant&amp;rdquo; is &amp;ldquo;at&amp;rdquo;. The tree below shows the recursive calls to each subproblem. A dashed line indicates that the subproblem has already been solved.&lt;/p&gt;
+
+    
+    
+    
+    
+    
+    &lt;figure&gt;
+    
+    &lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-16_10-33-21_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Recursion tree for the LCS problem (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+    
+    
+    
+    &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+      
+      &lt;p&gt;
+        &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Recursion tree for the LCS problem (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+        
+        
+        
+      &lt;/p&gt; 
+    &lt;/figcaption&gt;
+    
+    &lt;/figure&gt;
+
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;storing-the-solutions&#34;&gt;Storing the Solutions&lt;/h4&gt;
+&lt;p&gt;The LCS problem has \(\Theta(mn)\) distinct subproblems, so storing the solutions to these subproblems will allow us to avoid redundant computation. A dynamic programming solution goes as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Store the lengths of the LCS of the prefixes of \(X\) and \(Y\) in a table \(c\).&lt;/li&gt;
+&lt;li&gt;Additionally store the solution to the subproblems in a table \(b\) so that we can reconstruct the LCS.&lt;/li&gt;
+&lt;li&gt;The entries are filled in a row-major order.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The code is given below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;lcs_length&lt;/span&gt;(X, Y):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(X)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(Y)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(m&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    c &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(m&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, m&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, n&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; X[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Y[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                c[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; c[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;][j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                b[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;↖&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; c[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;][j] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; c[i][j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                c[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; c[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;][j]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                b[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;↑&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                c[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; c[i][j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                b[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;←&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; c, b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;print_lcs&lt;/span&gt;(b, X, i, j):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;or&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; b[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;↖&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_lcs(b, X, i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(X[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;], end&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; b[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;↑&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_lcs(b, X, i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, j)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_lcs(b, X, i, j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;reconstructing-a-solution&#34;&gt;Reconstructing a Solution&lt;/h4&gt;
+&lt;p&gt;Printing the solution starts with the last entry in the table \(b\). If the entry is &amp;ldquo;↖&amp;rdquo;, then the last characters of \(X\) and \(Y\) are the same and we print the character. If the entry is &amp;ldquo;↑&amp;rdquo;, then we move up in the table. If the entry is &amp;ldquo;←&amp;rdquo;, then we move left in the table.&lt;/p&gt;
+&lt;h2 id=&#34;exercises&#34;&gt;Exercises&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Exercise 14.1-5&lt;/strong&gt; from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Exercise 14.2-1&lt;/strong&gt; from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;Write a recursive function to compute the Fibonacci sequence. What is the time complexity of this function? What is the time complexity of the dynamic programming solution?&lt;/li&gt;
+&lt;li&gt;Write a function that prints a table similar to Figure 14.8 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;) for the LCS problem.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Medians and Order Statistics</title>
+      <link>https://ajdillhoff.github.io/notes/medians_and_order_statistics/</link>
+      <pubDate>Tue, 12 Mar 2024 13:17:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/medians_and_order_statistics/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#order-statistics&#34;&gt;Order Statistics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#minimum-and-maximum&#34;&gt;Minimum and Maximum&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#selection-in-expected-linear-time&#34;&gt;Selection in expected linear time&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#problems-and-exercises&#34;&gt;Problems and Exercises&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;We briefly touched on a median finding algorithm when discussing &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;. This section will be a bit of a review, but the point is to touch on the topic of order statistics more generally.&lt;/p&gt;
+&lt;h2 id=&#34;order-statistics&#34;&gt;Order Statistics&lt;/h2&gt;
+&lt;p&gt;The \(i^{\text{th}}\) order statistic is the \(i^{\text{th}}\) smallest element in a set of \(n\) elements. The median is the \(\frac{n}{2}^{\text{th}}\) order statistic. The minimum and maximum are the \(1^{\text{st}}\) and \(n^{\text{th}}\) order statistics, respectively. When \(n\) is even, there are two medians:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the lower median \(\frac{n}{2}^{\text{th}}\) and&lt;/li&gt;
+&lt;li&gt;the upper median \(\frac{n}{2} + 1^{\text{th}}\).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The goal of the algorithm of focus in these notes is to determine how select order statistic \(i\) in a set of \(n\) elements. As we saw previously, and will review in these notes, we can use a divide and conquer approach to solve this problem. Further, we will study a linear approach to this problem under the assumption that the elements are distinct.&lt;/p&gt;
+&lt;h2 id=&#34;minimum-and-maximum&#34;&gt;Minimum and Maximum&lt;/h2&gt;
+&lt;p&gt;One could reason very simply that the lower bound on the number of comparisons needed to find either the minimum or maximum of a set is \(n-1\). One such argument could be that if we left even 1 comparison out of the \(n-1\) comparisons, we could not guarantee that we had found the minimum or maximum. When implementing an algorithm, we would say that an optimal implementation would require \(n-1\) comparisons.&lt;/p&gt;
+&lt;p&gt;As a quick aside, there are plenty of algorithms that we implement which are not optimal in terms of their theoretical lower bound. Consider a naive matrix multiplication algorithm. There are many redundant reads from memory in this algorithm. For example, if we compute \(C = AB\), we need to calculate the output values \(C_{1, 1}\) and \(C_{1, 2}\), among others. Both of these outputs require reading from the first row of \(A\).&lt;/p&gt;
+&lt;p&gt;We could find both the minimum and maximum of a set in \(2n - 2\) operations by passing over the set twice. This is theoretically optimal since each pass is performing the optimal \(n-1\) comparisons. If we first compared a pair of elements with each other before comparing them to the minimum and maximum, respectively, we could find both the minimum and maximum in \(3\left\lfloor\frac{n}{2}\right\rfloor\) comparisons.&lt;/p&gt;
+&lt;h2 id=&#34;selection-in-expected-linear-time&#34;&gt;Selection in expected linear time&lt;/h2&gt;
+&lt;p&gt;We now turn to the problem of &lt;strong&gt;selection&lt;/strong&gt;. Given a set of \(n\) elements and an integer \(i\), we want to find the \(i^{\text{th}}\) order statistic. We will assume that all elements are distinct. We will also assume that \(i\) is between 1 and \(n\).&lt;/p&gt;
+&lt;p&gt;The randomized select algorithm returns the \(i^{\text{th}}\) smallest element of an array bounded between indices \(p\) and \(r\). It relies on &lt;code&gt;randomized_partition&lt;/code&gt;, just like &lt;a href=&#34;https://ajdillhoff.github.io/notes/quicksort/&#34;&gt;Quicksort&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;randomized_select&lt;/span&gt;(A, p, r, i):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; r:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A[p]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; randomized_partition(A, p, r)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    k &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; q &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; k:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A[q]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; k:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; randomized_select(A, p, q&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, i)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; randomized_select(A, q&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, r, i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;k)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The first conditional checks if the array had only a single element, in which case it must be the value we are looking for. If not, the array is partitioned so that each element in \(A[p:q-1]\) is less than or equal to \(A[q]\) which is less than or equal to the elements in \(A[q+1:r]\). The line \(k = q - p + 1\) calculates the number of elements less than or equal to the pivot. If the index we are looking for is equal to this number, then we have found it and can return the value immediately.&lt;/p&gt;
+&lt;p&gt;If the value was not yet found and \(i &amp;lt; k\), then \(i\) must be in the subarray \(A[p:q-1]\). Therefore, the function is recursively called on that subarray. Otherwise, the subarray \(A[q+1:r]\) is checked. An example from Cormen et al. is shown below (Cormen et al. 2022).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-12_18-05-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Randomized select from (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Randomized select from (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Explanation of figure&lt;/strong&gt; \(A^{(0)}\) shows that \(A[5] = 14\) was chosen as the pivot. The next row, \(A^{(1)}\), depicts the completed partitioning. Cormen et al. note that this is &lt;em&gt;not&lt;/em&gt; a helpful partitioning since less than \(\frac{1}{4}\) of the elements are ignored. A helpful partition is one that leaves at most \(\frac{3}{4}\) of the elements after the partitioning.&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;The worst-case running time of &lt;code&gt;randomized_select&lt;/code&gt; is \(O(n^2)\) since we are partitioning \(n\) elements at \(\Theta(n)\) each. Since the pivot of &lt;code&gt;randomized_partition&lt;/code&gt; is selected at random, we can expect a &lt;em&gt;good&lt;/em&gt; split at least every 2 times it is called. The proof for this is similar to the one made when analyzing &lt;a href=&#34;https://ajdillhoff.github.io/notes/quicksort/&#34;&gt;Quicksort&lt;/a&gt;. Briefly, the expected number of times we must partition before we get a helpful split is 2, which only doubles the running time. The recurrence is still \(T(n) = T(3n/4) + \Theta(n) = \Theta(n)\).&lt;/p&gt;
+&lt;p&gt;The first step to showing that the expected runtime of &lt;code&gt;randomized_select&lt;/code&gt; is \(\Theta(n)\) is to show that a partitioning is helpful with probability at least \(\frac{1}{2}\) (Cormen et al. 2022). The rest of the proof requires further examination and comprehension.&lt;/p&gt;
+&lt;p&gt;The proof presented by Cormen et al. begins with the following terms:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(h_i\) is the event that the \(i^{\text{th}}\) partitioning is helpful.&lt;/li&gt;
+&lt;li&gt;\(\{h_0, h_1, \dots, h_m\}\) is the sequence of helpful partitionings.&lt;/li&gt;
+&lt;li&gt;\(n_k = |A^{(h_k)}|\) is the number of elements in the subarray \(A^{(h_k)}\) at the \(k^{\text{th}}\) partitioning.&lt;/li&gt;
+&lt;li&gt;\(n_k \leq (3/4)n_{k-1}\) for \(k \geq 1\), or \(n_k \leq (3/4)^kn_0\).&lt;/li&gt;
+&lt;li&gt;\(X_k = h_{k+1} - h_k\) is the number of unhelpful partitionings between the \(k^{\text{th}}\) and \((k+1)^{\text{th}}\) helpful partitionings.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;There are certainly partitionings that are not helpful. These are depicted as subarrays within each generation of helpful partitionings. The figure below exemplifies this.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-13_10-12-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The sets within each generation of helpful partitionings are not helpful. From (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The sets within each generation of helpful partitionings are not helpful. From (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Given that the probability that a partitioning is helpful is at least \(\frac{1}{2}\), we know that \(E[X_k] \leq 2\). With this, &lt;strong&gt;an upper bound on the number of comparisons of partitioning is derived.&lt;/strong&gt; The total number of comparisons made when partitioning is less than&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\sum_{k=0}^{m-1} \sum_{j=h_k}^{h_k + X_k - 1} |A^{(j)}| &amp;amp;\leq \sum_{k=0}^{m-1} \sum_{j=h_k}^{h_k + X_k - 1} |A^{(h_k)}| \\
+&amp;amp;= \sum_{k=0}^{m-1} X_k|A^{(h_k)}| \\
+&amp;amp;\leq \sum_{k=0}^{m-1} \left(\frac{3}{4}\right)^k n_0. \\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The first term on the first line represents the total number of comparisons across all sets. The first sum loops through the \(m\) helpful partitionings, and the inner loop sums the number of comparisons made for each unhelpful partitioning. It is bounded by the term on the right. &lt;strong&gt;This is because \(|A^{(j)}| \leq |A^{(h_k)}|\) if \(A^{(j)}\) is in the \(k^{\text{th}}\) generation of helpful partitionings (see term 4 above).&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Using term 5 from above, the second line is derived. The third line leverages term 4 again. The sum is a geometric series, and the total number of comparisons is less than&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\text{E} \left[\sum_{k=0}^{m-1} X_k \left(\frac{3}{4}\right)^k n_0\right] &amp;amp;= n_0 \sum_{k=0}^{m-1} \left(\frac{3}{4}\right)^k \text{E}[X_k]\\
+&amp;amp;\leq 2n_0 \sum_{k=0}^{m-1} \left(\frac{3}{4}\right)^k \\
+&amp;amp;&amp;lt; 2n_0 \sum_{k=0}^{\infty} \left(\frac{3}{4}\right)^k \\
+&amp;amp;= 8n_0.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The last line is the result of a geometric series. This concludes the proof that &lt;code&gt;randomized_partition&lt;/code&gt; runs in expected linear time.&lt;/p&gt;
+&lt;h2 id=&#34;problems-and-exercises&#34;&gt;Problems and Exercises&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Show that the second largest of \(n\) elements can be found with \(n + \lceil\log_2 n\rceil - 2\) comparisons in the worst case.&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sorting in Linear Time</title>
+      <link>https://ajdillhoff.github.io/notes/sorting_in_linear_time/</link>
+      <pubDate>Mon, 11 Mar 2024 17:10:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/sorting_in_linear_time/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#establishing-a-lower-bound-on-comparison-sorts&#34;&gt;Establishing a Lower Bound on Comparison Sorts&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#counting-sort&#34;&gt;Counting Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#radix-sort&#34;&gt;Radix Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#bucket-sort&#34;&gt;Bucket Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#questions-and-exercises&#34;&gt;Questions and Exercises&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;These are my personal notes for Chapter 8 of &lt;em&gt;Introduction to Algorithms&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). Readers should reference the book for more details when necessary.&lt;/p&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;All sorting algorithms discussed up to this point are &lt;strong&gt;comparison based&lt;/strong&gt;. You may have thought, as I did, that sorting cannot be done without a comparison. If you have no way to evaluate the relative ordering of two different objects, how can you possibly arrange them in any order?&lt;/p&gt;
+&lt;p&gt;The answer will become clear shortly and is investigated through &lt;strong&gt;counting sort&lt;/strong&gt;, &lt;strong&gt;radix sort&lt;/strong&gt;, and &lt;strong&gt;bucket sort&lt;/strong&gt;. First, Cormen et al. make it clear that sorting algorithms cannot reach linear time. As we will see, any comparison sort &lt;em&gt;must&lt;/em&gt; make \(\Omega (n \lg n)\) comparisons in the worst case to sort \(n\) elements. This bound is motivation enough to explore a different class of sorting algorithms.&lt;/p&gt;
+&lt;h2 id=&#34;establishing-a-lower-bound-on-comparison-sorts&#34;&gt;Establishing a Lower Bound on Comparison Sorts&lt;/h2&gt;
+&lt;p&gt;The basis of the proof presented in Chapter 8 it to consider that all comparison sorts can be viewed as a decision tree, where each leaf represents a unique permutation of the inputs. If there are \(n\) distinct elements in the original array, then there must be \(n!\) leaves in the decision tree. Consider the figure from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;) below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-11_17-45-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Decision tree for comparison sort on three elements.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decision tree for comparison sort on three elements.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, each node compares two values as \(a:b\). If \(a \leq b\), the left path is taken. The worst case of a comparison sort can be determined by the height of the tree. A proof on the lower bound goes as follows.&lt;/p&gt;
+&lt;p&gt;Consider a binary tree of height \(h\) with \(l\) reachable leaves. Each of the \(n!\) permutations occurs as one of the leaves, so \(n! \leq l\) since there may be duplicate permutations in the leaves. A binary tree with height \(h\) has no more than \(2^h\) leaves, so \(n! \leq l \leq 2^h\). Taking the logarithm of this inequality implies that \(h \geq \lg n!\). Since \(\lg n! = \Theta(n \lg n)\), and is a lower bound on the height of the tree, then any comparison sort must make \(\Omega (n \lg n)\) comparisons.&lt;/p&gt;
+&lt;h2 id=&#34;counting-sort&#34;&gt;Counting Sort&lt;/h2&gt;
+&lt;p&gt;Counting sort can sort an array of integers in \(O(n+k)\) time, where \(k \geq 0\) is the largest integer in the set. It works by counting the number of elements less than or equal to each element \(x\).&lt;/p&gt;
+&lt;p&gt;#+begin_src python
+def counting_sort(A, k):
+n = len(A)
+B = [0 for i in range(n)]
+C = [0 for i in range(k+1)]&lt;/p&gt;
+&lt;p&gt;for i in range(2, n):
+C[A[i]] += 1&lt;/p&gt;
+&lt;p&gt;for i in range(2, k):
+C[i] = C[i] + C[i-1]&lt;/p&gt;
+&lt;p&gt;for i in range(n - 1, -1, -1):
+B[C[A[i]]] = A[i]
+C[A[i]] = C[A[i]] - 1&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;return B
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;#+end_src python&lt;/p&gt;
+&lt;p&gt;The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).&lt;/p&gt;
+&lt;p&gt;Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3] = 4\).&lt;/p&gt;
+&lt;p&gt;Another example is shown in figure 8.2 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 id=&#34;radix-sort&#34;&gt;Radix Sort&lt;/h2&gt;
+&lt;p&gt;Dating back to 1887 by Herman Hollerith&amp;rsquo;s work on &lt;a href=&#34;https://en.wikipedia.org/wiki/Tabulating_machine&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;tabulating machines&lt;/a&gt;, this algorithm places numbers in one of \(k\) bins based on their &lt;strong&gt;radix&lt;/strong&gt;, or the number of unique digits. It was used for sorting punch cards via multi-column sorting. It works by iteratively sorting a series of inputs based on a column starting with the least-significant digit. An example is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-12_10-34-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Radix sort in action (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Radix sort in action (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the items are first sorted based on the least significant digits. By the end of the process, the data is numerically sorted in ascending order. The algorithm can be written simply:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;radix_sort&lt;/span&gt;(A, d):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(d):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; counting_sort(A, len(A), &lt;span style=&#34;color:#ae81ff&#34;&gt;9&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Counting sort is the typical sorting algorithm that is used to sort the digits in each column. In fact, any &lt;em&gt;stable&lt;/em&gt; sorting algorithm can be used in place of counting sort.&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;We know that counting sort is \(\Theta(n + k)\), and that radix sort calls it \(d\) times. Therefore, the time complexity of radix sort is \(\Theta(d(n + k))\). If \(k = O(n)\), then the time complexity is \(\Theta(dn)\).&lt;/p&gt;
+&lt;h3 id=&#34;complex-keys&#34;&gt;Complex Keys&lt;/h3&gt;
+&lt;p&gt;What if the data is not just a single integer, but a complex key or series of keys? They keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What is the best choice of \(r\)?&lt;/strong&gt; Consider what happens for different values of \(r\). As \(r\) increases, \(2^r\) increases. As it decreases, \(\frac{b}{r}\) increases. The best choice depends on whether \(b &amp;lt; \lfloor \lg n \rfloor\). If \(b &amp;lt; \lfloor \lg n \rfloor\), then \(r \leq b\) implies \((n + 2^r) = \Theta(n)\) since \(2^{\lg n} = n\). If \(b \geq \lfloor \lg n \rfloor\), then we should choose \(r \approx \lg n\). This would yield \(\Theta((b / \lg n)(n + n)) = \Theta(bn / \lg n)\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;You should spend some time to think about the choices for \(r\).&lt;/strong&gt; Specifically, what will happen to the time complexity as \(r\) increases above \(\lg n\)? What about as \(r\) decreases below \(\lg n\)?&lt;/p&gt;
+&lt;h3 id=&#34;example-sorting-words&#34;&gt;Example: Sorting words&lt;/h3&gt;
+&lt;p&gt;Use radix sort to sort the following list of names: &amp;ldquo;Beethoven&amp;rdquo;, &amp;ldquo;Bach&amp;rdquo;, &amp;ldquo;Mozart&amp;rdquo;, &amp;ldquo;Chopin&amp;rdquo;, &amp;ldquo;Liszt&amp;rdquo;, &amp;ldquo;Schubert&amp;rdquo;, &amp;ldquo;Haydn&amp;rdquo;, &amp;ldquo;Brahms&amp;rdquo;, &amp;ldquo;Wagner&amp;rdquo;, &amp;ldquo;Tchaikovsky&amp;rdquo;. First, we need to figure out how to encode the names as integers. If we convert the input to lowercase, we only have to deal with \(k=26\) unique characters. This only requires 5 bits. Since each name has varying length, we can use a sentinel value of 0 to pad the shorter names. That is, 0 represents a padding character and the alphabet starts at 1. The names are then encoded as follows:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;No changes will be made for the first 2 iterations of the sort. The third iteration will yield the following:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 3&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 4&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 5&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 6&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 7&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 8&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Iteration 9&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Original Name&lt;/th&gt;
+&lt;th&gt;Encoded Name&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bach&lt;/td&gt;
+&lt;td&gt;[2, 1, 3, 8, 0, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Beethoven&lt;/td&gt;
+&lt;td&gt;[2, 5, 5, 20, 8, 15, 22, 5, 14, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brahms&lt;/td&gt;
+&lt;td&gt;[2, 18, 1, 8, 13, 19, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Chopin&lt;/td&gt;
+&lt;td&gt;[3, 8, 15, 16, 9, 14, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Haydn&lt;/td&gt;
+&lt;td&gt;[8, 1, 25, 4, 14, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Liszt&lt;/td&gt;
+&lt;td&gt;[12, 9, 19, 26, 20, 0, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mozart&lt;/td&gt;
+&lt;td&gt;[13, 15, 26, 1, 18, 20, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Schubert&lt;/td&gt;
+&lt;td&gt;[19, 3, 8, 21, 2, 5, 18, 20, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Tchaikovsky&lt;/td&gt;
+&lt;td&gt;[20, 3, 8, 1, 9, 11, 15, 22, 19, 11, 25]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Wagner&lt;/td&gt;
+&lt;td&gt;[23, 1, 7, 14, 5, 18, 0, 0, 0, 0, 0]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;bucket-sort&#34;&gt;Bucket Sort&lt;/h2&gt;
+&lt;p&gt;The final sorting algorithm in Chapter 8 is bucket sort (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;). As the name suggests, bucket sort distributes the input into a number of distinct buckets based on the input value. The key here is the assumption that the data is uniformly distributed. If the data were not uniformly distributed, then more elements would be concentrated. The uniformity ensures that a relatively equal number of data points are placed in each bucket. This is also a convenient assumption to have for a parallelized implementation.&lt;/p&gt;
+&lt;p&gt;The algorithm works by placing values into a bucket based on their most significant digits. Once the values are assigned, then a simple sort, like insertion sort, is used to sort the values within each bucket. Once sorted, the buckets are concatenated together to produce the final output. Under the assumption of uniformity, each bucket will contain no more than \(1/n\) of the total elements. This implies that each call to &lt;code&gt;insertion_sort&lt;/code&gt; will take \(O(1)\) time.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-12_11-54-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Bucket sort in action (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Bucket sort in action (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bucket_sort&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(A)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    B &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        B[int(n &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; A[i])]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(A[i])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        insertion_sort(B[i])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; B
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Initializing the array and placing each item into a bucket takes \(\Theta(n)\) time. The call to each insertion sort is \(O(n^2)\). Therefore, the recurrence is given as&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n^2).
+\]&lt;/p&gt;
+&lt;p&gt;The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\). Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then&lt;/p&gt;
+&lt;p&gt;\[
+E[n_i^2] = \text{Var}[n_i] + E[n_i]^2 = 1 - 1/n + 1 = 2 - 1/n.
+\]&lt;/p&gt;
+&lt;p&gt;This gives way to the fact that \(E[T(n)] = \Theta(n) + \sum_{i=0}^{n-1} O(2 - 1/n) = \Theta(n) + O(n) = \Theta(n)\).&lt;/p&gt;
+&lt;h2 id=&#34;questions-and-exercises&#34;&gt;Questions and Exercises&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Come up with applications of counting sort when \(k = O(n)\).&lt;/li&gt;
+&lt;li&gt;Paul wants to use radix sort to sort \(2^{16}\) 32-bit numbers. What is the best value of \(r\) to use? How many calls to a stable sort will be made?&lt;/li&gt;
+&lt;li&gt;In what ways does radix sort differ from quicksort? When is one better than the other?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>GPU Pattern: Merge</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_merge/</link>
+      <pubDate>Wed, 28 Feb 2024 19:19:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_merge/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#key-concepts-and-challenges&#34;&gt;Key Concepts and Challenges&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-merge-operation&#34;&gt;The Merge Operation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-merge&#34;&gt;Tiled Merge&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#circular-buffers&#34;&gt;Circular Buffers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening&#34;&gt;Thread Coarsening&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;key-concepts-and-challenges&#34;&gt;Key Concepts and Challenges&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Dynamic input data identification&lt;/li&gt;
+&lt;li&gt;Data locality&lt;/li&gt;
+&lt;li&gt;Buffer management schemes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The &lt;strong&gt;merge&lt;/strong&gt; operation takes two sorted subarrays and combines them into a single sorted array. You may be familiar with this approach from studying &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;. Parallelizing the merge operation is a non-trivial task and will require the use of a few new techniques.&lt;/p&gt;
+&lt;h2 id=&#34;the-merge-operation&#34;&gt;The Merge Operation&lt;/h2&gt;
+&lt;p&gt;The specific parallel merge operation studied in these notes is from &amp;ldquo;Perfectly load-balanced, optimal, stable, parallel merge&amp;rdquo; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;). Their approach works by first computing which values are needed in each merge step, and then using a parallel kernel to compute the merge. These steps can be computed by each thread independently.&lt;/p&gt;
+&lt;h3 id=&#34;co-rank-function&#34;&gt;Co-rank Function&lt;/h3&gt;
+&lt;p&gt;The key to the parallel merge algorithm reviewed in these notes is the &lt;strong&gt;co-ranking function&lt;/strong&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;). This function computes the range of indices needed from the two input values to produce a given value in the output array, without actually needing to merge the two input arrays.&lt;/p&gt;
+&lt;p&gt;When merging two sorted arrays, we can observe that the output index \(0 \leq k &amp;lt; m + n\) comes from either \(0 \leq i &amp;lt; m\) from input \(A\) or \(0 \leq j &amp;lt; n\) from input \(B\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-11_14-22-24_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Merging (A) and (B) to produce (C).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Merging (A) and (B) to produce (C).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the element at \(k = 3\) comes from \(A[2]\), so \(i = 2\). It must be that \(k=3\) is the result of merging the first \(i=2\) elements of \(A\) with the first \(j=k - i\) elements of \(B\). This works both ways: for \(k=6\), the value is taken from \(B[3]\), so \(j=3\), and the result is the merge of the first \(i=k-j\) elements of \(A\) with the first \(j=3\) elements of \(B\).&lt;/p&gt;
+&lt;p&gt;An efficient method for computing the co-rank function follows the first lemma put forth in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;):&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Lemma 1&lt;/strong&gt;&lt;/strong&gt;. For any \(k, 0 \leq k &amp;lt; m + n\), there exists a unique \(i, 0 \leq i \leq m\), and a unique \(j, 0 \leq j \leq n\), with \(i + j = k\) such that&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(i = 0\) or \(A[i-1] \leq B[j]\) and&lt;/li&gt;
+&lt;li&gt;\(j = 0\) or \(B[j-1] &amp;lt; A[i]\).&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-11_13-58-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Co-rank function visualization (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Siebert and Träff 2013&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Co-rank function visualization (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;implementation&#34;&gt;Implementation&lt;/h4&gt;
+&lt;p&gt;Given the rank \(k\) of an element in an output array \(C\) and two input arrays \(A\) and \(B\), the co-rank function \(f\) returns the co-rank value for the corresponding element in \(A\) and \(B\).&lt;/p&gt;
+&lt;p&gt;How would the co-rank function be used in the example above? Given two threads, let thread 1 compute the co-rank for \(k=4\). This would return \(i=3\) and \(j=1\). We quickly verify that this passes the first lemma stated above.&lt;/p&gt;
+&lt;p&gt;\[
+A[2] = 5 \leq B[1] = 5$ and $B[0] = 3 &amp;lt; A[3] = 7.
+\]&lt;/p&gt;
+&lt;p&gt;Code for the co-rank function is given below. Since the input arrays are already sorted, we can use a binary search to find the co-rank values.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;co_rank&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(k, m);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, k&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, k&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;m);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; active &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; true;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (active) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; A[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; B[j]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            delta &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_low &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;-=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; B[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; A[i]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            delta &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; j_low &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;-=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            active &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; false;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Consider running a merge kernel across 3 threads where each thread takes 3 sequential output values. Use the co-rank function to compute the co-rank values for \(k=3\) and \(k=6\), simulating the tasks for the second and third threads. The values for \(k=3\) should be \(i=2\) and \(j=1\), for reference. All values below these indices would be used by the first thread.&lt;/p&gt;
+&lt;h3 id=&#34;parallel-kernel&#34;&gt;Parallel Kernel&lt;/h3&gt;
+&lt;p&gt;We can now implement a basic parallel merge kernel. Each thread is responsible for determining how many elements it will be responsible for merging. The range of input values is determined via two calls to &lt;code&gt;co_rank&lt;/code&gt;, one for the starting and ending point.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;__global__ &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;merge_basic_kernel&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;C) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; tid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; blockIdx.x &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; blockDim.x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; threadIdx.x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; elementsPerThread &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ceil((m &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; n) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (blockDim.x &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; gridDim.x));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tid &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; elementsPerThread; &lt;span style=&#34;color:#75715e&#34;&gt;// start output index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min((tid &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; elementsPerThread, m &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; n); &lt;span style=&#34;color:#75715e&#34;&gt;// end output index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; co_rank(k_curr, A, m, B, n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; co_rank(k_next, A, m, B, n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k_curr &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_curr;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_next;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    merge_sequential(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;A[i_curr], i_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_curr, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;B[j_curr], j_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; j_curr, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;C[k_curr]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Two major issues should be clear from the code above. First, the memory being accesses is not coalesced. The binary search in &lt;code&gt;co_rank&lt;/code&gt; also means that the memory access pattern is less than ideal. Since the main issue in both cases relates to memory efficiency, we should look at tools that address memory access patterns.&lt;/p&gt;
+&lt;h2 id=&#34;tiled-merge&#34;&gt;Tiled Merge&lt;/h2&gt;
+&lt;p&gt;The memory access pattern is sparse and thus does not take advantage of coalescing. We can improve upon this by having the threads transfer data from global memory to shared memory in a coalesced manner. That way the higher latency operation will be coalesced. The data in shared memory may be accessed out of order, but the latency is much lower.&lt;/p&gt;
+&lt;p&gt;The subarrays from \(A\) and \(B\) that are used by adjacent threads are also adjacent in memory. By considering block-level subarrays, we can ensure that the data is coalesced. This is the idea behind the tiled merge algorithm. The figure below visualizes this concept.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-16_13-22-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Design of a tiled merge kernel (recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Design of a tiled merge kernel (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The shared memory blocks \(A_s\) and \(B_s\) obviously cannot store the entire range of data needed. In each iteration, the threads in a block will load a new set of data from global memory to shared memory. The light gray section of the block from \(A\) and \(B\) are loaded into \(A_s\) and \(B_s\), respectively. If they collectively load \(2n\) elements, only \(n\) elements will be used in the merge operation. This is because in the worst case, all elements going to the output array will come from one of the two input arrays. See the exercise at the end of this section for a more detailed explanation.&lt;/p&gt;
+&lt;p&gt;Each block will use a portion of both \(A_s\) and \(B_s\) to compute the merge. This is shown with dotted lines going from the shared memory to the output array.&lt;/p&gt;
+&lt;h3 id=&#34;part-1&#34;&gt;Part 1&lt;/h3&gt;
+&lt;p&gt;The code below shows the first part of the tiled merge kernel.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void merge_tiled_kernel(int *A, int m, int n, int *C, int tile_size) {
+    extern __shared__ int shareAB[];
+    int *A_s = &amp;amp;shareAB[0];
+    int *B_s = &amp;amp;shareAB[tile_size];
+    int C_curr = blockIdx.x * ceil((m+n)/gridDim.x);
+    int C_next = min((blockIdx.x+1) * ceil((m+n)/gridDim.x), m+n);
+
+    if (threadIdx.x == 0) {
+        // Block-level co-rank values will be available to all threads in the block
+        A_s[0] = co_rank(C_curr, A, m, B, n);
+        A_s[1] = co_rank(C_next, A, m, B, n);
+    }
+    __syncthreads();
+
+    int A_curr = A_s[0];
+    int A_next = A_s[1];
+    int B_curr = C_curr - A_curr;
+    int B_next = C_next - A_next;
+    __syncthreads();
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first part establishes the shared memory and the co-rank values for the &lt;strong&gt;block&lt;/strong&gt;. Each thread will have access to the start and end values for input matrices \(A\) and \(B\) as well. If the kernel is just getting started, we would have that &lt;code&gt;A_curr = 0&lt;/code&gt;, &lt;code&gt;B_curr = 0&lt;/code&gt;, and &lt;code&gt;C_curr = 0&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;part-2&#34;&gt;Part 2&lt;/h3&gt;
+&lt;p&gt;The second part of the kernel is responsible for loading the input data into shared memory. This is done in a coalesced manner, as the threads in a block will load a contiguous section of the input arrays.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;int counter = 0;
+int C_length = C_next - C_curr;
+int A_length = A_next - A_curr;
+int B_length = B_next - B_curr;
+int total_iteration = ceil(C_length / tile_size);
+int C_completed = 0;
+int A_consumed = 0;
+int B_consumed = 0;
+while (counter &amp;lt; total_iteration) {
+    for (int i = 0; i &amp;lt; tile_size; i += blockDim.x) {
+        if (i + threadIdx.x &amp;lt; A_length - A_consumed) {
+            A_s[i + threadIdx.x] = A[A_curr + A_consumed + i + threadIdx.x];
+        }
+        if (i + threadIdx.x &amp;lt; B_length - B_consumed) {
+            B_s[i + threadIdx.x] = B[B_curr + B_consumed + i + threadIdx.x];
+        }
+    }
+    __syncthreads();
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;part-3&#34;&gt;Part 3&lt;/h3&gt;
+&lt;p&gt;With the input in shared memory, each thread will divide up this input and merge their respective sections in parallel. This is done by calculating the &lt;code&gt;c_curr&lt;/code&gt; and &lt;code&gt;c_next&lt;/code&gt; first, which is the output section of the thread. Using those boundaries, two calls to &lt;code&gt;co_rank&lt;/code&gt; will determine the input sections the thread.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &amp;lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &amp;lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank(c_curr,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank(c_next,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_next = c_next - a_next;
+
+        merge_sequential(&amp;amp;A_s[a_curr], a_next - a_curr, &amp;amp;B_s[b_curr], b_next - b_curr, &amp;amp;C[C_urr + C_completed + c_curr]);
+        counter++;
+        C_completed += tile_size;
+        A_consumed += co_rank(tile_size A_s, tile_size, B_s, tile_size);
+        B_consumed = C_completed - A_consumed;
+        __syncthreads();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;example-walkthrough-of-kernel&#34;&gt;Example: Walkthrough of Kernel&lt;/h3&gt;
+&lt;p&gt;Consider the following example. We have two input arrays \(A = [1, 3, 5, 7, 9]\) and \(B = [2, 4, 6, 8, 10]\). The output array \(C\) will have 10 elements. We will use 2 blocks and 4 threads per block. The tile size is 4. With 10 elements and 2 blocks, each block is responsible for 5 elements.&lt;/p&gt;
+&lt;p&gt;The main &lt;code&gt;while&lt;/code&gt; loop will need to iterate twice to cover the entire output array. The first iteration will load the first 4 elements of \(A\) and \(B\) into shared memory. Once the data is in memory, each thread divides the input tiles by running the co-rank function on the data that is in shared memory. The computed indices are the boundaries between each thread.&lt;/p&gt;
+&lt;p&gt;In each iteration, a block is responsible for 4 elements. Given that we have 4 threads per block, each thread will be responsible for 1 output element per iteration. For thread 0 we have that &lt;code&gt;c_curr = 0&lt;/code&gt; and &lt;code&gt;c_next = 2&lt;/code&gt;. This results in &lt;code&gt;a_curr = 0&lt;/code&gt;, &lt;code&gt;b_curr = 0&lt;/code&gt;, &lt;code&gt;a_next = 1&lt;/code&gt;, and &lt;code&gt;b_next = 1&lt;/code&gt;. The merge operation will then be performed on the first element of \(A\) and \(B\).&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Coalesces global memory accesses&lt;/li&gt;
+&lt;li&gt;Shared memory is used to reduce latency&lt;/li&gt;
+&lt;li&gt;Only half the data loaded into shared memory is used; wasted memory bandwidth&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;exercise&#34;&gt;Exercise&lt;/h3&gt;
+&lt;p&gt;Hwu et al. suggest that you can first call the co-rank function to get the current and next output sections. This would increase memory bandwidth at the cost of an additional binary search.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Where would this be done with respect to the tiled solution discussed in this section?&lt;/li&gt;
+&lt;li&gt;How do these co-rank values differ from the ones used to calculate &lt;code&gt;C_curr&lt;/code&gt; and &lt;code&gt;C_next&lt;/code&gt;?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;Hint:&lt;/strong&gt; If we knew the co-rank value for the start of the next section, we could ensure that only the data below that index is loaded into shared memory.&lt;/p&gt;
+&lt;h2 id=&#34;circular-buffers&#34;&gt;Circular Buffers&lt;/h2&gt;
+&lt;p&gt;The tiled merge algorithm is a significant improvement over the basic merge kernel. One glaring issue is that only half of the data loaded into shared memory is used, leading to a waste of memory bandwidth. The circular buffer merge algorithm addresses this issue by using a circular buffer to store the input data. Instead of writing over the shared memory values on each iteration, the data to be used in the next iteration stays in shared memory. A portion of new data is loaded into shared memory based on how much was used in the previous iteration.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-17_14-58-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Circular buffer scheme (recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Circular buffer scheme (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above outlines the main idea behind the circular buffer merge algorithm. Part A shows the initial data layout of global and shared memory. Only a portion of the data loaded into shared memory is used in the merge operation. This is shown in part B, where the blank portion of the shared memory depicts the data that was used. The light gray regions of shared memory are the left over data that can be used in the next iteration.&lt;/p&gt;
+&lt;p&gt;The next block of data is loaded into shared memory. Since some of the required data already exists from the last iteration, a smaller portion needs to be loaded. This is shown in part C, where the new data (dark gray) is loaded into shared memory. The starting indices for both arrays was already set in the previous iteration. Consecutive values are simple to calculate using the mod operator.&lt;/p&gt;
+&lt;p&gt;Part D shows the state of the arrays after the end of the second iteration. The blank areas in shared memory are the data that was used in the merge operation. For array &lt;code&gt;A_S&lt;/code&gt;, the index wrapped around to the beginning of the array. It is ready to be used in the next iteration.&lt;/p&gt;
+&lt;h3 id=&#34;implementation&#34;&gt;Implementation&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;A_consumed&lt;/code&gt; can be used to keep track of how many new elements need to be read into shared memory.
+The &lt;code&gt;co_rank&lt;/code&gt; and &lt;code&gt;merge_sequential&lt;/code&gt; functions need to be updated to work with circular buffers. It is easier to treat the shared memory as an extended array, that way we avoid situations where the &lt;code&gt;next&lt;/code&gt; index is less than the &lt;code&gt;current&lt;/code&gt; index.&lt;/p&gt;
+&lt;h4 id=&#34;co-rank-function&#34;&gt;Co-Rank Function&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;int co_rank_circular(int k, int *A, int m, int *B, int n, int A_S_start, int B_S_start, int tile_length) {
+    int i = min(k, m);
+    int j = k - i;
+    int i_low = max(0, k-n);
+    int j_low = max(0, k-m);
+    int delta;
+    bool active = true;
+    while (active) {
+        int i_cir = (A_S_start + i) % tile_length;
+        int j_cir = (B_S_start + j) % tile_length;
+        int i_m_1_cir = (A_S_start + i - 1) % tile_length;
+        int j_m_1_cir = (B_S_start + j - 1) % tile_length;
+        if (i &amp;gt; 0 &amp;amp;&amp;amp; j &amp;lt; n &amp;amp;&amp;amp; A[i_m_1_cir] &amp;gt; B[j_cir]) {
+            delta = ((i - i_low + 1) &amp;gt;&amp;gt; 1);
+            j_low = j;
+            i -= delta;
+            j += delta;
+        } else if (j &amp;gt; 0 &amp;amp;&amp;amp; i &amp;lt; m &amp;amp;&amp;amp; B[j_m_1_cir] &amp;gt;= A[i_cir]) {
+            delta = ((j - j_low + 1) &amp;gt;&amp;gt; 1);
+            i_low = i;
+            j -= delta;
+            i += delta;
+        } else {
+            active = false;
+        }
+    }
+    return i;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In this updated version of the co-rank function, the user only needs to provide the start indices for the shared memory arrays along with the tile size.&lt;/p&gt;
+&lt;h4 id=&#34;merge-sequential&#34;&gt;Merge Sequential&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;void merge_sequential_circular(int *A, int m, int *B, int n, int *C, int A_S_start, int B_S_start, int tile_size) {
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i &amp;lt; m &amp;amp;&amp;amp; j &amp;lt; n) {
+        int i_cir = (A_S_start + i) % tile_size;
+        int j_cir = (B_S_start + j) % tile_size;
+        if (A[i_cir] &amp;lt;= B[j_cir]) {
+            C[k] = A[i_cir];
+            i++;
+        } else {
+            C[k] = B[j_cir];
+            j++;
+        }
+        k++;
+    }
+    if (i == m) {
+        while (j &amp;lt; n) {
+            int j_cir = (B_S_start + j) % tile_size;
+            C[k] = B[j_cir];
+            j++;
+            k++;
+        }
+    } else {
+        while (i &amp;lt; m) {
+            int i_cir = (A_S_start + i) % tile_size;
+            C[k] = A[i_cir];
+            i++;
+            k++;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Again, this revision makes it easier on the user since they only need to provide the start indices for the shared memory arrays and the tile size. These are used to compute the indices for the circular buffer.&lt;/p&gt;
+&lt;h4 id=&#34;circular-buffer-kernel&#34;&gt;Circular Buffer Kernel&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &amp;lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &amp;lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_next = c_next - a_next;
+
+        merge_sequential_circular(A_s, a_next - a_curr, B_s, b_next - b_curr, &amp;amp;C[C_urr + C_completed + c_curr],
+                                  A_S_start + A_curr, B_S_start + B_curr, tile_size);
+
+        // Compute the indices that were used
+        counter++;
+        A_S_consumed = co_rank_circular(min(tile_size, C_length - C_completed),
+                                        A_s, min(tile_size, A_length - A_consumed),
+                                        B_s, min(tile_size, B_length - B_consumed),
+                                        A_S_start, B_S_start, tile_size);
+        B_S_consumed = min(tile_size, C_length - C_completed) - A_S_consumed;
+        A_consumed += A_S_consumed;
+        C_completed += min(tile_size, C_length - C_completed);
+        B_consumed = C_completed - A_consumed;
+
+        // Update the start indices for the next iteration
+        A_S_start = (A_S_start + A_S_consumed) % tile_size;
+        B_S_start = (B_S_start + B_S_consumed) % tile_size;
+        __syncthreads();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first section of part 3 of the original kernel remains mostly unchanged, with the exceptions that the co-rank function and merge function are now called with the circular versions. The larger change is in the second half of the kernel. &lt;code&gt;A_S_consumed&lt;/code&gt; and &lt;code&gt;B_S_consumed&lt;/code&gt; are used to keep track of how much of the shared memory arrays were used. This is then used to offset the used indices from the original arrays. Finally, the start indices for the shared memory arrays are updated for the next iteration.&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h2&gt;
+&lt;p&gt;The kernels presented in these notes already utilize thread coarsening. Each thread is responsible for a range of output values. The simple example presented earlier demonstrates what a non-coarse approach would look like. Each thread was only responsible for a single output value.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Siebert, Christian, and Jesper Larsson Träff. 2013. “Perfectly Load-Balanced, Optimal, Stable, Parallel Merge.” arXiv. &lt;a href=&#34;http://arxiv.org/abs/1303.4312&#34;&gt;http://arxiv.org/abs/1303.4312&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Substitution Method</title>
@@ -13785,6 +15357,7 @@ It additionally was adapted to other challenges and won first place on ImageNet 
 &lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#loss-functions&#34;&gt;Loss Functions&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#a-typical-training-pipeline&#34;&gt;A Typical Training Pipeline&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#useful-links&#34;&gt;Useful Links&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -13960,7 +15533,11 @@ Taking 10,000 samples to serve as a validation set is only \(~.07\%\) of the dat
 &lt;p&gt;Most modern machine learning frameworks have an easy way to split the dataset.
 We can do this in PyTorch using &lt;code&gt;torch.utils.data.random_split&lt;/code&gt;.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;train_dataset, val_dataset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;utils&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;data&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;random_split(dataset, [train_size, val_size])
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;useful-links&#34;&gt;Useful Links&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=D_jt-xO_RmI&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Deep learning Bootcamp: Kaiming He (author of ResNet)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Montúfar, Guido, Razvan Pascanu, Kyunghyun Cho, and Yoshua Bengio. 2014. “On the Number of Linear Regions of Deep Neural Networks.” &lt;i&gt;Arxiv:1402.1869 [Cs, Stat]&lt;/i&gt;, June. &lt;a href=&#34;http://arxiv.org/abs/1402.1869&#34;&gt;http://arxiv.org/abs/1402.1869&lt;/a&gt;.&lt;/div&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Prince, Simon J.D. 2023. &lt;i&gt;Understanding Deep Learning&lt;/i&gt;. MIT Press. &lt;a href=&#34;https://udlbook.github.io/udlbook/&#34;&gt;https://udlbook.github.io/udlbook/&lt;/a&gt;.&lt;/div&gt;
@@ -14386,6 +15963,212 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
 &lt;/table&gt;
 &lt;p&gt;&lt;strong&gt;Final Classifier&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;The final classifier is a weighted vote of the three weak learners, with the weights being the classifier weights we calculated (0.2027, 0.5493, and -0.3473). The negative weight means that the third learner&amp;rsquo;s predictions are reversed.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Stereo Vision</title>
+      <link>https://ajdillhoff.github.io/notes/stereo_vision/</link>
+      <pubDate>Wed, 23 Mar 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/stereo_vision/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#epipolar-geometry&#34;&gt;Epipolar Geometry&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#calibration-with-known-intrinsic-parameters-and-world-points&#34;&gt;Calibration with Known Intrinsic Parameters and World Points&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#estimating-depth&#34;&gt;Estimating Depth&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Binocular vision permits depth perception.
+It is an important part of many tasks such as robotic vision, pose estimation, and scene understanding.
+The goal of steropsis is to reconstruct a 3D representation of the world given correspondences between two or more cameras.&lt;/p&gt;
+&lt;p&gt;The process of computing these correspondences assumes two or more cameras with known intrinsic and extrinsic parameters.
+Methods exist to estimate the required transformation parameters using points based on matching image features.
+If some set of points which a fixed coordinate system is known, such as a calibration pattern, the problem becomes even simpler.
+Knowing the exact world point as it is projected in all image planes is essentially a ground truth.&lt;/p&gt;
+&lt;h2 id=&#34;epipolar-geometry&#34;&gt;Epipolar Geometry&lt;/h2&gt;
+&lt;p&gt;Epipolar geometry is the backbone of stereopsis.
+We will first define what epipolar geometry is, how it is used in the stereo vision problem, and the core constraint that limits our search space of point correspondences.
+It is defined visually below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-24_20-23-56_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Overview of epipolar geometry for stereopsis (Source: Szeliski).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Overview of epipolar geometry for stereopsis (Source: Szeliski).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Consider the point \(\mathbf{p}\) whose projection is \(\mathbf{x}_0\) with respect to camera \(\mathbf{c}_0\) and \(\mathbf{x}_1\) with respect to camera \(\mathbf{c}_1\).
+All 5 of these points lie on the &lt;strong&gt;epipolar plane&lt;/strong&gt;.
+Additionally, points \(\mathbf{e}_0\) and \(\mathbf{e}_1\) lie on the line defined by \(\mathbf{c}_0\) and \(\mathbf{c}_1\) as it intersects the image plane of each camera, respectively.
+These are called the &lt;strong&gt;epipoles&lt;/strong&gt;.
+These are also the projections of the other camera centers.&lt;/p&gt;
+&lt;p&gt;Fundamental to establishing the correspondences between the two cameras is the &lt;strong&gt;epipolar constraint&lt;/strong&gt;.
+If \(\mathbf{x}_0\) and \(\mathbf{x}_1\) represent projections of the same point, then \(\mathbf{x}_1\) must like on the epipolar line \(l_1\) associated with \(\mathbf{x}_0\) and vice versa.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-24_21-07-55_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The epipolar constraint restricts the search space for matching correspondences. (Source: Szeliski)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The epipolar constraint restricts the search space for matching correspondences. (Source: Szeliski)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;As seen in the figure above, potentional matches for \(\mathbf{x}_0\) must lie on the epipolar line defined by \(\mathbf{e}_1\) and \(\mathbf{x}_1\).&lt;/p&gt;
+&lt;p&gt;Our goal is to compute translation \(\mathbf{t}\) and rotation \(R\).
+To find these, we start by mathematically defining the epipolar constraint.
+The epipolar plane is defined by the lines \(\overrightarrow{\mathbf{c}_0 \mathbf{p}}\), \(\overrightarrow{\mathbf{c}_1 \mathbf{p}}\), and \(\overrightarrow{\mathbf{c}_0 \mathbf{c}_1}\).
+This can be written as&lt;/p&gt;
+&lt;p&gt;\[
+\overrightarrow{\mathbf{c}_0 \mathbf{p}} \cdot [\overrightarrow{\mathbf{c}_0 \mathbf{c}_1} \times \overrightarrow{\mathbf{c}_1 \mathbf{p}}] = 0.
+\]&lt;/p&gt;
+&lt;p&gt;We do not know \(\mathbf{p}\), but we do have \(\mathbf{x}_0\) and \(\mathbf{x}_1\), the projections of \(\mathbf{p}\) onto the image plane of each respective camera.
+Assuming that both camera are calibrated, we have a set of known intrinsic matrices \(\mathbf{K}_j\).&lt;/p&gt;
+&lt;p&gt;Although we do not have the exact \(z\) value of the point, we do know the point with respect to the camera calculcated as&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{p}_0 = d_0 \hat{\mathbf{x}}_0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_0 = \mathbf{K}_0^{-1} \mathbf{x}_0.
+\]&lt;/p&gt;
+&lt;p&gt;The relationship between points \(\mathbf{p}_0\) and \(\mathbf{p}_1\) is&lt;/p&gt;
+&lt;p&gt;\[
+d_1 \hat{\mathbf{x}}_1 = R(d_0 \hat{\mathbf{x}}_0) + \mathbf{t},
+\]&lt;/p&gt;
+&lt;p&gt;where \(R\) is a rotation matrix and \(\mathbf{t}\) is an offset vector.
+These are the parameters that are solved from stereo calibration.&lt;/p&gt;
+&lt;p&gt;Since the vectors \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\) are coplanar, the plane can be represented by a normal vector.
+That is, the vector that is orthogonal to all points in the plane.
+Such a vector can be calculated by taking the cross product of both sides of the above equation with \(\mathbf{t}\):&lt;/p&gt;
+&lt;p&gt;\[
+d_1 [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+[\mathbf{t}]_{\times}=\begin{bmatrix}
+0 &amp;amp; -t_z &amp;amp; t_y\\
+t_z &amp;amp; 0 &amp;amp; -t_x\\
+-t_y &amp;amp; t_x &amp;amp; 0
+\end{bmatrix}.
+\]&lt;/p&gt;
+&lt;p&gt;It is true that, since the normal vector is orthogonal to \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\), taking the dot product of any of these vectors and the normal vector yields 0:&lt;/p&gt;
+&lt;p&gt;\[
+d_1 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0 = 0.
+\]&lt;/p&gt;
+&lt;p&gt;We have now established the epipolar constraint in terms of the rotation matrix \(R\) and translation \(\mathbf{t}\).
+These are the parameters that relate the points between both cameras.
+This constraint is more compactly written as&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_1^T E \hat{\mathbf{x}}_0 = 0,
+\]&lt;/p&gt;
+&lt;p&gt;where&lt;/p&gt;
+&lt;p&gt;\[
+E = [\mathbf{t}_{\times}]R.
+\]&lt;/p&gt;
+&lt;p&gt;\(E\) is called the &lt;strong&gt;essential matrix&lt;/strong&gt; which relates the projected points between the two cameras.
+Once we have the essential matrix, we can compute \(\mathbf{t}\) and \(R\).&lt;/p&gt;
+&lt;h2 id=&#34;calibration-with-known-intrinsic-parameters-and-world-points&#34;&gt;Calibration with Known Intrinsic Parameters and World Points&lt;/h2&gt;
+&lt;p&gt;We first look at the simplest case of stereo calibration.
+The intrinsic parameters of both cameras have been computed using a standard calibration technique.
+Additionally, we have a fixed calibration pattern used to establish a correspondence between
+the world points and the points with respect to each camera.&lt;/p&gt;
+&lt;p&gt;Given \(N\) measured correspondences \(\{(\mathbf{x}_{i0}, \mathbf{x}_{i1})\}\), we can form a linear system with equations of the form&lt;/p&gt;
+&lt;p&gt;\begin{alignat*}{3}
+x_{i0}x_{i1}e_{00} &amp;amp; {}+{} &amp;amp; y_{i0}x_{i1}e_{01} &amp;amp; {}+{} &amp;amp; x_{i1}e_{02} &amp;amp; {}+{} &amp;amp;\\
+x_{i0}y_{i1}e_{10} &amp;amp; {}+{} &amp;amp; y_{i0}y_{i1}e_{11} &amp;amp; {}+{} &amp;amp; y_{i1}e_{12} &amp;amp; {}+{} &amp;amp;\\
+x_{i0}e_{20} &amp;amp; {}+{} &amp;amp; y_{i0}e_{21} &amp;amp; {}+{} &amp;amp; e_{22} &amp;amp; {}={} &amp;amp; 0
+\end{alignat*}&lt;/p&gt;
+&lt;p&gt;Given at least 8 equations corresponding to the 8 unknowns of \(E\), we can use SVD to solve for \(E\).&lt;/p&gt;
+&lt;p&gt;\[
+E = [\mathbf{t}]_{\times}R = \mathbf{U \Sigma V^T} = \begin{bmatrix}
+\mathbf{u}_0 &amp;amp; \mathbf{u}_1 &amp;amp; \mathbf{t}
+\end{bmatrix}\begin{bmatrix}
+1 &amp;amp; 0 &amp;amp; 0\\
+0 &amp;amp; 1 &amp;amp; 0\\
+0 &amp;amp; 0 &amp;amp; 1\\
+\end{bmatrix}\begin{bmatrix}
+\mathbf{v}_0^T\\
+\mathbf{v}_1^T\\
+\mathbf{v}_2^T\\
+\end{bmatrix}
+\]&lt;/p&gt;
+&lt;h2 id=&#34;estimating-depth&#34;&gt;Estimating Depth&lt;/h2&gt;
+&lt;p&gt;Given the intrinsic parameters and parameters relating both calibrated cameras, we can estimate the depth of a point that is seen by both cameras.&lt;/p&gt;
+&lt;p&gt;We know that \(\mathbf{x}_0 = K_0 \hat{\mathbf{x}}_0\) and \(\mathbf{x}_1 = K_1 \hat{\mathbf{x}}_1\).
+With the stereo calibration complete, we also know \(A = [R\quad \mathbf{t}]\) and&lt;/p&gt;
+&lt;p&gt;\[
+\hat{\mathbf{x}}_0 = A\hat{\mathbf{x}}_1.
+\]&lt;/p&gt;
+&lt;p&gt;Plugging into the projection equation for the first camera yields&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{x}_0 = K_0 A\hat{\mathbf{x}}_1.
+\]&lt;/p&gt;
+&lt;p&gt;Our knowns are \(\mathbf{x}_0, \mathbf{x}_1, K_0, K_1, \text{ and } A\).
+The only unknown is \(\hat{\mathbf{x}}_1\).&lt;/p&gt;
+&lt;p&gt;We are left with 2 equations&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\mathbf{x}_0 &amp;amp;= K_0 A\hat{\mathbf{x}}_1\\
+\mathbf{x}_1 &amp;amp;= K_1 \hat{\mathbf{x}}_1.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;If we let \(P = K_0 A\), we write the \(\mathbf{x}_0 = \begin{bmatrix}u_1\\v_1\\1\end{bmatrix}\) and&lt;/p&gt;
+&lt;p&gt;\begin{equation*}
+\begin{bmatrix}
+u_1\\
+v_1\\
+1
+\end{bmatrix}=\begin{bmatrix}
+p_{11} &amp;amp; p_{12} &amp;amp; p_{13} &amp;amp; p_{14}\\
+p_{21} &amp;amp; p_{22} &amp;amp; p_{23} &amp;amp; p_{24}\\
+p_{31} &amp;amp; p_{32} &amp;amp; p_{33} &amp;amp; p_{34}\\
+\end{bmatrix}\begin{bmatrix}
+X\\
+Y\\
+Z\\
+W
+\end{bmatrix}.
+\end{equation*}&lt;/p&gt;
+&lt;p&gt;This gives two equations for \(x_1\) and \(y_1\), the measured 2D feature locations:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+x_1 &amp;amp;= \frac{p_{11}X + p_{12}Y + p_{13}Z + p_{14}W}{p_{31}X + p_{32}Y + p_{33}Z + p_{34}W}\\
+y_1 &amp;amp;= \frac{p_{21}X + p_{22}Y + p_{23}Z + p_{24}W}{p_{31}X + p_{32}Y + p_{33}Z + p_{34}W}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Multiplying both equations by the denominator yields a set of equations that can be solved via linear least squares or SVD.&lt;/p&gt;
 </description>
     </item>
     
@@ -24140,6 +25923,35 @@ If we choose the \(\sin\) function as a basis function, we can more closely fit 
 
 &lt;/figure&gt;
 
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://ajdillhoff.github.io/notes/visual_profiler_quick_guide/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/visual_profiler_quick_guide/</guid>
+      <description>&lt;h1 id=&#34;nvidia-visual-profiler-quickstart-guide&#34;&gt;NVIDIA Visual Profiler Quickstart Guide&lt;/h1&gt;
+&lt;p&gt;NVIDIA Visual Profiler is installed on both the GPU machines and the workstations. The following guide will show you how to use the NVIDIA Visual Profiler to profile your CUDA code. For more details, please refer to the &lt;a href=&#34;https://docs.nvidia.com/cuda/profiler-users-guide/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;generate-a-profiling-report-for-your-kernel&#34;&gt;Generate a profiling report for your kernel&lt;/h2&gt;
+&lt;p&gt;First, a profiling report must be generated on the machine with a GPU. The following code should replace the current code in &lt;code&gt;benchmark.sh&lt;/code&gt; for Lab 3. Note that this is specific to the lab in ERB 125. If you&amp;rsquo;re running on your own machine with a GPU more recent than Pascal, it is highly recommended that you profile your code with &lt;a href=&#34;https://docs.nvidia.com/nsight-compute/NsightCompute/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;NSight Compute&lt;/a&gt; instead.&lt;/p&gt;
+&lt;p&gt;The given script will first load CUDA Toolkit 11.5, which is compatible with the version installed on the workstations. It will then compile the code and run the benchmark with a 1024x1024x1024 matrix. The &lt;code&gt;nvprof&lt;/code&gt; command will generate a profiling report in the form of a &lt;code&gt;.nvvp&lt;/code&gt; file, which can be opened with NVIDIA Visual Profiler.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#SBATCH --export=/usr/local/cuda-11.5/bin&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#SBATCH --gres=gpu:1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;module load cuda/11.5
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make benchmark
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nvprof --analysis-metrics --export-profile matmul_benchmark.nvvp -f ./build/main/benchmark &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;module unload cuda/11.5
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;open-the-profiling-report&#34;&gt;Open the profiling report&lt;/h2&gt;
+&lt;p&gt;After running the script, you should have a file called &lt;code&gt;matmul_benchmark.nvvp&lt;/code&gt;. Copy this file from the GPU machine to your local workstation first. You can open this file with the following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nvvp matmul_benchmark.nvvp
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We will review the metrics reported from the report in class. You can use the provided guided analysis to get a feel for the output metrics and how to interpret them.&lt;/p&gt;
 </description>
     </item>
     

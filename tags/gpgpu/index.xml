@@ -7,10 +7,398 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Wed, 14 Feb 2024 20:09:00 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 28 Feb 2024 19:19:00 -0600</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/gpgpu/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPU Pattern: Merge</title>
+      <link>https://ajdillhoff.github.io/notes/gpu_pattern_merge/</link>
+      <pubDate>Wed, 28 Feb 2024 19:19:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/gpu_pattern_merge/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#key-concepts-and-challenges&#34;&gt;Key Concepts and Challenges&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-merge-operation&#34;&gt;The Merge Operation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#tiled-merge&#34;&gt;Tiled Merge&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#circular-buffers&#34;&gt;Circular Buffers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#thread-coarsening&#34;&gt;Thread Coarsening&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;key-concepts-and-challenges&#34;&gt;Key Concepts and Challenges&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Dynamic input data identification&lt;/li&gt;
+&lt;li&gt;Data locality&lt;/li&gt;
+&lt;li&gt;Buffer management schemes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The &lt;strong&gt;merge&lt;/strong&gt; operation takes two sorted subarrays and combines them into a single sorted array. You may be familiar with this approach from studying &lt;a href=&#34;https://ajdillhoff.github.io/notes/divide_and_conquer_algorithms/&#34;&gt;Divide and Conquer Algorithms&lt;/a&gt;. Parallelizing the merge operation is a non-trivial task and will require the use of a few new techniques.&lt;/p&gt;
+&lt;h2 id=&#34;the-merge-operation&#34;&gt;The Merge Operation&lt;/h2&gt;
+&lt;p&gt;The specific parallel merge operation studied in these notes is from &amp;ldquo;Perfectly load-balanced, optimal, stable, parallel merge&amp;rdquo; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;). Their approach works by first computing which values are needed in each merge step, and then using a parallel kernel to compute the merge. These steps can be computed by each thread independently.&lt;/p&gt;
+&lt;h3 id=&#34;co-rank-function&#34;&gt;Co-rank Function&lt;/h3&gt;
+&lt;p&gt;The key to the parallel merge algorithm reviewed in these notes is the &lt;strong&gt;co-ranking function&lt;/strong&gt; (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;). This function computes the range of indices needed from the two input values to produce a given value in the output array, without actually needing to merge the two input arrays.&lt;/p&gt;
+&lt;p&gt;When merging two sorted arrays, we can observe that the output index \(0 \leq k &amp;lt; m + n\) comes from either \(0 \leq i &amp;lt; m\) from input \(A\) or \(0 \leq j &amp;lt; n\) from input \(B\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-11_14-22-24_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Merging (A) and (B) to produce (C).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Merging (A) and (B) to produce (C).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In the figure above, the element at \(k = 3\) comes from \(A[2]\), so \(i = 2\). It must be that \(k=3\) is the result of merging the first \(i=2\) elements of \(A\) with the first \(j=k - i\) elements of \(B\). This works both ways: for \(k=6\), the value is taken from \(B[3]\), so \(j=3\), and the result is the merge of the first \(i=k-j\) elements of \(A\) with the first \(j=3\) elements of \(B\).&lt;/p&gt;
+&lt;p&gt;An efficient method for computing the co-rank function follows the first lemma put forth in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;):&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;strong&gt;Lemma 1&lt;/strong&gt;&lt;/strong&gt;. For any \(k, 0 \leq k &amp;lt; m + n\), there exists a unique \(i, 0 \leq i \leq m\), and a unique \(j, 0 \leq j \leq n\), with \(i + j = k\) such that&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(i = 0\) or \(A[i-1] \leq B[j]\) and&lt;/li&gt;
+&lt;li&gt;\(j = 0\) or \(B[j-1] &amp;lt; A[i]\).&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-11_13-58-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Co-rank function visualization (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Siebert and Träff 2013&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Co-rank function visualization (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;implementation&#34;&gt;Implementation&lt;/h4&gt;
+&lt;p&gt;Given the rank \(k\) of an element in an output array \(C\) and two input arrays \(A\) and \(B\), the co-rank function \(f\) returns the co-rank value for the corresponding element in \(A\) and \(B\).&lt;/p&gt;
+&lt;p&gt;How would the co-rank function be used in the example above? Given two threads, let thread 1 compute the co-rank for \(k=4\). This would return \(i=3\) and \(j=1\). We quickly verify that this passes the first lemma stated above.&lt;/p&gt;
+&lt;p&gt;\[
+A[2] = 5 \leq B[1] = 5$ and $B[0] = 3 &amp;lt; A[3] = 7.
+\]&lt;/p&gt;
+&lt;p&gt;Code for the co-rank function is given below. Since the input arrays are already sorted, we can use a binary search to find the co-rank values.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;co_rank&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(k, m);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, k&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, k&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;m);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; active &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; true;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (active) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; A[i&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; B[j]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            delta &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_low &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;-=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; B[j&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; A[i]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            delta &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; j_low &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i_low &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;-=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; delta;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            active &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; false;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Consider running a merge kernel across 3 threads where each thread takes 3 sequential output values. Use the co-rank function to compute the co-rank values for \(k=3\) and \(k=6\), simulating the tasks for the second and third threads. The values for \(k=3\) should be \(i=2\) and \(j=1\), for reference. All values below these indices would be used by the first thread.&lt;/p&gt;
+&lt;h3 id=&#34;parallel-kernel&#34;&gt;Parallel Kernel&lt;/h3&gt;
+&lt;p&gt;We can now implement a basic parallel merge kernel. Each thread is responsible for determining how many elements it will be responsible for merging. The range of input values is determined via two calls to &lt;code&gt;co_rank&lt;/code&gt;, one for the starting and ending point.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;__global__ &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;merge_basic_kernel&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;C) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; tid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; blockIdx.x &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; blockDim.x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; threadIdx.x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; elementsPerThread &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ceil((m &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; n) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (blockDim.x &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; gridDim.x));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tid &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; elementsPerThread; &lt;span style=&#34;color:#75715e&#34;&gt;// start output index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min((tid &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; elementsPerThread, m &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; n); &lt;span style=&#34;color:#75715e&#34;&gt;// end output index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; co_rank(k_curr, A, m, B, n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; co_rank(k_next, A, m, B, n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_curr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k_curr &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_curr;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; j_next &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_next;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    merge_sequential(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;A[i_curr], i_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; i_curr, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;B[j_curr], j_next &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; j_curr, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;C[k_curr]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Two major issues should be clear from the code above. First, the memory being accesses is not coalesced. The binary search in &lt;code&gt;co_rank&lt;/code&gt; also means that the memory access pattern is less than ideal. Since the main issue in both cases relates to memory efficiency, we should look at tools that address memory access patterns.&lt;/p&gt;
+&lt;h2 id=&#34;tiled-merge&#34;&gt;Tiled Merge&lt;/h2&gt;
+&lt;p&gt;The memory access pattern is sparse and thus does not take advantage of coalescing. We can improve upon this by having the threads transfer data from global memory to shared memory in a coalesced manner. That way the higher latency operation will be coalesced. The data in shared memory may be accessed out of order, but the latency is much lower.&lt;/p&gt;
+&lt;p&gt;The subarrays from \(A\) and \(B\) that are used by adjacent threads are also adjacent in memory. By considering block-level subarrays, we can ensure that the data is coalesced. This is the idea behind the tiled merge algorithm. The figure below visualizes this concept.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-16_13-22-25_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Design of a tiled merge kernel (recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Design of a tiled merge kernel (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The shared memory blocks \(A_s\) and \(B_s\) obviously cannot store the entire range of data needed. In each iteration, the threads in a block will load a new set of data from global memory to shared memory. The light gray section of the block from \(A\) and \(B\) are loaded into \(A_s\) and \(B_s\), respectively. If they collectively load \(2n\) elements, only \(n\) elements will be used in the merge operation. This is because in the worst case, all elements going to the output array will come from one of the two input arrays. See the exercise at the end of this section for a more detailed explanation.&lt;/p&gt;
+&lt;p&gt;Each block will use a portion of both \(A_s\) and \(B_s\) to compute the merge. This is shown with dotted lines going from the shared memory to the output array.&lt;/p&gt;
+&lt;h3 id=&#34;part-1&#34;&gt;Part 1&lt;/h3&gt;
+&lt;p&gt;The code below shows the first part of the tiled merge kernel.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void merge_tiled_kernel(int *A, int m, int n, int *C, int tile_size) {
+    extern __shared__ int shareAB[];
+    int *A_s = &amp;amp;shareAB[0];
+    int *B_s = &amp;amp;shareAB[tile_size];
+    int C_curr = blockIdx.x * ceil((m+n)/gridDim.x);
+    int C_next = min((blockIdx.x+1) * ceil((m+n)/gridDim.x), m+n);
+
+    if (threadIdx.x == 0) {
+        // Block-level co-rank values will be available to all threads in the block
+        A_s[0] = co_rank(C_curr, A, m, B, n);
+        A_s[1] = co_rank(C_next, A, m, B, n);
+    }
+    __syncthreads();
+
+    int A_curr = A_s[0];
+    int A_next = A_s[1];
+    int B_curr = C_curr - A_curr;
+    int B_next = C_next - A_next;
+    __syncthreads();
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first part establishes the shared memory and the co-rank values for the &lt;strong&gt;block&lt;/strong&gt;. Each thread will have access to the start and end values for input matrices \(A\) and \(B\) as well. If the kernel is just getting started, we would have that &lt;code&gt;A_curr = 0&lt;/code&gt;, &lt;code&gt;B_curr = 0&lt;/code&gt;, and &lt;code&gt;C_curr = 0&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;part-2&#34;&gt;Part 2&lt;/h3&gt;
+&lt;p&gt;The second part of the kernel is responsible for loading the input data into shared memory. This is done in a coalesced manner, as the threads in a block will load a contiguous section of the input arrays.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;int counter = 0;
+int C_length = C_next - C_curr;
+int A_length = A_next - A_curr;
+int B_length = B_next - B_curr;
+int total_iteration = ceil(C_length / tile_size);
+int C_completed = 0;
+int A_consumed = 0;
+int B_consumed = 0;
+while (counter &amp;lt; total_iteration) {
+    for (int i = 0; i &amp;lt; tile_size; i += blockDim.x) {
+        if (i + threadIdx.x &amp;lt; A_length - A_consumed) {
+            A_s[i + threadIdx.x] = A[A_curr + A_consumed + i + threadIdx.x];
+        }
+        if (i + threadIdx.x &amp;lt; B_length - B_consumed) {
+            B_s[i + threadIdx.x] = B[B_curr + B_consumed + i + threadIdx.x];
+        }
+    }
+    __syncthreads();
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;part-3&#34;&gt;Part 3&lt;/h3&gt;
+&lt;p&gt;With the input in shared memory, each thread will divide up this input and merge their respective sections in parallel. This is done by calculating the &lt;code&gt;c_curr&lt;/code&gt; and &lt;code&gt;c_next&lt;/code&gt; first, which is the output section of the thread. Using those boundaries, two calls to &lt;code&gt;co_rank&lt;/code&gt; will determine the input sections the thread.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &amp;lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &amp;lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank(c_curr,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank(c_next,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_next = c_next - a_next;
+
+        merge_sequential(&amp;amp;A_s[a_curr], a_next - a_curr, &amp;amp;B_s[b_curr], b_next - b_curr, &amp;amp;C[C_urr + C_completed + c_curr]);
+        counter++;
+        C_completed += tile_size;
+        A_consumed += co_rank(tile_size A_s, tile_size, B_s, tile_size);
+        B_consumed = C_completed - A_consumed;
+        __syncthreads();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;example-walkthrough-of-kernel&#34;&gt;Example: Walkthrough of Kernel&lt;/h3&gt;
+&lt;p&gt;Consider the following example. We have two input arrays \(A = [1, 3, 5, 7, 9]\) and \(B = [2, 4, 6, 8, 10]\). The output array \(C\) will have 10 elements. We will use 2 blocks and 4 threads per block. The tile size is 4. With 10 elements and 2 blocks, each block is responsible for 5 elements.&lt;/p&gt;
+&lt;p&gt;The main &lt;code&gt;while&lt;/code&gt; loop will need to iterate twice to cover the entire output array. The first iteration will load the first 4 elements of \(A\) and \(B\) into shared memory. Once the data is in memory, each thread divides the input tiles by running the co-rank function on the data that is in shared memory. The computed indices are the boundaries between each thread.&lt;/p&gt;
+&lt;p&gt;In each iteration, a block is responsible for 4 elements. Given that we have 4 threads per block, each thread will be responsible for 1 output element per iteration. For thread 0 we have that &lt;code&gt;c_curr = 0&lt;/code&gt; and &lt;code&gt;c_next = 2&lt;/code&gt;. This results in &lt;code&gt;a_curr = 0&lt;/code&gt;, &lt;code&gt;b_curr = 0&lt;/code&gt;, &lt;code&gt;a_next = 1&lt;/code&gt;, and &lt;code&gt;b_next = 1&lt;/code&gt;. The merge operation will then be performed on the first element of \(A\) and \(B\).&lt;/p&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Coalesces global memory accesses&lt;/li&gt;
+&lt;li&gt;Shared memory is used to reduce latency&lt;/li&gt;
+&lt;li&gt;Only half the data loaded into shared memory is used; wasted memory bandwidth&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;exercise&#34;&gt;Exercise&lt;/h3&gt;
+&lt;p&gt;Hwu et al. suggest that you can first call the co-rank function to get the current and next output sections. This would increase memory bandwidth at the cost of an additional binary search.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Where would this be done with respect to the tiled solution discussed in this section?&lt;/li&gt;
+&lt;li&gt;How do these co-rank values differ from the ones used to calculate &lt;code&gt;C_curr&lt;/code&gt; and &lt;code&gt;C_next&lt;/code&gt;?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;Hint:&lt;/strong&gt; If we knew the co-rank value for the start of the next section, we could ensure that only the data below that index is loaded into shared memory.&lt;/p&gt;
+&lt;h2 id=&#34;circular-buffers&#34;&gt;Circular Buffers&lt;/h2&gt;
+&lt;p&gt;The tiled merge algorithm is a significant improvement over the basic merge kernel. One glaring issue is that only half of the data loaded into shared memory is used, leading to a waste of memory bandwidth. The circular buffer merge algorithm addresses this issue by using a circular buffer to store the input data. Instead of writing over the shared memory values on each iteration, the data to be used in the next iteration stays in shared memory. A portion of new data is loaded into shared memory based on how much was used in the previous iteration.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-17_14-58-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Circular buffer scheme (recreated from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;)).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Circular buffer scheme (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The figure above outlines the main idea behind the circular buffer merge algorithm. Part A shows the initial data layout of global and shared memory. Only a portion of the data loaded into shared memory is used in the merge operation. This is shown in part B, where the blank portion of the shared memory depicts the data that was used. The light gray regions of shared memory are the left over data that can be used in the next iteration.&lt;/p&gt;
+&lt;p&gt;The next block of data is loaded into shared memory. Since some of the required data already exists from the last iteration, a smaller portion needs to be loaded. This is shown in part C, where the new data (dark gray) is loaded into shared memory. The starting indices for both arrays was already set in the previous iteration. Consecutive values are simple to calculate using the mod operator.&lt;/p&gt;
+&lt;p&gt;Part D shows the state of the arrays after the end of the second iteration. The blank areas in shared memory are the data that was used in the merge operation. For array &lt;code&gt;A_S&lt;/code&gt;, the index wrapped around to the beginning of the array. It is ready to be used in the next iteration.&lt;/p&gt;
+&lt;h3 id=&#34;implementation&#34;&gt;Implementation&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;A_consumed&lt;/code&gt; can be used to keep track of how many new elements need to be read into shared memory.
+The &lt;code&gt;co_rank&lt;/code&gt; and &lt;code&gt;merge_sequential&lt;/code&gt; functions need to be updated to work with circular buffers. It is easier to treat the shared memory as an extended array, that way we avoid situations where the &lt;code&gt;next&lt;/code&gt; index is less than the &lt;code&gt;current&lt;/code&gt; index.&lt;/p&gt;
+&lt;h4 id=&#34;co-rank-function&#34;&gt;Co-Rank Function&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;int co_rank_circular(int k, int *A, int m, int *B, int n, int A_S_start, int B_S_start, int tile_length) {
+    int i = min(k, m);
+    int j = k - i;
+    int i_low = max(0, k-n);
+    int j_low = max(0, k-m);
+    int delta;
+    bool active = true;
+    while (active) {
+        int i_cir = (A_S_start + i) % tile_length;
+        int j_cir = (B_S_start + j) % tile_length;
+        int i_m_1_cir = (A_S_start + i - 1) % tile_length;
+        int j_m_1_cir = (B_S_start + j - 1) % tile_length;
+        if (i &amp;gt; 0 &amp;amp;&amp;amp; j &amp;lt; n &amp;amp;&amp;amp; A[i_m_1_cir] &amp;gt; B[j_cir]) {
+            delta = ((i - i_low + 1) &amp;gt;&amp;gt; 1);
+            j_low = j;
+            i -= delta;
+            j += delta;
+        } else if (j &amp;gt; 0 &amp;amp;&amp;amp; i &amp;lt; m &amp;amp;&amp;amp; B[j_m_1_cir] &amp;gt;= A[i_cir]) {
+            delta = ((j - j_low + 1) &amp;gt;&amp;gt; 1);
+            i_low = i;
+            j -= delta;
+            i += delta;
+        } else {
+            active = false;
+        }
+    }
+    return i;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In this updated version of the co-rank function, the user only needs to provide the start indices for the shared memory arrays along with the tile size.&lt;/p&gt;
+&lt;h4 id=&#34;merge-sequential&#34;&gt;Merge Sequential&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;void merge_sequential_circular(int *A, int m, int *B, int n, int *C, int A_S_start, int B_S_start, int tile_size) {
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i &amp;lt; m &amp;amp;&amp;amp; j &amp;lt; n) {
+        int i_cir = (A_S_start + i) % tile_size;
+        int j_cir = (B_S_start + j) % tile_size;
+        if (A[i_cir] &amp;lt;= B[j_cir]) {
+            C[k] = A[i_cir];
+            i++;
+        } else {
+            C[k] = B[j_cir];
+            j++;
+        }
+        k++;
+    }
+    if (i == m) {
+        while (j &amp;lt; n) {
+            int j_cir = (B_S_start + j) % tile_size;
+            C[k] = B[j_cir];
+            j++;
+            k++;
+        }
+    } else {
+        while (i &amp;lt; m) {
+            int i_cir = (A_S_start + i) % tile_size;
+            C[k] = A[i_cir];
+            i++;
+            k++;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Again, this revision makes it easier on the user since they only need to provide the start indices for the shared memory arrays and the tile size. These are used to compute the indices for the circular buffer.&lt;/p&gt;
+&lt;h4 id=&#34;circular-buffer-kernel&#34;&gt;Circular Buffer Kernel&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &amp;lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &amp;lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_next = c_next - a_next;
+
+        merge_sequential_circular(A_s, a_next - a_curr, B_s, b_next - b_curr, &amp;amp;C[C_urr + C_completed + c_curr],
+                                  A_S_start + A_curr, B_S_start + B_curr, tile_size);
+
+        // Compute the indices that were used
+        counter++;
+        A_S_consumed = co_rank_circular(min(tile_size, C_length - C_completed),
+                                        A_s, min(tile_size, A_length - A_consumed),
+                                        B_s, min(tile_size, B_length - B_consumed),
+                                        A_S_start, B_S_start, tile_size);
+        B_S_consumed = min(tile_size, C_length - C_completed) - A_S_consumed;
+        A_consumed += A_S_consumed;
+        C_completed += min(tile_size, C_length - C_completed);
+        B_consumed = C_completed - A_consumed;
+
+        // Update the start indices for the next iteration
+        A_S_start = (A_S_start + A_S_consumed) % tile_size;
+        B_S_start = (B_S_start + B_S_consumed) % tile_size;
+        __syncthreads();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first section of part 3 of the original kernel remains mostly unchanged, with the exceptions that the co-rank function and merge function are now called with the circular versions. The larger change is in the second half of the kernel. &lt;code&gt;A_S_consumed&lt;/code&gt; and &lt;code&gt;B_S_consumed&lt;/code&gt; are used to keep track of how much of the shared memory arrays were used. This is then used to offset the used indices from the original arrays. Finally, the start indices for the shared memory arrays are updated for the next iteration.&lt;/p&gt;
+&lt;h2 id=&#34;thread-coarsening&#34;&gt;Thread Coarsening&lt;/h2&gt;
+&lt;p&gt;The kernels presented in these notes already utilize thread coarsening. Each thread is responsible for a range of output values. The simple example presented earlier demonstrates what a non-coarse approach would look like. Each thread was only responsible for a single output value.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Siebert, Christian, and Jesper Larsson Träff. 2013. “Perfectly Load-Balanced, Optimal, Stable, Parallel Merge.” arXiv. &lt;a href=&#34;http://arxiv.org/abs/1303.4312&#34;&gt;http://arxiv.org/abs/1303.4312&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Parallel Scan</title>

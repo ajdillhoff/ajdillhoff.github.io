@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Key Concepts and Challenges Introduction The Merge Operation Tiled Merge Circular Buffers Thread Coarsening Key Concepts and Challenges Dynamic input data identification Data locality Buffer management schemes Introduction The merge operation takes two sorted subarrays and combines them into a single sorted array. You may be familiar with this approach from studying Divide and Conquer Algorithms. Parallelizing the merge operation is a non-trivial task and will require the use of a few new techniques.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/gpu_pattern_merge/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/gpu_pattern_merge/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/gpu_pattern_merge/">
+  <meta property="og:title" content="GPU Pattern: Merge | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Key Concepts and Challenges Introduction The Merge Operation Tiled Merge Circular Buffers Thread Coarsening Key Concepts and Challenges Dynamic input data identification Data locality Buffer management schemes Introduction The merge operation takes two sorted subarrays and combines them into a single sorted array. You may be familiar with this approach from studying Divide and Conquer Algorithms. Parallelizing the merge operation is a non-trivial task and will require the use of a few new techniques."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-02-28T19:19:00-06:00">
+  
+  <meta property="article:modified_time" content="2024-02-28T19:19:00-06:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>GPU Pattern: Merge | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">GPU Pattern: Merge</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-02-28 19:19:00 -0600 CST" itemprop="datePublished">
+<meta content="2024-02-28 19:19:00 -0600 CST" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Feb 28, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    15 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/gpu_pattern_merge/&amp;text=GPU%20Pattern:%20Merge" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/gpu_pattern_merge/&amp;t=GPU%20Pattern:%20Merge" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=GPU%20Pattern:%20Merge&amp;body=https://ajdillhoff.github.io/notes/gpu_pattern_merge/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/gpu_pattern_merge/&amp;title=GPU%20Pattern:%20Merge" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=GPU%20Pattern:%20Merge%20https://ajdillhoff.github.io/notes/gpu_pattern_merge/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/gpu_pattern_merge/&amp;title=GPU%20Pattern:%20Merge" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#key-concepts-and-challenges">Key Concepts and Challenges</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#the-merge-operation">The Merge Operation</a></li>
+<li><a href="#tiled-merge">Tiled Merge</a></li>
+<li><a href="#circular-buffers">Circular Buffers</a></li>
+<li><a href="#thread-coarsening">Thread Coarsening</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="key-concepts-and-challenges">Key Concepts and Challenges</h2>
+<ul>
+<li>Dynamic input data identification</li>
+<li>Data locality</li>
+<li>Buffer management schemes</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>The <strong>merge</strong> operation takes two sorted subarrays and combines them into a single sorted array. You may be familiar with this approach from studying <a href="/notes/divide_and_conquer_algorithms/">Divide and Conquer Algorithms</a>. Parallelizing the merge operation is a non-trivial task and will require the use of a few new techniques.</p>
+<h2 id="the-merge-operation">The Merge Operation</h2>
+<p>The specific parallel merge operation studied in these notes is from &ldquo;Perfectly load-balanced, optimal, stable, parallel merge&rdquo; (<a href="#citeproc_bib_item_2">Siebert and Träff 2013</a>). Their approach works by first computing which values are needed in each merge step, and then using a parallel kernel to compute the merge. These steps can be computed by each thread independently.</p>
+<h3 id="co-rank-function">Co-rank Function</h3>
+<p>The key to the parallel merge algorithm reviewed in these notes is the <strong>co-ranking function</strong> (<a href="#citeproc_bib_item_2">Siebert and Träff 2013</a>). This function computes the range of indices needed from the two input values to produce a given value in the output array, without actually needing to merge the two input arrays.</p>
+<p>When merging two sorted arrays, we can observe that the output index \(0 \leq k &lt; m + n\) comes from either \(0 \leq i &lt; m\) from input \(A\) or \(0 \leq j &lt; n\) from input \(B\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-11_14-22-24_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Merging (A) and (B) to produce (C)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Merging (A) and (B) to produce (C).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>In the figure above, the element at \(k = 3\) comes from \(A[2]\), so \(i = 2\). It must be that \(k=3\) is the result of merging the first \(i=2\) elements of \(A\) with the first \(j=k - i\) elements of \(B\). This works both ways: for \(k=6\), the value is taken from \(B[3]\), so \(j=3\), and the result is the merge of the first \(i=k-j\) elements of \(A\) with the first \(j=3\) elements of \(B\).</p>
+<p>An efficient method for computing the co-rank function follows the first lemma put forth in (<a href="#citeproc_bib_item_2">Siebert and Träff 2013</a>):</p>
+<p><strong><strong>Lemma 1</strong></strong>. For any \(k, 0 \leq k &lt; m + n\), there exists a unique \(i, 0 \leq i \leq m\), and a unique \(j, 0 \leq j \leq n\), with \(i + j = k\) such that</p>
+<ol>
+<li>\(i = 0\) or \(A[i-1] \leq B[j]\) and</li>
+<li>\(j = 0\) or \(B[j-1] &lt; A[i]\).</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-11_13-58-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Co-rank function visualization (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Siebert and Träff 2013&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Co-rank function visualization (<a href="#citeproc_bib_item_2">Siebert and Träff 2013</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="implementation">Implementation</h4>
+<p>Given the rank \(k\) of an element in an output array \(C\) and two input arrays \(A\) and \(B\), the co-rank function \(f\) returns the co-rank value for the corresponding element in \(A\) and \(B\).</p>
+<p>How would the co-rank function be used in the example above? Given two threads, let thread 1 compute the co-rank for \(k=4\). This would return \(i=3\) and \(j=1\). We quickly verify that this passes the first lemma stated above.</p>
+<p>\[
+A[2] = 5 \leq B[1] = 5$ and $B[0] = 3 &lt; A[3] = 7.
+\]</p>
+<p>Code for the co-rank function is given below. Since the input arrays are already sorted, we can use a binary search to find the co-rank values.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">co_rank</span>(<span style="color:#66d9ef">int</span> k, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> min(k, m);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> k <span style="color:#f92672">-</span> i;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i_low <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">0</span>, k<span style="color:#f92672">-</span>n);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j_low <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">0</span>, k<span style="color:#f92672">-</span>m);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> delta;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">bool</span> active <span style="color:#f92672">=</span> true;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (active) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> j <span style="color:#f92672">&lt;</span> n <span style="color:#f92672">&amp;&amp;</span> A[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;</span> B[j]) {
+</span></span><span style="display:flex;"><span>            delta <span style="color:#f92672">=</span> (i <span style="color:#f92672">-</span> i_low <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>            j_low <span style="color:#f92672">=</span> j;
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">-=</span> delta;
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">+=</span> delta;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (j <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> i <span style="color:#f92672">&lt;</span> m <span style="color:#f92672">&amp;&amp;</span> B[j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;=</span> A[i]) {
+</span></span><span style="display:flex;"><span>            delta <span style="color:#f92672">=</span> (j <span style="color:#f92672">-</span> j_low <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>            i_low <span style="color:#f92672">=</span> i;
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">-=</span> delta;
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">+=</span> delta;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            active <span style="color:#f92672">=</span> false;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> i;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Consider running a merge kernel across 3 threads where each thread takes 3 sequential output values. Use the co-rank function to compute the co-rank values for \(k=3\) and \(k=6\), simulating the tasks for the second and third threads. The values for \(k=3\) should be \(i=2\) and \(j=1\), for reference. All values below these indices would be used by the first thread.</p>
+<h3 id="parallel-kernel">Parallel Kernel</h3>
+<p>We can now implement a basic parallel merge kernel. Each thread is responsible for determining how many elements it will be responsible for merging. The range of input values is determined via two calls to <code>co_rank</code>, one for the starting and ending point.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">merge_basic_kernel</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>C) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tid <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> elementsPerThread <span style="color:#f92672">=</span> ceil((m <span style="color:#f92672">+</span> n) <span style="color:#f92672">/</span> (blockDim.x <span style="color:#f92672">*</span> gridDim.x));
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> k_curr <span style="color:#f92672">=</span> tid <span style="color:#f92672">*</span> elementsPerThread; <span style="color:#75715e">// start output index
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> k_next <span style="color:#f92672">=</span> min((tid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> elementsPerThread, m <span style="color:#f92672">+</span> n); <span style="color:#75715e">// end output index
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> i_curr <span style="color:#f92672">=</span> co_rank(k_curr, A, m, B, n);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i_next <span style="color:#f92672">=</span> co_rank(k_next, A, m, B, n);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j_curr <span style="color:#f92672">=</span> k_curr <span style="color:#f92672">-</span> i_curr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j_next <span style="color:#f92672">=</span> k_next <span style="color:#f92672">-</span> i_next;
+</span></span><span style="display:flex;"><span>    merge_sequential(<span style="color:#f92672">&amp;</span>A[i_curr], i_next <span style="color:#f92672">-</span> i_curr, <span style="color:#f92672">&amp;</span>B[j_curr], j_next <span style="color:#f92672">-</span> j_curr, <span style="color:#f92672">&amp;</span>C[k_curr]);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Two major issues should be clear from the code above. First, the memory being accesses is not coalesced. The binary search in <code>co_rank</code> also means that the memory access pattern is less than ideal. Since the main issue in both cases relates to memory efficiency, we should look at tools that address memory access patterns.</p>
+<h2 id="tiled-merge">Tiled Merge</h2>
+<p>The memory access pattern is sparse and thus does not take advantage of coalescing. We can improve upon this by having the threads transfer data from global memory to shared memory in a coalesced manner. That way the higher latency operation will be coalesced. The data in shared memory may be accessed out of order, but the latency is much lower.</p>
+<p>The subarrays from \(A\) and \(B\) that are used by adjacent threads are also adjacent in memory. By considering block-level subarrays, we can ensure that the data is coalesced. This is the idea behind the tiled merge algorithm. The figure below visualizes this concept.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-16_13-22-25_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Design of a tiled merge kernel (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;))." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Design of a tiled merge kernel (recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>)).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The shared memory blocks \(A_s\) and \(B_s\) obviously cannot store the entire range of data needed. In each iteration, the threads in a block will load a new set of data from global memory to shared memory. The light gray section of the block from \(A\) and \(B\) are loaded into \(A_s\) and \(B_s\), respectively. If they collectively load \(2n\) elements, only \(n\) elements will be used in the merge operation. This is because in the worst case, all elements going to the output array will come from one of the two input arrays. See the exercise at the end of this section for a more detailed explanation.</p>
+<p>Each block will use a portion of both \(A_s\) and \(B_s\) to compute the merge. This is shown with dotted lines going from the shared memory to the output array.</p>
+<h3 id="part-1">Part 1</h3>
+<p>The code below shows the first part of the tiled merge kernel.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void merge_tiled_kernel(int *A, int m, int n, int *C, int tile_size) {
+    extern __shared__ int shareAB[];
+    int *A_s = &amp;shareAB[0];
+    int *B_s = &amp;shareAB[tile_size];
+    int C_curr = blockIdx.x * ceil((m+n)/gridDim.x);
+    int C_next = min((blockIdx.x+1) * ceil((m+n)/gridDim.x), m+n);
+
+    if (threadIdx.x == 0) {
+        // Block-level co-rank values will be available to all threads in the block
+        A_s[0] = co_rank(C_curr, A, m, B, n);
+        A_s[1] = co_rank(C_next, A, m, B, n);
+    }
+    __syncthreads();
+
+    int A_curr = A_s[0];
+    int A_next = A_s[1];
+    int B_curr = C_curr - A_curr;
+    int B_next = C_next - A_next;
+    __syncthreads();
+</code></pre><p>The first part establishes the shared memory and the co-rank values for the <strong>block</strong>. Each thread will have access to the start and end values for input matrices \(A\) and \(B\) as well. If the kernel is just getting started, we would have that <code>A_curr = 0</code>, <code>B_curr = 0</code>, and <code>C_curr = 0</code>.</p>
+<h3 id="part-2">Part 2</h3>
+<p>The second part of the kernel is responsible for loading the input data into shared memory. This is done in a coalesced manner, as the threads in a block will load a contiguous section of the input arrays.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">int counter = 0;
+int C_length = C_next - C_curr;
+int A_length = A_next - A_curr;
+int B_length = B_next - B_curr;
+int total_iteration = ceil(C_length / tile_size);
+int C_completed = 0;
+int A_consumed = 0;
+int B_consumed = 0;
+while (counter &lt; total_iteration) {
+    for (int i = 0; i &lt; tile_size; i += blockDim.x) {
+        if (i + threadIdx.x &lt; A_length - A_consumed) {
+            A_s[i + threadIdx.x] = A[A_curr + A_consumed + i + threadIdx.x];
+        }
+        if (i + threadIdx.x &lt; B_length - B_consumed) {
+            B_s[i + threadIdx.x] = B[B_curr + B_consumed + i + threadIdx.x];
+        }
+    }
+    __syncthreads();
+</code></pre><h3 id="part-3">Part 3</h3>
+<p>With the input in shared memory, each thread will divide up this input and merge their respective sections in parallel. This is done by calculating the <code>c_curr</code> and <code>c_next</code> first, which is the output section of the thread. Using those boundaries, two calls to <code>co_rank</code> will determine the input sections the thread.</p>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank(c_curr,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank(c_next,
+                             A_s, min(tile_size, A_length - A_consumed),
+                             B_s, min(tile_size, B_length - B_consumed));
+        int b_next = c_next - a_next;
+
+        merge_sequential(&amp;A_s[a_curr], a_next - a_curr, &amp;B_s[b_curr], b_next - b_curr, &amp;C[C_urr + C_completed + c_curr]);
+        counter++;
+        C_completed += tile_size;
+        A_consumed += co_rank(tile_size A_s, tile_size, B_s, tile_size);
+        B_consumed = C_completed - A_consumed;
+        __syncthreads();
+    }
+}
+</code></pre><h3 id="example-walkthrough-of-kernel">Example: Walkthrough of Kernel</h3>
+<p>Consider the following example. We have two input arrays \(A = [1, 3, 5, 7, 9]\) and \(B = [2, 4, 6, 8, 10]\). The output array \(C\) will have 10 elements. We will use 2 blocks and 4 threads per block. The tile size is 4. With 10 elements and 2 blocks, each block is responsible for 5 elements.</p>
+<p>The main <code>while</code> loop will need to iterate twice to cover the entire output array. The first iteration will load the first 4 elements of \(A\) and \(B\) into shared memory. Once the data is in memory, each thread divides the input tiles by running the co-rank function on the data that is in shared memory. The computed indices are the boundaries between each thread.</p>
+<p>In each iteration, a block is responsible for 4 elements. Given that we have 4 threads per block, each thread will be responsible for 1 output element per iteration. For thread 0 we have that <code>c_curr = 0</code> and <code>c_next = 2</code>. This results in <code>a_curr = 0</code>, <code>b_curr = 0</code>, <code>a_next = 1</code>, and <code>b_next = 1</code>. The merge operation will then be performed on the first element of \(A\) and \(B\).</p>
+<h3 id="analysis">Analysis</h3>
+<ul>
+<li>Coalesces global memory accesses</li>
+<li>Shared memory is used to reduce latency</li>
+<li>Only half the data loaded into shared memory is used; wasted memory bandwidth</li>
+</ul>
+<h3 id="exercise">Exercise</h3>
+<p>Hwu et al. suggest that you can first call the co-rank function to get the current and next output sections. This would increase memory bandwidth at the cost of an additional binary search.</p>
+<ol>
+<li>Where would this be done with respect to the tiled solution discussed in this section?</li>
+<li>How do these co-rank values differ from the ones used to calculate <code>C_curr</code> and <code>C_next</code>?</li>
+</ol>
+<p><strong>Hint:</strong> If we knew the co-rank value for the start of the next section, we could ensure that only the data below that index is loaded into shared memory.</p>
+<h2 id="circular-buffers">Circular Buffers</h2>
+<p>The tiled merge algorithm is a significant improvement over the basic merge kernel. One glaring issue is that only half of the data loaded into shared memory is used, leading to a waste of memory bandwidth. The circular buffer merge algorithm addresses this issue by using a circular buffer to store the input data. Instead of writing over the shared memory values on each iteration, the data to be used in the next iteration stays in shared memory. A portion of new data is loaded into shared memory based on how much was used in the previous iteration.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-17_14-58-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Circular buffer scheme (recreated from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;))." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Circular buffer scheme (recreated from (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>)).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The figure above outlines the main idea behind the circular buffer merge algorithm. Part A shows the initial data layout of global and shared memory. Only a portion of the data loaded into shared memory is used in the merge operation. This is shown in part B, where the blank portion of the shared memory depicts the data that was used. The light gray regions of shared memory are the left over data that can be used in the next iteration.</p>
+<p>The next block of data is loaded into shared memory. Since some of the required data already exists from the last iteration, a smaller portion needs to be loaded. This is shown in part C, where the new data (dark gray) is loaded into shared memory. The starting indices for both arrays was already set in the previous iteration. Consecutive values are simple to calculate using the mod operator.</p>
+<p>Part D shows the state of the arrays after the end of the second iteration. The blank areas in shared memory are the data that was used in the merge operation. For array <code>A_S</code>, the index wrapped around to the beginning of the array. It is ready to be used in the next iteration.</p>
+<h3 id="implementation">Implementation</h3>
+<p><code>A_consumed</code> can be used to keep track of how many new elements need to be read into shared memory.
+The <code>co_rank</code> and <code>merge_sequential</code> functions need to be updated to work with circular buffers. It is easier to treat the shared memory as an extended array, that way we avoid situations where the <code>next</code> index is less than the <code>current</code> index.</p>
+<h4 id="co-rank-function">Co-Rank Function</h4>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">int co_rank_circular(int k, int *A, int m, int *B, int n, int A_S_start, int B_S_start, int tile_length) {
+    int i = min(k, m);
+    int j = k - i;
+    int i_low = max(0, k-n);
+    int j_low = max(0, k-m);
+    int delta;
+    bool active = true;
+    while (active) {
+        int i_cir = (A_S_start + i) % tile_length;
+        int j_cir = (B_S_start + j) % tile_length;
+        int i_m_1_cir = (A_S_start + i - 1) % tile_length;
+        int j_m_1_cir = (B_S_start + j - 1) % tile_length;
+        if (i &gt; 0 &amp;&amp; j &lt; n &amp;&amp; A[i_m_1_cir] &gt; B[j_cir]) {
+            delta = ((i - i_low + 1) &gt;&gt; 1);
+            j_low = j;
+            i -= delta;
+            j += delta;
+        } else if (j &gt; 0 &amp;&amp; i &lt; m &amp;&amp; B[j_m_1_cir] &gt;= A[i_cir]) {
+            delta = ((j - j_low + 1) &gt;&gt; 1);
+            i_low = i;
+            j -= delta;
+            i += delta;
+        } else {
+            active = false;
+        }
+    }
+    return i;
+}
+</code></pre><p>In this updated version of the co-rank function, the user only needs to provide the start indices for the shared memory arrays along with the tile size.</p>
+<h4 id="merge-sequential">Merge Sequential</h4>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">void merge_sequential_circular(int *A, int m, int *B, int n, int *C, int A_S_start, int B_S_start, int tile_size) {
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i &lt; m &amp;&amp; j &lt; n) {
+        int i_cir = (A_S_start + i) % tile_size;
+        int j_cir = (B_S_start + j) % tile_size;
+        if (A[i_cir] &lt;= B[j_cir]) {
+            C[k] = A[i_cir];
+            i++;
+        } else {
+            C[k] = B[j_cir];
+            j++;
+        }
+        k++;
+    }
+    if (i == m) {
+        while (j &lt; n) {
+            int j_cir = (B_S_start + j) % tile_size;
+            C[k] = B[j_cir];
+            j++;
+            k++;
+        }
+    } else {
+        while (i &lt; m) {
+            int i_cir = (A_S_start + i) % tile_size;
+            C[k] = A[i_cir];
+            i++;
+            k++;
+        }
+    }
+}
+</code></pre><p>Again, this revision makes it easier on the user since they only need to provide the start indices for the shared memory arrays and the tile size. These are used to compute the indices for the circular buffer.</p>
+<h4 id="circular-buffer-kernel">Circular Buffer Kernel</h4>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">        int c_curr = threadIdx.x * (tile_size / blockDim.x);
+        int c_next = (threadIdx.x + 1) * (tile_size / blockDim.x);
+        c_curr = (c_curr &lt;= C_length - C_completed) ? c_curr : C_length - C_completed;
+        c_next = (c_next &lt;= C_length - C_completed) ? c_next : C_length - C_completed;
+
+        int a_curr = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_curr = c_curr - a_curr;
+        int a_next = co_rank_circular(c_curr,
+                                      A_s, min(tile_size, A_length - A_consumed),
+                                      B_s, min(tile_size, B_length - B_consumed),
+                                      A_curr, B_curr, tile_size);
+        int b_next = c_next - a_next;
+
+        merge_sequential_circular(A_s, a_next - a_curr, B_s, b_next - b_curr, &amp;C[C_urr + C_completed + c_curr],
+                                  A_S_start + A_curr, B_S_start + B_curr, tile_size);
+
+        // Compute the indices that were used
+        counter++;
+        A_S_consumed = co_rank_circular(min(tile_size, C_length - C_completed),
+                                        A_s, min(tile_size, A_length - A_consumed),
+                                        B_s, min(tile_size, B_length - B_consumed),
+                                        A_S_start, B_S_start, tile_size);
+        B_S_consumed = min(tile_size, C_length - C_completed) - A_S_consumed;
+        A_consumed += A_S_consumed;
+        C_completed += min(tile_size, C_length - C_completed);
+        B_consumed = C_completed - A_consumed;
+
+        // Update the start indices for the next iteration
+        A_S_start = (A_S_start + A_S_consumed) % tile_size;
+        B_S_start = (B_S_start + B_S_consumed) % tile_size;
+        __syncthreads();
+    }
+}
+</code></pre><p>The first section of part 3 of the original kernel remains mostly unchanged, with the exceptions that the co-rank function and merge function are now called with the circular versions. The larger change is in the second half of the kernel. <code>A_S_consumed</code> and <code>B_S_consumed</code> are used to keep track of how much of the shared memory arrays were used. This is then used to offset the used indices from the original arrays. Finally, the start indices for the shared memory arrays are updated for the next iteration.</p>
+<h2 id="thread-coarsening">Thread Coarsening</h2>
+<p>The kernels presented in these notes already utilize thread coarsening. Each thread is responsible for a range of output values. The simple example presented earlier demonstrates what a non-coarse approach would look like. Each thread was only responsible for a single output value.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Siebert, Christian, and Jesper Larsson Träff. 2013. “Perfectly Load-Balanced, Optimal, Stable, Parallel Merge.” arXiv. <a href="http://arxiv.org/abs/1303.4312">http://arxiv.org/abs/1303.4312</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/gpu_pattern_parallel_scan/">GPU Pattern: Parallel Scan</a></li>
+          
+          <li><a href="/notes/gpu_pattern_reduction/">GPU Pattern: Reduction</a></li>
+          
+          <li><a href="/notes/gpu_pattern_parallel_histogram/">GPU Pattern: Parallel Histogram</a></li>
+          
+          <li><a href="/notes/gpu_pattern_stencils/">GPU Pattern: Stencils</a></li>
+          
+          <li><a href="/notes/gpu_pattern_convolution/">GPU Pattern: Convolution</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
