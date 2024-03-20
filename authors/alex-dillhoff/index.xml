@@ -7,10 +7,80 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Thu, 14 Mar 2024 15:16:00 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 18 Mar 2024 22:10:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Recursion Tree Method</title>
+      <link>https://ajdillhoff.github.io/notes/recursion_tree_method/</link>
+      <pubDate>Mon, 18 Mar 2024 22:10:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/recursion_tree_method/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#example-4-dot-13-from-clrs&#34;&gt;Example 4.13 from CLRS&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Visualizing the characteristics of an algorithm is a great way to build intuition about its runtime. Although it can be used to prove a recurrence, it is often a good jumping off point for the &lt;a href=&#34;https://ajdillhoff.github.io/notes/substitution_method/&#34;&gt;Substitution Method&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;example-4-dot-13-from-clrs&#34;&gt;Example 4.13 from CLRS&lt;/h2&gt;
+&lt;p&gt;Consider the recurrence \(T(n) = 3T(n/4) + \Theta(n^2)\). We start by describing \(\Theta(n^2) = cn^2\), where the constant \(c &amp;gt; 0\) serves as an upper-bound constant. It reflects the amount of work done at each level of the recursion tree. The tree is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_09-14-00_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Example 4.13 from CLRS (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Example 4.13 from CLRS (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;As the tree expands out over a few levels, we can see a pattern in the cost at depth \(i\). Each level of increasing depth has 3 times as many nodes as the previous. With the exception of the leaves, the cost for each level is \((\frac{3}{16})^i cn^2\). The total cost of the leaves is based on the number of leaves, which is \(3^{\log_4 n}\) since each level has \(3^i\) nodes and the depth is \(\log_4 n\). Using the identity \(a^{\log_b c} = c^{\log_b a}\), we can simplify the leaves to \(n^{\log_4 3}\). The total cost of the leaves is \(\Theta(n^{\log_4 3})\).&lt;/p&gt;
+&lt;p&gt;The last step is to add up the costs over all levels:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;= \sum_{i=0}^{\log_4 n} \left( \frac{3}{16} \right)^i cn^2 + \Theta(n^{\log_4 3}) \\
+&amp;amp;&amp;lt; \sum_{i=0}^{\infty} \left( \frac{3}{16} \right)^i cn^2 + \Theta(n^{\log_4 3}) \\
+&amp;amp;= \frac{cn^2}{1 - \frac{3}{16}} + \Theta(n^{\log_4 3}) \\
+&amp;amp;= \frac{16}{13}cn^2 + \Theta(n^{\log_4 3}) \\
+&amp;amp;= \Theta(n^2).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The second line in the equation is a &lt;a href=&#34;https://en.wikipedia.org/wiki/Geometric_series&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;geometric series.&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;verifying-using-the-substitution-method&#34;&gt;Verifying using the Substitution Method&lt;/h3&gt;
+&lt;p&gt;Even if we weren&amp;rsquo;t so particular with the maths, the recursion tree method is a great way to build intuition about the runtime. Let&amp;rsquo;s verify that this recurrence is bounded above by \(O(n^2)\) using the &lt;a href=&#34;https://ajdillhoff.github.io/notes/substitution_method/&#34;&gt;Substitution Method&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here we show that \(T(n) \leq dn^2\) for a constant \(d &amp;gt; 0\). The previous constant \(c &amp;gt; 0\) is reused to describe the cost at each level of the recursion tree.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\leq 3T(n/4) + cn^2 \\
+&amp;amp;\leq 3(d(n/4)^2) + cn^2 \\
+&amp;amp;= \frac{3}{16}dn^2 + cn^2 \\
+&amp;amp;\leq dn^2 \text{ if } d \geq \frac{16}{13}c.
+\end{align*}&lt;/p&gt;
+&lt;h3 id=&#34;exercises&#34;&gt;Exercises&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Solve the recurrence \(T(n) = 2T(n/2) + cn\) using the recursion tree method.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Hash Tables</title>
@@ -1590,7 +1660,15 @@ The &lt;code&gt;co_rank&lt;/code&gt; and &lt;code&gt;merge_sequential&lt;/code&g
       <pubDate>Tue, 27 Feb 2024 19:12:00 -0600</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/substitution_method/</guid>
-      <description>&lt;p&gt;The &lt;strong&gt;substitution method&lt;/strong&gt; is a technique for solving recurrences. It works in two steps:&lt;/p&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#example-from-clrs&#34;&gt;Example from CLRS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#making-the-wrong-guess&#34;&gt;Making the Wrong Guess&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;The &lt;strong&gt;substitution method&lt;/strong&gt; is a technique for solving recurrences. It works in two steps:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Guess the solution&lt;/li&gt;
 &lt;li&gt;Use mathematical induction to verify the guess&lt;/li&gt;
@@ -1615,6 +1693,32 @@ T(n) &amp;amp;\leq 2T(n-1) + 1 \\
 &amp;amp;= 2cn - 2c + 1 \\
 \end{align*}&lt;/p&gt;
 &lt;p&gt;This does not work because \(2cn - 2c + 1 &amp;gt; cn\) for all \(c &amp;gt; 1\). Therefore, our guess was wrong.&lt;/p&gt;
+&lt;h2 id=&#34;example-from-clrs&#34;&gt;Example from CLRS&lt;/h2&gt;
+&lt;p&gt;Determine an asymptotic upper bound for&lt;/p&gt;
+&lt;p&gt;\[
+T(n) = 2T(\lfloor n/2 \rfloor) + \Theta(n).
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Guess:&lt;/strong&gt; \(T(n) = O(n \lg n)\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Inductive hypothesis:&lt;/strong&gt; \(T(n) \leq cn \lg n\) for all \(n \geq n_0\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Inductive step:&lt;/strong&gt; Assume \(T(n) \leq cn \lg n\) for all \(n_0 \leq k &amp;lt; n\). For \(T(\lfloor n/2 \rfloor) \leq c\lfloor n/2 \rfloor \lg \lfloor n/2 \rfloor\), it holds when \(n \geq 2\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\leq 2T(\lfloor n/2 \rfloor) + \Theta(n) \\
+&amp;amp;\leq 2c\lfloor n/2 \rfloor \lg \lfloor n/2 \rfloor + \Theta(n) \\
+&amp;amp;= cn \lg (n / 2) + \Theta(n) \\
+&amp;amp;= cn \lg n - 2c\lg 2 + \Theta(n) \\
+&amp;amp;= cn \lg n - 2c + \Theta(n) \\
+&amp;amp;\leq cn \lg n
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;making-the-wrong-guess&#34;&gt;Making the Wrong Guess&lt;/h2&gt;
+&lt;p&gt;What if we took the same recurrence and guessed that \(T(n) = O(n)\)?&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Guess:&lt;/strong&gt; \(T(n) = O(n)\)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Inductive hypothesis:&lt;/strong&gt; \(T(n) \leq cn\) for all \(n \geq n_0\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Inductive step:&lt;/strong&gt; Assume \(T(n) \leq cn\) for all \(n \geq n_0\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+T(n) &amp;amp;\leq 2c\lfloor n/2 \rfloor + \Theta(n) \\
+&amp;amp;\leq cn + \Theta(n) \\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This does not work because \(cn + \Theta(n) &amp;gt; cn\). Therefore, our guess was wrong.&lt;/p&gt;
 </description>
     </item>
     
@@ -2293,6 +2397,30 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Continuing the example from above, the first thread &lt;code&gt;threadIdx.x = 0&lt;/code&gt; maps to index 3. This will load the value from index 3 and add it to the value at index 5. At that point, the value at index 5 will be the sum of the values from indices 0 through 5.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_22-19-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Full Brent-Kung visualization (source: NVIDIA DLI).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Full Brent-Kung visualization (source: NVIDIA DLI).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;h3 id=&#34;efficiency-analysis&#34;&gt;Efficiency Analysis&lt;/h3&gt;
 &lt;p&gt;The reduction tree of the first half of the algorithm require \(n - 1\) operations. For \(n\) elements, the reverse half requires \((2 - 1) + (4 - 1) + \dots + (n/2 - 1)\) operations for a total of \(N - 1 - \log_2 n\). This yields a work efficiency of \(O(n)\). Even though the theoretical work efficiency is better than Kogge-Stone, doesn&amp;rsquo;t mean its performance will always be better in practice. The drop off in active threads for Brent-Kung is much more severe than Kogge-Stone. It also requires additional steps to perform the reverse half. In general, Kogge-Stone is a better choice when we have more execution units, owing to its better parallelism.&lt;/p&gt;
 &lt;p&gt;The full code is given below.&lt;/p&gt;
@@ -2333,16 +2461,67 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;adding-coarsening&#34;&gt;Adding Coarsening&lt;/h2&gt;
 &lt;p&gt;Similar to other problems such as tiled matrix multiplication, if the hardware does not meet the capacity ti parallelize the entire problem, the price for parallelization is wasted. In such cases, we can coarsen the problem so that the available resources are fully utilized. Each thread will execute a &lt;em&gt;phase&lt;/em&gt; of sequential scan, which is more work efficiency than other of the solutions presented above.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Visualization of coarsening scan&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;Such a solution starts off by performing a sequential scan. The threads can also collaborate in the beginning to load data into shared memory. In the next phase, the threads execute a parallel scan via Kogge-Stone or Brent-Kung. Since each thread has already performed a sequential scan. This phase starts off with the last element assigned to each thread. In the last phase, each thread adds its last value to the first \(n-1\) elements of the next section, where \(n\) is the number of elements assigned to each thread.&lt;/p&gt;
+&lt;h3 id=&#34;phase-1&#34;&gt;Phase 1&lt;/h3&gt;
+&lt;p&gt;Such a solution starts off by performing a sequential scan. The threads can also collaborate in the beginning to load data into shared memory.&lt;/p&gt;
+&lt;h3 id=&#34;phase-2&#34;&gt;Phase 2&lt;/h3&gt;
+&lt;p&gt;In the next phase, the threads execute a parallel scan via Kogge-Stone or Brent-Kung. Since each thread has already performed a sequential scan. This phase starts off with the last element assigned to each thread.&lt;/p&gt;
+&lt;h3 id=&#34;phase-3&#34;&gt;Phase 3&lt;/h3&gt;
+&lt;p&gt;In the last phase, each thread adds its last value to the first \(n-1\) elements of the next section, where \(n\) is the number of elements assigned to each thread.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_22-25-15_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Three-phase parallel scan (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Three-phase parallel scan (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;h2 id=&#34;segmented-parallel-scan&#34;&gt;Segmented Parallel Scan&lt;/h2&gt;
 &lt;p&gt;Input to scan operations may be too large to fit in memory.
 Hierarchical scans can be used to solve this problem.
 Partition input so that each section fits into shared memory for an SM.
 Another kernel launches after this is done to consolidate the results by adding the sum of the preceding scan blocks to each element of a scan block.&lt;/p&gt;
 &lt;p&gt;Each scan block is treated as an individual application of one of the previous kernels. Each successive scan block initially does not contain the sums of the preceding blocks. Those will be added in a separate kernel.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO: Add visualization following figs 11.9 and 11.10&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;After each scan block has computed the scan for its partition, the last elements are then processed in the next step. However, these elements are all from different blocks, which means we must write them to a global space so they can all be accessed. Completing this step yields an array that has the final values of the scan corresponding the the indices from the original scan blocks (see the figure above). These values can then be used to update the preceding elements in each scan block to complete the scan.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_22-31-17_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Segmented scan (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Segmented scan (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;After each scan block has computed the scan for its partition, the last elements are then processed in the next step. However, these elements are all from different blocks, which means we must write them to a global space so they can all be accessed. Completing this step yields an array that has the final values of the scan corresponding to the indices from the original scan blocks (see the figure above). These values can then be used to update the preceding elements in each scan block to complete the scan.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Kernel 1: Section Scan&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;The first kernel essentially implements one of the previously discussed parallel scan kernels. The only difference is that the accumulation array is passed so that the blocks can write their output element values.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__syncthreads();
@@ -2359,7 +2538,7 @@ output[i] += accumulation[blockIdx.x - 1];
 &lt;p&gt;The previous solution provides a way of working with large inputs, but it is not memory efficient because of the need to store the accumulation array. There have been several attempts at optimizing this flow of information in the form of a &lt;em&gt;stream-based&lt;/em&gt; scan. To understand the general strategy behind this approach, consider the segmented scan from the previous section.&lt;/p&gt;
 &lt;p&gt;The process starts by executing all the scan blocks in parallel. The first scan block has all the information it needs to compute the full scan for its partition. However, the second block needs the final output value from the first before it can update its own values. It will have to wait until block 0 has finished and written its value to global memory. It can then add that value to its own elements before sending its final value to the next block. This process continues until all the blocks have been processed.&lt;/p&gt;
 &lt;p&gt;To be clear, the first phase runs completely in parallel, and the second phase is sequential. If the final values are passed quickly enough between each block, the overall scan will still be efficient. Once each block has that passed value, it can continue its work in parallel since it is no longer dependent on the previous block.&lt;/p&gt;
-&lt;p&gt;For this to work, there needs to be a form of synchronization between blocks. The CUDA API does not provide grid-wide synchronization, so &lt;strong&gt;how can we accomplish this&lt;/strong&gt;? One solution is to use a lock to effectively halt a thread until the value is ready to be read (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Yan, Long, and Zhang 2013&lt;/a&gt;). The code below shows how this can be implemented.&lt;/p&gt;
+&lt;p&gt;For this to work, there needs to be a form of synchronization between blocks. The CUDA API does not provide grid-wide synchronization, so &lt;strong&gt;how can we accomplish this&lt;/strong&gt;? One solution is to use a lock to effectively halt a thread until the value is ready to be read (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Yan, Long, and Zhang 2013&lt;/a&gt;). The code below shows how this can be implemented.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__shared__ float previous_sum;
 if (threadIdx.x == 0) {
     // Wait for previous flag
@@ -2391,7 +2570,8 @@ uint bid = bid_s;
 &lt;p&gt;Parallel scan is a powerful tool for solving problems that can be described in terms of a recursion. The Kogge-Stone and Brent-Kung algorithms are two ways of parallelizing the scan operation. This problem presents a unique look at how tradeoffs must be made when parallelizing a problem. At the end of the day, we must work within the constraints of the hardware and framework made available to us.&lt;/p&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Yan, Shengen, Guoping Long, and Yunquan Zhang. 2013. “StreamScan: Fast Scan Algorithms for GPUs without Global Barrier Synchronization.” In &lt;i&gt;Proceedings of the 18th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming&lt;/i&gt;, 229–38. PPoPP ’13. New York, NY, USA: Association for Computing Machinery. &lt;a href=&#34;https://doi.org/10.1145/2442516.2442539&#34;&gt;https://doi.org/10.1145/2442516.2442539&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Yan, Shengen, Guoping Long, and Yunquan Zhang. 2013. “StreamScan: Fast Scan Algorithms for GPUs without Global Barrier Synchronization.” In &lt;i&gt;Proceedings of the 18th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming&lt;/i&gt;, 229–38. PPoPP ’13. New York, NY, USA: Association for Computing Machinery. &lt;a href=&#34;https://doi.org/10.1145/2442516.2442539&#34;&gt;https://doi.org/10.1145/2442516.2442539&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
 </description>
     </item>
@@ -3072,9 +3252,9 @@ If the second property doesn&amp;rsquo;t hold, the algorithm is not correct &amp
 &lt;p&gt;The divide step simply splits the data into &lt;code&gt;left&lt;/code&gt; and &lt;code&gt;right&lt;/code&gt; subarrays. The conquer step simplifies the sorting process by reducing it down to the base case &amp;ndash; a single element. Finally, the combine step merges or &lt;em&gt;folds&lt;/em&gt; the two sorted subarrays together.&lt;/p&gt;
 &lt;p&gt;Example code can be found &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/sorting/merge_sort.py&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here.&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
-&lt;p&gt;When analyzing the running time of a divide and conquer algorithm, it is safe to assume that the base case runs in constant time. The focus of the analysis should be on the &lt;strong&gt;recurrence equation&lt;/strong&gt;. For merge sort, we originally have a problem of size \(n\). We then divide the problem into 2 subproblems of size \(n/2\). Therefore the recurrence is \(T(n) = 2T(n/2)\). These recurrence continues for as long as the base case is not reached.&lt;/p&gt;
+&lt;p&gt;When analyzing the running time of a divide and conquer algorithm, it is safe to assume that the base case runs in constant time. The focus of the analysis should be on the &lt;strong&gt;recurrence equation&lt;/strong&gt;. For merge sort, we originally have a problem of size \(n\). We then divide the problem into 2 subproblems of size \(n/2\). Therefore the recurrence is \(T(n) = 2T(n/2)\). This recurrence continues for as long as the base case is not reached.&lt;/p&gt;
 &lt;p&gt;Of course we also have to factor in the time it takes for the divide and combine steps. These can be represented as \(D(n)\) and \(C(n)\), respectively. The total running time of the algorithm is then \(T(n) = 2T(n/2) + D(n) + C(n)\) when \(n &amp;gt;= n_0\), where \(n_0\) is the base case.&lt;/p&gt;
-&lt;p&gt;For merge sort specifically, the base case is \(D(n) = \Theta(1)\) since all it does is compute the midpoint. As we saw above, the conquer step is the recurrent \(T(n) = 2T(n/2)\). The combine step is \(C(n) = \Theta(n)\) since it takes linear time to merge the two subarrays. Thus, the worst-case running time of merge sort is \(T(n) = 2T(n/2) + \Theta(n)\).&lt;/p&gt;
+&lt;p&gt;For merge sort specifically, the base case is \(D(n) = \Theta(1)\) since all it does is compute the midpoint. As we saw above, the conquer step is the recurrence \(T(n) = 2T(n/2)\). The combine step is \(C(n) = \Theta(n)\) since it takes linear time to merge the two subarrays. Thus, the worst-case running time of merge sort is \(T(n) = 2T(n/2) + \Theta(n)\).&lt;/p&gt;
 &lt;p&gt;Not every problem will have a recurrence of \(2T(n/2)\). We can generalize this to \(aT(n/b)\), where \(a\) is the number of subproblems and \(b\) is the size of the subproblems.&lt;/p&gt;
 &lt;p&gt;We haven&amp;rsquo;t finished the analysis yet since it is still not clear what the asymptotic upper bound is. &lt;strong&gt;Recurrence trees&lt;/strong&gt; can be used to visualize the running time of a divide and conquer algorithms. After inspecting the result of the tree, we will be able to easily determine the complexity of merge sort in terms of big-O notation.&lt;/p&gt;
 
@@ -3168,11 +3348,68 @@ B_{21} &amp;amp; B_{22}
 &lt;li&gt;\(A_{22}B_{22}\)&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;Peeking into the first recursive call, the \(2 \times 2\) matrices are partitioned into 4 \(1 \times 1\) matrices, or scalars. The base case is reached, and the product is computed. The same process is repeated for the other 7 recursive calls. The final matrix is then formed by adding the products together.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;partition&lt;/span&gt;(A):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(A)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    mid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A11 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [row[:mid] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; A[:mid]]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A12 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [row[mid:] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; A[:mid]]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A21 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [row[:mid] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; A[mid:]]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A22 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [row[mid:] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; row &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; A[mid:]]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A11, A12, A21, A22
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;matrix_multiply_recursive&lt;/span&gt;(A, B, C, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        C[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;][&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; A[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;][&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;][&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Partition the matrices&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A11, A12, A21, A22 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; partition(A)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        B11, B12, B21, B22 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; partition(B)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        C11, C12, C21, C22 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; partition(C)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Recursively compute the products&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A11, B11, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A12, B21, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A11, B12, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A12, B22, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A21, B11, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A22, B21, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A21, B12, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        matrix_multiply_recursive(A22, B22, C11, n&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Each recursive call contributes \(T(n/2)\) to the running time. Unless the base case is reached, each call contributes 8 recursive calls to the recurrence, yielding a running time of \(T(n) = 8T(n/2) + \Theta(1)\).&lt;/p&gt;
 &lt;h2 id=&#34;example-convex-hull&#34;&gt;Example: Convex Hull&lt;/h2&gt;
 &lt;p&gt;Given \(n\) points in plane, the convex hull is the smallest convex polygon that contains all the points.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;No two points have the same \(x\) or \(y\) coordinate.&lt;/li&gt;
-&lt;li&gt;Sequence of points on boundary in clockwise order as doubly linked list.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;No two points have the same \(x\) or \(y\) coordinate.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Sequence of points on boundary in clockwise order as doubly linked list.&lt;/p&gt;
+
+    
+    
+    
+    
+    
+    &lt;figure&gt;
+    
+    &lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_11-46-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Convex Hull (source: Wikipedia)&#34; &gt;
+    
+    
+    
+    &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+      
+      &lt;p&gt;
+        &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Convex Hull (source: Wikipedia)
+        
+        
+        
+      &lt;/p&gt; 
+    &lt;/figcaption&gt;
+    
+    &lt;/figure&gt;
+
+&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&#34;naive-solution&#34;&gt;Naive Solution&lt;/h3&gt;
 &lt;p&gt;Draw lines between each pair of points. If all other points are on the same side of the line, the line is part of the convex hull. This is \(\Theta(n^3)\).&lt;/p&gt;
@@ -3207,6 +3444,39 @@ B_{21} &amp;amp; B_{22}
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        left_min &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(left, key&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;lambda&lt;/span&gt; p: p[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;])
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This runs in \(\Theta(n)\) time.&lt;/p&gt;
 &lt;p&gt;Removing the lines that are not part of the convex hull require the cut and paste operations. Starting at the upper tangent, move clockwise along the right convex hull until you reach the point in the lower tangent of the right convex hull. Make the connection to the corresponding point on the left convex hull based on the lower tangent, then move clockwise until you reach the upper tangent of the left convex hull. This is \(\Theta(n)\).&lt;/p&gt;
+&lt;h4 id=&#34;orientation-test&#34;&gt;Orientation Test&lt;/h4&gt;
+&lt;p&gt;The orientation test is a technique from computational geometry which determines the orientation of three points. For our purposes, it will tell us if a third point lies below or above a given line segment. The orientation test is used to determine if a point is part of the convex hull.&lt;/p&gt;
+&lt;p&gt;Given three points \(p\), \(q\), and \(r\), the orientation is determined by the sign of the cross product of the vectors \(\overrightarrow{pq}\) and \(\overrightarrow{pr}\). If the cross product is positive, the orientation is clockwise. If the cross product is negative, the orientation is counterclockwise. If the cross product is zero, the points are collinear.&lt;/p&gt;
+&lt;p&gt;This is expressed by a simple formula:&lt;/p&gt;
+&lt;p&gt;\[
+\text{orientation}(p, q, r) = (q_y - p_y)(r_x - q_x) - (q_x - p_x)(r_y - q_y)
+\]&lt;/p&gt;
+&lt;p&gt;Consider the visualization below. Let \(p\) be a point in the left convex hull and \(q\) be a point in the right convex hull. The orientation test will tell us if \(r\) is above or below the line segment \(\overline{pq}\). If the test is negative, \(r\) is above the line segment and is part of the convex hull, and vice versa.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-19_18-53-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Visualization of the orientation test.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of the orientation test.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;When checking to see if a line is an upper tangent, consider the points \(p\), \(q\), and \(r\), where \(p\) is from the left convex hull and \(q\) is from the right convex hull. Let \(r\) be the point immediately after \(q\) in a clockwise direction.&lt;/p&gt;
 &lt;h2 id=&#34;example-median-search&#34;&gt;Example: Median Search&lt;/h2&gt;
 &lt;p&gt;Finding the median value of a set can be performed in linear time without fully sorting the data. The recurrence is based on discarding a constant fraction of the elements at each step.&lt;/p&gt;
 &lt;h3 id=&#34;algorithm&#34;&gt;Algorithm&lt;/h3&gt;

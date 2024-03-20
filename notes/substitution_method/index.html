@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="The substitution method is a technique for solving recurrences. It works in two steps:
+  <meta name="description" content="Table of Contents Example from CLRS Making the Wrong Guess The substitution method is a technique for solving recurrences. It works in two steps:
 Guess the solution Use mathematical induction to verify the guess This can work very well, especially if we already have some intuition about the problem. Let&rsquo;s start with a simple example: The Tower of Hanoi. In this classic puzzle, we have three pegs and a number of disks of different sizes which can slide onto any peg.">
 
   
@@ -139,7 +139,7 @@ Guess the solution Use mathematical induction to verify the guess This can work 
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/substitution_method/">
   <meta property="og:title" content="Substitution Method | Alex Dillhoff">
-  <meta property="og:description" content="The substitution method is a technique for solving recurrences. It works in two steps:
+  <meta property="og:description" content="Table of Contents Example from CLRS Making the Wrong Guess The substitution method is a technique for solving recurrences. It works in two steps:
 Guess the solution Use mathematical induction to verify the guess This can work very well, especially if we already have some intuition about the problem. Let&rsquo;s start with a simple example: The Tower of Hanoi. In this classic puzzle, we have three pegs and a number of disks of different sizes which can slide onto any peg."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
@@ -417,7 +417,7 @@ Guess the solution Use mathematical induction to verify the guess This can work 
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    2 min read
+    3 min read
   </span>
   
 
@@ -545,7 +545,15 @@ Guess the solution Use mathematical induction to verify the guess This can work 
   <div class="article-container">
 
     <div class="article-style" itemprop="articleBody">
-      <p>The <strong>substitution method</strong> is a technique for solving recurrences. It works in two steps:</p>
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#example-from-clrs">Example from CLRS</a></li>
+<li><a href="#making-the-wrong-guess">Making the Wrong Guess</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>The <strong>substitution method</strong> is a technique for solving recurrences. It works in two steps:</p>
 <ol>
 <li>Guess the solution</li>
 <li>Use mathematical induction to verify the guess</li>
@@ -570,6 +578,32 @@ T(n) &amp;\leq 2T(n-1) + 1 \\
 &amp;= 2cn - 2c + 1 \\
 \end{align*}</p>
 <p>This does not work because \(2cn - 2c + 1 &gt; cn\) for all \(c &gt; 1\). Therefore, our guess was wrong.</p>
+<h2 id="example-from-clrs">Example from CLRS</h2>
+<p>Determine an asymptotic upper bound for</p>
+<p>\[
+T(n) = 2T(\lfloor n/2 \rfloor) + \Theta(n).
+\]</p>
+<p><strong>Guess:</strong> \(T(n) = O(n \lg n)\)</p>
+<p><strong>Inductive hypothesis:</strong> \(T(n) \leq cn \lg n\) for all \(n \geq n_0\).</p>
+<p><strong>Inductive step:</strong> Assume \(T(n) \leq cn \lg n\) for all \(n_0 \leq k &lt; n\). For \(T(\lfloor n/2 \rfloor) \leq c\lfloor n/2 \rfloor \lg \lfloor n/2 \rfloor\), it holds when \(n \geq 2\).</p>
+<p>\begin{align*}
+T(n) &amp;\leq 2T(\lfloor n/2 \rfloor) + \Theta(n) \\
+&amp;\leq 2c\lfloor n/2 \rfloor \lg \lfloor n/2 \rfloor + \Theta(n) \\
+&amp;= cn \lg (n / 2) + \Theta(n) \\
+&amp;= cn \lg n - 2c\lg 2 + \Theta(n) \\
+&amp;= cn \lg n - 2c + \Theta(n) \\
+&amp;\leq cn \lg n
+\end{align*}</p>
+<h2 id="making-the-wrong-guess">Making the Wrong Guess</h2>
+<p>What if we took the same recurrence and guessed that \(T(n) = O(n)\)?</p>
+<p><strong>Guess:</strong> \(T(n) = O(n)\)</p>
+<p><strong>Inductive hypothesis:</strong> \(T(n) \leq cn\) for all \(n \geq n_0\).</p>
+<p><strong>Inductive step:</strong> Assume \(T(n) \leq cn\) for all \(n \geq n_0\).</p>
+<p>\begin{align*}
+T(n) &amp;\leq 2c\lfloor n/2 \rfloor + \Theta(n) \\
+&amp;\leq cn + \Theta(n) \\
+\end{align*}</p>
+<p>This does not work because \(cn + \Theta(n) &gt; cn\). Therefore, our guess was wrong.</p>
 
     </div>
 

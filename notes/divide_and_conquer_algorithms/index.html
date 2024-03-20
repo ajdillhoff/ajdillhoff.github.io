@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    12 min read
+    14 min read
   </span>
   
 
@@ -626,9 +626,9 @@ If the second property doesn&rsquo;t hold, the algorithm is not correct &ndash; 
 <p>The divide step simply splits the data into <code>left</code> and <code>right</code> subarrays. The conquer step simplifies the sorting process by reducing it down to the base case &ndash; a single element. Finally, the combine step merges or <em>folds</em> the two sorted subarrays together.</p>
 <p>Example code can be found <a href="https://github.com/ajdillhoff/python-examples/blob/main/sorting/merge_sort.py" target="_blank" rel="noopener noreferrer">here.</a></p>
 <h3 id="analysis">Analysis</h3>
-<p>When analyzing the running time of a divide and conquer algorithm, it is safe to assume that the base case runs in constant time. The focus of the analysis should be on the <strong>recurrence equation</strong>. For merge sort, we originally have a problem of size \(n\). We then divide the problem into 2 subproblems of size \(n/2\). Therefore the recurrence is \(T(n) = 2T(n/2)\). These recurrence continues for as long as the base case is not reached.</p>
+<p>When analyzing the running time of a divide and conquer algorithm, it is safe to assume that the base case runs in constant time. The focus of the analysis should be on the <strong>recurrence equation</strong>. For merge sort, we originally have a problem of size \(n\). We then divide the problem into 2 subproblems of size \(n/2\). Therefore the recurrence is \(T(n) = 2T(n/2)\). This recurrence continues for as long as the base case is not reached.</p>
 <p>Of course we also have to factor in the time it takes for the divide and combine steps. These can be represented as \(D(n)\) and \(C(n)\), respectively. The total running time of the algorithm is then \(T(n) = 2T(n/2) + D(n) + C(n)\) when \(n &gt;= n_0\), where \(n_0\) is the base case.</p>
-<p>For merge sort specifically, the base case is \(D(n) = \Theta(1)\) since all it does is compute the midpoint. As we saw above, the conquer step is the recurrent \(T(n) = 2T(n/2)\). The combine step is \(C(n) = \Theta(n)\) since it takes linear time to merge the two subarrays. Thus, the worst-case running time of merge sort is \(T(n) = 2T(n/2) + \Theta(n)\).</p>
+<p>For merge sort specifically, the base case is \(D(n) = \Theta(1)\) since all it does is compute the midpoint. As we saw above, the conquer step is the recurrence \(T(n) = 2T(n/2)\). The combine step is \(C(n) = \Theta(n)\) since it takes linear time to merge the two subarrays. Thus, the worst-case running time of merge sort is \(T(n) = 2T(n/2) + \Theta(n)\).</p>
 <p>Not every problem will have a recurrence of \(2T(n/2)\). We can generalize this to \(aT(n/b)\), where \(a\) is the number of subproblems and \(b\) is the size of the subproblems.</p>
 <p>We haven&rsquo;t finished the analysis yet since it is still not clear what the asymptotic upper bound is. <strong>Recurrence trees</strong> can be used to visualize the running time of a divide and conquer algorithms. After inspecting the result of the tree, we will be able to easily determine the complexity of merge sort in terms of big-O notation.</p>
 
@@ -722,11 +722,68 @@ B_{21} &amp; B_{22}
 <li>\(A_{22}B_{22}\)</li>
 </ol>
 <p>Peeking into the first recursive call, the \(2 \times 2\) matrices are partitioned into 4 \(1 \times 1\) matrices, or scalars. The base case is reached, and the product is computed. The same process is repeated for the other 7 recursive calls. The final matrix is then formed by adding the products together.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">partition</span>(A):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(A)
+</span></span><span style="display:flex;"><span>    mid <span style="color:#f92672">=</span> n <span style="color:#f92672">//</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    A11 <span style="color:#f92672">=</span> [row[:mid] <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> A[:mid]]
+</span></span><span style="display:flex;"><span>    A12 <span style="color:#f92672">=</span> [row[mid:] <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> A[:mid]]
+</span></span><span style="display:flex;"><span>    A21 <span style="color:#f92672">=</span> [row[:mid] <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> A[mid:]]
+</span></span><span style="display:flex;"><span>    A22 <span style="color:#f92672">=</span> [row[mid:] <span style="color:#66d9ef">for</span> row <span style="color:#f92672">in</span> A[mid:]]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> A11, A12, A21, A22
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">matrix_multiply_recursive</span>(A, B, C, n):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        C[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+=</span> A[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> B[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Partition the matrices</span>
+</span></span><span style="display:flex;"><span>        A11, A12, A21, A22 <span style="color:#f92672">=</span> partition(A)
+</span></span><span style="display:flex;"><span>        B11, B12, B21, B22 <span style="color:#f92672">=</span> partition(B)
+</span></span><span style="display:flex;"><span>        C11, C12, C21, C22 <span style="color:#f92672">=</span> partition(C)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Recursively compute the products</span>
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A11, B11, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A12, B21, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A11, B12, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A12, B22, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A21, B11, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A22, B21, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A21, B12, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        matrix_multiply_recursive(A22, B22, C11, n<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)
+</span></span></code></pre></div><h3 id="analysis">Analysis</h3>
+<p>Each recursive call contributes \(T(n/2)\) to the running time. Unless the base case is reached, each call contributes 8 recursive calls to the recurrence, yielding a running time of \(T(n) = 8T(n/2) + \Theta(1)\).</p>
 <h2 id="example-convex-hull">Example: Convex Hull</h2>
 <p>Given \(n\) points in plane, the convex hull is the smallest convex polygon that contains all the points.</p>
 <ul>
-<li>No two points have the same \(x\) or \(y\) coordinate.</li>
-<li>Sequence of points on boundary in clockwise order as doubly linked list.</li>
+<li>
+<p>No two points have the same \(x\) or \(y\) coordinate.</p>
+</li>
+<li>
+<p>Sequence of points on boundary in clockwise order as doubly linked list.</p>
+
+    
+    
+    
+    
+    
+    <figure>
+    
+    <img src="/ox-hugo/2024-03-19_11-46-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Convex Hull (source: Wikipedia)" >
+    
+    
+    
+    <figcaption data-pre="Figure " data-post=":" >
+      
+      <p>
+        <span class="figure-number">Figure 3: </span>Convex Hull (source: Wikipedia)
+        
+        
+        
+      </p> 
+    </figcaption>
+    
+    </figure>
+
+</li>
 </ul>
 <h3 id="naive-solution">Naive Solution</h3>
 <p>Draw lines between each pair of points. If all other points are on the same side of the line, the line is part of the convex hull. This is \(\Theta(n^3)\).</p>
@@ -761,6 +818,39 @@ B_{21} &amp; B_{22}
 </span></span><span style="display:flex;"><span>        left_min <span style="color:#f92672">=</span> min(left, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> p: p[<span style="color:#ae81ff">0</span>])
 </span></span></code></pre></div><p>This runs in \(\Theta(n)\) time.</p>
 <p>Removing the lines that are not part of the convex hull require the cut and paste operations. Starting at the upper tangent, move clockwise along the right convex hull until you reach the point in the lower tangent of the right convex hull. Make the connection to the corresponding point on the left convex hull based on the lower tangent, then move clockwise until you reach the upper tangent of the left convex hull. This is \(\Theta(n)\).</p>
+<h4 id="orientation-test">Orientation Test</h4>
+<p>The orientation test is a technique from computational geometry which determines the orientation of three points. For our purposes, it will tell us if a third point lies below or above a given line segment. The orientation test is used to determine if a point is part of the convex hull.</p>
+<p>Given three points \(p\), \(q\), and \(r\), the orientation is determined by the sign of the cross product of the vectors \(\overrightarrow{pq}\) and \(\overrightarrow{pr}\). If the cross product is positive, the orientation is clockwise. If the cross product is negative, the orientation is counterclockwise. If the cross product is zero, the points are collinear.</p>
+<p>This is expressed by a simple formula:</p>
+<p>\[
+\text{orientation}(p, q, r) = (q_y - p_y)(r_x - q_x) - (q_x - p_x)(r_y - q_y)
+\]</p>
+<p>Consider the visualization below. Let \(p\) be a point in the left convex hull and \(q\) be a point in the right convex hull. The orientation test will tell us if \(r\) is above or below the line segment \(\overline{pq}\). If the test is negative, \(r\) is above the line segment and is part of the convex hull, and vice versa.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-19_18-53-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visualization of the orientation test." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Visualization of the orientation test.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>When checking to see if a line is an upper tangent, consider the points \(p\), \(q\), and \(r\), where \(p\) is from the left convex hull and \(q\) is from the right convex hull. Let \(r\) be the point immediately after \(q\) in a clockwise direction.</p>
 <h2 id="example-median-search">Example: Median Search</h2>
 <p>Finding the median value of a set can be performed in linear time without fully sorting the data. The recurrence is based on discarding a constant fraction of the elements at each step.</p>
 <h3 id="algorithm">Algorithm</h3>

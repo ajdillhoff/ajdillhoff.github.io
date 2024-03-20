@@ -748,6 +748,30 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
     }
 }
 </code></pre><p>Continuing the example from above, the first thread <code>threadIdx.x = 0</code> maps to index 3. This will load the value from index 3 and add it to the value at index 5. At that point, the value at index 5 will be the sum of the values from indices 0 through 5.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-19_22-19-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Full Brent-Kung visualization (source: NVIDIA DLI)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Full Brent-Kung visualization (source: NVIDIA DLI).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <h3 id="efficiency-analysis">Efficiency Analysis</h3>
 <p>The reduction tree of the first half of the algorithm require \(n - 1\) operations. For \(n\) elements, the reverse half requires \((2 - 1) + (4 - 1) + \dots + (n/2 - 1)\) operations for a total of \(N - 1 - \log_2 n\). This yields a work efficiency of \(O(n)\). Even though the theoretical work efficiency is better than Kogge-Stone, doesn&rsquo;t mean its performance will always be better in practice. The drop off in active threads for Brent-Kung is much more severe than Kogge-Stone. It also requires additional steps to perform the reverse half. In general, Kogge-Stone is a better choice when we have more execution units, owing to its better parallelism.</p>
 <p>The full code is given below.</p>
@@ -788,16 +812,67 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 }
 </code></pre><h2 id="adding-coarsening">Adding Coarsening</h2>
 <p>Similar to other problems such as tiled matrix multiplication, if the hardware does not meet the capacity ti parallelize the entire problem, the price for parallelization is wasted. In such cases, we can coarsen the problem so that the available resources are fully utilized. Each thread will execute a <em>phase</em> of sequential scan, which is more work efficiency than other of the solutions presented above.</p>
-<p><strong>TODO: Visualization of coarsening scan</strong></p>
-<p>Such a solution starts off by performing a sequential scan. The threads can also collaborate in the beginning to load data into shared memory. In the next phase, the threads execute a parallel scan via Kogge-Stone or Brent-Kung. Since each thread has already performed a sequential scan. This phase starts off with the last element assigned to each thread. In the last phase, each thread adds its last value to the first \(n-1\) elements of the next section, where \(n\) is the number of elements assigned to each thread.</p>
+<h3 id="phase-1">Phase 1</h3>
+<p>Such a solution starts off by performing a sequential scan. The threads can also collaborate in the beginning to load data into shared memory.</p>
+<h3 id="phase-2">Phase 2</h3>
+<p>In the next phase, the threads execute a parallel scan via Kogge-Stone or Brent-Kung. Since each thread has already performed a sequential scan. This phase starts off with the last element assigned to each thread.</p>
+<h3 id="phase-3">Phase 3</h3>
+<p>In the last phase, each thread adds its last value to the first \(n-1\) elements of the next section, where \(n\) is the number of elements assigned to each thread.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-19_22-25-15_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Three-phase parallel scan (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Three-phase parallel scan (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
 <h2 id="segmented-parallel-scan">Segmented Parallel Scan</h2>
 <p>Input to scan operations may be too large to fit in memory.
 Hierarchical scans can be used to solve this problem.
 Partition input so that each section fits into shared memory for an SM.
 Another kernel launches after this is done to consolidate the results by adding the sum of the preceding scan blocks to each element of a scan block.</p>
 <p>Each scan block is treated as an individual application of one of the previous kernels. Each successive scan block initially does not contain the sums of the preceding blocks. Those will be added in a separate kernel.</p>
-<p><strong>TODO: Add visualization following figs 11.9 and 11.10</strong></p>
-<p>After each scan block has computed the scan for its partition, the last elements are then processed in the next step. However, these elements are all from different blocks, which means we must write them to a global space so they can all be accessed. Completing this step yields an array that has the final values of the scan corresponding the the indices from the original scan blocks (see the figure above). These values can then be used to update the preceding elements in each scan block to complete the scan.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-19_22-31-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Segmented scan (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Segmented scan (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>After each scan block has computed the scan for its partition, the last elements are then processed in the next step. However, these elements are all from different blocks, which means we must write them to a global space so they can all be accessed. Completing this step yields an array that has the final values of the scan corresponding to the indices from the original scan blocks (see the figure above). These values can then be used to update the preceding elements in each scan block to complete the scan.</p>
 <p><strong>Kernel 1: Section Scan</strong></p>
 <p>The first kernel essentially implements one of the previously discussed parallel scan kernels. The only difference is that the accumulation array is passed so that the blocks can write their output element values.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__syncthreads();
@@ -814,7 +889,7 @@ output[i] += accumulation[blockIdx.x - 1];
 <p>The previous solution provides a way of working with large inputs, but it is not memory efficient because of the need to store the accumulation array. There have been several attempts at optimizing this flow of information in the form of a <em>stream-based</em> scan. To understand the general strategy behind this approach, consider the segmented scan from the previous section.</p>
 <p>The process starts by executing all the scan blocks in parallel. The first scan block has all the information it needs to compute the full scan for its partition. However, the second block needs the final output value from the first before it can update its own values. It will have to wait until block 0 has finished and written its value to global memory. It can then add that value to its own elements before sending its final value to the next block. This process continues until all the blocks have been processed.</p>
 <p>To be clear, the first phase runs completely in parallel, and the second phase is sequential. If the final values are passed quickly enough between each block, the overall scan will still be efficient. Once each block has that passed value, it can continue its work in parallel since it is no longer dependent on the previous block.</p>
-<p>For this to work, there needs to be a form of synchronization between blocks. The CUDA API does not provide grid-wide synchronization, so <strong>how can we accomplish this</strong>? One solution is to use a lock to effectively halt a thread until the value is ready to be read (<a href="#citeproc_bib_item_1">Yan, Long, and Zhang 2013</a>). The code below shows how this can be implemented.</p>
+<p>For this to work, there needs to be a form of synchronization between blocks. The CUDA API does not provide grid-wide synchronization, so <strong>how can we accomplish this</strong>? One solution is to use a lock to effectively halt a thread until the value is ready to be read (<a href="#citeproc_bib_item_2">Yan, Long, and Zhang 2013</a>). The code below shows how this can be implemented.</p>
 <pre tabindex="0"><code class="language-cuda" data-lang="cuda">__shared__ float previous_sum;
 if (threadIdx.x == 0) {
     // Wait for previous flag
@@ -846,7 +921,8 @@ uint bid = bid_s;
 <p>Parallel scan is a powerful tool for solving problems that can be described in terms of a recursion. The Kogge-Stone and Brent-Kung algorithms are two ways of parallelizing the scan operation. This problem presents a unique look at how tradeoffs must be made when parallelizing a problem. At the end of the day, we must work within the constraints of the hardware and framework made available to us.</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
-  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Yan, Shengen, Guoping Long, and Yunquan Zhang. 2013. “StreamScan: Fast Scan Algorithms for GPUs without Global Barrier Synchronization.” In <i>Proceedings of the 18th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming</i>, 229–38. PPoPP ’13. New York, NY, USA: Association for Computing Machinery. <a href="https://doi.org/10.1145/2442516.2442539">https://doi.org/10.1145/2442516.2442539</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Yan, Shengen, Guoping Long, and Yunquan Zhang. 2013. “StreamScan: Fast Scan Algorithms for GPUs without Global Barrier Synchronization.” In <i>Proceedings of the 18th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming</i>, 229–38. PPoPP ’13. New York, NY, USA: Association for Computing Machinery. <a href="https://doi.org/10.1145/2442516.2442539">https://doi.org/10.1145/2442516.2442539</a>.</div>
 </div>
 
     </div>
