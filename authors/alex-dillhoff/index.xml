@@ -1679,11 +1679,18 @@ The &lt;code&gt;co_rank&lt;/code&gt; and &lt;code&gt;merge_sequential&lt;/code&g
 &lt;li&gt;Each move consists of taking the top disk from one of the stacks and placing it on top of another stack&lt;/li&gt;
 &lt;li&gt;No disk may be placed on top of a smaller disk&lt;/li&gt;
 &lt;/ol&gt;
+&lt;p&gt;An algorithm to solve the puzzle goes like this:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Move \(n-1\) disks from peg 1 to peg 2 using peg 3 as a temporary holding area&lt;/li&gt;
+&lt;li&gt;Move the $n$th disk from peg 1 to peg 3&lt;/li&gt;
+&lt;li&gt;Move the \(n-1\) disks from peg 2 to peg 3 using peg 1 as a temporary holding area&lt;/li&gt;
+&lt;/ol&gt;
 &lt;p&gt;The number of moves required to solve the Tower of Hanoi puzzle is given by the recurrence relation \(T(n) = 2T(n-1) + 1\) with the initial condition \(T(1) = 1\). We can solve this recurrence using the substitution method.&lt;/p&gt;
-&lt;p&gt;Our hypothesis might be that \(T(n) \leq c2^n\) for all \(n \geq n_0\), where \(c &amp;gt; 0\) and \(n_0 &amp;gt; 0\). For the base case, we have \(T(1) = c * 2^1 = 1\), so \(c = 1/2\). Now we need to show that \(T(n) \leq c2^n\) for all \(n \geq n_0\). We assume that \(T(k) \leq c2^k\) for all \(k &amp;lt; n\). Then we have:&lt;/p&gt;
+&lt;p&gt;Our hypothesis might be that \(T(n) \leq c2^n - 1\) for all \(n \geq n_0\), where \(c &amp;gt; 0\) and \(n_0 &amp;gt; 0\). For the base case, we have \(T(1) = c * 2^1 - 1 = c\), so \(c = 1\). Now we need to show that \(T(n) \leq c2^n - 1\) for all \(n \geq n_0\). Then we have:&lt;/p&gt;
 &lt;p&gt;\begin{align*}
 T(n) &amp;amp;\leq 2T(n-1) + 1 \\
-&amp;amp;\leq 2\left(\frac{2^{n-1}}{2}\right) + 1 \\
+&amp;amp;\leq 2\left(2^{n-1} - 1\right) + 1 \\
+&amp;amp;= 2^n - 2 + 1 \\
 &amp;amp;= 2^n - 1 \\
 \end{align*}&lt;/p&gt;
 &lt;p&gt;What if we made a bad guess? Let&amp;rsquo;s try \(T(n) \leq cn\) for all \(n \geq n_0\). We have \(T(1) = c = 1\), so \(c = 1\). Now we need to show that \(T(n) \leq cn\) for all \(n \geq n_0\). We assume that \(T(k) \leq ck\) for all \(k &amp;lt; n\). Then we have:&lt;/p&gt;
@@ -1705,8 +1712,8 @@ T(n) = 2T(\lfloor n/2 \rfloor) + \Theta(n).
 T(n) &amp;amp;\leq 2T(\lfloor n/2 \rfloor) + \Theta(n) \\
 &amp;amp;\leq 2c\lfloor n/2 \rfloor \lg \lfloor n/2 \rfloor + \Theta(n) \\
 &amp;amp;= cn \lg (n / 2) + \Theta(n) \\
-&amp;amp;= cn \lg n - 2c\lg 2 + \Theta(n) \\
-&amp;amp;= cn \lg n - 2c + \Theta(n) \\
+&amp;amp;= cn \lg n - cn\lg 2 + \Theta(n) \\
+&amp;amp;= cn \lg n - cn + \Theta(n) \\
 &amp;amp;\leq cn \lg n
 \end{align*}&lt;/p&gt;
 &lt;h2 id=&#34;making-the-wrong-guess&#34;&gt;Making the Wrong Guess&lt;/h2&gt;
