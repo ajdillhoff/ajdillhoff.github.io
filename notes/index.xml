@@ -83,6 +83,314 @@ T(n) &amp;amp;\leq 3T(n/4) + cn^2 \\
     </item>
     
     <item>
+      <title>Greedy Algorithms</title>
+      <link>https://ajdillhoff.github.io/notes/greedy_algorithms/</link>
+      <pubDate>Mon, 18 Mar 2024 14:45:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/greedy_algorithms/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#activity-selection&#34;&gt;Activity Selection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#properties-of-greedy-solutions&#34;&gt;Properties of Greedy Solutions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Greedy algorithms are a class of algorithms that yield &lt;em&gt;locally&lt;/em&gt; optimal solutions. In cases where the local optimum is also the global optimum, greedy algorithms are ideal. Even in cases where the global solution is more elusive, a local solution may be sufficient.&lt;/p&gt;
+&lt;h2 id=&#34;activity-selection&#34;&gt;Activity Selection&lt;/h2&gt;
+&lt;p&gt;Given a set of activities that need to be scheduled using a common resource, the &lt;strong&gt;activity selection&lt;/strong&gt; problem is to find the maximum number of activities that can be scheduled without overlapping.&lt;/p&gt;
+&lt;p&gt;Each activity has a start time \(s_i\) and finish time \(f_i\), where \(0 \leq s_i &amp;lt; f_i &amp;lt; \infty\). An activity \(a_i\) takes place over the interval \([s_i, f_i)\). Two activities \(a_i\) and \(a_j\) are mutually compatible if \(s_i \geq f_j\) or \(s_j \geq f_i\).&lt;/p&gt;
+&lt;p&gt;Sort activities by their finish time. &lt;strong&gt;Objective:&lt;/strong&gt; Find the largest subset of mutually compatible activities.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;\(i\)&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;th&gt;8&lt;/th&gt;
+&lt;th&gt;9&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;\(s_i\)&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;11&lt;/td&gt;
+&lt;td&gt;13&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;\(f_i\)&lt;/td&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;10&lt;/td&gt;
+&lt;td&gt;11&lt;/td&gt;
+&lt;td&gt;14&lt;/td&gt;
+&lt;td&gt;16&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-22_17-14-45_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Visualization of activities over time (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Visualization of activities over time (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;How many mutually compatible sets are there?&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;\(\{a_1, a_3, a_6, a_8\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_1, a_3, a_6, a_9\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_1, a_3, a_7, a_9\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_1, a_5, a_7, a_8\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_1, a_5, a_7, a_9\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_2, a_5, a_7, a_8\}\)&lt;/li&gt;
+&lt;li&gt;\(\{a_2, a_5, a_7, a_8\}\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;optimal-substructure&#34;&gt;Optimal Substructure&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;How do we verify that this problem has optimal substructure?&lt;/strong&gt; First, it is important to formalize the problem based on the definition given previously. Define \(S_{ij}\) as the set of all activities that start after \(a_i\) finishes and finish before \(a_j\) starts.&lt;/p&gt;
+&lt;p&gt;\[
+S_{ij} = \{a_k \in S : f_i \leq s_k &amp;lt; f_k \leq s_j\}
+\]&lt;/p&gt;
+&lt;p&gt;This defines a clear subset of the original set of data. That is, we have defined a subproblem of the original problem.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Which activities are those in \(S_{ij}\) compatible with?&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;any \(a_i\) that finish by \(f_i\)&lt;/li&gt;
+&lt;li&gt;any \(a_i\) that start no earlier than \(s_j\).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Given this subset, our subproblem is that of finding a maximum set of mutually compatible activities in \(S_{ij}\), denoted \(A_{ij}\). If \(a_k \in A_{ij}\), we are left with two subproblems:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Find mutually compatible activities in \(S_{ik}\) &amp;ndash; starts after \(a_i\) finishes and finish before \(a_k\) starts.&lt;/li&gt;
+&lt;li&gt;Find mutually compatible activities in \(S_{kj}\) &amp;ndash; starts after \(a_k\) finishes and finish before \(a_j\) start.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The two subsets above are defined as \(A_{ik} = A_{ij} \cap S_{ik}\) and \(A_{kj} = A_{ij} \cap S_{kj}\), respectively. Then \(A_{ij} = A_{ik} \cup \{a_k\} \cup A_{kj}\). The size of the set is given by \(|A_{ij}| = |A_{ik}| + 1 + |A_{kj}|\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Claim:&lt;/strong&gt; If our problem has optimal substructure, then the optimal solution \(A_{ij}\) must include optimal solutions for \(S_{ik}\) and \(S_{kj}\).&lt;/p&gt;
+&lt;p&gt;This claim can be proven using the &lt;strong&gt;cut-and-paste&lt;/strong&gt; method used in &lt;a href=&#34;https://ajdillhoff.github.io/notes/dynamic_programming/&#34;&gt;Dynamic Programming&lt;/a&gt;. This technique works by showing that if a solution to a problem is not optimal, then there exists a way to &lt;strong&gt;cut&lt;/strong&gt; the suboptimal portion and &lt;strong&gt;paste&lt;/strong&gt; an optimal one. This will lead to a contradiction because the original was assumed to be optimal.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Proof:&lt;/strong&gt; Suppose that \(A_{kj}\) is not optimal, and we could find a set \(A&amp;rsquo;_{kj}\) that is larger. Then we could replace \(A_{kj}\) with \(A&amp;rsquo;_{kj}\) in \(A_{ij}\) to obtain a larger set. This contradicts the assumption that \(A_{ij}\) is optimal.&lt;/p&gt;
+&lt;p&gt;Simply put, if the claim is that the given solution is optimal, and the solution is constructed from optimal solutions to subproblems, then there cannot exist any other solution that is better. Another way to look at this: if we construct optimal solutions to subproblems, then the solution to the original problem must be optimal.&lt;/p&gt;
+&lt;h3 id=&#34;recursive-solution&#34;&gt;Recursive Solution&lt;/h3&gt;
+&lt;p&gt;Let \(c[i, j]\) be the size of the optimal solution for \(S_{ij}\). Based on the above discussion, the size is computed as&lt;/p&gt;
+&lt;p&gt;\[
+c[i, j] = c[i, k] + c[k, j] + 1.
+\]&lt;/p&gt;
+&lt;p&gt;This dynamic programming solution assumes we know the optimal solution for all subproblems. To know this, we need to examine all possibilities which include \(a_k\) in the solution.&lt;/p&gt;
+&lt;p&gt;\[
+c[i, j] = \begin{cases}
+0 &amp;amp; \text{if } S_{ij} = \emptyset, \\
+\max \{c[i, k] + c[k, j] + 1 : a_k \in S_{ij}\} &amp;amp; \text{if } S_{ij} \neq \emptyset.
+\end{cases}
+\]&lt;/p&gt;
+&lt;h3 id=&#34;greedy-solution&#34;&gt;Greedy Solution&lt;/h3&gt;
+&lt;p&gt;The greedy solution is the naive one: select an activity that leaves the resource available for as many other activities as possible, which is the activity that finishes first. If multiple activities finish at the same time, select one arbitrarily.&lt;/p&gt;
+&lt;p&gt;The subproblem is that of finding a maximum size set of mutually compatible activities that start after \(a_1\) finishes. More generally, the optimal solution consists of all \(a_i\) that start after \(a_k\) finishes, where \(a_k\) is the last activity to finish:&lt;/p&gt;
+&lt;p&gt;\[
+S_{k} = \{a_i \in S : s_i \geq f_k\}.
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Is the greedy solution optimal?&lt;/strong&gt; Suppose that \(a_m \in S_k\) is the activity that finishes first. Then it must be included in the maximum size subset of mutually compatible activities \(A_k\). Suppose we are given \(A_k\) and we look at \(a_j \in A_k\), the activity that finishes first. If \(a_j = a_m\), then the greedy solution is optimal. If \(a_j \neq a_m\), then we can replace \(a_j\) with \(a_m\) since they are both compatible with all other activities in \(A_k\). Picking the activity that finishes first does not change the size of the optimal solution.&lt;/p&gt;
+&lt;p&gt;The solution is top-down:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;pick the solution that finishes first,&lt;/li&gt;
+&lt;li&gt;remove all activities that are incompatible with the chosen activity,&lt;/li&gt;
+&lt;li&gt;repeat until no activities remain.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;recursive-greedy-algorithm&#34;&gt;Recursive Greedy Algorithm&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;recursive_activity_selector&lt;/span&gt;(s, f, k, n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; s[m] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; f[k]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        m &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; n:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; [m] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; recursive_activity_selector(s, f, m, n)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; []
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This algorithm assumes that &lt;code&gt;f&lt;/code&gt; is sorted in increasing order. The index &lt;code&gt;k&lt;/code&gt; represents the index of the current subproblem. The number of activities is given by &lt;code&gt;n&lt;/code&gt;. The &lt;code&gt;while&lt;/code&gt; loop increments &lt;code&gt;m&lt;/code&gt; until it finds an activity that starts after activity &lt;code&gt;k&lt;/code&gt; finishes. If such an activity exists, it is added to the solution set and the algorithm is called recursively with the new subproblem.&lt;/p&gt;
+&lt;h4 id=&#34;example&#34;&gt;Example&lt;/h4&gt;
+&lt;p&gt;A run of this algorithm is visualized below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-24_14-42-29_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Recursive activity selector example (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Recursive activity selector example (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;p&gt;At first glance, the algorithm appears to be \(O(n^2)\) because of the &lt;code&gt;while&lt;/code&gt; loop coupled with the recursive call. Once an activity has been selected, the recursive call only considers the activities next \(n - k\) activities. The &lt;code&gt;while&lt;/code&gt; loop picks up where the previous call left off, so the total number of iterations is \(n\). The algorithm is \(O(n)\).&lt;/p&gt;
+&lt;h3 id=&#34;iterative-algorithm&#34;&gt;Iterative Algorithm&lt;/h3&gt;
+&lt;p&gt;The above solution can be adapted to an iterative one.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greedy_activity_selector&lt;/span&gt;(s, f):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(s) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    k &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, n &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; s[m] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; f[k]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append(m)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            k &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; m
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; A
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In the &lt;code&gt;for&lt;/code&gt; loop, the first line essentially asks if \(a_m \in S_k\). If so, then add it to the solution set and update \(k\) to \(m\).&lt;/p&gt;
+&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;p&gt;The analysis of the iterative approach is much clearer. The loop goes over all activities once, so the algorithm is \(O(n)\).&lt;/p&gt;
+&lt;h2 id=&#34;properties-of-greedy-solutions&#34;&gt;Properties of Greedy Solutions&lt;/h2&gt;
+&lt;p&gt;You can probably imagine a problem for which a greedy solution would not provide the optimal solution. Path planning is one such problem. If we greedily chose the shortest path at each step, we may have missed a shorter path that is not the shortest at each step. The activity selection problem just so happens to be a perfect candidate for a greedy solution, &lt;strong&gt;but what makes it so?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;First, let&amp;rsquo;s review the major steps that led us to the greedy solution for activity selection.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Determine the optimal substructure.&lt;/li&gt;
+&lt;li&gt;Develop a recursive solution.&lt;/li&gt;
+&lt;li&gt;Show that making the greedy choice leaves only a single subproblem.&lt;/li&gt;
+&lt;li&gt;Prove that making the greedy choice leads to an optimal solution.&lt;/li&gt;
+&lt;li&gt;Develop a recursive algorithm.&lt;/li&gt;
+&lt;li&gt;Convert it to an iterative algorithm.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The first couple of steps are common to dynamic programming problems. In this case, we could have jumped straight to the greedy approach. Filtering out these extra steps leaves us with:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Cast the optimization problem as one in which we make a choice and are left with a single subproblem.&lt;/li&gt;
+&lt;li&gt;Prove that the greedy choice is optimal.&lt;/li&gt;
+&lt;li&gt;Demonstrate optimal substructure: if you make a greedy choice, then you are left with a subproblem such that combining an optimal solution with the greedy choice made previously, you end up with an optimal solution to the original problem.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;As we will see, we need two properties to prove that a greedy solution is optimal: the &lt;strong&gt;greedy choice property&lt;/strong&gt; and the &lt;strong&gt;optimal substructure property&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;greedy-choice-property&#34;&gt;Greedy Choice Property&lt;/h3&gt;
+&lt;p&gt;The &lt;strong&gt;greedy choice property&lt;/strong&gt; states that the optimal solution can be found by making locally greedy choices. This approach is opposite of dynamic programming, where the choices at each step are made from the knowledge of optimal solutions to subproblems. That is, dynamic programming is a &lt;strong&gt;bottom-up&lt;/strong&gt; approach.&lt;/p&gt;
+&lt;p&gt;A greedy solution also makes a choice at each step, but it is only based on local information. This is a &lt;strong&gt;top-down&lt;/strong&gt; approach. They key of this property is to show that the greedy choice is optimal at each step. For the activity selection problem, the steps were&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Examine the optimal solution.&lt;/li&gt;
+&lt;li&gt;If it has the greedy choice, then the greedy choice is optimal.&lt;/li&gt;
+&lt;li&gt;If it does not have the greedy choice, then replace the suboptimal choice with the greedy choice.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;optimal-substructure-property&#34;&gt;Optimal Substructure Property&lt;/h3&gt;
+&lt;p&gt;A problem has optimal substructure if the optimal solution contains optimal solutions to subproblems. We demonstrated this earlier for activity selection. We can start with the assumption that we arrived to a subproblem by making greedy choices. The next step is to show that the optimal solution to the subproblem combined with the greedy choice leads to an optimal solution to the original problem.&lt;/p&gt;
+&lt;h3 id=&#34;greedy-vs-dot-dynamic-programming&#34;&gt;Greedy vs. Dynamic Programming&lt;/h3&gt;
+&lt;p&gt;Since there is such overlap between greedy algorithms and dynamic programming in terms of their properties, it is important to understand the differences between the two. To illustrate these difference, we will look at two variations of the same problem.&lt;/p&gt;
+&lt;h4 id=&#34;0-1-knapsack-problem&#34;&gt;\(0-1\) Knapsack Problem&lt;/h4&gt;
+&lt;p&gt;Consider the &lt;strong&gt;\(0-1\) knapsack problem.&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;You have \(n\) items.&lt;/li&gt;
+&lt;li&gt;Item \(i\) is worth \(v_i\) and weights \(w_i\).&lt;/li&gt;
+&lt;li&gt;Find the most valuable subset of items with total weight less than or equal to \(W\).&lt;/li&gt;
+&lt;li&gt;Items cannot be divided.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If the most valuable subset of items weighting at most \(W\) includes item \(j\), then the remaining weight must be the most valuable subset of items weighting at most \(W - w_j\) taken from \(n-1\) original items excluding item \(j\).&lt;/p&gt;
+&lt;h4 id=&#34;fractional-knapsack-problem&#34;&gt;Fractional Knapsack Problem&lt;/h4&gt;
+&lt;p&gt;This is similar to the \(0-1\) knapsack problem, but items can be divided. The objective is to maximize the value of the items in the knapsack.&lt;/p&gt;
+&lt;p&gt;The optimal substructure of this problem varies slightly: if the most valuable subset weighing at most \(W\) includes the weight \(w\) of item \(j\), then the remaining weight must be the most valuable subset weighing at most \(W- w\) that can be taken from the \(n-1\) original items plus \(w_j - w\) of item \(j\). There is some fraction of item \(j\) left after taking \(w\) of it.&lt;/p&gt;
+&lt;h4 id=&#34;showing-the-greedy-property&#34;&gt;Showing the Greedy Property&lt;/h4&gt;
+&lt;p&gt;It is established that both problems have optimal substructure. However, only the fractional knapsack problem has the greedy property. Examine the following code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fractional_knapsack&lt;/span&gt;(v, w, W):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(v)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    load &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; load &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; W &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; n:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; w[i] &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; W &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; load:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            load &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; w[i]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            i &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            load &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; (W &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; load) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; v[i] &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; w[i]
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If we are able to sort each item by its value-to-weight ratio, then the greedy choice is to take as much as possible from the most valuable item first, the second most valuable item next, and so on. This considers \(n\) items in the worst case, and the items need to be sorted by value-to-weight ratio. The algorithm is \(O(n \log n)\).&lt;/p&gt;
+&lt;p&gt;This does not work for the \(0-1\) knapsack problem. Consider the problem visualized below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-24_17-05-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Greedy solution to the (0-1) knapsack problem (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Greedy solution to the (0-1) knapsack problem (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;In this problem, we have a knapsack whose total capacity is \(W = 50\). A table of the weights, values, and value-to-weight ratios is given below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;\(i\)&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;\(v_i\)&lt;/td&gt;
+&lt;td&gt;60&lt;/td&gt;
+&lt;td&gt;100&lt;/td&gt;
+&lt;td&gt;120&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;\(w_i\)&lt;/td&gt;
+&lt;td&gt;10&lt;/td&gt;
+&lt;td&gt;20&lt;/td&gt;
+&lt;td&gt;30&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;\(v_i/w_i\)&lt;/td&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The fractional algorithm would selection the first item since it has the greatest value-to-weight ratio. The \(0-1\) knapsack problem, however, would select the second and third items to maximize the value of the items in the knapsack.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Hash Tables</title>
       <link>https://ajdillhoff.github.io/notes/hash_tables/</link>
       <pubDate>Thu, 14 Mar 2024 15:16:00 -0500</pubDate>
@@ -14686,7 +14994,7 @@ We could only get around this if we had the true distribution to generate new sa
 &lt;p&gt;If our training set is extremely large, we may converge to a solution without ever having gone through all samples.
 Typically, models are able to train on multiple passes of the dataset to increase their generalization error.
 Each subsequent pass may increase the bias, but not enough to decrease generalization performance.&lt;/p&gt;
-&lt;p&gt;The gradient norm can be monitored while training to see if the issue is local minima or any other critical point &amp;lt;&amp;amp;zhaoPenalizingGradientNorm&amp;gt;.
+&lt;p&gt;The gradient norm can be monitored while training to see if the issue is local minima or any other critical point (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Zhao, Zhang, and Hu, n.d.&lt;/a&gt;).
 If the parameters were to get stuck at a critical point, the gradient norm should shrink over time.&lt;/p&gt;
 
 
@@ -14696,7 +15004,7 @@ If the parameters were to get stuck at a critical point, the gradient norm shoul
 
 &lt;figure&gt;
 
-&lt;img src=&#34;Introduction/2022-11-13_15-00-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The gradient norm decreases as it settles into some minima (Zhao et al.).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-21_09-21-37_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;The gradient norm decreases as it settles into some minima (Zhao et al.).&#34; &gt;
 
 
 
@@ -14815,7 +15123,7 @@ If the learning rate is too small, it may take much longer to converge to any so
 &lt;p&gt;It would be ideal if the optimization algorithm could adapt its learning rate to local changes in the loss landscape.
 In that way, the algorithm would be less dependent on the initial learning rate.&lt;/p&gt;
 &lt;h3 id=&#34;adagrad&#34;&gt;Adagrad&lt;/h3&gt;
-&lt;p&gt;Adagrad adapts the learning rate to the parameters following the idea that parameters associated with salient features should be updated less frequently &amp;lt;&amp;amp;duchiAdaptiveSubgradientMethods2011&amp;gt;. If they occur often, updating them with a larger step would result in a solution that is more dependent on them at the expense of other features.&lt;/p&gt;
+&lt;p&gt;Adagrad adapts the learning rate to the parameters following the idea that parameters associated with salient features should be updated less frequently (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Duchi, Hazan, and Singer 2011&lt;/a&gt;). If they occur often, updating them with a larger step would result in a solution that is more dependent on them at the expense of other features.&lt;/p&gt;
 &lt;p&gt;Adagrad uses a different learning rate for every parameter:&lt;/p&gt;
 &lt;p&gt;\[
 \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t + \epsilon}}g_t
@@ -14837,7 +15145,7 @@ Instead of accumulating gradients, RMSProp uses an exponentially weighted moving
 \]&lt;/p&gt;
 &lt;p&gt;Hinton proposed that \(\rho=0.9\) in the original lectures.&lt;/p&gt;
 &lt;h3 id=&#34;adam&#34;&gt;Adam&lt;/h3&gt;
-&lt;p&gt;One of the most popular gradient descent variants in used today is Adam &amp;lt;&amp;amp;kingmaAdamMethodStochastic2017&amp;gt;.
+&lt;p&gt;One of the most popular gradient descent variants in used today is Adam (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Kingma and Ba 2017&lt;/a&gt;).
 Short for Adaptive Moment Estimation, Adam adapts the learning rate to each parameter.
 Similar to RMSProp, it stores an exponentially moving average of past squared gradients.
 Adam additionally stores first-order moments of the gradients.&lt;/p&gt;
@@ -14920,14 +15228,24 @@ The parameter values should be large enough to propagate information effectively
 W_{i,j} \sim U\Bigg(-\sqrt{\frac{6}{m + n}}, \sqrt{\frac{6}{m+n}}\Bigg),
 \]&lt;/p&gt;
 &lt;p&gt;where \(m\) and \(n\) are the number of input and output nodes, respectively.
-This initialization was empirically validated by &amp;lt;&amp;amp;glorotUnderstandingDifficultyTraining&amp;gt; with the goal that all layers have the same activation variance and back-propagated gradient variance.&lt;/p&gt;
+This initialization was empirically validated by (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Glorot and Bengio, n.d.&lt;/a&gt;) with the goal that all layers have the same activation variance and back-propagated gradient variance.&lt;/p&gt;
 &lt;h3 id=&#34;he-initialization&#34;&gt;He Initialization&lt;/h3&gt;
 &lt;p&gt;Xavier initialization is based on successive matrix multiplications without any non-linearities.
 Any deep learning model will surely break this assumption.
-He et al. derive another initialization strategy while considering rectified linear units (ReLU) and parametric rectified linear units (PReLU) &amp;lt;&amp;amp;heDelvingDeepRectifiers2015&amp;gt;.&lt;/p&gt;
+He et al. derive another initialization strategy while considering rectified linear units (ReLU) and parametric rectified linear units (PReLU) (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;He et al. 2015&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://spell.ml/blog/lr-schedulers-and-adaptive-optimizers-YHmwMhAAACYADm6F&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Duchi, John, Elad Hazan, and Yoram Singer. 2011. “Adaptive Subgradient Methods for Online Learning and Stochastic Optimization.” &lt;i&gt;Journal of Machine Learning Research&lt;/i&gt; 12 (61): 2121–59. &lt;a href=&#34;http://jmlr.org/papers/v12/duchi11a.html&#34;&gt;http://jmlr.org/papers/v12/duchi11a.html&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Glorot, Xavier, and Yoshua Bengio. n.d. “Understanding the Difﬁculty of Training Deep Feedforward Neural Networks,” 8.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2015. “Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification.” &lt;i&gt;Arxiv:1502.01852 [Cs]&lt;/i&gt;, February. &lt;a href=&#34;http://arxiv.org/abs/1502.01852&#34;&gt;http://arxiv.org/abs/1502.01852&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Kingma, Diederik P., and Jimmy Ba. 2017. “Adam: A Method for Stochastic Optimization.” &lt;i&gt;Arxiv:1412.6980 [Cs]&lt;/i&gt;, January. &lt;a href=&#34;http://arxiv.org/abs/1412.6980&#34;&gt;http://arxiv.org/abs/1412.6980&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Zhao, Yang, Hao Zhang, and Xiuyuan Hu. n.d. “Penalizing Gradient Norm for Efﬁciently Improving Generalization in Deep Learning,” 11.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
