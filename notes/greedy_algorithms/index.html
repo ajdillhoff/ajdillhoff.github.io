@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Activity Selection Properties of Greedy Solutions Greedy algorithms are a class of algorithms that yield locally optimal solutions. In cases where the local optimum is also the global optimum, greedy algorithms are ideal. Even in cases where the global solution is more elusive, a local solution may be sufficient.
+  <meta name="description" content="Table of Contents Activity Selection Properties of Greedy Solutions Huffman Codes Greedy algorithms are a class of algorithms that yield locally optimal solutions. In cases where the local optimum is also the global optimum, greedy algorithms are ideal. Even in cases where the global solution is more elusive, a local solution may be sufficient.
 Activity Selection Given a set of activities that need to be scheduled using a common resource, the activity selection problem is to find the maximum number of activities that can be scheduled without overlapping.">
 
   
@@ -139,7 +139,7 @@ Activity Selection Given a set of activities that need to be scheduled using a c
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/greedy_algorithms/">
   <meta property="og:title" content="Greedy Algorithms | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Activity Selection Properties of Greedy Solutions Greedy algorithms are a class of algorithms that yield locally optimal solutions. In cases where the local optimum is also the global optimum, greedy algorithms are ideal. Even in cases where the global solution is more elusive, a local solution may be sufficient.
+  <meta property="og:description" content="Table of Contents Activity Selection Properties of Greedy Solutions Huffman Codes Greedy algorithms are a class of algorithms that yield locally optimal solutions. In cases where the local optimum is also the global optimum, greedy algorithms are ideal. Even in cases where the global solution is more elusive, a local solution may be sufficient.
 Activity Selection Given a set of activities that need to be scheduled using a common resource, the activity selection problem is to find the maximum number of activities that can be scheduled without overlapping."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
@@ -417,7 +417,7 @@ Activity Selection Given a set of activities that need to be scheduled using a c
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    10 min read
+    12 min read
   </span>
   
 
@@ -550,6 +550,7 @@ Activity Selection Given a set of activities that need to be scheduled using a c
 <ul>
 <li><a href="#activity-selection">Activity Selection</a></li>
 <li><a href="#properties-of-greedy-solutions">Properties of Greedy Solutions</a></li>
+<li><a href="#huffman-codes">Huffman Codes</a></li>
 </ul>
 </div>
 <!--endtoc-->
@@ -844,6 +845,67 @@ S_{k} = \{a_i \in S : s_i \geq f_k\}.
 </tbody>
 </table>
 <p>The fractional algorithm would selection the first item since it has the greatest value-to-weight ratio. The \(0-1\) knapsack problem, however, would select the second and third items to maximize the value of the items in the knapsack.</p>
+<h2 id="huffman-codes">Huffman Codes</h2>
+<p>Huffman coding is a lossless data compression algorithm that assigns variable-length codes to input characters, with lengths based on the frequencies of occurrence for those characters. Originally developed by David A. Huffman in 1952 during his Ph.D. at MIT, he published the algorithm under the title &ldquo;<a href="https://ieeexplore.ieee.org/document/4051119" target="_blank" rel="noopener noreferrer">A Method for the Construction of Minimum-Redundancy Codes</a>&rdquo;.</p>
+<p>Huffman coding involves:</p>
+<ol>
+<li>Building a Huffman tree from the input characters and their frequencies.</li>
+<li>Traversing the tree to assign codes to each character.</li>
+</ol>
+<p>Before getting into the specifics of the algorithm, let&rsquo;s look at an example. Suppose we have a document consisting of 6 unique characters, each represented by a byte (8 bits). We could represent these 6 characters using 3 bits, since that is the minimum number of bits needed to represent 6 unique values. This is known as a <strong>fixed-length code</strong>. If we instead assigned a <strong>variable-length code</strong> to each character based on its frequency of occurrence, we would further reduce the footprint of the file size.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+<th>E</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frequency (in thousands)</td>
+<td>45</td>
+<td>13</td>
+<td>12</td>
+<td>16</td>
+<td>9</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Fixed-length code</td>
+<td>000</td>
+<td>001</td>
+<td>010</td>
+<td>011</td>
+<td>100</td>
+<td>101</td>
+</tr>
+<tr>
+<td>Variable-length code</td>
+<td>0</td>
+<td>101</td>
+<td>100</td>
+<td>111</td>
+<td>1101</td>
+<td>1100</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Does this seem like the best coding?</strong></li>
+<li>Why isn&rsquo;t a code of 1 used?</li>
+<li>What about 2 bit encoding?</li>
+</ul>
+<p>The truth is that it depends on the document being compressed. The encoding is optimal consider the overall but length of the encoded file. Based on the above <strong>fixed-length code</strong>, the file size is 300,000 bits. The <strong>variable-length code</strong> reduces the file size to 224,000 bits.</p>
+<p><strong>How many bits are needed to encode \(n \geq 2\) characters?</strong></p>
+<p>\[
+\lceil \lg n \rceil
+\]</p>
+<h3 id="prefix-free-codes">Prefix-free Codes</h3>
 
     </div>
 
