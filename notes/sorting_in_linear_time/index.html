@@ -596,18 +596,18 @@ def counting_sort(A, k):
 n = len(A)
 B = [0 for i in range(n)]
 C = [0 for i in range(k+1)]</p>
-<p>for i in range(2, n):
+<p>for i in range(n):
 C[A[i]] += 1</p>
-<p>for i in range(2, k):
+<p>for i in range(1, k):
 C[i] = C[i] + C[i-1]</p>
 <p>for i in range(n - 1, -1, -1):
-B[C[A[i]]] = A[i]
+B[C[A[i]]-1] = A[i]
 C[A[i]] = C[A[i]] - 1</p>
 <pre><code>return B
 </code></pre>
 <p>#+end_src python</p>
 <p>The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).</p>
-<p>Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3] = 4\).</p>
+<p>Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3-1] = 4\).</p>
 <p>Another example is shown in figure 8.2 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
 <h2 id="radix-sort">Radix Sort</h2>
 <p>Dating back to 1887 by Herman Hollerith&rsquo;s work on <a href="https://en.wikipedia.org/wiki/Tabulating_machine" target="_blank" rel="noopener noreferrer">tabulating machines</a>, this algorithm places numbers in one of \(k\) bins based on their <strong>radix</strong>, or the number of unique digits. It was used for sorting punch cards via multi-column sorting. It works by iteratively sorting a series of inputs based on a column starting with the least-significant digit. An example is shown below.</p>
@@ -644,7 +644,7 @@ C[A[i]] = C[A[i]] - 1</p>
 <h3 id="analysis">Analysis</h3>
 <p>We know that counting sort is \(\Theta(n + k)\), and that radix sort calls it \(d\) times. Therefore, the time complexity of radix sort is \(\Theta(d(n + k))\). If \(k = O(n)\), then the time complexity is \(\Theta(dn)\).</p>
 <h3 id="complex-keys">Complex Keys</h3>
-<p>What if the data is not just a single integer, but a complex key or series of keys? They keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$</p>
+<p>What if the data is not just a single integer, but a complex key or series of keys? The keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$</p>
 <p><strong>What is the best choice of \(r\)?</strong> Consider what happens for different values of \(r\). As \(r\) increases, \(2^r\) increases. As it decreases, \(\frac{b}{r}\) increases. The best choice depends on whether \(b &lt; \lfloor \lg n \rfloor\). If \(b &lt; \lfloor \lg n \rfloor\), then \(r \leq b\) implies \((n + 2^r) = \Theta(n)\) since \(2^{\lg n} = n\). If \(b \geq \lfloor \lg n \rfloor\), then we should choose \(r \approx \lg n\). This would yield \(\Theta((b / \lg n)(n + n)) = \Theta(bn / \lg n)\).</p>
 <p><strong>You should spend some time to think about the choices for \(r\).</strong> Specifically, what will happen to the time complexity as \(r\) increases above \(\lg n\)? What about as \(r\) decreases below \(\lg n\)?</p>
 <h3 id="example-sorting-words">Example: Sorting words</h3>
@@ -1145,9 +1145,14 @@ C[A[i]] = C[A[i]] - 1</p>
 </span></span></code></pre></div><h3 id="analysis">Analysis</h3>
 <p>Initializing the array and placing each item into a bucket takes \(\Theta(n)\) time. The call to each insertion sort is \(O(n^2)\). Therefore, the recurrence is given as</p>
 <p>\[
-T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n^2).
+T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n_i^2).
 \]</p>
-<p>The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\). Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then</p>
+<p>The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\).</p>
+<ul>
+<li>\(p\) is the probability of success: \(p = \frac{1}{n}\).</li>
+<li>\(q\) is the probability of failure: \(q = 1 - \frac{1}{n}\).</li>
+</ul>
+<p>Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then</p>
 <p>\[
 E[n_i^2] = \text{Var}[n_i] + E[n_i]^2 = 1 - 1/n + 1 = 2 - 1/n.
 \]</p>

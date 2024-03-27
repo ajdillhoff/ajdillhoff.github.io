@@ -417,7 +417,7 @@ Activity Selection Given a set of activities that need to be scheduled using a c
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    12 min read
+    13 min read
   </span>
   
 
@@ -906,6 +906,40 @@ S_{k} = \{a_i \in S : s_i \geq f_k\}.
 \lceil \lg n \rceil
 \]</p>
 <h3 id="prefix-free-codes">Prefix-free Codes</h3>
+<p>A <strong>prefix-free code</strong> is a code in which no codeword is also a prefix of another codeword. This property simplifies decoding since the code can be read from left to right without ambiguity. The codeword &ldquo;beef&rdquo; has the encoding \(101110111011100 = 101 \cdot 1101 \cdot 1101 \cdot 1100\), where \(\cdot\) denotes concatenation.</p>
+<p>This definition may start to clarify why a code of 1 is not used. If a code of 1 were used, then the code would be a prefix of all other codes. This would make decoding ambiguous.</p>
+<p><strong>How are the codes decoded?</strong></p>
+<p>One solution to this is to keep a table of all codewords and their corresponding characters. A more compact solution is to use a binary tree. Starting with the first bit in the encoded message, traverse the tree until a leaf node is reached. The character at the leaf node is the decoded character. The tree is known as a <strong>Huffman tree</strong>.</p>
+<p>An <strong>full binary tree</strong>, where each nonleaf node has two subnodes, is optimal for decoding. If the tree has this property then an optimal prefix-free code has \(|C|\) leaves and exactly \(|C| - 1\) internal nodes. The tree for the variable-length code is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-03-26_09-07-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Huffman tree for the variable-length code (Cormen et al. 2022)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Huffman tree for the variable-length code (Cormen et al. 2022).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Given a character \(c\) with frequency \(c.freq\), let \(d_T( c)\) denote the depth of character \(c\) in tree \(T\). The cost of the code in bits is given by</p>
+<p>\[
+B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
+\]</p>
+<p>The depth of the character \(d_T( c)\) is used since it also denotes the length of the codeword.</p>
 
     </div>
 

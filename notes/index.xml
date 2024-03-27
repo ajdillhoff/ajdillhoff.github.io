@@ -449,6 +449,40 @@ S_{k} = \{a_i \in S : s_i \geq f_k\}.
 \lceil \lg n \rceil
 \]&lt;/p&gt;
 &lt;h3 id=&#34;prefix-free-codes&#34;&gt;Prefix-free Codes&lt;/h3&gt;
+&lt;p&gt;A &lt;strong&gt;prefix-free code&lt;/strong&gt; is a code in which no codeword is also a prefix of another codeword. This property simplifies decoding since the code can be read from left to right without ambiguity. The codeword &amp;ldquo;beef&amp;rdquo; has the encoding \(101110111011100 = 101 \cdot 1101 \cdot 1101 \cdot 1100\), where \(\cdot\) denotes concatenation.&lt;/p&gt;
+&lt;p&gt;This definition may start to clarify why a code of 1 is not used. If a code of 1 were used, then the code would be a prefix of all other codes. This would make decoding ambiguous.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How are the codes decoded?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;One solution to this is to keep a table of all codewords and their corresponding characters. A more compact solution is to use a binary tree. Starting with the first bit in the encoded message, traverse the tree until a leaf node is reached. The character at the leaf node is the decoded character. The tree is known as a &lt;strong&gt;Huffman tree&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;An &lt;strong&gt;full binary tree&lt;/strong&gt;, where each nonleaf node has two subnodes, is optimal for decoding. If the tree has this property then an optimal prefix-free code has \(|C|\) leaves and exactly \(|C| - 1\) internal nodes. The tree for the variable-length code is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-03-26_09-07-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Huffman tree for the variable-length code (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Huffman tree for the variable-length code (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Given a character \(c\) with frequency \(c.freq\), let \(d_T( c)\) denote the depth of character \(c\) in tree \(T\). The cost of the code in bits is given by&lt;/p&gt;
+&lt;p&gt;\[
+B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
+\]&lt;/p&gt;
+&lt;p&gt;The depth of the character \(d_T( c)\) is used since it also denotes the length of the codeword.&lt;/p&gt;
 </description>
     </item>
     
@@ -1067,18 +1101,18 @@ def counting_sort(A, k):
 n = len(A)
 B = [0 for i in range(n)]
 C = [0 for i in range(k+1)]&lt;/p&gt;
-&lt;p&gt;for i in range(2, n):
+&lt;p&gt;for i in range(n):
 C[A[i]] += 1&lt;/p&gt;
-&lt;p&gt;for i in range(2, k):
+&lt;p&gt;for i in range(1, k):
 C[i] = C[i] + C[i-1]&lt;/p&gt;
 &lt;p&gt;for i in range(n - 1, -1, -1):
-B[C[A[i]]] = A[i]
+B[C[A[i]]-1] = A[i]
 C[A[i]] = C[A[i]] - 1&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;return B
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;#+end_src python&lt;/p&gt;
 &lt;p&gt;The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).&lt;/p&gt;
-&lt;p&gt;Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3] = 4\).&lt;/p&gt;
+&lt;p&gt;Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3-1] = 4\).&lt;/p&gt;
 &lt;p&gt;Another example is shown in figure 8.2 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 id=&#34;radix-sort&#34;&gt;Radix Sort&lt;/h2&gt;
 &lt;p&gt;Dating back to 1887 by Herman Hollerith&amp;rsquo;s work on &lt;a href=&#34;https://en.wikipedia.org/wiki/Tabulating_machine&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;tabulating machines&lt;/a&gt;, this algorithm places numbers in one of \(k\) bins based on their &lt;strong&gt;radix&lt;/strong&gt;, or the number of unique digits. It was used for sorting punch cards via multi-column sorting. It works by iteratively sorting a series of inputs based on a column starting with the least-significant digit. An example is shown below.&lt;/p&gt;
@@ -1115,7 +1149,7 @@ C[A[i]] = C[A[i]] - 1&lt;/p&gt;
 &lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;We know that counting sort is \(\Theta(n + k)\), and that radix sort calls it \(d\) times. Therefore, the time complexity of radix sort is \(\Theta(d(n + k))\). If \(k = O(n)\), then the time complexity is \(\Theta(dn)\).&lt;/p&gt;
 &lt;h3 id=&#34;complex-keys&#34;&gt;Complex Keys&lt;/h3&gt;
-&lt;p&gt;What if the data is not just a single integer, but a complex key or series of keys? They keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$&lt;/p&gt;
+&lt;p&gt;What if the data is not just a single integer, but a complex key or series of keys? The keys themselves can be broken up into digits. Consider a 32-bit word. If we want to sort \(n\) of these words, and we have \(b = 32\) bits per word, we can break the words into \(r=8\) bit digits. This yields \(d = \lceil b / r \rceil = 4\) digits. The largest value for each digit is then \(k = 2^r - 1 = 255\). Plugging these values into the analysis from above yields $Θ((b/r)(n + 2^r)).$&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;What is the best choice of \(r\)?&lt;/strong&gt; Consider what happens for different values of \(r\). As \(r\) increases, \(2^r\) increases. As it decreases, \(\frac{b}{r}\) increases. The best choice depends on whether \(b &amp;lt; \lfloor \lg n \rfloor\). If \(b &amp;lt; \lfloor \lg n \rfloor\), then \(r \leq b\) implies \((n + 2^r) = \Theta(n)\) since \(2^{\lg n} = n\). If \(b \geq \lfloor \lg n \rfloor\), then we should choose \(r \approx \lg n\). This would yield \(\Theta((b / \lg n)(n + n)) = \Theta(bn / \lg n)\).&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;You should spend some time to think about the choices for \(r\).&lt;/strong&gt; Specifically, what will happen to the time complexity as \(r\) increases above \(\lg n\)? What about as \(r\) decreases below \(\lg n\)?&lt;/p&gt;
 &lt;h3 id=&#34;example-sorting-words&#34;&gt;Example: Sorting words&lt;/h3&gt;
@@ -1616,9 +1650,14 @@ C[A[i]] = C[A[i]] - 1&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;Initializing the array and placing each item into a bucket takes \(\Theta(n)\) time. The call to each insertion sort is \(O(n^2)\). Therefore, the recurrence is given as&lt;/p&gt;
 &lt;p&gt;\[
-T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n^2).
+T(n) = \Theta(n) + \sum_{i=0}^{n-1} O(n_i^2).
 \]&lt;/p&gt;
-&lt;p&gt;The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\). Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then&lt;/p&gt;
+&lt;p&gt;The key is to determine the expected value \(E[n_i^2]\). We will frame the problem as a binomial distribution, where a success occurs when an element goes into bucket \(i\).&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(p\) is the probability of success: \(p = \frac{1}{n}\).&lt;/li&gt;
+&lt;li&gt;\(q\) is the probability of failure: \(q = 1 - \frac{1}{n}\).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Under a binomial distribution, we have that \(E[n_i] = np = n(1/n) = 1\) and \(\text{Var}[n_i] = npq = 1 - 1/n\), where \(p = 1/n\) and \(q = 1 - 1/n\). The expected value is then&lt;/p&gt;
 &lt;p&gt;\[
 E[n_i^2] = \text{Var}[n_i] + E[n_i]^2 = 1 - 1/n + 1 = 2 - 1/n.
 \]&lt;/p&gt;
