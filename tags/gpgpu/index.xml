@@ -7,10 +7,119 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Wed, 28 Feb 2024 19:19:00 -0600</lastBuildDate>
+    <lastBuildDate>Sun, 31 Mar 2024 10:50:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/gpgpu/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Parallel Sorting Algorithms</title>
+      <link>https://ajdillhoff.github.io/notes/parallel_sorting_algorithms/</link>
+      <pubDate>Sun, 31 Mar 2024 10:50:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/parallel_sorting_algorithms/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#radix-sort&#34;&gt;Radix Sort&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#optimizing-memory-access-efficiency&#34;&gt;Optimizing Memory Access Efficiency&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#choosing-a-different-radix-value&#34;&gt;Choosing a different Radix value&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;radix-sort&#34;&gt;Radix Sort&lt;/h2&gt;
+&lt;p&gt;For a background on Radix Sort, see these notes on &lt;a href=&#34;https://ajdillhoff.github.io/notes/sorting_in_linear_time/&#34;&gt;Sorting in Linear Time&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Radix sort relies on counting sort for each section, and each section must be processed before moving onto the next. The parallel solution will not attempt to address this sequential dependency. Instead, we will focus on the parallelization of the counting sort step.&lt;/p&gt;
+&lt;p&gt;Each thread must determine where to place its input elements. For each bit, the thread will assign it to either a 0 or 1 bucket. Since all values will either be 0 or 1, the thread needs to compute the number of 0s and 1s that come before it in the current section. Radix sort is also a stable sort, so the order of elements with the same key must be preserved. Consider the following array separated into 4 threads of 4 elements each:&lt;/p&gt;
+&lt;p&gt;\begin{array}{l|cccc|cccc|cccc|cccc}
+Value &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 1 &amp;amp; 1 &amp;amp; 1 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+Index &amp;amp; 0 &amp;amp; 1 &amp;amp; 2 &amp;amp; 3 &amp;amp; 4 &amp;amp; 5 &amp;amp; 6 &amp;amp; 7 &amp;amp; 8 &amp;amp; 9 &amp;amp; 10 &amp;amp; 11 &amp;amp; 12 &amp;amp; 13 &amp;amp; 14 &amp;amp; 15\\
+\end{array}&lt;/p&gt;
+&lt;p&gt;The least significant bits for each thread are \([1, 0, 1, 0]\). From thread 4&amp;rsquo;s perspective, there are 2 1s and a single 0 that come before it. Its key index is 3 (using 0-based indexing), so it only needs to compute the number of 1s that come before it and subtract that from its key index: \(3 - 2 = 1\). More generally, for a 0 bit:&lt;/p&gt;
+&lt;p&gt;\[
+\text{output index} = \text{key index} - \text{number of 0s that come before it}
+\]&lt;/p&gt;
+&lt;p&gt;The calculation for the 1 bit hinges on the fact that all keys mapping to 0 must come before it.&lt;/p&gt;
+&lt;p&gt;\[
+\text{output index} = \text{input size} - \text{number of ones total} + \text{number of 1s that come before it}
+\]&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void radix_sort_iter(unsigned int *input, unsigned int *output,
+                                unsigned int *bits, unsigned int N, unsigned int iter) {
+    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int key, bit;
+
+    if (idx &amp;lt; N) {
+        key = input[i];
+        bit = (key &amp;gt;&amp;gt; iter) &amp;amp; 1;
+        bits[i] = bit;
+    }
+
+    exclusiveScan(bits, N);
+
+    if (idx &amp;lt; N) {
+        unsigned int numOnesBefore = bits[idx];
+        unsigned int numOnesTotal = bits[N];
+        unsigned int dst = (bit == 0) ? idx - numOnesBefore
+                                      : N - numOnesTotal + numOnesBefore;
+        output[dst] = key;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Consider the fourth thread with &lt;code&gt;idx = 3&lt;/code&gt; using the array from above. This thread index is certainly less than the array size, so the &lt;code&gt;key&lt;/code&gt; is read from &lt;code&gt;input&lt;/code&gt; before extracting the least significant bit. &lt;strong&gt;Note that there is a call to thread synchronization inside &lt;code&gt;exclusiveScan&lt;/code&gt;.&lt;/strong&gt; The result of &lt;code&gt;exclusiveScan&lt;/code&gt; is an array that indicates, for each index, the number of ones that came before it. For our array, this is:&lt;/p&gt;
+&lt;p&gt;\[
+[0, 1, 1, 2]
+\]&lt;/p&gt;
+&lt;p&gt;The destination can be computed for each thread. The result is shown in the table below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Thread&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Bit&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;#1s Before&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;#1s Total&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Output Index&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;optimizing-memory-access-efficiency&#34;&gt;Optimizing Memory Access Efficiency&lt;/h2&gt;
+&lt;p&gt;Each thread write their keys to global memory in an uncoalesced manner. This can be optimized by having each block maintain local buckets in shared memory. The keys within each block will be coalesced when written to global memory.&lt;/p&gt;
+&lt;p&gt;TODO: Show visualization similar to 13.5&lt;/p&gt;
+&lt;p&gt;In order to make this work, each thread needs to calculate where in the output array the values from its bucket should be placed. For 0 bits, the block&amp;rsquo;s 0 bucket will come after the 0 buckets from all previous blocks. These positions can be computed by performing an exclusive scan on the block&amp;rsquo;s local bucket sizes.&lt;/p&gt;
+&lt;p&gt;TODO: Show visualization similar to 13.6&lt;/p&gt;
+&lt;h2 id=&#34;choosing-a-different-radix-value&#34;&gt;Choosing a different Radix value&lt;/h2&gt;
+&lt;p&gt;Picking a larger radix value will reduce the number of iterations required to sort the array.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GPU Pattern: Merge</title>
