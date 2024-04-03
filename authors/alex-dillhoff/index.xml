@@ -122,6 +122,257 @@ Index &amp;amp; 0 &amp;amp; 1 &amp;amp; 2 &amp;amp; 3 &amp;amp; 4 &amp;amp; 5 &a
     </item>
     
     <item>
+      <title>Sparse Matrix Computation</title>
+      <link>https://ajdillhoff.github.io/notes/sparse_matrix_computation/</link>
+      <pubDate>Sat, 30 Mar 2024 10:36:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/sparse_matrix_computation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#coordinate-list-format--coo&#34;&gt;Coordinate List Format (COO)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#compressed-sparse-row-format--csr&#34;&gt;Compressed Sparse Row Format (CSR)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#ell-format&#34;&gt;ELL Format&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#ell-coo-format&#34;&gt;ELL-COO Format&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#jagged-diagonal-storage-format--jds&#34;&gt;Jagged Diagonal Storage Format (JDS)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Sparse matrices are matrices with mostly zero elements. They are common in scientific computing, machine learning, and other fields. It is important to study them in the context of GPU computing because they can be very large and require a lot of memory. Effeciently representing and computing with sparse matrices provides a substantial benefit to many applications.&lt;/p&gt;
+&lt;p&gt;The obvious benefits of sparsity is that we can typically represent the same matrix using a smaller memory footprint. Fewer elements means fewer wasted operations as well. The challenges of GPU implementations are that the memory access patterns are not always friendly to the GPU architecture. This is especially true for sparse matrices, where the memory access patterns are often irregular.&lt;/p&gt;
+&lt;p&gt;These notes will review the sparse matrix formats as presented in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;). Each will be evaluated using the following criteria:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: How well does the format compact the data?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility&lt;/strong&gt;: Is the format easy to modify?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; How easy is it to access the data?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Are the accesses coalesced?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Are the operations balanced across threads?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;coordinate-list-format--coo&#34;&gt;Coordinate List Format (COO)&lt;/h2&gt;
+&lt;p&gt;This format stores non-zero elements in a 1D array of values. It also requires two 1D arrays to store the row and column indices, incurrent an overhead of 2N. The values in each array are contiguous, which is good for memory access.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-42-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;COO Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_coo_kernel(COOMatrix cooMatrix, float *x, float *y) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &amp;lt; cooMatrix.numNonzeros) {
+        int row = cooMatrix.rowIdx[i];
+        int col = cooMatrix.colIdx[i];
+        float val = cooMatrix.values[i];
+        atomicAdd(&amp;amp;y[row], val * x[col]);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: Compared to representing the matrices in dense format, the COO format is very compact. However, it is not as compact as some other sparse matrix formats. It requires an additional over head of 2N elements to store the row and column indices.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; Indices and values can be easily modified in this format. This is good for applications that require frequent modifications.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; It is easy to access nonzero elements. It is &lt;strong&gt;not&lt;/strong&gt; easy to access the original 0s in each row.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The values in this format are contiguous, resulting in coalesced memory access.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; The data is uniformly distributed across threads, resulting in good load balance.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;One major drawback, as seen in the code above, is the use of atomic operations.&lt;/p&gt;
+&lt;h2 id=&#34;compressed-sparse-row-format--csr&#34;&gt;Compressed Sparse Row Format (CSR)&lt;/h2&gt;
+&lt;p&gt;The key idea of this format is that each thread is responsible for all nonzeros in a row.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-50-47_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;CSR Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;CSR Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_csr_kernel(CSRMatrix csrMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &amp;lt; csrMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = csrMatrix.rowPtr[row]; j &amp;lt; csrMatrix.rowPtr[row + 1]; j++) {
+            sum += csrMatrix.values[j] * x[csrMatrix.colIdx[j]];
+        }
+        y[i] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The rows are mapped to a single pointer index, so it only needs \(m\) entries to store them. The columns are not required to be in order. If the columns &lt;em&gt;are&lt;/em&gt; in order, the data is represented in row-major order without the zero elements.&lt;/p&gt;
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: The CSR format is more compact than the COO format since it only requires \(m\) entries to store the row pointers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; The CSR format is not as flexible as the COO format. It is not easy to modify the values or indices.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; There is less parallelization than COO due to the row sizes.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The memory access pattern is poor since the data is separated over columns.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; The load is not balanced across threads. Some threads will have more work than others, leading to control divergence.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;ell-format&#34;&gt;ELL Format&lt;/h2&gt;
+&lt;p&gt;ELL fixes the non-coalesced memory accesses of CSR via data padding and transposition. This is visualized below:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Start with CSR format&lt;/li&gt;
+&lt;li&gt;Pad rows to equal size&lt;/li&gt;
+&lt;li&gt;Store in column-major order&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-53-05_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;ELL Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;ELL Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_ell_kernel(ELLMatrix ellMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &amp;lt; ellMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = 0; j &amp;lt; ellMatrix.nnzPerRow[row]; j++) {
+            int col = ellMatrix.colIdx[j * ellMatrix.numRows + row];
+            sum += ellMatrix.values[j * ellMatrix.numRows + row] * x[col];
+        }
+        y[row] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; Padding the rows means this is less space efficient than CSR.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; More flexible than CSR; adding nonzeros in CSR requires a shift of values. This format can replaced a padded element if necessary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; ELL can return the row given the index of a nonzero element as well as the nonzero of a row given that index.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Consecutive threads access consecutive memory locations.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Shares the same control divergence issues as CSR.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;ell-coo-format&#34;&gt;ELL-COO Format&lt;/h2&gt;
+&lt;p&gt;ELL-COO combines the two formats to improve space efficiency and control divergence.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_20-01-43_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;ELL-COO Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;ELL-COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; ELL-COO has the same compaction as ELL.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; ELL-COO is more flexible than ELL thanks to inclusion of the COO format.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; It is not always possible to access all nonzeros given a row index.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The memory access pattern is coalesced.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; COO reduces the control divergence seen in ELL alone.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;jagged-diagonal-storage-format--jds&#34;&gt;Jagged Diagonal Storage Format (JDS)&lt;/h2&gt;
+&lt;p&gt;The last format we will consider is the Jagged Diagonal Storage format. This format reduces divergence and improves memory coalescing without padding. The main idea is to sort the rows by length from longest to shortest.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Group nonzeros by row&lt;/li&gt;
+&lt;li&gt;Sort rows by length while preserving their original row indices&lt;/li&gt;
+&lt;li&gt;Store in column-major order&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_20-07-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;JDS Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;JDS Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; Avoid paddding, so it is more space efficient than ELL.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; Less flexible than ELL since it requires sorting when adding new elements.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; Cannot access a row and column given the index of a nonzero element.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Without padding, the starting location of memory accesses in each iteration can vary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Since the rows are sorted, threads of the same warp are likely to iterate over rows of similar length.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Recursion Tree Method</title>
       <link>https://ajdillhoff.github.io/notes/recursion_tree_method/</link>
       <pubDate>Mon, 18 Mar 2024 22:10:00 -0500</pubDate>
@@ -592,6 +843,117 @@ S_{k} = \{a_i \in S : s_i \geq f_k\}.
 B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
 \]&lt;/p&gt;
 &lt;p&gt;The depth of the character \(d_T( c)\) is used since it also denotes the length of the codeword.&lt;/p&gt;
+&lt;h3 id=&#34;constructing-a-huffman-code&#34;&gt;Constructing a Huffman Code&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Node&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; __init__(self, freq, char&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;freq &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; freq
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;char &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; char
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;left &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;right &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;huffman&lt;/span&gt;(C):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(C)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; build_min_heap(C)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Node(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;left &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; extract_min(Q)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;right &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; y &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; extract_min(Q)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;freq &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;freq &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; y&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;freq
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        insert(Q, z)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; extract_min(Q)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The function above builds a Huffman tree from a set of characters \(C\). At each iteration, the two nodes with the smallest frequencies are extracted from the queue \(Q\) and are used to create a new node \(z\). This node represents the sum of the frequencies of the two nodes. The node is then inserted back into the queue so that it can be used in future iterations. The result is a Huffman tree.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-01_20-48-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Huffman tree for the data in the table above (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Huffman tree for the data in the table above (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;p&gt;If the priority queue is implemented as a binary min-heap, the call to &lt;code&gt;build_min_heap&lt;/code&gt; initializes the priority queue in \(O(n)\) time. The &lt;code&gt;for&lt;/code&gt; loop runs \(n-1\) times, calling &lt;code&gt;extract_min&lt;/code&gt; twice and &lt;code&gt;insert&lt;/code&gt; once. Each call to &lt;code&gt;extract_min&lt;/code&gt; takes \(O(\lg n)\) time yielding a total of \(O(n \lg n)\) time.&lt;/p&gt;
+&lt;h3 id=&#34;correctness-of-huffman-codes&#34;&gt;Correctness of Huffman Codes&lt;/h3&gt;
+&lt;p&gt;The correctness of an algorithm means that it produces the expected output based on the input and its properties. To show that the Huffman algorithm is correct, we can show that it exhibits the greedy choice and optimal substructure properties.&lt;/p&gt;
+&lt;h4 id=&#34;lemma-15-dot-2-optimal-prefix-free-codes-have-the-greedy-choice-property&#34;&gt;Lemma 15.2: Optimal prefix-free codes have the greedy-choice property&lt;/h4&gt;
+&lt;p&gt;For alphabet \(C\), let \(x\) and \(y\) be the two characters with the lowest frequencies. Then there exists an optimal prefix-free code for \(C\) where the codewords for \(x\) and \(y\) have the same length and differ only in the last bit.&lt;/p&gt;
+&lt;p&gt;This establishes the greedy choice property because the algorithm selects the two characters with the lowest frequencies at each step.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Proof&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In the given optimal tree \(T\), leaves \(a\) and \(b\) are two siblings with maximum depth. It&amp;rsquo;s also given that \(x\) and \(y\) are the two characters with the lowest frequencies, but they appear in arbitrary positions.&lt;/p&gt;
+&lt;p&gt;Assume that \(x \neq b\). Swapping \(a\) and \(x\) produces tree \(T&amp;rsquo;\) does not increase the cost. Swapping \(b\) and \(y\) produces tree \(T&amp;rsquo;&amp;rsquo;\) that also does not increase the cost. &lt;strong&gt;This is the key argument: if swapping the lowest frequency characters with the deepest characters does not increase the cost, then the greedy choice is optimal.&lt;/strong&gt;&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_10-40-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Creating (T&amp;#39;) and (T&amp;#39;&amp;#39;) from (T) (Cormen et al. 2022).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Creating (T&amp;rsquo;) and (T&amp;rsquo;&amp;rsquo;) from (T) (Cormen et al. 2022).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Next, we need to show that exchanging \(a\) and \(x\) does not increase the cost. The cost of the tree is given by&lt;/p&gt;
+&lt;p&gt;\[
+B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
+\]&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+B(T) - B(T&amp;rsquo;) &amp;amp;= \sum_{c \in C} c.freq \cdot d_{T}( c) - \sum_{c \in C} c.freq \cdot d_{T&amp;rsquo;}( c) \\
+&amp;amp;= x.freq \cdot d_T(x) + a.freq \cdot d_T(a) - x.freq \cdot d_{T&amp;rsquo;}(x) - a.freq \cdot d_{T&amp;rsquo;}(a) \\
+&amp;amp;= x.freq \cdot d_T(x) + a.freq \cdot d_T(a) - x.freq \cdot d_{T}(a) - a.freq \cdot d_{T}(x) \\
+&amp;amp;= (x.freq - a.freq)(d_T(x) - d_T(a)) \\
+&amp;amp;\geq 0.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;The last line is true because \(x.freq \leq a.freq\) and \(d_T(x) \geq d_T(a)\). A similar argument can be made for \(T&amp;rsquo;&amp;rsquo;\). \(B(T&amp;rsquo;&amp;rsquo;) \leq B(T&amp;rsquo;)\) since exchanging \(y\) and \(b\) does not increase the cost. This means that \(B(T&amp;rsquo;&amp;rsquo;) \leq B(T&amp;rsquo;) \leq B(T)\). \(T\) is an optimal tree, so \(B(T) \leq B(T&amp;rsquo;&amp;rsquo;) \implies B(T) = B(T&amp;rsquo;&amp;rsquo;) \implies T\) is optimal where \(x\) and \(y\) are siblings of maximum depth.&lt;/p&gt;
+&lt;h4 id=&#34;lemma-15-dot-3-optimal-substructure-property&#34;&gt;Lemma 15.3: Optimal-substructure property&lt;/h4&gt;
+&lt;p&gt;Let \(x\) and \(y\) be two characters with minimum frequency in alphabet \(C\) and let \(C&amp;rsquo; = (C - \{x, y\}) \cup z\) for a new character \(z\) with \(z.freq = x.freq + y.freq\). Additionally, let \(T&amp;rsquo;\) be a tree representing an optimal prefix-free code for \(C&amp;rsquo;\), and \(T\) be \(T&amp;rsquo;\) with the leaf for \(z\) replaced by an internal node with children \(x\) and \(y\). Then \(T\) represents an optimal prefix-free code for \(C\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Simplified:&lt;/strong&gt; If the algorithm computed the optimal solution to the simplified problem, where \(z\) replaced \(x\) and \(y\), it can extend this to an optimal solution to the original problem by putting \(x\) and \(y\) back.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Proof&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The first part of the proof establishes the costs of the relevant trees.&lt;/p&gt;
+&lt;p&gt;\(c \in C - \{x, y\} \implies d_T( c) = d_{T&amp;rsquo;}( c) \implies c.freq \cdot d_T( c) = c.freq \cdot d_{T&amp;rsquo;}( c)\)&lt;/p&gt;
+&lt;p&gt;The depth of \(x\) and \(y\) are equal to the depth of \(z\) in \(T&amp;rsquo;\) + 1:&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+d_T(x) = d_T(y) = d_{T&amp;rsquo;}(z) + 1 &amp;amp;\implies x.freq \cdot d_T(x) + y.freq \cdot d_T(y)\\
+&amp;amp;= (x.freq + y.freq)(d_{T&amp;rsquo;}(z) + 1)\\
+&amp;amp;= z.freq \cdot d_{T&amp;rsquo;}(z) + (x.freq + y.freq).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;This means that \(B(T) = B(T&amp;rsquo;) + x.freq + y.freq\), which is equivalent to \(B(T&amp;rsquo;) = B(T) - x.freq - y.freq\).&lt;/p&gt;
+&lt;p&gt;The second part of this proof supposes that \(T\) is not an optimal prefix code for \(C\) and ends in a contradiction, thus proving the original lemma. If \(T\) is not optimal for \(C\), then \(B(T&amp;rsquo;&amp;rsquo;) &amp;lt; B(T)\) for some optimal tree \(T&amp;rsquo;&amp;rsquo;\).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Here, \(T&amp;rsquo;&amp;rsquo;\) is introduced as the supposed optimal tree for \(C\) if it turns out that \(T\) is not.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;If \(T&amp;rsquo;&amp;rsquo;\) is optimal, then lemma 15.2 (greedy property) from above implies that it has \(x\) and \(y\) as siblings. After all, \(\{x, y\} \in C\) and \(T&amp;rsquo;&amp;rsquo;\) is an optimal tree for \(C\). Create a tree \(T&amp;rsquo;&amp;rsquo;&amp;rsquo;\) by replacing the parent of \(x\) and \(y\) with a leaf (implying we remove \(x\) and \(y\)) \(z\) with \(z.freq = x.freq + y.freq\). Then,&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+B(T&amp;rsquo;&amp;rsquo;&amp;rsquo;) &amp;amp;= B(T&amp;rsquo;&amp;rsquo;) - x.freq - y.freq\\
+&amp;amp;&amp;lt; B(T) - x.freq - y.freq\\
+&amp;amp;= B(T&amp;rsquo;).
+\end{align*}&lt;/p&gt;
+&lt;p&gt;\(B(T&amp;rsquo;&amp;rsquo;&amp;rsquo;) &amp;lt; B(T&amp;rsquo;)\) is a contradiction because it was previously established that \(T&amp;rsquo;\) is an optimal tree for \(C&amp;rsquo;\). Therefore a suboptimal \(T\) is impossible if \(T&amp;rsquo;\) is optimal.&lt;/p&gt;
 </description>
     </item>
     

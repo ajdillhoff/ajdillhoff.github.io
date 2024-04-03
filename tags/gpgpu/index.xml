@@ -122,6 +122,257 @@ Index &amp;amp; 0 &amp;amp; 1 &amp;amp; 2 &amp;amp; 3 &amp;amp; 4 &amp;amp; 5 &a
     </item>
     
     <item>
+      <title>Sparse Matrix Computation</title>
+      <link>https://ajdillhoff.github.io/notes/sparse_matrix_computation/</link>
+      <pubDate>Sat, 30 Mar 2024 10:36:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/sparse_matrix_computation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#coordinate-list-format--coo&#34;&gt;Coordinate List Format (COO)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#compressed-sparse-row-format--csr&#34;&gt;Compressed Sparse Row Format (CSR)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#ell-format&#34;&gt;ELL Format&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#ell-coo-format&#34;&gt;ELL-COO Format&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#jagged-diagonal-storage-format--jds&#34;&gt;Jagged Diagonal Storage Format (JDS)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Sparse matrices are matrices with mostly zero elements. They are common in scientific computing, machine learning, and other fields. It is important to study them in the context of GPU computing because they can be very large and require a lot of memory. Effeciently representing and computing with sparse matrices provides a substantial benefit to many applications.&lt;/p&gt;
+&lt;p&gt;The obvious benefits of sparsity is that we can typically represent the same matrix using a smaller memory footprint. Fewer elements means fewer wasted operations as well. The challenges of GPU implementations are that the memory access patterns are not always friendly to the GPU architecture. This is especially true for sparse matrices, where the memory access patterns are often irregular.&lt;/p&gt;
+&lt;p&gt;These notes will review the sparse matrix formats as presented in (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;). Each will be evaluated using the following criteria:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: How well does the format compact the data?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility&lt;/strong&gt;: Is the format easy to modify?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; How easy is it to access the data?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Are the accesses coalesced?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Are the operations balanced across threads?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;coordinate-list-format--coo&#34;&gt;Coordinate List Format (COO)&lt;/h2&gt;
+&lt;p&gt;This format stores non-zero elements in a 1D array of values. It also requires two 1D arrays to store the row and column indices, incurrent an overhead of 2N. The values in each array are contiguous, which is good for memory access.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-42-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;COO Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_coo_kernel(COOMatrix cooMatrix, float *x, float *y) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &amp;lt; cooMatrix.numNonzeros) {
+        int row = cooMatrix.rowIdx[i];
+        int col = cooMatrix.colIdx[i];
+        float val = cooMatrix.values[i];
+        atomicAdd(&amp;amp;y[row], val * x[col]);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: Compared to representing the matrices in dense format, the COO format is very compact. However, it is not as compact as some other sparse matrix formats. It requires an additional over head of 2N elements to store the row and column indices.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; Indices and values can be easily modified in this format. This is good for applications that require frequent modifications.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; It is easy to access nonzero elements. It is &lt;strong&gt;not&lt;/strong&gt; easy to access the original 0s in each row.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The values in this format are contiguous, resulting in coalesced memory access.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; The data is uniformly distributed across threads, resulting in good load balance.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;One major drawback, as seen in the code above, is the use of atomic operations.&lt;/p&gt;
+&lt;h2 id=&#34;compressed-sparse-row-format--csr&#34;&gt;Compressed Sparse Row Format (CSR)&lt;/h2&gt;
+&lt;p&gt;The key idea of this format is that each thread is responsible for all nonzeros in a row.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-50-47_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;CSR Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;CSR Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_csr_kernel(CSRMatrix csrMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &amp;lt; csrMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = csrMatrix.rowPtr[row]; j &amp;lt; csrMatrix.rowPtr[row + 1]; j++) {
+            sum += csrMatrix.values[j] * x[csrMatrix.colIdx[j]];
+        }
+        y[i] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The rows are mapped to a single pointer index, so it only needs \(m\) entries to store them. The columns are not required to be in order. If the columns &lt;em&gt;are&lt;/em&gt; in order, the data is represented in row-major order without the zero elements.&lt;/p&gt;
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction&lt;/strong&gt;: The CSR format is more compact than the COO format since it only requires \(m\) entries to store the row pointers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; The CSR format is not as flexible as the COO format. It is not easy to modify the values or indices.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; There is less parallelization than COO due to the row sizes.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The memory access pattern is poor since the data is separated over columns.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; The load is not balanced across threads. Some threads will have more work than others, leading to control divergence.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;ell-format&#34;&gt;ELL Format&lt;/h2&gt;
+&lt;p&gt;ELL fixes the non-coalesced memory accesses of CSR via data padding and transposition. This is visualized below:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Start with CSR format&lt;/li&gt;
+&lt;li&gt;Pad rows to equal size&lt;/li&gt;
+&lt;li&gt;Store in column-major order&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_19-53-05_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;ELL Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;ELL Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;kernel-implementation&#34;&gt;Kernel Implementation&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void spmv_ell_kernel(ELLMatrix ellMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &amp;lt; ellMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = 0; j &amp;lt; ellMatrix.nnzPerRow[row]; j++) {
+            int col = ellMatrix.colIdx[j * ellMatrix.numRows + row];
+            sum += ellMatrix.values[j * ellMatrix.numRows + row] * x[col];
+        }
+        y[row] = sum;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; Padding the rows means this is less space efficient than CSR.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; More flexible than CSR; adding nonzeros in CSR requires a shift of values. This format can replaced a padded element if necessary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; ELL can return the row given the index of a nonzero element as well as the nonzero of a row given that index.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Consecutive threads access consecutive memory locations.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Shares the same control divergence issues as CSR.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;ell-coo-format&#34;&gt;ELL-COO Format&lt;/h2&gt;
+&lt;p&gt;ELL-COO combines the two formats to improve space efficiency and control divergence.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_20-01-43_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;ELL-COO Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;ELL-COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; ELL-COO has the same compaction as ELL.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; ELL-COO is more flexible than ELL thanks to inclusion of the COO format.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; It is not always possible to access all nonzeros given a row index.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; The memory access pattern is coalesced.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; COO reduces the control divergence seen in ELL alone.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;jagged-diagonal-storage-format--jds&#34;&gt;Jagged Diagonal Storage Format (JDS)&lt;/h2&gt;
+&lt;p&gt;The last format we will consider is the Jagged Diagonal Storage format. This format reduces divergence and improves memory coalescing without padding. The main idea is to sort the rows by length from longest to shortest.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Group nonzeros by row&lt;/li&gt;
+&lt;li&gt;Sort rows by length while preserving their original row indices&lt;/li&gt;
+&lt;li&gt;Store in column-major order&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-02_20-07-30_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;JDS Format (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;JDS Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;evaluation&#34;&gt;Evaluation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Compaction:&lt;/strong&gt; Avoid paddding, so it is more space efficient than ELL.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flexibility:&lt;/strong&gt; Less flexible than ELL since it requires sorting when adding new elements.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accessibility:&lt;/strong&gt; Cannot access a row and column given the index of a nonzero element.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memory access efficiency:&lt;/strong&gt; Without padding, the starting location of memory accesses in each iteration can vary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Load balance:&lt;/strong&gt; Since the rows are sorted, threads of the same warp are likely to iterate over rows of similar length.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>GPU Pattern: Merge</title>
       <link>https://ajdillhoff.github.io/notes/gpu_pattern_merge/</link>
       <pubDate>Wed, 28 Feb 2024 19:19:00 -0600</pubDate>

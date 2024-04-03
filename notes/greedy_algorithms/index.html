@@ -417,7 +417,7 @@ Activity Selection Given a set of activities that need to be scheduled using a c
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    13 min read
+    18 min read
   </span>
   
 
@@ -940,6 +940,117 @@ S_{k} = \{a_i \in S : s_i \geq f_k\}.
 B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
 \]</p>
 <p>The depth of the character \(d_T( c)\) is used since it also denotes the length of the codeword.</p>
+<h3 id="constructing-a-huffman-code">Constructing a Huffman Code</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Node</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, freq, char<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>freq <span style="color:#f92672">=</span> freq
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>char <span style="color:#f92672">=</span> char
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">huffman</span>(C):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(C)
+</span></span><span style="display:flex;"><span>    Q <span style="color:#f92672">=</span> build_min_heap(C)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        z <span style="color:#f92672">=</span> Node(<span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        z<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> x <span style="color:#f92672">=</span> extract_min(Q)
+</span></span><span style="display:flex;"><span>        z<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> y <span style="color:#f92672">=</span> extract_min(Q)
+</span></span><span style="display:flex;"><span>        z<span style="color:#f92672">.</span>freq <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>freq <span style="color:#f92672">+</span> y<span style="color:#f92672">.</span>freq
+</span></span><span style="display:flex;"><span>        insert(Q, z)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> extract_min(Q)
+</span></span></code></pre></div><p>The function above builds a Huffman tree from a set of characters \(C\). At each iteration, the two nodes with the smallest frequencies are extracted from the queue \(Q\) and are used to create a new node \(z\). This node represents the sum of the frequencies of the two nodes. The node is then inserted back into the queue so that it can be used in future iterations. The result is a Huffman tree.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-01_20-48-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Huffman tree for the data in the table above (Cormen et al. 2022)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Huffman tree for the data in the table above (Cormen et al. 2022).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="analysis">Analysis</h4>
+<p>If the priority queue is implemented as a binary min-heap, the call to <code>build_min_heap</code> initializes the priority queue in \(O(n)\) time. The <code>for</code> loop runs \(n-1\) times, calling <code>extract_min</code> twice and <code>insert</code> once. Each call to <code>extract_min</code> takes \(O(\lg n)\) time yielding a total of \(O(n \lg n)\) time.</p>
+<h3 id="correctness-of-huffman-codes">Correctness of Huffman Codes</h3>
+<p>The correctness of an algorithm means that it produces the expected output based on the input and its properties. To show that the Huffman algorithm is correct, we can show that it exhibits the greedy choice and optimal substructure properties.</p>
+<h4 id="lemma-15-dot-2-optimal-prefix-free-codes-have-the-greedy-choice-property">Lemma 15.2: Optimal prefix-free codes have the greedy-choice property</h4>
+<p>For alphabet \(C\), let \(x\) and \(y\) be the two characters with the lowest frequencies. Then there exists an optimal prefix-free code for \(C\) where the codewords for \(x\) and \(y\) have the same length and differ only in the last bit.</p>
+<p>This establishes the greedy choice property because the algorithm selects the two characters with the lowest frequencies at each step.</p>
+<p><strong>Proof</strong></p>
+<p>In the given optimal tree \(T\), leaves \(a\) and \(b\) are two siblings with maximum depth. It&rsquo;s also given that \(x\) and \(y\) are the two characters with the lowest frequencies, but they appear in arbitrary positions.</p>
+<p>Assume that \(x \neq b\). Swapping \(a\) and \(x\) produces tree \(T&rsquo;\) does not increase the cost. Swapping \(b\) and \(y\) produces tree \(T&rsquo;&rsquo;\) that also does not increase the cost. <strong>This is the key argument: if swapping the lowest frequency characters with the deepest characters does not increase the cost, then the greedy choice is optimal.</strong></p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_10-40-38_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Creating (T&#39;) and (T&#39;&#39;) from (T) (Cormen et al. 2022)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Creating (T&rsquo;) and (T&rsquo;&rsquo;) from (T) (Cormen et al. 2022).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Next, we need to show that exchanging \(a\) and \(x\) does not increase the cost. The cost of the tree is given by</p>
+<p>\[
+B(T) = \sum_{c \in C} c.freq \cdot d_T( c).
+\]</p>
+<p>\begin{align*}
+B(T) - B(T&rsquo;) &amp;= \sum_{c \in C} c.freq \cdot d_{T}( c) - \sum_{c \in C} c.freq \cdot d_{T&rsquo;}( c) \\
+&amp;= x.freq \cdot d_T(x) + a.freq \cdot d_T(a) - x.freq \cdot d_{T&rsquo;}(x) - a.freq \cdot d_{T&rsquo;}(a) \\
+&amp;= x.freq \cdot d_T(x) + a.freq \cdot d_T(a) - x.freq \cdot d_{T}(a) - a.freq \cdot d_{T}(x) \\
+&amp;= (x.freq - a.freq)(d_T(x) - d_T(a)) \\
+&amp;\geq 0.
+\end{align*}</p>
+<p>The last line is true because \(x.freq \leq a.freq\) and \(d_T(x) \geq d_T(a)\). A similar argument can be made for \(T&rsquo;&rsquo;\). \(B(T&rsquo;&rsquo;) \leq B(T&rsquo;)\) since exchanging \(y\) and \(b\) does not increase the cost. This means that \(B(T&rsquo;&rsquo;) \leq B(T&rsquo;) \leq B(T)\). \(T\) is an optimal tree, so \(B(T) \leq B(T&rsquo;&rsquo;) \implies B(T) = B(T&rsquo;&rsquo;) \implies T\) is optimal where \(x\) and \(y\) are siblings of maximum depth.</p>
+<h4 id="lemma-15-dot-3-optimal-substructure-property">Lemma 15.3: Optimal-substructure property</h4>
+<p>Let \(x\) and \(y\) be two characters with minimum frequency in alphabet \(C\) and let \(C&rsquo; = (C - \{x, y\}) \cup z\) for a new character \(z\) with \(z.freq = x.freq + y.freq\). Additionally, let \(T&rsquo;\) be a tree representing an optimal prefix-free code for \(C&rsquo;\), and \(T\) be \(T&rsquo;\) with the leaf for \(z\) replaced by an internal node with children \(x\) and \(y\). Then \(T\) represents an optimal prefix-free code for \(C\).</p>
+<p><strong>Simplified:</strong> If the algorithm computed the optimal solution to the simplified problem, where \(z\) replaced \(x\) and \(y\), it can extend this to an optimal solution to the original problem by putting \(x\) and \(y\) back.</p>
+<p><strong>Proof</strong></p>
+<p>The first part of the proof establishes the costs of the relevant trees.</p>
+<p>\(c \in C - \{x, y\} \implies d_T( c) = d_{T&rsquo;}( c) \implies c.freq \cdot d_T( c) = c.freq \cdot d_{T&rsquo;}( c)\)</p>
+<p>The depth of \(x\) and \(y\) are equal to the depth of \(z\) in \(T&rsquo;\) + 1:</p>
+<p>\begin{align*}
+d_T(x) = d_T(y) = d_{T&rsquo;}(z) + 1 &amp;\implies x.freq \cdot d_T(x) + y.freq \cdot d_T(y)\\
+&amp;= (x.freq + y.freq)(d_{T&rsquo;}(z) + 1)\\
+&amp;= z.freq \cdot d_{T&rsquo;}(z) + (x.freq + y.freq).
+\end{align*}</p>
+<p>This means that \(B(T) = B(T&rsquo;) + x.freq + y.freq\), which is equivalent to \(B(T&rsquo;) = B(T) - x.freq - y.freq\).</p>
+<p>The second part of this proof supposes that \(T\) is not an optimal prefix code for \(C\) and ends in a contradiction, thus proving the original lemma. If \(T\) is not optimal for \(C\), then \(B(T&rsquo;&rsquo;) &lt; B(T)\) for some optimal tree \(T&rsquo;&rsquo;\).</p>
+<p><strong>Here, \(T&rsquo;&rsquo;\) is introduced as the supposed optimal tree for \(C\) if it turns out that \(T\) is not.</strong></p>
+<p>If \(T&rsquo;&rsquo;\) is optimal, then lemma 15.2 (greedy property) from above implies that it has \(x\) and \(y\) as siblings. After all, \(\{x, y\} \in C\) and \(T&rsquo;&rsquo;\) is an optimal tree for \(C\). Create a tree \(T&rsquo;&rsquo;&rsquo;\) by replacing the parent of \(x\) and \(y\) with a leaf (implying we remove \(x\) and \(y\)) \(z\) with \(z.freq = x.freq + y.freq\). Then,</p>
+<p>\begin{align*}
+B(T&rsquo;&rsquo;&rsquo;) &amp;= B(T&rsquo;&rsquo;) - x.freq - y.freq\\
+&amp;&lt; B(T) - x.freq - y.freq\\
+&amp;= B(T&rsquo;).
+\end{align*}</p>
+<p>\(B(T&rsquo;&rsquo;&rsquo;) &lt; B(T&rsquo;)\) is a contradiction because it was previously established that \(T&rsquo;\) is an optimal tree for \(C&rsquo;\). Therefore a suboptimal \(T\) is impossible if \(T&rsquo;\) is optimal.</p>
 
     </div>
 

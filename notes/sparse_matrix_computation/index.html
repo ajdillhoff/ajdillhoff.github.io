@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Coordinate List Format (COO) Compressed Sparse Row Format (CSR) ELL Format ELL-COO Format Jagged Diagonal Storage Format (JDS) Introduction Sparse matrices are matrices with mostly zero elements. They are common in scientific computing, machine learning, and other fields. It is important to study them in the context of GPU computing because they can be very large and require a lot of memory. Effeciently representing and computing with sparse matrices provides a substantial benefit to many applications.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/sparse_matrix_computation/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/sparse_matrix_computation/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/sparse_matrix_computation/">
+  <meta property="og:title" content="Sparse Matrix Computation | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Coordinate List Format (COO) Compressed Sparse Row Format (CSR) ELL Format ELL-COO Format Jagged Diagonal Storage Format (JDS) Introduction Sparse matrices are matrices with mostly zero elements. They are common in scientific computing, machine learning, and other fields. It is important to study them in the context of GPU computing because they can be very large and require a lot of memory. Effeciently representing and computing with sparse matrices provides a substantial benefit to many applications."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-03-30T10:36:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-03-30T10:36:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Sparse Matrix Computation | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Sparse Matrix Computation</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-03-30 10:36:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-03-30 10:36:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Mar 30, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/sparse_matrix_computation/&amp;text=Sparse%20Matrix%20Computation" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/sparse_matrix_computation/&amp;t=Sparse%20Matrix%20Computation" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Sparse%20Matrix%20Computation&amp;body=https://ajdillhoff.github.io/notes/sparse_matrix_computation/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/sparse_matrix_computation/&amp;title=Sparse%20Matrix%20Computation" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Sparse%20Matrix%20Computation%20https://ajdillhoff.github.io/notes/sparse_matrix_computation/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/sparse_matrix_computation/&amp;title=Sparse%20Matrix%20Computation" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#coordinate-list-format--coo">Coordinate List Format (COO)</a></li>
+<li><a href="#compressed-sparse-row-format--csr">Compressed Sparse Row Format (CSR)</a></li>
+<li><a href="#ell-format">ELL Format</a></li>
+<li><a href="#ell-coo-format">ELL-COO Format</a></li>
+<li><a href="#jagged-diagonal-storage-format--jds">Jagged Diagonal Storage Format (JDS)</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<p>Sparse matrices are matrices with mostly zero elements. They are common in scientific computing, machine learning, and other fields. It is important to study them in the context of GPU computing because they can be very large and require a lot of memory. Effeciently representing and computing with sparse matrices provides a substantial benefit to many applications.</p>
+<p>The obvious benefits of sparsity is that we can typically represent the same matrix using a smaller memory footprint. Fewer elements means fewer wasted operations as well. The challenges of GPU implementations are that the memory access patterns are not always friendly to the GPU architecture. This is especially true for sparse matrices, where the memory access patterns are often irregular.</p>
+<p>These notes will review the sparse matrix formats as presented in (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>). Each will be evaluated using the following criteria:</p>
+<ol>
+<li><strong>Compaction</strong>: How well does the format compact the data?</li>
+<li><strong>Flexibility</strong>: Is the format easy to modify?</li>
+<li><strong>Accessibility:</strong> How easy is it to access the data?</li>
+<li><strong>Memory access efficiency:</strong> Are the accesses coalesced?</li>
+<li><strong>Load balance:</strong> Are the operations balanced across threads?</li>
+</ol>
+<h2 id="coordinate-list-format--coo">Coordinate List Format (COO)</h2>
+<p>This format stores non-zero elements in a 1D array of values. It also requires two 1D arrays to store the row and column indices, incurrent an overhead of 2N. The values in each array are contiguous, which is good for memory access.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_19-42-49_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>COO Format (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="kernel-implementation">Kernel Implementation</h3>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_coo_kernel(COOMatrix cooMatrix, float *x, float *y) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; cooMatrix.numNonzeros) {
+        int row = cooMatrix.rowIdx[i];
+        int col = cooMatrix.colIdx[i];
+        float val = cooMatrix.values[i];
+        atomicAdd(&amp;y[row], val * x[col]);
+    }
+}
+</code></pre><h3 id="evaluation">Evaluation</h3>
+<ol>
+<li><strong>Compaction</strong>: Compared to representing the matrices in dense format, the COO format is very compact. However, it is not as compact as some other sparse matrix formats. It requires an additional over head of 2N elements to store the row and column indices.</li>
+<li><strong>Flexibility:</strong> Indices and values can be easily modified in this format. This is good for applications that require frequent modifications.</li>
+<li><strong>Accessibility:</strong> It is easy to access nonzero elements. It is <strong>not</strong> easy to access the original 0s in each row.</li>
+<li><strong>Memory access efficiency:</strong> The values in this format are contiguous, resulting in coalesced memory access.</li>
+<li><strong>Load balance:</strong> The data is uniformly distributed across threads, resulting in good load balance.</li>
+</ol>
+<p>One major drawback, as seen in the code above, is the use of atomic operations.</p>
+<h2 id="compressed-sparse-row-format--csr">Compressed Sparse Row Format (CSR)</h2>
+<p>The key idea of this format is that each thread is responsible for all nonzeros in a row.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_19-50-47_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;CSR Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>CSR Format (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="kernel-implementation">Kernel Implementation</h3>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_csr_kernel(CSRMatrix csrMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &lt; csrMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = csrMatrix.rowPtr[row]; j &lt; csrMatrix.rowPtr[row + 1]; j++) {
+            sum += csrMatrix.values[j] * x[csrMatrix.colIdx[j]];
+        }
+        y[i] = sum;
+    }
+}
+</code></pre><p>The rows are mapped to a single pointer index, so it only needs \(m\) entries to store them. The columns are not required to be in order. If the columns <em>are</em> in order, the data is represented in row-major order without the zero elements.</p>
+<h3 id="evaluation">Evaluation</h3>
+<ol>
+<li><strong>Compaction</strong>: The CSR format is more compact than the COO format since it only requires \(m\) entries to store the row pointers.</li>
+<li><strong>Flexibility:</strong> The CSR format is not as flexible as the COO format. It is not easy to modify the values or indices.</li>
+<li><strong>Accessibility:</strong> There is less parallelization than COO due to the row sizes.</li>
+<li><strong>Memory access efficiency:</strong> The memory access pattern is poor since the data is separated over columns.</li>
+<li><strong>Load balance:</strong> The load is not balanced across threads. Some threads will have more work than others, leading to control divergence.</li>
+</ol>
+<h2 id="ell-format">ELL Format</h2>
+<p>ELL fixes the non-coalesced memory accesses of CSR via data padding and transposition. This is visualized below:</p>
+<ol>
+<li>Start with CSR format</li>
+<li>Pad rows to equal size</li>
+<li>Store in column-major order</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_19-53-05_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;ELL Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>ELL Format (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="kernel-implementation">Kernel Implementation</h3>
+<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_ell_kernel(ELLMatrix ellMatrix, float *x, float *y) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row &lt; ellMatrix.numRows) {
+        float sum = 0.0f;
+        for (int j = 0; j &lt; ellMatrix.nnzPerRow[row]; j++) {
+            int col = ellMatrix.colIdx[j * ellMatrix.numRows + row];
+            sum += ellMatrix.values[j * ellMatrix.numRows + row] * x[col];
+        }
+        y[row] = sum;
+    }
+}
+</code></pre><h3 id="evaluation">Evaluation</h3>
+<ol>
+<li><strong>Compaction:</strong> Padding the rows means this is less space efficient than CSR.</li>
+<li><strong>Flexibility:</strong> More flexible than CSR; adding nonzeros in CSR requires a shift of values. This format can replaced a padded element if necessary.</li>
+<li><strong>Accessibility:</strong> ELL can return the row given the index of a nonzero element as well as the nonzero of a row given that index.</li>
+<li><strong>Memory access efficiency:</strong> Consecutive threads access consecutive memory locations.</li>
+<li><strong>Load balance:</strong> Shares the same control divergence issues as CSR.</li>
+</ol>
+<h2 id="ell-coo-format">ELL-COO Format</h2>
+<p>ELL-COO combines the two formats to improve space efficiency and control divergence.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_20-01-43_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;ELL-COO Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>ELL-COO Format (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="evaluation">Evaluation</h3>
+<ol>
+<li><strong>Compaction:</strong> ELL-COO has the same compaction as ELL.</li>
+<li><strong>Flexibility:</strong> ELL-COO is more flexible than ELL thanks to inclusion of the COO format.</li>
+<li><strong>Accessibility:</strong> It is not always possible to access all nonzeros given a row index.</li>
+<li><strong>Memory access efficiency:</strong> The memory access pattern is coalesced.</li>
+<li><strong>Load balance:</strong> COO reduces the control divergence seen in ELL alone.</li>
+</ol>
+<h2 id="jagged-diagonal-storage-format--jds">Jagged Diagonal Storage Format (JDS)</h2>
+<p>The last format we will consider is the Jagged Diagonal Storage format. This format reduces divergence and improves memory coalescing without padding. The main idea is to sort the rows by length from longest to shortest.</p>
+<ol>
+<li>Group nonzeros by row</li>
+<li>Sort rows by length while preserving their original row indices</li>
+<li>Store in column-major order</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-02_20-07-30_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;JDS Format (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>JDS Format (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="evaluation">Evaluation</h3>
+<ol>
+<li><strong>Compaction:</strong> Avoid paddding, so it is more space efficient than ELL.</li>
+<li><strong>Flexibility:</strong> Less flexible than ELL since it requires sorting when adding new elements.</li>
+<li><strong>Accessibility:</strong> Cannot access a row and column given the index of a nonzero element.</li>
+<li><strong>Memory access efficiency:</strong> Without padding, the starting location of memory accesses in each iteration can vary.</li>
+<li><strong>Load balance:</strong> Since the rows are sorted, threads of the same warp are likely to iterate over rows of similar length.</li>
+</ol>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/gpu_pattern_merge/">GPU Pattern: Merge</a></li>
+          
+          <li><a href="/notes/gpu_pattern_parallel_scan/">GPU Pattern: Parallel Scan</a></li>
+          
+          <li><a href="/notes/gpu_pattern_reduction/">GPU Pattern: Reduction</a></li>
+          
+          <li><a href="/notes/gpu_pattern_parallel_histogram/">GPU Pattern: Parallel Histogram</a></li>
+          
+          <li><a href="/notes/gpu_pattern_stencils/">GPU Pattern: Stencils</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
