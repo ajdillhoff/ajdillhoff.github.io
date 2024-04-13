@@ -591,22 +591,25 @@ Introduction All sorting algorithms discussed up to this point are comparison ba
 <p>Consider a binary tree of height \(h\) with \(l\) reachable leaves. Each of the \(n!\) permutations occurs as one of the leaves, so \(n! \leq l\) since there may be duplicate permutations in the leaves. A binary tree with height \(h\) has no more than \(2^h\) leaves, so \(n! \leq l \leq 2^h\). Taking the logarithm of this inequality implies that \(h \geq \lg n!\). Since \(\lg n! = \Theta(n \lg n)\), and is a lower bound on the height of the tree, then any comparison sort must make \(\Omega (n \lg n)\) comparisons.</p>
 <h2 id="counting-sort">Counting Sort</h2>
 <p>Counting sort can sort an array of integers in \(O(n+k)\) time, where \(k \geq 0\) is the largest integer in the set. It works by counting the number of elements less than or equal to each element \(x\).</p>
-<p>#+begin_src python
-def counting_sort(A, k):
-n = len(A)
-B = [0 for i in range(n)]
-C = [0 for i in range(k+1)]</p>
-<p>for i in range(n):
-C[A[i]] += 1</p>
-<p>for i in range(1, k):
-C[i] = C[i] + C[i-1]</p>
-<p>for i in range(n - 1, -1, -1):
-B[C[A[i]]-1] = A[i]
-C[A[i]] = C[A[i]] - 1</p>
-<pre><code>return B
-</code></pre>
-<p>#+end_src python</p>
-<p>The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">counting_sort</span>(A, k):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(A)
+</span></span><span style="display:flex;"><span>    B <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>    C <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        C[A[i]] <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># C[i] contains the number of elements equal to i</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, k):
+</span></span><span style="display:flex;"><span>        C[i] <span style="color:#f92672">=</span> C[i] <span style="color:#f92672">+</span> C[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># C[i] contains the number of elements less than or equal to i</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        B[C[A[i]]<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> A[i]
+</span></span><span style="display:flex;"><span>        C[A[i]] <span style="color:#f92672">=</span> C[A[i]] <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> B
+</span></span></code></pre></div><p>The first two loops establish the number of elements less than or equal to \(i\) for each element \(i\). The main sticking point in understanding this algorithm is the last loop. It starts at the very end of loop, placing the last element from \(A\) into the output array \(B\) in its correct position as determined by \(C\).</p>
 <p>Consider a simple example with \(\{2, 5, 5, 3, 4\}\). After the second loop, \(C = \{0, 0, 1, 2, 3, 5\}\). On the first iteration of the last loop, \(A[4] = 4\) is used as the index into \(C\), which yields \(3\) since the value \(4\) is greater than or equal to \(3\) elements in the original array. It is then placed in the correct spot \(B[3-1] = 4\).</p>
 <p>Another example is shown in figure 8.2 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
 <h2 id="radix-sort">Radix Sort</h2>

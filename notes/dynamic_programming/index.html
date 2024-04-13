@@ -638,7 +638,7 @@ r_n = \max(p_n, r_1 + r_{n-1}, r_2 + r_{n-2}, \ldots, r_{n-1} + r_1),
 <p>\[
 r_n = \max_{1 \leq i \leq n}(p_i + r_{n-i}).
 \]</p>
-<p>This problem has <strong>optimal substructure</strong>. If we cut the rod into smaller subsections, we can recursively solve this subproblems recursively and combine them. The recursive algorithm is as follows:</p>
+<p>This problem has <strong>optimal substructure</strong>. If we cut the rod into smaller subsections, we can recursively solve the subproblems and combine them. The recursive algorithm is as follows:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">cut_rod</span>(p, n):
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
@@ -674,7 +674,7 @@ T(n) &amp;= 1 + \sum_{j=0}^{n-1}2^j \\
 </span></span><span style="display:flex;"><span>            q <span style="color:#f92672">=</span> max(q, p[i] <span style="color:#f92672">+</span> memoized_cut_rod_aux(p, n<span style="color:#f92672">-</span>i, r))
 </span></span><span style="display:flex;"><span>    r[n] <span style="color:#f92672">=</span> q
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> q
-</span></span></code></pre></div><p>The algorithm starts off with a call to <code>memoized_cut_rod</code> which initializes the table <code>r</code> and then calls <code>memoized_cut_rod_aux</code>. The table <code>r</code> is initialized with \(-\infty\) so that we can check if a solution has been computed for a subproblem. Each subproblem is solved only ones, leading to \(O(1)\) lookups after that. The time complexity of this solution is \(O(n^2)\).</p>
+</span></span></code></pre></div><p>The algorithm starts off with a call to <code>memoized_cut_rod</code> which initializes the table <code>r</code> and then calls <code>memoized_cut_rod_aux</code>. The table <code>r</code> is initialized with \(-\infty\) so that we can check if a solution has been computed for a subproblem. Each subproblem is solved only once, leading to \(O(1)\) lookups after that. The time complexity of this solution is \(O(n^2)\).</p>
 <h3 id="bottom-up-solution">Bottom-Up Solution</h3>
 <p>The other dynamic programming solution is to first sort the subproblems by their size, solve the smaller ones first, and build up to the larger ones. This is called <strong>tabulation</strong>. The time complexity of this solution is also \(O(n^2)\).</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bottom_up_cut_rod</span>(p, n):
@@ -713,7 +713,7 @@ T(n) &amp;= 1 + \sum_{j=0}^{n-1}2^j \\
 </figure>
 
 <p>Subproblem \(n=4\) is dependent on subproblems \(n=3\), \(n=2\), and \(n=1\). The bottom-up approach follows this dependency by ensuring that the subproblems are solved in the correct order.</p>
-<p>Besides serving as a helpful visualization. Depicting the problem using a DAG can also help to identify the time complexity of the problem. This is the sum of the time needed to solve each subproblem. Each problem of size \(n\) requires \(n-1\) subproblems to be solved, and each subproblem of size \(n-1\) requires \(n-2\) subproblems to be solved. This leads to a time complexity of \(O(n^2)\).</p>
+<p>Besides serving as a helpful visualization, depicting the problem using a DAG can also help to identify the time complexity of the problem. This is the sum of the time needed to solve each subproblem. Each problem of size \(n\) requires \(n-1\) subproblems to be solved, and each subproblem of size \(n-1\) requires \(n-2\) subproblems to be solved. This leads to a time complexity of \(O(n^2)\).</p>
 <h3 id="reconstructing-a-solution">Reconstructing a Solution</h3>
 <p>The two dynamic programming solutions above return the maximum revenue that can be obtained by cutting up the rod. However, they do not return the actual cuts that should be made. This can be done by modifying the algorithms to store the cuts that are made. The code is given below.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">extended_bottom_up_cut_rod</span>(p, n):
@@ -810,7 +810,7 @@ m[i,j] = \min \{m[i,k] + m[k+1,j] + p_{i-1}p_kp_j : i \leq k &lt; j\}.
 <li><strong>Shortest path</strong>: find a path \(u \leadsto v\) with the fewest edges without cycles.</li>
 <li><strong>Longest simple path</strong>: find a path \(u \leadsto v\) with the most edges without cycles.</li>
 </ol>
-<p>The first problem has optimal substructure. If we suppose that the shortest path \(u \leadsto v\) is given by \(p\). Given some intermediate vertex \(w\), the optimal path from \(u \leadsto w\) is given by \(p_1\) and the optimal path from \(w \leadsto v\) is given by \(p_2\). If there were a shorter path \(p`_1\) from \(u \leadsto w\) then we could replace \(p_1\) with it and get a total path with fewer edges.</p>
+<p>The first problem has optimal substructure. Suppose that the shortest path \(u \leadsto v\) is given by \(p\). Given some intermediate vertex \(w\), the optimal path from \(u \leadsto w\) is given by \(p_1\) and the optimal path from \(w \leadsto v\) is given by \(p_2\). If there were a shorter path \(p&rsquo;_1\) from \(u \leadsto w\) then we could replace \(p_1\) with it and get a total path with fewer edges.</p>
 <p><strong>Check your understanding</strong></p>
 <p>Why does that argument reinforce the idea of optimal substructure? By showing that the optimal solution to a subproblem is the optimal solution to the original problem. This argument becomes clearer as we consider the longest simple path problem.</p>
 

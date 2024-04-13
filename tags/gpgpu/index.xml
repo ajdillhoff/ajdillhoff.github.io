@@ -7,10 +7,273 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sun, 31 Mar 2024 10:50:00 -0500</lastBuildDate>
+    <lastBuildDate>Sat, 06 Apr 2024 15:26:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/gpgpu/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Parallel Graph Traversal</title>
+      <link>https://ajdillhoff.github.io/notes/parallel_graph_traversal/</link>
+      <pubDate>Sat, 06 Apr 2024 15:26:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/parallel_graph_traversal/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#parallelization-over-vertices&#34;&gt;Parallelization over vertices&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#parallelization-over-edges&#34;&gt;Parallelization over edges&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#improving-work-efficiency&#34;&gt;Improving work efficiency&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#privatization-to-reduce-contention&#34;&gt;Privatization to reduce contention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#additional-optimizations&#34;&gt;Additional Optimizations&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;For an introduction on basic graph theory and traversal algorithms, see &lt;a href=&#34;https://ajdillhoff.github.io/notes/introduction_to_graph_theory/&#34;&gt;these notes.&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;parallelization-over-vertices&#34;&gt;Parallelization over vertices&lt;/h2&gt;
+&lt;p&gt;When it comes to parallel algorithms, the first thing that may come to your mind is that they must operate on either the edges or the vertices. In either case, it doesn&amp;rsquo;t take much to imagine that such algorithms will require communication between threads due to dependencies in the graph or traversal algorithm.&lt;/p&gt;
+&lt;p&gt;In a breadth-first search, all vertices in one level must be explored before moving into the next. The first approach we look at will require multiple calls to the kernel, one for each level.&lt;/p&gt;
+&lt;h3 id=&#34;top-down-approach&#34;&gt;Top-down Approach&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void bfs_kernel(CSRGraph csrGraph, uint *level,
+                           uint *newVertexVisited, uint *currLevel) {
+    int vertex = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (vertex &amp;lt; csrGraph.numVertices) {
+        if (level[vertex] == currLevel - 1) {
+            for (uint edge = csrGraph.srcPtrs[vertex]; edge &amp;lt; csrGraph.srcPtrs[vertex + 1]; edge++) {
+                int neighbor = csrGraph.edges[edge];
+                if (level[neighbor] == UINT_MAX) {  // Neighbor not visited
+                    level[neighbor] = currLevel;
+                    *newVertexVisited = 1;
+                }
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first kernel above labels the vertices that belong on the given level. For each vertex, it iterates over the outgoing edges. These can be accessed as the nonzero elements in the adjacency matrix for each row. The CSR format is ideal for this case. The figure below shows the result of the first kernel. Only 2 of the threads are active for the first level based on the input graph. This particular version of the algorithm is called the &lt;em&gt;push&lt;/em&gt; version.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-08_20-06-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Vertex-centric _push_ BFS traversal from level 1 to level 2 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Vertex-centric &lt;em&gt;push&lt;/em&gt; BFS traversal from level 1 to level 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The boundary check ensures that the kernel only processes vertices that belong to the current level. Each thread has access to a global &lt;code&gt;newVertexVisited&lt;/code&gt; and will set this to 1 if it finds a new vertex to visit. This is used to determine if the traversal should continue to the next level.&lt;/p&gt;
+&lt;h3 id=&#34;bottom-up-approach&#34;&gt;Bottom-up Approach&lt;/h3&gt;
+&lt;p&gt;The second kernel is also a vertex-centric approach, except it considers incoming edges rather than outgoing ones. This is called the &lt;em&gt;pull&lt;/em&gt; version.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void bfs_kernel(CSCGraph cscGraph, uint *level,
+                           uint *newVertexVisited, uint *currLevel) {
+    int vertex = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (vertex &amp;lt; cscGraph.numVertices) {
+        if (level[vertex] == UINT_MAX) {
+            for (uint edge = cscGraph.dstPtrs[vertex]; edge &amp;lt; cscGraph.dstPtrs[vertex + 1]; edge++) {
+                int neighbor = cscGraph.edges[edge];
+                if (level[neighbor] == currLevel - 1) {  // Neighbor visited
+                    level[vertex] = currLevel;
+                    *newVertexVisited = 1;
+                    break;
+                }
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Note the use of the Compressed Sparse Column (CSC) format for the graph. The kernel requires that each thread be able to access the incoming edges, which would be determined by the nonzero elements of a give column of the adjacency matrix.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-08_20-35-48_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Vertex-centric _pull_ BFS traversal from level 1 to level 2 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Vertex-centric &lt;em&gt;pull&lt;/em&gt; BFS traversal from level 1 to level 2 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;From each thread&amp;rsquo;s point of view, if there is an incoming edge at the previous level then it will be visited at the current level. In that case its job is done and it can break out of the loop. This approach is more efficient for graphs with a high average degree and variance.&lt;/p&gt;
+&lt;p&gt;In early levels, the &lt;em&gt;push&lt;/em&gt; approach is more efficient because they have a relatively smaller number of vertices per level. As more vertices are visited, the &lt;em&gt;pull&lt;/em&gt; approach is more efficient because there is a higher chance of finding an incoming edge and exiting early. Since each level is a separate kernel call, both of these can be combined. An additional piece of overhead would be that one would require both CSR and CSC representations of the graph.&lt;/p&gt;
+&lt;h2 id=&#34;parallelization-over-edges&#34;&gt;Parallelization over edges&lt;/h2&gt;
+&lt;p&gt;As the name suggests, the edge-centric approach processes the edges in parallel. If the source vertex belongs to a previous level and the destination vertex is unvisited, then the destination vertex is labeled with the current level.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void bfs_kernel(COOGraph cooGraph, uint *level,
+                           uint *newVertexVisited, uint *currLevel) {
+    int edge = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (edge &amp;lt; csrGraph.numEdges) {
+        uint vertex = cooGraph.src[edge];
+        if (level[vertex] == currLevel - 1) {
+            uint neighbor = cooGraph.dst[edge];
+            if (level[neighbor] == UINT_MAX) {
+                level[neighbor] = currLevel;
+                *newVertexVisited = 1;
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The edge-centric approach has more parallelism than the vertex-centric approaches. Graphs typically have more edges than vertices, so the largest benefit is on smaller graphs. Another advantage related to load imbalance. In the vertex-centric approach, imbalance comes from the fact that some vertices have more edges than others.&lt;/p&gt;
+&lt;p&gt;The tradeoff of this that every edge is considered. There may be many edges that are not relevant for a particular level. The vertex-centric approach could skip these entirely. Since every edge needs to be indexed, the COO format is used. This requires more space than the CSR or CSC formats.&lt;/p&gt;
+&lt;p&gt;Since these sparse representations are already used, we could perform these operations using sparse matrix multiplications. Libraries such as &lt;a href=&#34;https://github.com/rapidsai/cugraph/blob/branch-24.06/docs/cugraph/source/graph_support/algorithms.md&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;cugraph&lt;/a&gt; provide implementations of these algorithms.&lt;/p&gt;
+&lt;h2 id=&#34;improving-work-efficiency&#34;&gt;Improving work efficiency&lt;/h2&gt;
+&lt;p&gt;The previous two approaches have a common problem: it is likely that many threads will perform no useful work. Take the vertex-centric approach, for example. The threads that are launched only to find out that their vertex is not in the current level will not do anything. This is a waste of resources. Ideally, those threads would not be launched in the first place. A simple solution to this is to have each thread build a &lt;strong&gt;frontier&lt;/strong&gt; of vertices that they visit, so that only the vertices in the frontier are processed.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void bfs_kernel(CSRGraph csrGraph, uint *level,
+                           uint *prevFrontier, uint *currFrontier,
+                           uint numPrevFrontier, uint *numCurrFrontier,
+                           uint currLevel) {
+    uint i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &amp;lt; numPrevFrontier) {
+        uint vertex = prevFrontier[i];
+        for (uint edge = csrGraph.srcPtrs[vertex]; edge &amp;lt; csrGraph.srcPtrs[vertex + 1]; edge++) {
+            uint neighbor = csrGraph.dst[edge];
+            if (atomicCAS(&amp;amp;level[neighbor], UINT_MAX, currLevel) == UINT_MAX) {
+                uint currFrontierIdx = atomicAdd(numCurrFrontier, 1);
+                currFrontier[currFrontierIdx] = neighbor;
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;When launched, only the threads corresponding to a frontier will be active. They start by loading the elements from the previous frontier. As before, they iterate over the outgoing edges. If the neighbor has not been visited, then it is labeled with the current level and added to the current frontier. The atomic operation ensures that the size of the frontier is updated correctly.&lt;/p&gt;
+&lt;p&gt;The call to &lt;code&gt;atomicCAS&lt;/code&gt; prevents multiple threads from adding the same vertex to the frontier. It checks whether the current vertex is unvisited. Not every thread is going to visit the same neighbor, so the contention should be low for this call.&lt;/p&gt;
+&lt;h2 id=&#34;privatization-to-reduce-contention&#34;&gt;Privatization to reduce contention&lt;/h2&gt;
+&lt;p&gt;The use of atomic operations in the previous example introduces contention between threads. As we have previously studied, privatization can be applied in these cases to reduce that contention. In this case, each block will have its own private frontier. The contention is then reduced to atomic operations within a block. An added benefit is that the local frontier is in shared memory, resulting in lower latency atomic operations.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-cuda&#34; data-lang=&#34;cuda&#34;&gt;__global__ void bfs_kernel(CSRGraph csrGraph, uint *level,
+                           uint *prevFrontier, uint *currFrontier,
+                           uint numPrevFrontier, uint *numCurrFrontier,
+                           uint currLevel) {
+
+    // Initialize privatized frontier
+    __shared__ uint currFrontier_s[LOCAL_FRONTIER_CAPACITY];
+    __shared__ uint numCurrFrontier_s;
+
+    if (threadIdx.x == 0) {
+        numCurrFrontier_s = 0;
+    }
+    __syncthreads();
+
+    // Perform BFS
+    uint i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (i &amp;lt; numPrevFrontier) {
+        uint vertex = prevFrontier[i];
+        for (uint edge = csrGraph.srcPtrs[vertex]; edge &amp;lt; csrGraph.srcPtrs[vertex + 1]; edge++) {
+            uint neighbor = csrGraph.dst[edge];
+            if (atomicCAS(&amp;amp;level[neighbor], UINT_MAX, currLevel) == UINT_MAX) {
+                uint currFrontierIdx_s = atomicAdd(&amp;amp;numCurrFrontier_s, 1);
+                if (currFrontierIdx_s &amp;lt; LOCAL_FRONTIER_CAPACITY) {
+                    currFrontier_s[currFrontierIdx_s] = neighbor;
+                } else {
+                    numCurrFrontier_s = LOCAL_FRONTIER_CAPACITY;
+                    uint currFrontierIdx = atomicAdd(numCurrFrontier, 1);
+                    currFrontier[currFrontierIdx] = neighbor;
+                }
+            }
+        }
+    }
+    __syncthreads();
+
+    // Allocate in global frontier
+    __shared__ uint currFrontierStartIdx;
+    if (threadIdx.x == 0) {
+        currFrontierStartIdx = atomicAdd(numCurrFrontier, numCurrFrontier_s);
+    }
+    __syncthreads();
+
+    // Commit to global frontier
+    for (uint currFrontierIdx_s = threadIdx.x; currFrontierIdx_s &amp;lt; numCurrFrontier_s; currFrontierIdx_s += blockDim.x) {
+        currFrontier[currFrontierStartIdx + currFrontierIdx_s] = currFrontier_s[currFrontierIdx_s];
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The main BFS block of the kernel above will write to the local frontier as long as there is space. If the capacity is hit, all future writes will go to the global frontier.&lt;/p&gt;
+&lt;p&gt;After BFS completes, a representative thread (index 0) from each block will allocate space in the global frontier, giving it a unique starting index. This allows each block to safely write to the global frontier without contention. The figure below shows the result of the privatized frontier.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-09_20-23-22_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Privatized frontier for BFS traversal (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Privatized frontier for BFS traversal (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;additional-optimizations&#34;&gt;Additional Optimizations&lt;/h2&gt;
+&lt;h3 id=&#34;reducing-launch-overhead&#34;&gt;Reducing launch overhead&lt;/h3&gt;
+&lt;p&gt;If the frontiers of a BFS are small, the overhead of launching a kernel for each level can be significant. In such cases, a kernel with a grid size of 1 can be launched to handle multiple levels. This block would synchronize after each level to ensure that all threads have completed the current level before moving on to the next.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-09_20-27-58_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Reducing launch overhead by handling multiple levels in a single kernel (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Hwu, Kirk, and El Hajj 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Reducing launch overhead by handling multiple levels in a single kernel (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Hwu, Kirk, and El Hajj 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;improving-load-balance&#34;&gt;Improving load balance&lt;/h3&gt;
+&lt;p&gt;In the first vertex-centric approach we looked at, the threads were not evenly balanced due to the fact that some vertices have more edges than others. For graphs that have high variability in the number of edges per vertex, the frontier can be sorted and placed into multiple buckets. The buckets would be processed by a separate kernel.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. &lt;i&gt;Programming Massively Parallel Processors: A Hands-on Approach&lt;/i&gt;. Fourth. Morgan Kaufmann.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Parallel Sorting Algorithms</title>
