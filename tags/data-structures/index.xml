@@ -23,6 +23,8 @@
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#what-are-graphs&#34;&gt;What are Graphs?&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#breadth-first-search&#34;&gt;Breadth First Search&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#depth-first-search&#34;&gt;Depth First Search&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -109,8 +111,9 @@
 \end{bmatrix}&lt;/p&gt;
 &lt;p&gt;The value at row \(i\) and column \(j\) is the number of paths of length 2 from vertex \(i\) to vertex \(j\). For example, is a path from vertex 0 to vertex 6 via 0 -&amp;gt; 3 -&amp;gt; 6.&lt;/p&gt;
 &lt;h2 id=&#34;graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/h2&gt;
-&lt;h3 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h3&gt;
-&lt;p&gt;We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Graph traversal algorithms are used to explore the structure of a graph. You might initially find this a useless endeavour. If we have defined our own graph, what about it would we need to explore? In scenarios with highly complex and large datasets, the search takes on slightly different meanings. Perhaps we are searching for specific trends based on a range of values such as the &lt;a href=&#34;https://en.wikipedia.org/wiki/Six_Degrees_of_Kevin_Bacon&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Bacon number&lt;/a&gt; of a particular celebrity.&lt;/p&gt;
+&lt;h2 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h2&gt;
+&lt;p&gt;Breadth First search explores the graph broadly, ensuring one level has been exhausted before moving onto the next. We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;The algorithm adds a color to each node to keep track of its state. The colors are:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
@@ -162,9 +165,52 @@
 
 &lt;/figure&gt;
 
-&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;The running time of BFS is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. Each vertex is queued and dequeued once, so the queue operations take \(O(V)\) time. Each edge is examined once, so the edge operations take \(O(E)\) time. The total running time is \(O(V + E)\).&lt;/p&gt;
-&lt;h3 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h3&gt;
+&lt;h3 id=&#34;breath-first-trees&#34;&gt;Breath-first Trees&lt;/h3&gt;
+&lt;p&gt;The blue lines in the previous example depict a &lt;strong&gt;breadth-first tree&lt;/strong&gt; which was built by BFS. The tree is defined by the \(\pi\) values updated throughout the course of the algorithm. These can also be used to reconstruct the shortest path from \(s\) to any other vertex \(v\).&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;predecessor subgraph&lt;/strong&gt; is a graph \(G_{\pi} = (V_{\pi}, E_{\pi})\), where&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+V_{\pi} &amp;amp;= \{v \in V : v.\pi \neq \text{None}\} \cup \{s\} \text{ and}\\
+E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Such a graph is a breadth-first tree if \(V_{\pi}\) consists of the vertices reachable from \(s\) and, for all \(v \in V_{\pi}\), the subgraph \(G_{\pi}\) contains a unique simple path from \(s\) to \(v\) that is also a shortest path from \(s\) to \(v\) in \(G\).&lt;/p&gt;
+&lt;p&gt;To print the vertices on a shortest path from \(s\) to \(v\):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;print_path&lt;/span&gt;(G, s, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; s:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;No path from&amp;#34;&lt;/span&gt;, s, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;to&amp;#34;&lt;/span&gt;, v, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;exists.&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_path(G, s, v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(v)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;exercise&#34;&gt;Exercise&lt;/h3&gt;
+&lt;p&gt;Run BFS on the following graph, starting from \(s\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_16-08-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Graph for BFS exercise from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Graph for BFS exercise from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h2&gt;
 &lt;p&gt;Like the BFS algorithm presented in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; by Cormen et al., the DFS algorithm also uses colors to keep track of the state of each node. The colors are similar to the BFS algorithm, but the meaning is slightly different:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
@@ -172,7 +218,16 @@
 &lt;li&gt;BLACK: The adjacency list of the node has been examined completely.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;First, all vertices are colored white. The time is set to 0. The function &lt;code&gt;dfs_visit&lt;/code&gt; is called on each vertex. The function is defined as follows:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs&lt;/span&gt;(G):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; WHITE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dfs_visit(G, u)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
@@ -192,14 +247,14 @@
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Depth First Search from Cormen et al.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Depth First Search from Cormen et al.
     
     
     
@@ -208,6 +263,112 @@
 
 &lt;/figure&gt;
 
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Each vertex is added and removed to the queue once. Since these operations are performed in \(O(1)\) time, the total time for these operations in \(O(V)\). When a vertex is dequeued, its adjacency list is scanned. The total number of entries in all adjacency lists is equal to the number of edges, so the time spent scanning these lists of \(O(V + E)\). In summary, the operation is linear in terms of the adjacency-list representation.&lt;/p&gt;
+&lt;h3 id=&#34;properties-of-dfs&#34;&gt;Properties of DFS&lt;/h3&gt;
+&lt;p&gt;The predecessor subgraph \(G_{\pi}\) is a forest of trees. That is, it creates a collection of depth first trees.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;What is a forest?&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;How does DFS generate a forest?&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A vertex \(u = v.{\pi}\) if and only if \(\text{DFS-VISIT}(G, v)\) was called during a search of \(u\)&amp;rsquo;s adjacency list. Vertex \(v\) is a descendant of vertex \(u\) in the depth-first forest if and only if \(v\) is discovered during the time in which \(u\) is gray (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Essentially, each call to &lt;code&gt;dfs_visit&lt;/code&gt; from &lt;code&gt;dfs&lt;/code&gt; finds a new tree. Let&amp;rsquo;s consider this on the example above.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Exercise: Draw the DFS forest using the graph above.&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;parenthesis-theorem&#34;&gt;Parenthesis Theorem&lt;/h4&gt;
+&lt;p&gt;In a DFS, the discovery and finish times have &lt;strong&gt;parenthesis structure&lt;/strong&gt;. For all \(u, v\), exactly only of the following holds:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the intervals \([u.d, u.f]\) and \([v.d, v.f]\) are entirely disjoint and neither \(u\) nor \(v\) is a descendant of the other in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;the interval \([u.d, u.f]\) is entirely contained within the interval \([v.d, v.f]\) and \(u\) is a descendant of \(v\) in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;the interval \([v.d, v.f]\) is entirely contained within the interval \([u.d, u.f]\) and \(v\) is a descendant of \(u\) in the depth-first forest.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;It is called the &lt;strong&gt;parenthesis theorem&lt;/strong&gt; because if &lt;code&gt;dfs_visit&lt;/code&gt; printed &amp;ldquo;\((u\)&amp;rdquo; when it first encountered \(u\) and printed &amp;ldquo;\(u)\)&amp;rdquo; when it finished, the expression would be well formed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-14-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Example of parenthesis structure from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Example of parenthesis structure from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;white-path-theorem&#34;&gt;White-path Theorem&lt;/h4&gt;
+&lt;p&gt;In a depth-first forest of a graph \(G\), vertex \(v\) is a descendant of vertex \(u\) if and only if at the time \(u.d\) that &lt;code&gt;dfs_visit&lt;/code&gt; is called on \(u\), there is a path of white vertices from \(u\) to \(v\) in \(G\).&lt;/p&gt;
+&lt;h4 id=&#34;more-on-dfs-forests&#34;&gt;More on DFS Forests&lt;/h4&gt;
+&lt;p&gt;Consider the result of DFS on the graph below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-30-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;DFS forest from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;DFS forest from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The edges are labeled as either&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;tree edges&lt;/strong&gt;: edges in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;back edges&lt;/strong&gt;: edges that point from a vertex to an ancestor in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;forward edges&lt;/strong&gt;: edges that point from a vertex to a descendant in the depth-first forest.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The above graph can be visualized as a DFS forest, as shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-33-21_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;DFS forest from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;DFS forest from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

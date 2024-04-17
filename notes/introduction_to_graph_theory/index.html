@@ -29,8 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents What are Graphs? Graph Traversal Algorithms What are Graphs? A graph is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my Foundations of Computing course at the University of Texas - Arlington.
-Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\).">
+  <meta name="description" content="Table of Contents What are Graphs? Graph Traversal Algorithms Breadth First Search Depth First Search What are Graphs? A graph is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my Foundations of Computing course at the University of Texas - Arlington.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/introduction_to_graph_theory/">
@@ -139,8 +138,7 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/introduction_to_graph_theory/">
   <meta property="og:title" content="Introduction to Graph Theory | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents What are Graphs? Graph Traversal Algorithms What are Graphs? A graph is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my Foundations of Computing course at the University of Texas - Arlington.
-Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set of vertices \(V\) and edges \(E\)."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents What are Graphs? Graph Traversal Algorithms Breadth First Search Depth First Search What are Graphs? A graph is a data structure that is used to represent pairwise relationships between objects. Graphs are used in many applications, such as social networks, maps, and routing algorithms. These notes accompany the series of lectures on graphs for my Foundations of Computing course at the University of Texas - Arlington."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2023-10-17T00:00:00-05:00">
@@ -417,7 +415,7 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    7 min read
+    11 min read
   </span>
   
 
@@ -550,6 +548,8 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 <ul>
 <li><a href="#what-are-graphs">What are Graphs?</a></li>
 <li><a href="#graph-traversal-algorithms">Graph Traversal Algorithms</a></li>
+<li><a href="#breadth-first-search">Breadth First Search</a></li>
+<li><a href="#depth-first-search">Depth First Search</a></li>
 </ul>
 </div>
 <!--endtoc-->
@@ -636,8 +636,9 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 \end{bmatrix}</p>
 <p>The value at row \(i\) and column \(j\) is the number of paths of length 2 from vertex \(i\) to vertex \(j\). For example, is a path from vertex 0 to vertex 6 via 0 -&gt; 3 -&gt; 6.</p>
 <h2 id="graph-traversal-algorithms">Graph Traversal Algorithms</h2>
-<h3 id="breadth-first-search">Breadth First Search</h3>
-<p>We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&rsquo;s investigate the algorithm given by Cormen et al. in <em>Introduction to Algorithms</em>.</p>
+<p>Graph traversal algorithms are used to explore the structure of a graph. You might initially find this a useless endeavour. If we have defined our own graph, what about it would we need to explore? In scenarios with highly complex and large datasets, the search takes on slightly different meanings. Perhaps we are searching for specific trends based on a range of values such as the <a href="https://en.wikipedia.org/wiki/Six_Degrees_of_Kevin_Bacon" target="_blank" rel="noopener noreferrer">Bacon number</a> of a particular celebrity.</p>
+<h2 id="breadth-first-search">Breadth First Search</h2>
+<p>Breadth First search explores the graph broadly, ensuring one level has been exhausted before moving onto the next. We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&rsquo;s investigate the algorithm given by Cormen et al. in <em>Introduction to Algorithms</em> (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
 <p>The algorithm adds a color to each node to keep track of its state. The colors are:</p>
 <ul>
 <li>WHITE: The node has not been discovered yet.</li>
@@ -689,9 +690,52 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 
 </figure>
 
-<h4 id="analysis">Analysis</h4>
+<h3 id="analysis">Analysis</h3>
 <p>The running time of BFS is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. Each vertex is queued and dequeued once, so the queue operations take \(O(V)\) time. Each edge is examined once, so the edge operations take \(O(E)\) time. The total running time is \(O(V + E)\).</p>
-<h3 id="depth-first-search">Depth First Search</h3>
+<h3 id="breath-first-trees">Breath-first Trees</h3>
+<p>The blue lines in the previous example depict a <strong>breadth-first tree</strong> which was built by BFS. The tree is defined by the \(\pi\) values updated throughout the course of the algorithm. These can also be used to reconstruct the shortest path from \(s\) to any other vertex \(v\).</p>
+<p>A <strong>predecessor subgraph</strong> is a graph \(G_{\pi} = (V_{\pi}, E_{\pi})\), where</p>
+<p>\begin{align*}
+V_{\pi} &amp;= \{v \in V : v.\pi \neq \text{None}\} \cup \{s\} \text{ and}\\
+E_{\pi} &amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
+\end{align*}</p>
+<p>Such a graph is a breadth-first tree if \(V_{\pi}\) consists of the vertices reachable from \(s\) and, for all \(v \in V_{\pi}\), the subgraph \(G_{\pi}\) contains a unique simple path from \(s\) to \(v\) that is also a shortest path from \(s\) to \(v\) in \(G\).</p>
+<p>To print the vertices on a shortest path from \(s\) to \(v\):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_path</span>(G, s, v):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v <span style="color:#f92672">==</span> s:
+</span></span><span style="display:flex;"><span>        print(s)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> v<span style="color:#f92672">.</span>pi <span style="color:#f92672">==</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;No path from&#34;</span>, s, <span style="color:#e6db74">&#34;to&#34;</span>, v, <span style="color:#e6db74">&#34;exists.&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print_path(G, s, v<span style="color:#f92672">.</span>pi)
+</span></span><span style="display:flex;"><span>        print(v)
+</span></span></code></pre></div><h3 id="exercise">Exercise</h3>
+<p>Run BFS on the following graph, starting from \(s\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-16_16-08-11_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Graph for BFS exercise from Cormen et al." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Graph for BFS exercise from Cormen et al.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="depth-first-search">Depth First Search</h2>
 <p>Like the BFS algorithm presented in <em>Introduction to Algorithms</em> by Cormen et al., the DFS algorithm also uses colors to keep track of the state of each node. The colors are similar to the BFS algorithm, but the meaning is slightly different:</p>
 <ul>
 <li>WHITE: The node has not been discovered yet.</li>
@@ -699,7 +743,16 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 <li>BLACK: The adjacency list of the node has been examined completely.</li>
 </ul>
 <p>First, all vertices are colored white. The time is set to 0. The function <code>dfs_visit</code> is called on each vertex. The function is defined as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs_visit</span>(G, u):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(G):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> u <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>V:
+</span></span><span style="display:flex;"><span>        u<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> WHITE
+</span></span><span style="display:flex;"><span>        u<span style="color:#f92672">.</span>pi <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> u <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>V:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> u<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> WHITE:
+</span></span><span style="display:flex;"><span>            dfs_visit(G, u)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs_visit</span>(G, u):
 </span></span><span style="display:flex;"><span>    time <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>    u<span style="color:#f92672">.</span>d <span style="color:#f92672">=</span> time
 </span></span><span style="display:flex;"><span>    u<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> GRAY
@@ -719,14 +772,14 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 
 <figure>
 
-<img src="/ox-hugo/2023-10-17_20-25-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Depth First Search from Cormen et al." >
+<img src="/ox-hugo/2023-10-17_20-25-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Depth First Search from Cormen et al." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 3: </span>Depth First Search from Cormen et al.
+    <span class="figure-number">Figure 4: </span>Depth First Search from Cormen et al.
     
     
     
@@ -735,6 +788,112 @@ Definitions A directed graph \(G\) is represented as a pair \((V, E)\) of a set 
 
 </figure>
 
+<h3 id="analysis">Analysis</h3>
+<p>Each vertex is added and removed to the queue once. Since these operations are performed in \(O(1)\) time, the total time for these operations in \(O(V)\). When a vertex is dequeued, its adjacency list is scanned. The total number of entries in all adjacency lists is equal to the number of edges, so the time spent scanning these lists of \(O(V + E)\). In summary, the operation is linear in terms of the adjacency-list representation.</p>
+<h3 id="properties-of-dfs">Properties of DFS</h3>
+<p>The predecessor subgraph \(G_{\pi}\) is a forest of trees. That is, it creates a collection of depth first trees.</p>
+<ul>
+<li><strong>What is a forest?</strong></li>
+<li><strong>How does DFS generate a forest?</strong></li>
+</ul>
+<p>A vertex \(u = v.{\pi}\) if and only if \(\text{DFS-VISIT}(G, v)\) was called during a search of \(u\)&rsquo;s adjacency list. Vertex \(v\) is a descendant of vertex \(u\) in the depth-first forest if and only if \(v\) is discovered during the time in which \(u\) is gray (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
+<p>Essentially, each call to <code>dfs_visit</code> from <code>dfs</code> finds a new tree. Let&rsquo;s consider this on the example above.</p>
+<p><strong>Exercise: Draw the DFS forest using the graph above.</strong></p>
+<h4 id="parenthesis-theorem">Parenthesis Theorem</h4>
+<p>In a DFS, the discovery and finish times have <strong>parenthesis structure</strong>. For all \(u, v\), exactly only of the following holds:</p>
+<ol>
+<li>the intervals \([u.d, u.f]\) and \([v.d, v.f]\) are entirely disjoint and neither \(u\) nor \(v\) is a descendant of the other in the depth-first forest.</li>
+<li>the interval \([u.d, u.f]\) is entirely contained within the interval \([v.d, v.f]\) and \(u\) is a descendant of \(v\) in the depth-first forest.</li>
+<li>the interval \([v.d, v.f]\) is entirely contained within the interval \([u.d, u.f]\) and \(v\) is a descendant of \(u\) in the depth-first forest.</li>
+</ol>
+<p>It is called the <strong>parenthesis theorem</strong> because if <code>dfs_visit</code> printed &ldquo;\((u\)&rdquo; when it first encountered \(u\) and printed &ldquo;\(u)\)&rdquo; when it finished, the expression would be well formed.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-16_17-14-36_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Example of parenthesis structure from Cormen et al." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Example of parenthesis structure from Cormen et al.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="white-path-theorem">White-path Theorem</h4>
+<p>In a depth-first forest of a graph \(G\), vertex \(v\) is a descendant of vertex \(u\) if and only if at the time \(u.d\) that <code>dfs_visit</code> is called on \(u\), there is a path of white vertices from \(u\) to \(v\) in \(G\).</p>
+<h4 id="more-on-dfs-forests">More on DFS Forests</h4>
+<p>Consider the result of DFS on the graph below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-16_17-30-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;DFS forest from Cormen et al." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>DFS forest from Cormen et al.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The edges are labeled as either</p>
+<ol>
+<li><strong>tree edges</strong>: edges in the depth-first forest.</li>
+<li><strong>back edges</strong>: edges that point from a vertex to an ancestor in the depth-first forest.</li>
+<li><strong>forward edges</strong>: edges that point from a vertex to a descendant in the depth-first forest.</li>
+</ol>
+<p>The above graph can be visualized as a DFS forest, as shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-16_17-33-21_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;DFS forest from Cormen et al." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>DFS forest from Cormen et al.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
 
     </div>
 

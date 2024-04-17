@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents What is cuDNN? Setting up cuDNN Handling Errors Representing Data Dense Layers Activation Functions Loss Functions Convolutions Pooling What is cuDNN? NVIDIA cuDNN provides optimized implementations of core operations used in deep learning. It is designed to be integrated into higher-level machine learning frameworks, such as TensorFlow, PyTorch, and Caffe.
+Setting up cuDNN To use cuDNN in your applications, each program needs to establish a handle to the cuDNN library.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/using_the_cudnn_library/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/using_the_cudnn_library/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/using_the_cudnn_library/">
+  <meta property="og:title" content="Using the cuDNN Library | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents What is cuDNN? Setting up cuDNN Handling Errors Representing Data Dense Layers Activation Functions Loss Functions Convolutions Pooling What is cuDNN? NVIDIA cuDNN provides optimized implementations of core operations used in deep learning. It is designed to be integrated into higher-level machine learning frameworks, such as TensorFlow, PyTorch, and Caffe.
+Setting up cuDNN To use cuDNN in your applications, each program needs to establish a handle to the cuDNN library."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-04-15T20:14:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-04-15T20:14:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Using the cuDNN Library | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Using the cuDNN Library</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-04-15 20:14:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-04-15 20:14:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Apr 15, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/using_the_cudnn_library/&amp;text=Using%20the%20cuDNN%20Library" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/using_the_cudnn_library/&amp;t=Using%20the%20cuDNN%20Library" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Using%20the%20cuDNN%20Library&amp;body=https://ajdillhoff.github.io/notes/using_the_cudnn_library/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/using_the_cudnn_library/&amp;title=Using%20the%20cuDNN%20Library" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Using%20the%20cuDNN%20Library%20https://ajdillhoff.github.io/notes/using_the_cudnn_library/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/using_the_cudnn_library/&amp;title=Using%20the%20cuDNN%20Library" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#what-is-cudnn">What is cuDNN?</a></li>
+<li><a href="#setting-up-cudnn">Setting up cuDNN</a></li>
+<li><a href="#handling-errors">Handling Errors</a></li>
+<li><a href="#representing-data">Representing Data</a></li>
+<li><a href="#dense-layers">Dense Layers</a></li>
+<li><a href="#activation-functions">Activation Functions</a></li>
+<li><a href="#loss-functions">Loss Functions</a></li>
+<li><a href="#convolutions">Convolutions</a></li>
+<li><a href="#pooling">Pooling</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="what-is-cudnn">What is cuDNN?</h2>
+<p>NVIDIA cuDNN provides optimized implementations of core operations used in deep learning. It is designed to be integrated into higher-level machine learning frameworks, such as TensorFlow, PyTorch, and Caffe.</p>
+<h2 id="setting-up-cudnn">Setting up cuDNN</h2>
+<p>To use cuDNN in your applications, each program needs to establish a handle to the cuDNN library. This is done by creating a <code>cudnnHandle_t</code> object and initializing it with <code>cudnnCreate</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cudnn.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span> handle;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cudnnCreate</span>(<span style="color:#f92672">&amp;</span>handle);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Use the handle
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">cudnnDestroy</span>(handle);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="handling-errors">Handling Errors</h2>
+<p>cuDNN functions return a <code>cudnnStatus_t</code> value, which indicates whether the function call was successful. As with previous CUDA code that we have reviewed, it is best to check the return value of each call. Not only does this help with debugging, but it also allows you to handle errors gracefully.</p>
+<h2 id="representing-data">Representing Data</h2>
+<p>All data in cuDNN is represented as a <strong>tensor</strong>. A tensor is a multi-dimensional array of data. In cuDNN, tensors have the following parameters:</p>
+<ul>
+<li># of dimensions</li>
+<li>data type</li>
+<li>an array of integers indicating the size of each dimension</li>
+<li>an array of integers indicating the stride of each dimension</li>
+</ul>
+<p>There are a few tensor descriptors for commonly used tensor types:</p>
+<ul>
+<li>3D Tensors (BMN): Batch, Height, Width</li>
+<li>4D Tensors (NCHW): Batch, Channel, Height, Width</li>
+<li>5D Tensors (NCDHW): Batch, Channel, Depth, Height, Width</li>
+</ul>
+<p>When creating a tensor to use with cuDNN operations, we need to create a <strong>tensor descriptor</strong> as well as the data itself. The tensor descriptor is a struct that contains the parameters of the tensor.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">// Create descriptor
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">cudnnDataType_t</span> data_type <span style="color:#f92672">=</span> CUDNN_DATA_FLOAT;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">cudnnTensorFormat_t</span> format <span style="color:#f92672">=</span> CUDNN_TENSOR_NCHW;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> n <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, c <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>, h <span style="color:#f92672">=</span> <span style="color:#ae81ff">224</span>, w <span style="color:#f92672">=</span> <span style="color:#ae81ff">224</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">cudnnTensorDescriptor_t</span> tensor_desc;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnCreateTensorDescriptor</span>(<span style="color:#f92672">&amp;</span>tensor_desc);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnSetTensor4dDescriptor</span>(tensor_desc, format, data_type, n, c, h, w);
+</span></span></code></pre></div><p>The descriptor is then used to allocate memory for the tensor data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>data;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudaMalloc</span>(<span style="color:#f92672">&amp;</span>data, n <span style="color:#f92672">*</span> c <span style="color:#f92672">*</span> h <span style="color:#f92672">*</span> w <span style="color:#f92672">*</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">float</span>));
+</span></span></code></pre></div><h2 id="dense-layers">Dense Layers</h2>
+<p>A <strong>dense layer</strong> refers to a fully connected layer in a neural network. Each neuron in the layer is connected to every neuron in the previous layer. The weights of the connections are stored in a matrix, and the biases are stored in a vector. Implementing the forward and backward pass of a dense layer involves matrix multiplication and addition for which cuBLAS has optimized routines.</p>
+<h3 id="forward-pass">Forward Pass</h3>
+<p>The forward pass of a dense layer is computed as follows:</p>
+<p>\[
+\mathbf{a} = W \mathbf{x} + \mathbf{b}
+\]</p>
+<p>where \(\mathbf{W}\) is the weight matrix, \(\mathbf{x}\) is the input tensor, \(\mathbf{b}\) is the bias vector, and \(\mathbf{a}\) is the output tensor.</p>
+<p>This can be implemented in CUDA with a matrix multiply followed by a vector addition. The first operation we will use is <a href="https://docs.nvidia.com/cuda/cublas/index.html?highlight=cublasSgemm#cublas-t-gemm" target="_blank" rel="noopener noreferrer"><code>cublasSgemm</code></a>. The function declaration is</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cublasStatus_t</span> <span style="color:#a6e22e">cublasSgemm</span>(<span style="color:#66d9ef">cublasHandle_t</span> handle,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">cublasOperation_t</span> transa, <span style="color:#66d9ef">cublasOperation_t</span> transb,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> k,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">float</span>           <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">float</span>           <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> lda,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">float</span>           <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> ldb,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">float</span>           <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>                           <span style="color:#66d9ef">float</span>           <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> ldc);
+</span></span></code></pre></div><p>This computes</p>
+<p>\[
+C = \alpha \text{op}(A) \text{op}(B) + \beta C.
+\]</p>
+<p>The parameters are as follows:</p>
+<ul>
+<li><code>handle</code>: the cuBLAS handle</li>
+<li><code>transa</code>: the operation to perform on matrix A (transpose or not)</li>
+<li><code>transb</code>: the operation to perform on matrix B (transpose or not)</li>
+<li><code>m</code>: the number of rows in matrix A and C</li>
+<li><code>n</code>: the number of columns in matrix B and C</li>
+<li><code>k</code>: the number of columns in matrix A and rows in matrix B</li>
+<li><code>alpha</code>: scalar multiplier for the product of A and B</li>
+<li><code>A</code>: matrix A</li>
+<li><code>lda</code>: leading dimension of matrix A</li>
+<li><code>B</code>: matrix B</li>
+<li><code>ldb</code>: leading dimension of matrix B</li>
+<li><code>beta</code>: scalar multiplier for matrix C</li>
+<li><code>C</code>: matrix C</li>
+<li><code>ldc</code>: leading dimension of matrix C</li>
+</ul>
+<p>This function is called twice in the forward pass of a dense layer: once for the matrix multiplication and once for the vector addition.</p>
+<h3 id="backward-pass">Backward Pass</h3>
+<p>The backward pass of a dense layer computes the gradients of the weights and biases with respect to the loss.</p>
+<p>\[
+\frac{\partial \mathbf{a}}{\partial W} = \frac{\partial}{\partial W} (W \mathbf{x} + \mathbf{b}) = \mathbf{x}
+\]</p>
+<p>\[
+\frac{\partial \mathbf{a}}{\partial \mathbf{b}} = \frac{\partial}{\partial \mathbf{b}} (W \mathbf{x} + \mathbf{b}) = 1
+\]</p>
+<p>Additionally, the layer should propagate the gradients of the loss with respect to the input tensor.</p>
+<p>\[
+\frac{\partial \mathbf{a}}{\partial \mathbf{x}} = \frac{\partial}{\partial \mathbf{x}} (W \mathbf{x} + \mathbf{b}) = W
+\]</p>
+<p>These gradients are only the local gradients of the layer. During backpropagation, the gradients are multiplied by the gradients propagated from the subsequent layer, as shown below:</p>
+<p>\[
+\frac{\partial L}{\partial W} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial W}
+\]</p>
+<p>\[
+\frac{\partial L}{\partial \mathbf{b}} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial \mathbf{b}}
+\]</p>
+<p>\[
+\frac{\partial L}{\partial \mathbf{x}} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial \mathbf{x}}
+\]</p>
+<p>The first two gradients are used to update the weights and biases of the current layer. The last gradient is propagated to the previous layer.</p>
+<p>These can be implemented in CUDA with matrix multiplication and vector addition, similar to the forward pass.</p>
+<h2 id="activation-functions">Activation Functions</h2>
+<p>cuDNN supports a variety of activation functions, including:</p>
+<ul>
+<li>Sigmoid</li>
+<li>Hyperbolic Tangent</li>
+<li>Rectified Linear Unit (ReLU)</li>
+<li>Clipped Rectified Linear Unit (CLReLU)</li>
+<li>Exponential Linear Unit (ELU)</li>
+</ul>
+<p>To use an activation function, we need to create an activation descriptor and set the activation function type.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnActivationDescriptor_t</span> activation_desc;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnCreateActivationDescriptor</span>(<span style="color:#f92672">&amp;</span>activation_desc);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnSetActivationDescriptor</span>(activation_desc, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, <span style="color:#ae81ff">0.0</span>);
+</span></span></code></pre></div><p>The third enum <code>CUDNN_NOT_PROPAGATE_NAN</code> indicates that NaN values should not be propagated through the activation function. The last parameter is a coefficient value, which is used by clipped ReLU and ELU.</p>
+<p>We can also query the activation descriptor to extract the properties.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#a6e22e">cudnnGetActivationDescriptor</span>(activation_desc, <span style="color:#f92672">&amp;</span>mode, <span style="color:#f92672">&amp;</span>reluNanOpt, <span style="color:#f92672">&amp;</span>coef);
+</span></span></code></pre></div><h3 id="forward-pass">Forward Pass</h3>
+<p>To process the forward pass of an activation function, we use the <code>cudnnActivationForward</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#a6e22e">cudnnActivationForward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span> handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnActivationDescriptor_t</span> activationDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>alpha, <span style="color:#75715e">// scalar multiplier
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>beta, <span style="color:#75715e">// scalar modifier
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> zDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>z);
+</span></span></code></pre></div><p>This computes the following operation:</p>
+<p>\[
+\mathbf{z} = \alpha \cdot g(\mathbf{x}) + \beta \cdot \mathbf{z}
+\]</p>
+<p>where \(\mathbf{x}\) is the input tensor, \(\mathbf{z}\) is the output tensor, \(\alpha\) is a scalar multiplier, and \(\beta\) is a scalar modifier.</p>
+<h3 id="backward-pass">Backward Pass</h3>
+<p>Likewise, the backward pass is done with <code>cudnnActivationBackward</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#a6e22e">cudnnActivationBackward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span> handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnActivationDescriptor_t</span> activationDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>alpha, <span style="color:#75715e">// gradient modifier
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> zDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>z,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> dzDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>dz,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnTensorDescriptor_t</span> dxDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>dx
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>This computes the following operation:</p>
+<p>\[
+d\mathbf{x} = \alpha \cdot \nabla_{\mathbf{x}} g(\mathbf{x}) d\mathbf{z} + \beta \cdot d\mathbf{x}
+\]</p>
+<p>where \(d\mathbf{z}\) is the input tensor to the backward function. Under this same notation, \(\mathbf{z}\) was the output of the activation function. The input to the activation function \(d\mathbf{x}\) is the output tensor of the backward pass, since it is being propagated in the backwards direction.</p>
+<h2 id="loss-functions">Loss Functions</h2>
+<p>cuDNN also provides optimized implementations of loss functions such as cross-entropy. Since the related lab focuses on classification, we will limit our discussion to the cross-entropy loss combined with the softmax function.</p>
+<h3 id="softmax">Softmax</h3>
+<p>The softmax function is used to convert the output of a neural network into a probability distribution. It is defined as</p>
+<p>\[
+\text{softmax}(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
+\]</p>
+<p>where \(\mathbf{x}\) is the input tensor and \(i\) is the index of the output tensor.</p>
+<h4 id="forward-pass">Forward Pass</h4>
+<p>Implementing the forward pass of the softmax function is straightforward. We use the <code>cudnnSoftmaxForward</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnSoftmaxForward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                    handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnSoftmaxAlgorithm_t</span>          algorithm,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnSoftmaxMode_t</span>               mode,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    yDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                            <span style="color:#f92672">*</span>y)
+</span></span></code></pre></div><p>Most of the parameters are similar to other cuDNN functions. The <code>algorithm</code> parameter specifies the algorithm to use for the softmax function, and the <code>mode</code> parameter specifies the mode of the softmax function.</p>
+<ul>
+<li><code>algorithm</code>: <code>CUDNN_SOFTMAX_FAST</code>, <code>CUDNN_SOFTMAX_ACCURATE</code>, or <code>CUDNN_SOFTMAX_LOG</code>. The most numerically stable is <code>CUDNN_SOFTMAX_ACCURATE</code>.</li>
+<li><code>mode</code>: <code>CUDNN_SOFTMAX_MODE_INSTANCE</code> or <code>CUDNN_SOFTMAX_MODE_CHANNEL</code>. The former computes the softmax function for each instance in the batch, while the latter computes the softmax function for each channel in the tensor.</li>
+</ul>
+<h4 id="backward-pass">Backward Pass</h4>
+<p>The backward pass of the softmax function is implemented with <code>cudnnSoftmaxBackward</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnSoftmaxBackward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                    handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnSoftmaxAlgorithm_t</span>          algorithm,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnSoftmaxMode_t</span>               mode,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    yDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>y,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dyDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>dy,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dxDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                            <span style="color:#f92672">*</span>dx)
+</span></span></code></pre></div><p>Note that the softmax function is used in the forward pass of the loss function, so the gradients are propagated from the loss function to the softmax function. In practice, the two are combined into a much simpler gradient calculation. If the softmax function is followed by the cross-entropy loss, the gradients are computed as</p>
+<p>\[
+\frac{\partial L}{\partial \mathbf{x}} = \mathbf{x} - \mathbf{y}
+\]</p>
+<p>where \(\mathbf{y}\) is the target tensor.</p>
+<h2 id="convolutions">Convolutions</h2>
+<p>For a background on convolutions, see <a href="/notes/convolutional_neural_networks/">these notes</a>. The notes in this article refer to the cuDNN implementation of convolutions.</p>
+<p>When using convolution operations in cuDNN, we need to create a convolution descriptor <code>cudnnConvolutionDescriptor_t</code> as well as a filter descriptor <code>cudnnFilterDescriptor_t</code>.</p>
+<h3 id="creating-a-filter">Creating a filter</h3>
+<p>To create a filter descriptor, we use the <code>cudnnCreateFilterDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnFilterDescriptor_t</span> filter_desc;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnCreateFilterDescriptor</span>(<span style="color:#f92672">&amp;</span>filter_desc);
+</span></span></code></pre></div><p>We then set the filter descriptor with the <code>cudnnSetFilter4dDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnSetFilter4dDescriptor</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnFilterDescriptor_t</span>    filterDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnDataType_t</span>            dataType,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnTensorFormat_t</span>        format,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                        k,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                        c,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                        h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                        w)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>filterDesc</code>: the filter descriptor</li>
+<li><code>dataType</code>: the data type of the filter</li>
+<li><code>format</code>: the format of the filter (NCHW or NHWC). Use <code>CUDNN_TENSOR_NCHW</code> for most cases.</li>
+<li><code>k</code>: the number of output feature maps</li>
+<li><code>c</code>: the number of input feature maps</li>
+<li><code>h</code>: the height of the filter</li>
+<li><code>w</code>: the width of the filter</li>
+</ul>
+<p>We can also query the filter descriptor to extract the properties.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnDataType_t</span> data_type;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">cudnnTensorFormat_t</span> format;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> k, c, h, w;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnGetFilter4dDescriptor</span>(filter_desc, <span style="color:#f92672">&amp;</span>data_type, <span style="color:#f92672">&amp;</span>format, <span style="color:#f92672">&amp;</span>k, <span style="color:#f92672">&amp;</span>c, <span style="color:#f92672">&amp;</span>h, <span style="color:#f92672">&amp;</span>w);
+</span></span></code></pre></div><h3 id="creating-a-convolution">Creating a convolution</h3>
+<p>To create a convolution descriptor, we use the <code>cudnnCreateConvolutionDescriptor</code> function. Once we are done with it, we should destroy it with <code>cudnnDestroyConvolutionDescriptor</code>. Since our convolution is 2D, we use the <code>cudnnSetConvolution2dDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnSetConvolution2dDescriptor</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>    convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             pad_h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             pad_w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             u,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             v,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             dilation_h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                             dilation_w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionMode_t</span>          mode,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnDataType_t</span>                 computeType)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>convDesc</code>: the convolution descriptor</li>
+<li><code>pad_h</code>: the height padding</li>
+<li><code>pad_w</code>: the width padding</li>
+<li><code>u</code>: the vertical stride</li>
+<li><code>v</code>: the horizontal stride</li>
+<li><code>dilation_h</code>: the height dilation</li>
+<li><code>dilation_w</code>: the width dilation</li>
+<li><code>mode</code>: the convolution mode (<code>CUDNN_CONVOLUTION</code> or <code>CUDNN_CROSS_CORRELATION</code>)</li>
+<li><code>computeType</code>: the data type used for the convolution</li>
+</ul>
+<p>Although the library supports both convolution and cross-correlation, the difference is only in the order of the operands. In practice, the two are equivalent. Most deep learning frameworks use cross-correlation.</p>
+<p>To query the convolution descriptor, we can use the <code>cudnnGetConvolution2dDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnGetConvolution2dDescriptor</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>    convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>pad_h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>pad_w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>u,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>v,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>dilation_h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                            <span style="color:#f92672">*</span>dilation_w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionMode_t</span>         <span style="color:#f92672">*</span>mode,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnDataType_t</span>                <span style="color:#f92672">*</span>computeType)
+</span></span></code></pre></div><p>If we know all the parameters of the convolution, we can use the <code>cudnnGetConvolution2dForwardOutputDim</code> function to calculate the output dimensions.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnGetConvolution2dForwardOutputDim</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>    convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>         inputTensorDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnFilterDescriptor_t</span>         filterDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                                 <span style="color:#f92672">*</span>n,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                                 <span style="color:#f92672">*</span>c,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                                 <span style="color:#f92672">*</span>h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                                 <span style="color:#f92672">*</span>w)
+</span></span></code></pre></div><h3 id="forward-pass">Forward Pass</h3>
+<p><code>cuDNN</code> supports several methods for performing a convolution operation. An evaluation of the available algorithms can be found <a href="https://core.ac.uk/download/pdf/224976536.pdf" target="_blank" rel="noopener noreferrer">here.</a> The algorithms provide tradeoffs in terms of speed and memory usage. Diving into these details is beyond the scope of this article, but it is important to be aware of the options.</p>
+<p>The forward pass of a convolution is implemented with the <code>cudnnConvolutionForward</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnConvolutionForward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                       handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnFilterDescriptor_t</span>       wDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>  convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionFwdAlgo_t</span>           algo,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>workSpace,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">size_t</span>                              workSpaceSizeInBytes,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       yDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>y)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>handle</code>: the cuDNN handle</li>
+<li><code>alpha</code>: scalar multiplier for the input tensor</li>
+<li><code>xDesc</code>: the input tensor descriptor</li>
+<li><code>x</code>: the input tensor</li>
+<li><code>wDesc</code>: the filter descriptor</li>
+<li><code>w</code>: the filter tensor</li>
+<li><code>convDesc</code>: the convolution descriptor</li>
+<li><code>algo</code>: the algorithm to use for the convolution</li>
+<li><code>workSpace</code>: the workspace for the convolution</li>
+<li><code>workSpaceSizeInBytes</code>: the size of the workspace</li>
+<li><code>beta</code>: scalar modifier for the output tensor</li>
+<li><code>yDesc</code>: the output tensor descriptor</li>
+<li><code>y</code>: the output tensor</li>
+</ul>
+<h2 id="pooling">Pooling</h2>
+<p>Pooling is a common operation in convolutional neural networks. It reduces the spatial dimensions of the input tensor, which helps to reduce the number of parameters and computation in the network. Using pooling in cuDNN requires creating a descriptor. Make sure to destroy it when you&rsquo;re done.</p>
+<h3 id="creating-a-pooling-descriptor">Creating a pooling descriptor</h3>
+<p>To create a pooling descriptor, we use the <code>cudnnCreatePoolingDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnPoolingDescriptor_t</span> pooling_desc;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnCreatePoolingDescriptor</span>(<span style="color:#f92672">&amp;</span>pooling_desc);
+</span></span></code></pre></div><p>We then set the pooling descriptor with the <code>cudnnSetPooling2dDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnSetPooling2dDescriptor</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnPoolingDescriptor_t</span>    poolingDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnPoolingMode_t</span>          mode,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnNanPropagation_t</span>       maxpoolingNanOpt,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         windowHeight,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         windowWidth,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         verticalPadding,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         horizontalPadding,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         verticalStride,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                         horizontalStride)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>poolingDesc</code>: the pooling descriptor</li>
+<li><code>mode</code>: the pooling mode (<code>CUDNN_POOLING_MAX</code> or <code>CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING</code>)</li>
+<li><code>maxpoolingNanOpt</code>: the NaN propagation option for max pooling</li>
+<li><code>windowHeight</code>: the height of the pooling window</li>
+<li><code>windowWidth</code>: the width of the pooling window</li>
+<li><code>verticalPadding</code>: the vertical padding</li>
+<li><code>horizontalPadding</code>: the horizontal padding</li>
+<li><code>verticalStride</code>: the vertical stride</li>
+<li><code>horizontalStride</code>: the horizontal stride</li>
+</ul>
+<p>We can also query the pooling descriptor to extract the properties.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnPoolingMode_t</span> mode;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">cudnnNanPropagation_t</span> nan_opt;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> window_h, window_w, pad_h, pad_w, stride_h, stride_w;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudnnGetPooling2dDescriptor</span>(pooling_desc, <span style="color:#f92672">&amp;</span>mode, <span style="color:#f92672">&amp;</span>nan_opt, <span style="color:#f92672">&amp;</span>window_h, <span style="color:#f92672">&amp;</span>window_w, <span style="color:#f92672">&amp;</span>pad_h, <span style="color:#f92672">&amp;</span>pad_w, <span style="color:#f92672">&amp;</span>stride_h, <span style="color:#f92672">&amp;</span>stride_w);
+</span></span></code></pre></div><h3 id="forward-pass">Forward Pass</h3>
+<p>The forward pass of a pooling operation is implemented with the <code>cudnnPoolingForward</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnPoolingForward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                    handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnPoolingDescriptor_t</span>   poolingDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    yDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                            <span style="color:#f92672">*</span>y)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>handle</code>: the cuDNN handle</li>
+<li><code>poolingDesc</code>: the pooling descriptor</li>
+<li><code>alpha</code>: scalar multiplier for the input tensor</li>
+<li><code>xDesc</code>: the input tensor descriptor</li>
+<li><code>x</code>: the input tensor</li>
+<li><code>beta</code>: scalar modifier for the output tensor</li>
+<li><code>yDesc</code>: the output tensor descriptor</li>
+<li><code>y</code>: the output tensor</li>
+</ul>
+<h3 id="backward-pass">Backward Pass</h3>
+<p>The backward pass of a pooling operation is implemented with the <code>cudnnPoolingBackward</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnPoolingBackward</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                    handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnPoolingDescriptor_t</span>   poolingDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    yDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>y,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dyDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>dy,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dxDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                            <span style="color:#f92672">*</span>dx)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>handle</code>: the cuDNN handle</li>
+<li><code>poolingDesc</code>: the pooling descriptor</li>
+<li><code>alpha</code>: scalar multiplier for the input tensor</li>
+<li><code>yDesc</code>: the output tensor descriptor</li>
+<li><code>y</code>: the output tensor</li>
+<li><code>dyDesc</code>: the input tensor descriptor</li>
+<li><code>dy</code>: the input tensor</li>
+<li><code>xDesc</code>: the input tensor descriptor</li>
+<li><code>x</code>: the input tensor</li>
+<li><code>beta</code>: scalar modifier for the output tensor</li>
+<li><code>dxDesc</code>: the output tensor descriptor</li>
+<li><code>dx</code>: the output tensor</li>
+</ul>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/gpgpu/">gpgpu</a>
+  
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/parallel_graph_traversal/">Parallel Graph Traversal</a></li>
+          
+          <li><a href="/notes/parallel_sorting_algorithms/">Parallel Sorting Algorithms</a></li>
+          
+          <li><a href="/notes/sparse_matrix_computation/">Sparse Matrix Computation</a></li>
+          
+          <li><a href="/notes/gpu_pattern_merge/">GPU Pattern: Merge</a></li>
+          
+          <li><a href="/notes/gpu_pattern_parallel_scan/">GPU Pattern: Parallel Scan</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

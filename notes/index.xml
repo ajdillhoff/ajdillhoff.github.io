@@ -7,10 +7,429 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Fri, 12 Apr 2024 18:51:00 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 15 Apr 2024 20:14:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Using the cuDNN Library</title>
+      <link>https://ajdillhoff.github.io/notes/using_the_cudnn_library/</link>
+      <pubDate>Mon, 15 Apr 2024 20:14:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/using_the_cudnn_library/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-is-cudnn&#34;&gt;What is cuDNN?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#setting-up-cudnn&#34;&gt;Setting up cuDNN&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#handling-errors&#34;&gt;Handling Errors&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#representing-data&#34;&gt;Representing Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#dense-layers&#34;&gt;Dense Layers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#activation-functions&#34;&gt;Activation Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#loss-functions&#34;&gt;Loss Functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#convolutions&#34;&gt;Convolutions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#pooling&#34;&gt;Pooling&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;what-is-cudnn&#34;&gt;What is cuDNN?&lt;/h2&gt;
+&lt;p&gt;NVIDIA cuDNN provides optimized implementations of core operations used in deep learning. It is designed to be integrated into higher-level machine learning frameworks, such as TensorFlow, PyTorch, and Caffe.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-cudnn&#34;&gt;Setting up cuDNN&lt;/h2&gt;
+&lt;p&gt;To use cuDNN in your applications, each program needs to establish a handle to the cuDNN library. This is done by creating a &lt;code&gt;cudnnHandle_t&lt;/code&gt; object and initializing it with &lt;code&gt;cudnnCreate&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;cudnn.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt; handle;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnCreate&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;handle);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// Use the handle
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnDestroy&lt;/span&gt;(handle);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;handling-errors&#34;&gt;Handling Errors&lt;/h2&gt;
+&lt;p&gt;cuDNN functions return a &lt;code&gt;cudnnStatus_t&lt;/code&gt; value, which indicates whether the function call was successful. As with previous CUDA code that we have reviewed, it is best to check the return value of each call. Not only does this help with debugging, but it also allows you to handle errors gracefully.&lt;/p&gt;
+&lt;h2 id=&#34;representing-data&#34;&gt;Representing Data&lt;/h2&gt;
+&lt;p&gt;All data in cuDNN is represented as a &lt;strong&gt;tensor&lt;/strong&gt;. A tensor is a multi-dimensional array of data. In cuDNN, tensors have the following parameters:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;# of dimensions&lt;/li&gt;
+&lt;li&gt;data type&lt;/li&gt;
+&lt;li&gt;an array of integers indicating the size of each dimension&lt;/li&gt;
+&lt;li&gt;an array of integers indicating the stride of each dimension&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are a few tensor descriptors for commonly used tensor types:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;3D Tensors (BMN): Batch, Height, Width&lt;/li&gt;
+&lt;li&gt;4D Tensors (NCHW): Batch, Channel, Height, Width&lt;/li&gt;
+&lt;li&gt;5D Tensors (NCDHW): Batch, Channel, Depth, Height, Width&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When creating a tensor to use with cuDNN operations, we need to create a &lt;strong&gt;tensor descriptor&lt;/strong&gt; as well as the data itself. The tensor descriptor is a struct that contains the parameters of the tensor.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Create descriptor
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnDataType_t&lt;/span&gt; data_type &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; CUDNN_DATA_FLOAT;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorFormat_t&lt;/span&gt; format &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; CUDNN_TENSOR_NCHW;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, c &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;, h &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;224&lt;/span&gt;, w &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;224&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; tensor_desc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnCreateTensorDescriptor&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;tensor_desc);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSetTensor4dDescriptor&lt;/span&gt;(tensor_desc, format, data_type, n, c, h, w);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The descriptor is then used to allocate memory for the tensor data.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudaMalloc&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;data, n &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; c &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; h &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; w &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;));
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;dense-layers&#34;&gt;Dense Layers&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;dense layer&lt;/strong&gt; refers to a fully connected layer in a neural network. Each neuron in the layer is connected to every neuron in the previous layer. The weights of the connections are stored in a matrix, and the biases are stored in a vector. Implementing the forward and backward pass of a dense layer involves matrix multiplication and addition for which cuBLAS has optimized routines.&lt;/p&gt;
+&lt;h3 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h3&gt;
+&lt;p&gt;The forward pass of a dense layer is computed as follows:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{a} = W \mathbf{x} + \mathbf{b}
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{W}\) is the weight matrix, \(\mathbf{x}\) is the input tensor, \(\mathbf{b}\) is the bias vector, and \(\mathbf{a}\) is the output tensor.&lt;/p&gt;
+&lt;p&gt;This can be implemented in CUDA with a matrix multiply followed by a vector addition. The first operation we will use is &lt;a href=&#34;https://docs.nvidia.com/cuda/cublas/index.html?highlight=cublasSgemm#cublas-t-gemm&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;cublasSgemm&lt;/code&gt;&lt;/a&gt;. The function declaration is&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cublasStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cublasSgemm&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;cublasHandle_t&lt;/span&gt; handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;cublasOperation_t&lt;/span&gt; transa, &lt;span style=&#34;color:#66d9ef&#34;&gt;cublasOperation_t&lt;/span&gt; transb,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; m, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;A, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; lda,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;B, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ldb,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                           &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;C, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ldc);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This computes&lt;/p&gt;
+&lt;p&gt;\[
+C = \alpha \text{op}(A) \text{op}(B) + \beta C.
+\]&lt;/p&gt;
+&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;handle&lt;/code&gt;: the cuBLAS handle&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;transa&lt;/code&gt;: the operation to perform on matrix A (transpose or not)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;transb&lt;/code&gt;: the operation to perform on matrix B (transpose or not)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;m&lt;/code&gt;: the number of rows in matrix A and C&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;n&lt;/code&gt;: the number of columns in matrix B and C&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;k&lt;/code&gt;: the number of columns in matrix A and rows in matrix B&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;alpha&lt;/code&gt;: scalar multiplier for the product of A and B&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;A&lt;/code&gt;: matrix A&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lda&lt;/code&gt;: leading dimension of matrix A&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B&lt;/code&gt;: matrix B&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ldb&lt;/code&gt;: leading dimension of matrix B&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;beta&lt;/code&gt;: scalar multiplier for matrix C&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;C&lt;/code&gt;: matrix C&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ldc&lt;/code&gt;: leading dimension of matrix C&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This function is called twice in the forward pass of a dense layer: once for the matrix multiplication and once for the vector addition.&lt;/p&gt;
+&lt;h3 id=&#34;backward-pass&#34;&gt;Backward Pass&lt;/h3&gt;
+&lt;p&gt;The backward pass of a dense layer computes the gradients of the weights and biases with respect to the loss.&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathbf{a}}{\partial W} = \frac{\partial}{\partial W} (W \mathbf{x} + \mathbf{b}) = \mathbf{x}
+\]&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathbf{a}}{\partial \mathbf{b}} = \frac{\partial}{\partial \mathbf{b}} (W \mathbf{x} + \mathbf{b}) = 1
+\]&lt;/p&gt;
+&lt;p&gt;Additionally, the layer should propagate the gradients of the loss with respect to the input tensor.&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial \mathbf{a}}{\partial \mathbf{x}} = \frac{\partial}{\partial \mathbf{x}} (W \mathbf{x} + \mathbf{b}) = W
+\]&lt;/p&gt;
+&lt;p&gt;These gradients are only the local gradients of the layer. During backpropagation, the gradients are multiplied by the gradients propagated from the subsequent layer, as shown below:&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial L}{\partial W} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial W}
+\]&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial L}{\partial \mathbf{b}} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial \mathbf{b}}
+\]&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial L}{\partial \mathbf{x}} = \frac{\partial L}{\partial \mathbf{a}} \frac{\partial \mathbf{a}}{\partial \mathbf{x}}
+\]&lt;/p&gt;
+&lt;p&gt;The first two gradients are used to update the weights and biases of the current layer. The last gradient is propagated to the previous layer.&lt;/p&gt;
+&lt;p&gt;These can be implemented in CUDA with matrix multiplication and vector addition, similar to the forward pass.&lt;/p&gt;
+&lt;h2 id=&#34;activation-functions&#34;&gt;Activation Functions&lt;/h2&gt;
+&lt;p&gt;cuDNN supports a variety of activation functions, including:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Sigmoid&lt;/li&gt;
+&lt;li&gt;Hyperbolic Tangent&lt;/li&gt;
+&lt;li&gt;Rectified Linear Unit (ReLU)&lt;/li&gt;
+&lt;li&gt;Clipped Rectified Linear Unit (CLReLU)&lt;/li&gt;
+&lt;li&gt;Exponential Linear Unit (ELU)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To use an activation function, we need to create an activation descriptor and set the activation function type.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnActivationDescriptor_t&lt;/span&gt; activation_desc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnCreateActivationDescriptor&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;activation_desc);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSetActivationDescriptor&lt;/span&gt;(activation_desc, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The third enum &lt;code&gt;CUDNN_NOT_PROPAGATE_NAN&lt;/code&gt; indicates that NaN values should not be propagated through the activation function. The last parameter is a coefficient value, which is used by clipped ReLU and ELU.&lt;/p&gt;
+&lt;p&gt;We can also query the activation descriptor to extract the properties.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnGetActivationDescriptor&lt;/span&gt;(activation_desc, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;mode, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;reluNanOpt, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;coef);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h3&gt;
+&lt;p&gt;To process the forward pass of an activation function, we use the &lt;code&gt;cudnnActivationForward&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnActivationForward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt; handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnActivationDescriptor_t&lt;/span&gt; activationDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha, &lt;span style=&#34;color:#75715e&#34;&gt;// scalar multiplier
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta, &lt;span style=&#34;color:#75715e&#34;&gt;// scalar modifier
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; zDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;z);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This computes the following operation:&lt;/p&gt;
+&lt;p&gt;\[
+\mathbf{z} = \alpha \cdot g(\mathbf{x}) + \beta \cdot \mathbf{z}
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{x}\) is the input tensor, \(\mathbf{z}\) is the output tensor, \(\alpha\) is a scalar multiplier, and \(\beta\) is a scalar modifier.&lt;/p&gt;
+&lt;h3 id=&#34;backward-pass&#34;&gt;Backward Pass&lt;/h3&gt;
+&lt;p&gt;Likewise, the backward pass is done with &lt;code&gt;cudnnActivationBackward&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnActivationBackward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt; handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnActivationDescriptor_t&lt;/span&gt; activationDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha, &lt;span style=&#34;color:#75715e&#34;&gt;// gradient modifier
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; zDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;z,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; dzDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dz,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt; dxDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This computes the following operation:&lt;/p&gt;
+&lt;p&gt;\[
+d\mathbf{x} = \alpha \cdot \nabla_{\mathbf{x}} g(\mathbf{x}) d\mathbf{z} + \beta \cdot d\mathbf{x}
+\]&lt;/p&gt;
+&lt;p&gt;where \(d\mathbf{z}\) is the input tensor to the backward function. Under this same notation, \(\mathbf{z}\) was the output of the activation function. The input to the activation function \(d\mathbf{x}\) is the output tensor of the backward pass, since it is being propagated in the backwards direction.&lt;/p&gt;
+&lt;h2 id=&#34;loss-functions&#34;&gt;Loss Functions&lt;/h2&gt;
+&lt;p&gt;cuDNN also provides optimized implementations of loss functions such as cross-entropy. Since the related lab focuses on classification, we will limit our discussion to the cross-entropy loss combined with the softmax function.&lt;/p&gt;
+&lt;h3 id=&#34;softmax&#34;&gt;Softmax&lt;/h3&gt;
+&lt;p&gt;The softmax function is used to convert the output of a neural network into a probability distribution. It is defined as&lt;/p&gt;
+&lt;p&gt;\[
+\text{softmax}(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{x}\) is the input tensor and \(i\) is the index of the output tensor.&lt;/p&gt;
+&lt;h4 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h4&gt;
+&lt;p&gt;Implementing the forward pass of the softmax function is straightforward. We use the &lt;code&gt;cudnnSoftmaxForward&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSoftmaxForward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt;                    handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnSoftmaxAlgorithm_t&lt;/span&gt;          algorithm,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnSoftmaxMode_t&lt;/span&gt;               mode,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    yDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Most of the parameters are similar to other cuDNN functions. The &lt;code&gt;algorithm&lt;/code&gt; parameter specifies the algorithm to use for the softmax function, and the &lt;code&gt;mode&lt;/code&gt; parameter specifies the mode of the softmax function.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;algorithm&lt;/code&gt;: &lt;code&gt;CUDNN_SOFTMAX_FAST&lt;/code&gt;, &lt;code&gt;CUDNN_SOFTMAX_ACCURATE&lt;/code&gt;, or &lt;code&gt;CUDNN_SOFTMAX_LOG&lt;/code&gt;. The most numerically stable is &lt;code&gt;CUDNN_SOFTMAX_ACCURATE&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mode&lt;/code&gt;: &lt;code&gt;CUDNN_SOFTMAX_MODE_INSTANCE&lt;/code&gt; or &lt;code&gt;CUDNN_SOFTMAX_MODE_CHANNEL&lt;/code&gt;. The former computes the softmax function for each instance in the batch, while the latter computes the softmax function for each channel in the tensor.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;backward-pass&#34;&gt;Backward Pass&lt;/h4&gt;
+&lt;p&gt;The backward pass of the softmax function is implemented with &lt;code&gt;cudnnSoftmaxBackward&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSoftmaxBackward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt;                    handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnSoftmaxAlgorithm_t&lt;/span&gt;          algorithm,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnSoftmaxMode_t&lt;/span&gt;               mode,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    yDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    dyDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dy,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    dxDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dx)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Note that the softmax function is used in the forward pass of the loss function, so the gradients are propagated from the loss function to the softmax function. In practice, the two are combined into a much simpler gradient calculation. If the softmax function is followed by the cross-entropy loss, the gradients are computed as&lt;/p&gt;
+&lt;p&gt;\[
+\frac{\partial L}{\partial \mathbf{x}} = \mathbf{x} - \mathbf{y}
+\]&lt;/p&gt;
+&lt;p&gt;where \(\mathbf{y}\) is the target tensor.&lt;/p&gt;
+&lt;h2 id=&#34;convolutions&#34;&gt;Convolutions&lt;/h2&gt;
+&lt;p&gt;For a background on convolutions, see &lt;a href=&#34;https://ajdillhoff.github.io/notes/convolutional_neural_networks/&#34;&gt;these notes&lt;/a&gt;. The notes in this article refer to the cuDNN implementation of convolutions.&lt;/p&gt;
+&lt;p&gt;When using convolution operations in cuDNN, we need to create a convolution descriptor &lt;code&gt;cudnnConvolutionDescriptor_t&lt;/code&gt; as well as a filter descriptor &lt;code&gt;cudnnFilterDescriptor_t&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-filter&#34;&gt;Creating a filter&lt;/h3&gt;
+&lt;p&gt;To create a filter descriptor, we use the &lt;code&gt;cudnnCreateFilterDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnFilterDescriptor_t&lt;/span&gt; filter_desc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnCreateFilterDescriptor&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;filter_desc);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We then set the filter descriptor with the &lt;code&gt;cudnnSetFilter4dDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSetFilter4dDescriptor&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnFilterDescriptor_t&lt;/span&gt;    filterDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnDataType_t&lt;/span&gt;            dataType,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorFormat_t&lt;/span&gt;        format,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                        k,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                        c,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                        h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                        w)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;filterDesc&lt;/code&gt;: the filter descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dataType&lt;/code&gt;: the data type of the filter&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;format&lt;/code&gt;: the format of the filter (NCHW or NHWC). Use &lt;code&gt;CUDNN_TENSOR_NCHW&lt;/code&gt; for most cases.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;k&lt;/code&gt;: the number of output feature maps&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;c&lt;/code&gt;: the number of input feature maps&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;h&lt;/code&gt;: the height of the filter&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;w&lt;/code&gt;: the width of the filter&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can also query the filter descriptor to extract the properties.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnDataType_t&lt;/span&gt; data_type;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorFormat_t&lt;/span&gt; format;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k, c, h, w;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnGetFilter4dDescriptor&lt;/span&gt;(filter_desc, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;data_type, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;format, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;k, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;c, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;h, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;w);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;creating-a-convolution&#34;&gt;Creating a convolution&lt;/h3&gt;
+&lt;p&gt;To create a convolution descriptor, we use the &lt;code&gt;cudnnCreateConvolutionDescriptor&lt;/code&gt; function. Once we are done with it, we should destroy it with &lt;code&gt;cudnnDestroyConvolutionDescriptor&lt;/code&gt;. Since our convolution is 2D, we use the &lt;code&gt;cudnnSetConvolution2dDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSetConvolution2dDescriptor&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionDescriptor_t&lt;/span&gt;    convDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             pad_h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             pad_w,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             u,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             v,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             dilation_h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                             dilation_w,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionMode_t&lt;/span&gt;          mode,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnDataType_t&lt;/span&gt;                 computeType)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;convDesc&lt;/code&gt;: the convolution descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pad_h&lt;/code&gt;: the height padding&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pad_w&lt;/code&gt;: the width padding&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;u&lt;/code&gt;: the vertical stride&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;v&lt;/code&gt;: the horizontal stride&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dilation_h&lt;/code&gt;: the height dilation&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dilation_w&lt;/code&gt;: the width dilation&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mode&lt;/code&gt;: the convolution mode (&lt;code&gt;CUDNN_CONVOLUTION&lt;/code&gt; or &lt;code&gt;CUDNN_CROSS_CORRELATION&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;computeType&lt;/code&gt;: the data type used for the convolution&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Although the library supports both convolution and cross-correlation, the difference is only in the order of the operands. In practice, the two are equivalent. Most deep learning frameworks use cross-correlation.&lt;/p&gt;
+&lt;p&gt;To query the convolution descriptor, we can use the &lt;code&gt;cudnnGetConvolution2dDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnGetConvolution2dDescriptor&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionDescriptor_t&lt;/span&gt;    convDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;pad_h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;pad_w,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;u,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dilation_h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dilation_w,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionMode_t&lt;/span&gt;         &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mode,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnDataType_t&lt;/span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;computeType)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If we know all the parameters of the convolution, we can use the &lt;code&gt;cudnnGetConvolution2dForwardOutputDim&lt;/code&gt; function to calculate the output dimensions.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnGetConvolution2dForwardOutputDim&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionDescriptor_t&lt;/span&gt;    convDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;         inputTensorDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnFilterDescriptor_t&lt;/span&gt;         filterDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                                 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;n,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                                 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;c,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                                 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;h,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                                 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;w)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;cuDNN&lt;/code&gt; supports several methods for performing a convolution operation. An evaluation of the available algorithms can be found &lt;a href=&#34;https://core.ac.uk/download/pdf/224976536.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here.&lt;/a&gt; The algorithms provide tradeoffs in terms of speed and memory usage. Diving into these details is beyond the scope of this article, but it is important to be aware of the options.&lt;/p&gt;
+&lt;p&gt;The forward pass of a convolution is implemented with the &lt;code&gt;cudnnConvolutionForward&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnConvolutionForward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt;                       handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                         &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;       xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                         &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnFilterDescriptor_t&lt;/span&gt;       wDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                         &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;w,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionDescriptor_t&lt;/span&gt;  convDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnConvolutionFwdAlgo_t&lt;/span&gt;           algo,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                               &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;workSpace,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt;                              workSpaceSizeInBytes,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                         &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;       yDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                               &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;handle&lt;/code&gt;: the cuDNN handle&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;alpha&lt;/code&gt;: scalar multiplier for the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;xDesc&lt;/code&gt;: the input tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;x&lt;/code&gt;: the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;wDesc&lt;/code&gt;: the filter descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;w&lt;/code&gt;: the filter tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;convDesc&lt;/code&gt;: the convolution descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;algo&lt;/code&gt;: the algorithm to use for the convolution&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;workSpace&lt;/code&gt;: the workspace for the convolution&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;workSpaceSizeInBytes&lt;/code&gt;: the size of the workspace&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;beta&lt;/code&gt;: scalar modifier for the output tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yDesc&lt;/code&gt;: the output tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;y&lt;/code&gt;: the output tensor&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;pooling&#34;&gt;Pooling&lt;/h2&gt;
+&lt;p&gt;Pooling is a common operation in convolutional neural networks. It reduces the spatial dimensions of the input tensor, which helps to reduce the number of parameters and computation in the network. Using pooling in cuDNN requires creating a descriptor. Make sure to destroy it when you&amp;rsquo;re done.&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-pooling-descriptor&#34;&gt;Creating a pooling descriptor&lt;/h3&gt;
+&lt;p&gt;To create a pooling descriptor, we use the &lt;code&gt;cudnnCreatePoolingDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingDescriptor_t&lt;/span&gt; pooling_desc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnCreatePoolingDescriptor&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;pooling_desc);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We then set the pooling descriptor with the &lt;code&gt;cudnnSetPooling2dDescriptor&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnSetPooling2dDescriptor&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingDescriptor_t&lt;/span&gt;    poolingDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingMode_t&lt;/span&gt;          mode,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnNanPropagation_t&lt;/span&gt;       maxpoolingNanOpt,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         windowHeight,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         windowWidth,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         verticalPadding,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         horizontalPadding,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         verticalStride,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;                         horizontalStride)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;poolingDesc&lt;/code&gt;: the pooling descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mode&lt;/code&gt;: the pooling mode (&lt;code&gt;CUDNN_POOLING_MAX&lt;/code&gt; or &lt;code&gt;CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;maxpoolingNanOpt&lt;/code&gt;: the NaN propagation option for max pooling&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;windowHeight&lt;/code&gt;: the height of the pooling window&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;windowWidth&lt;/code&gt;: the width of the pooling window&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;verticalPadding&lt;/code&gt;: the vertical padding&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;horizontalPadding&lt;/code&gt;: the horizontal padding&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;verticalStride&lt;/code&gt;: the vertical stride&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;horizontalStride&lt;/code&gt;: the horizontal stride&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can also query the pooling descriptor to extract the properties.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingMode_t&lt;/span&gt; mode;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnNanPropagation_t&lt;/span&gt; nan_opt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; window_h, window_w, pad_h, pad_w, stride_h, stride_w;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnGetPooling2dDescriptor&lt;/span&gt;(pooling_desc, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;mode, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;nan_opt, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;window_h, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;window_w, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;pad_h, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;pad_w, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;stride_h, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;stride_w);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;forward-pass&#34;&gt;Forward Pass&lt;/h3&gt;
+&lt;p&gt;The forward pass of a pooling operation is implemented with the &lt;code&gt;cudnnPoolingForward&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnPoolingForward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt;                    handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingDescriptor_t&lt;/span&gt;   poolingDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    yDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;handle&lt;/code&gt;: the cuDNN handle&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;poolingDesc&lt;/code&gt;: the pooling descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;alpha&lt;/code&gt;: scalar multiplier for the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;xDesc&lt;/code&gt;: the input tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;x&lt;/code&gt;: the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;beta&lt;/code&gt;: scalar modifier for the output tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yDesc&lt;/code&gt;: the output tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;y&lt;/code&gt;: the output tensor&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;backward-pass&#34;&gt;Backward Pass&lt;/h3&gt;
+&lt;p&gt;The backward pass of a pooling operation is implemented with the &lt;code&gt;cudnnPoolingBackward&lt;/code&gt; function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnStatus_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cudnnPoolingBackward&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnHandle_t&lt;/span&gt;                    handle,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnPoolingDescriptor_t&lt;/span&gt;   poolingDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;alpha,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    yDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;y,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    dyDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dy,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    xDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;x,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;beta,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;cudnnTensorDescriptor_t&lt;/span&gt;    dxDesc,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;                            &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dx)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The parameters are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;handle&lt;/code&gt;: the cuDNN handle&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;poolingDesc&lt;/code&gt;: the pooling descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;alpha&lt;/code&gt;: scalar multiplier for the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yDesc&lt;/code&gt;: the output tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;y&lt;/code&gt;: the output tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dyDesc&lt;/code&gt;: the input tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dy&lt;/code&gt;: the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;xDesc&lt;/code&gt;: the input tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;x&lt;/code&gt;: the input tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;beta&lt;/code&gt;: scalar modifier for the output tensor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dxDesc&lt;/code&gt;: the output tensor descriptor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dx&lt;/code&gt;: the output tensor&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>Maximum Flow</title>
@@ -18,8 +437,125 @@
       <pubDate>Fri, 12 Apr 2024 18:51:00 -0500</pubDate>
       
       <guid>https://ajdillhoff.github.io/notes/maximum_flow/</guid>
-      <description>&lt;p&gt;A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. &lt;em&gt;Flow&lt;/em&gt; in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network. The goal of a flow network is to maximize the flow from the source to the sink.&lt;/p&gt;
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#objective-questions&#34;&gt;Objective Questions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#maximum-flow&#34;&gt;Maximum Flow&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-polynomial-time-solution&#34;&gt;A polynomial time solution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-linear-time-solution&#34;&gt;A linear time solution&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. &lt;em&gt;Flow&lt;/em&gt; in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network. The goal of a flow network is to maximize the flow from the source to the sink.&lt;/p&gt;
 &lt;p&gt;The problem may have intermediate constraints. For example, a network graph may have a node with limited bandwidth, so the flow through that node must be less than or equal to the bandwidth. These notes review the formal definition of the problem followed by a solution using the Ford-Fulkerson algorithm as well as one related to bipartite matching.&lt;/p&gt;
+&lt;h2 id=&#34;objective-questions&#34;&gt;Objective Questions&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;input disabled=&#34;&#34; type=&#34;checkbox&#34;&gt; What is the &lt;strong&gt;maximum flow&lt;/strong&gt; problem?&lt;/li&gt;
+&lt;li&gt;&lt;input disabled=&#34;&#34; type=&#34;checkbox&#34;&gt; How can we solve it?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;maximum-flow&#34;&gt;Maximum Flow&lt;/h2&gt;
+&lt;p&gt;A &lt;strong&gt;flow network&lt;/strong&gt; \(G = (V, E)\) is a directed graph in which each edge \((u, v) \in E\) has a nonnegative &lt;strong&gt;capacity&lt;/strong&gt; \(c(u, v) \geq 0\). The graph does not contain reverse edges between two vertices. If an edge does not exist in the set, then its capacity is 0. Each graph has a &lt;strong&gt;source&lt;/strong&gt; and a &lt;strong&gt;sink&lt;/strong&gt;, which will be the main edges of note when analyzing the graph. The goal is to maximize the flow going from the source to the sink. This implies that the source has no incoming edges.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-13_19-02-08_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;A flow network. Each edge depicts (f(u,v)/c(u,v)), the flow and capacity (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A flow network. Each edge depicts (f(u,v)/c(u,v)), the flow and capacity (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;A &lt;strong&gt;flow&lt;/strong&gt; in a graph \(G\) satisfies two properties:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Capacity constraint:&lt;/strong&gt; For all \(u, v \in V\),
+\[
+0 \leq f(u,v) \leq c(u,v).
+\]&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Flow conservation:&lt;/strong&gt; For all $u ∈ V - \{s, t\},
+\[
+\sum_{v \in V} f(v, u) = \sum_{v \in V} f(u, v).
+\]&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;There are usually many different possibly paths of flow in a flow network. The &lt;strong&gt;maximum flow problem&lt;/strong&gt; asks: what is the path that yields the maximum flow?&lt;/p&gt;
+&lt;h3 id=&#34;antiparallel-edges&#34;&gt;Antiparallel Edges&lt;/h3&gt;
+&lt;p&gt;The restriction that no two nodes may have more than one edge seems to be unrealistic. For example, modeling the flow of a network graph with this restriction means that network traffic can only move in one direction between two datacenters. If there were two edges between adjacent nodes \(v_1\) and \(v_2\) such that \((v_1, v_2) \in E\) and \((v_1, v_2) \in E\), we would call these edges &lt;strong&gt;antiparallel&lt;/strong&gt;. In such cases, the graph is modified with a new node \(v&amp;rsquo;\) such that \((v_1, v&amp;rsquo;) \in E\) and \((v&amp;rsquo;, v_2) \in E\). An example is shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-13_19-23-43_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Addressing antiparallel edges in a flow network (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Addressing antiparallel edges in a flow network (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;multiple-sources-and-sinks&#34;&gt;Multiple Sources and Sinks&lt;/h3&gt;
+&lt;p&gt;Another restriction that is unrealistic in many real-world scenarios is that maximum flow graphs can only have a single source and sink. It is easy to imagine a scenario where multiple sources and sinks within a network. Again, the graph can be modified to accommodate this scenario by defining a &lt;strong&gt;supersource&lt;/strong&gt; and &lt;strong&gt;supersink&lt;/strong&gt; whose outgoing and incoming flows are infinite.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-13_19-27-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Assing a supersource and supersink to a graph with multiple sources and sinks (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Assing a supersource and supersink to a graph with multiple sources and sinks (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;a-polynomial-time-solution&#34;&gt;A polynomial time solution&lt;/h2&gt;
+&lt;p&gt;Ford-Fulkerson relies on three foundational concepts:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Residual networks&lt;/li&gt;
+&lt;li&gt;Augmenting paths&lt;/li&gt;
+&lt;li&gt;Cuts&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;a-linear-time-solution&#34;&gt;A linear time solution&lt;/h2&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -9311,6 +9847,8 @@ w(p) = \sum_{e \in p} w(e).
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#what-are-graphs&#34;&gt;What are Graphs?&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#breadth-first-search&#34;&gt;Breadth First Search&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#depth-first-search&#34;&gt;Depth First Search&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -9397,8 +9935,9 @@ w(p) = \sum_{e \in p} w(e).
 \end{bmatrix}&lt;/p&gt;
 &lt;p&gt;The value at row \(i\) and column \(j\) is the number of paths of length 2 from vertex \(i\) to vertex \(j\). For example, is a path from vertex 0 to vertex 6 via 0 -&amp;gt; 3 -&amp;gt; 6.&lt;/p&gt;
 &lt;h2 id=&#34;graph-traversal-algorithms&#34;&gt;Graph Traversal Algorithms&lt;/h2&gt;
-&lt;h3 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h3&gt;
-&lt;p&gt;We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Graph traversal algorithms are used to explore the structure of a graph. You might initially find this a useless endeavour. If we have defined our own graph, what about it would we need to explore? In scenarios with highly complex and large datasets, the search takes on slightly different meanings. Perhaps we are searching for specific trends based on a range of values such as the &lt;a href=&#34;https://en.wikipedia.org/wiki/Six_Degrees_of_Kevin_Bacon&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Bacon number&lt;/a&gt; of a particular celebrity.&lt;/p&gt;
+&lt;h2 id=&#34;breadth-first-search&#34;&gt;Breadth First Search&lt;/h2&gt;
+&lt;p&gt;Breadth First search explores the graph broadly, ensuring one level has been exhausted before moving onto the next. We previously studied breadth-first search in the context of binary search trees. The algorithm is the same when applied on general graphs, but our perspective is slightly different now. The function studied before did not use node coloring. Let&amp;rsquo;s investigate the algorithm given by Cormen et al. in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;The algorithm adds a color to each node to keep track of its state. The colors are:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
@@ -9450,9 +9989,52 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;/figure&gt;
 
-&lt;h4 id=&#34;analysis&#34;&gt;Analysis&lt;/h4&gt;
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;The running time of BFS is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. Each vertex is queued and dequeued once, so the queue operations take \(O(V)\) time. Each edge is examined once, so the edge operations take \(O(E)\) time. The total running time is \(O(V + E)\).&lt;/p&gt;
-&lt;h3 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h3&gt;
+&lt;h3 id=&#34;breath-first-trees&#34;&gt;Breath-first Trees&lt;/h3&gt;
+&lt;p&gt;The blue lines in the previous example depict a &lt;strong&gt;breadth-first tree&lt;/strong&gt; which was built by BFS. The tree is defined by the \(\pi\) values updated throughout the course of the algorithm. These can also be used to reconstruct the shortest path from \(s\) to any other vertex \(v\).&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;predecessor subgraph&lt;/strong&gt; is a graph \(G_{\pi} = (V_{\pi}, E_{\pi})\), where&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+V_{\pi} &amp;amp;= \{v \in V : v.\pi \neq \text{None}\} \cup \{s\} \text{ and}\\
+E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Such a graph is a breadth-first tree if \(V_{\pi}\) consists of the vertices reachable from \(s\) and, for all \(v \in V_{\pi}\), the subgraph \(G_{\pi}\) contains a unique simple path from \(s\) to \(v\) that is also a shortest path from \(s\) to \(v\) in \(G\).&lt;/p&gt;
+&lt;p&gt;To print the vertices on a shortest path from \(s\) to \(v\):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;print_path&lt;/span&gt;(G, s, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; s:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;No path from&amp;#34;&lt;/span&gt;, s, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;to&amp;#34;&lt;/span&gt;, v, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;exists.&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print_path(G, s, v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(v)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;exercise&#34;&gt;Exercise&lt;/h3&gt;
+&lt;p&gt;Run BFS on the following graph, starting from \(s\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_16-08-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Graph for BFS exercise from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Graph for BFS exercise from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;depth-first-search&#34;&gt;Depth First Search&lt;/h2&gt;
 &lt;p&gt;Like the BFS algorithm presented in &lt;em&gt;Introduction to Algorithms&lt;/em&gt; by Cormen et al., the DFS algorithm also uses colors to keep track of the state of each node. The colors are similar to the BFS algorithm, but the meaning is slightly different:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;WHITE: The node has not been discovered yet.&lt;/li&gt;
@@ -9460,7 +10042,16 @@ w(p) = \sum_{e \in p} w(e).
 &lt;li&gt;BLACK: The adjacency list of the node has been examined completely.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;First, all vertices are colored white. The time is set to 0. The function &lt;code&gt;dfs_visit&lt;/code&gt; is called on each vertex. The function is defined as follows:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs&lt;/span&gt;(G):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; WHITE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;V:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; WHITE:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dfs_visit(G, u)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dfs_visit&lt;/span&gt;(G, u):
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    time &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; time
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; GRAY
@@ -9480,14 +10071,14 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-17_20-25-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Depth First Search from Cormen et al.&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Depth First Search from Cormen et al.
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Depth First Search from Cormen et al.
     
     
     
@@ -9496,6 +10087,112 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;/figure&gt;
 
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;Each vertex is added and removed to the queue once. Since these operations are performed in \(O(1)\) time, the total time for these operations in \(O(V)\). When a vertex is dequeued, its adjacency list is scanned. The total number of entries in all adjacency lists is equal to the number of edges, so the time spent scanning these lists of \(O(V + E)\). In summary, the operation is linear in terms of the adjacency-list representation.&lt;/p&gt;
+&lt;h3 id=&#34;properties-of-dfs&#34;&gt;Properties of DFS&lt;/h3&gt;
+&lt;p&gt;The predecessor subgraph \(G_{\pi}\) is a forest of trees. That is, it creates a collection of depth first trees.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;What is a forest?&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;How does DFS generate a forest?&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A vertex \(u = v.{\pi}\) if and only if \(\text{DFS-VISIT}(G, v)\) was called during a search of \(u\)&amp;rsquo;s adjacency list. Vertex \(v\) is a descendant of vertex \(u\) in the depth-first forest if and only if \(v\) is discovered during the time in which \(u\) is gray (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Essentially, each call to &lt;code&gt;dfs_visit&lt;/code&gt; from &lt;code&gt;dfs&lt;/code&gt; finds a new tree. Let&amp;rsquo;s consider this on the example above.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Exercise: Draw the DFS forest using the graph above.&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;parenthesis-theorem&#34;&gt;Parenthesis Theorem&lt;/h4&gt;
+&lt;p&gt;In a DFS, the discovery and finish times have &lt;strong&gt;parenthesis structure&lt;/strong&gt;. For all \(u, v\), exactly only of the following holds:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the intervals \([u.d, u.f]\) and \([v.d, v.f]\) are entirely disjoint and neither \(u\) nor \(v\) is a descendant of the other in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;the interval \([u.d, u.f]\) is entirely contained within the interval \([v.d, v.f]\) and \(u\) is a descendant of \(v\) in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;the interval \([v.d, v.f]\) is entirely contained within the interval \([u.d, u.f]\) and \(v\) is a descendant of \(u\) in the depth-first forest.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;It is called the &lt;strong&gt;parenthesis theorem&lt;/strong&gt; because if &lt;code&gt;dfs_visit&lt;/code&gt; printed &amp;ldquo;\((u\)&amp;rdquo; when it first encountered \(u\) and printed &amp;ldquo;\(u)\)&amp;rdquo; when it finished, the expression would be well formed.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-14-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Example of parenthesis structure from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Example of parenthesis structure from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;white-path-theorem&#34;&gt;White-path Theorem&lt;/h4&gt;
+&lt;p&gt;In a depth-first forest of a graph \(G\), vertex \(v\) is a descendant of vertex \(u\) if and only if at the time \(u.d\) that &lt;code&gt;dfs_visit&lt;/code&gt; is called on \(u\), there is a path of white vertices from \(u\) to \(v\) in \(G\).&lt;/p&gt;
+&lt;h4 id=&#34;more-on-dfs-forests&#34;&gt;More on DFS Forests&lt;/h4&gt;
+&lt;p&gt;Consider the result of DFS on the graph below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-30-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;DFS forest from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;DFS forest from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The edges are labeled as either&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;tree edges&lt;/strong&gt;: edges in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;back edges&lt;/strong&gt;: edges that point from a vertex to an ancestor in the depth-first forest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;forward edges&lt;/strong&gt;: edges that point from a vertex to a descendant in the depth-first forest.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The above graph can be visualized as a DFS forest, as shown below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-16_17-33-21_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;DFS forest from Cormen et al.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;DFS forest from Cormen et al.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

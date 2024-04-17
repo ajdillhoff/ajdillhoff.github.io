@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. Flow in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network.">
+  <meta name="description" content="Table of Contents Objective Questions Maximum Flow A polynomial time solution A linear time solution A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. Flow in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/maximum_flow/">
@@ -138,7 +138,7 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/maximum_flow/">
   <meta property="og:title" content="Maximum Flow | Alex Dillhoff">
-  <meta property="og:description" content="A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. Flow in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Objective Questions Maximum Flow A polynomial time solution A linear time solution A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. Flow in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2024-04-12T18:51:00-05:00">
@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    1 min read
+    3 min read
   </span>
   
 
@@ -543,8 +543,125 @@
   <div class="article-container">
 
     <div class="article-style" itemprop="articleBody">
-      <p>A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. <em>Flow</em> in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network. The goal of a flow network is to maximize the flow from the source to the sink.</p>
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#objective-questions">Objective Questions</a></li>
+<li><a href="#maximum-flow">Maximum Flow</a></li>
+<li><a href="#a-polynomial-time-solution">A polynomial time solution</a></li>
+<li><a href="#a-linear-time-solution">A linear time solution</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>A flow network is a directed graph in which the edges begin at a node that produces the flow and the adjacent nodes are the ones that receive it. <em>Flow</em> in this context could take on many meanings, such as the amount of water that can flow through a pipe, the amount of data that can be sent through a network, or the amount of traffic that can be sent through a road network. The goal of a flow network is to maximize the flow from the source to the sink.</p>
 <p>The problem may have intermediate constraints. For example, a network graph may have a node with limited bandwidth, so the flow through that node must be less than or equal to the bandwidth. These notes review the formal definition of the problem followed by a solution using the Ford-Fulkerson algorithm as well as one related to bipartite matching.</p>
+<h2 id="objective-questions">Objective Questions</h2>
+<ul>
+<li><input disabled="" type="checkbox"> What is the <strong>maximum flow</strong> problem?</li>
+<li><input disabled="" type="checkbox"> How can we solve it?</li>
+</ul>
+<h2 id="maximum-flow">Maximum Flow</h2>
+<p>A <strong>flow network</strong> \(G = (V, E)\) is a directed graph in which each edge \((u, v) \in E\) has a nonnegative <strong>capacity</strong> \(c(u, v) \geq 0\). The graph does not contain reverse edges between two vertices. If an edge does not exist in the set, then its capacity is 0. Each graph has a <strong>source</strong> and a <strong>sink</strong>, which will be the main edges of note when analyzing the graph. The goal is to maximize the flow going from the source to the sink. This implies that the source has no incoming edges.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-13_19-02-08_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;A flow network. Each edge depicts (f(u,v)/c(u,v)), the flow and capacity (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>A flow network. Each edge depicts (f(u,v)/c(u,v)), the flow and capacity (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>A <strong>flow</strong> in a graph \(G\) satisfies two properties:</p>
+<ol>
+<li><strong>Capacity constraint:</strong> For all \(u, v \in V\),
+\[
+0 \leq f(u,v) \leq c(u,v).
+\]</li>
+<li><strong>Flow conservation:</strong> For all $u ∈ V - \{s, t\},
+\[
+\sum_{v \in V} f(v, u) = \sum_{v \in V} f(u, v).
+\]</li>
+</ol>
+<p>There are usually many different possibly paths of flow in a flow network. The <strong>maximum flow problem</strong> asks: what is the path that yields the maximum flow?</p>
+<h3 id="antiparallel-edges">Antiparallel Edges</h3>
+<p>The restriction that no two nodes may have more than one edge seems to be unrealistic. For example, modeling the flow of a network graph with this restriction means that network traffic can only move in one direction between two datacenters. If there were two edges between adjacent nodes \(v_1\) and \(v_2\) such that \((v_1, v_2) \in E\) and \((v_1, v_2) \in E\), we would call these edges <strong>antiparallel</strong>. In such cases, the graph is modified with a new node \(v&rsquo;\) such that \((v_1, v&rsquo;) \in E\) and \((v&rsquo;, v_2) \in E\). An example is shown below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-13_19-23-43_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Addressing antiparallel edges in a flow network (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Addressing antiparallel edges in a flow network (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="multiple-sources-and-sinks">Multiple Sources and Sinks</h3>
+<p>Another restriction that is unrealistic in many real-world scenarios is that maximum flow graphs can only have a single source and sink. It is easy to imagine a scenario where multiple sources and sinks within a network. Again, the graph can be modified to accommodate this scenario by defining a <strong>supersource</strong> and <strong>supersink</strong> whose outgoing and incoming flows are infinite.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-13_19-27-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Assing a supersource and supersink to a graph with multiple sources and sinks (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Assing a supersource and supersink to a graph with multiple sources and sinks (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="a-polynomial-time-solution">A polynomial time solution</h2>
+<p>Ford-Fulkerson relies on three foundational concepts:</p>
+<ol>
+<li>Residual networks</li>
+<li>Augmenting paths</li>
+<li>Cuts</li>
+</ol>
+<h2 id="a-linear-time-solution">A linear time solution</h2>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+</div>
 
     </div>
 
