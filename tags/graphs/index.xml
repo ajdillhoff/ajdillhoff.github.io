@@ -206,6 +206,7 @@
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#bellman-ford&#34;&gt;Bellman-Ford&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#shortest-paths-on-a-dag&#34;&gt;Shortest Paths on a DAG&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
@@ -230,6 +231,11 @@ w(p) = \sum_{e \in p} w(e).
 \end{cases}
 \]&lt;/p&gt;
 &lt;p&gt;where \(P(u, v)\) is the set of all paths from \(u\) to \(v\). The shortest-path weight from \(s\) to \(t\) is given by \(\delta(s, t)\).&lt;/p&gt;
+&lt;p&gt;The output of a shortest-path algorithm will produce, for each vertex \(v \in V\):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(v.d\): The shortest-path estimate from \(s\) to \(v\).&lt;/li&gt;
+&lt;li&gt;\(v.\pi\): The predecessor of \(v\) in the shortest path from \(s\) to \(v\).&lt;/li&gt;
+&lt;/ul&gt;
 &lt;p&gt;Shortest-path algorithms rely on an optimal substructure property that is defined by Lemma 22.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Lemma 22.1&lt;/strong&gt;&lt;/p&gt;
 &lt;blockquote&gt;
@@ -306,8 +312,90 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;/figure&gt;
 
+&lt;h3 id=&#34;correctness&#34;&gt;Correctness&lt;/h3&gt;
+&lt;p&gt;Bellman-Ford is guaranteed to converge after \(|V| - 1\) iterations, assuming no negative-weight cycles.&lt;/p&gt;
+&lt;h4 id=&#34;proof&#34;&gt;Proof&lt;/h4&gt;
+&lt;p&gt;The first iteration relaxes \((v_0, v_1)\). The second iteration relaxes \((v_1, v_2)\), and so on. The &lt;strong&gt;path-relaxation&lt;/strong&gt; property from before implies that \(v.d = v_k.d = \delta(s, v_k) = \delta(s, v)\). If there is a negative-weight cycle, then the shortest path to \(v_k\) is not well-defined. This is verified in the final loop over the edges.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (u, v) &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;E:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; w(u, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If there exists a negative-weight cycle \(c = \langle v_0, v_1, \dots, v_k \rangle\), where \(v_0 = v_k\) that can be reached from \(s\), then&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{i=1}^{k} w(v_{i-1}, v_i) &amp;lt; 0.
+\]&lt;/p&gt;
+&lt;p&gt;To complete the proof by contradiction, assume that Bellman-Ford returns &lt;code&gt;True&lt;/code&gt;. Then we would have that \(v_i.d \leq v_{i-1}.d + w(v_{i-1}, v_i)\) for \(i = 1, 2, \dots, k\) by the &lt;strong&gt;triangle inequality&lt;/strong&gt; property. If we sum around the cycle, we get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\sum_{i=1}^k v_i.d &amp;amp;\leq \sum_{i=1}^k (v_{i-1}.d + w(v_{i-1}, v_i))\\
+&amp;amp;= \sum_{i=1}^k v_{i-1}.d + \sum_{i=1}^k w(v_{i-1}, v_i)\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Since the vertices are in a cycle, each vertex appears only once in each summation \(\sum_{i=1}^k v_{i}.d\) and \(\sum_{i=1}^k v_{i-1}.d\). Subtracting this from both sides of the inequality, we get&lt;/p&gt;
+&lt;p&gt;\[
+0 \leq \sum_{i=1}^k w(v_{i-1}, v_i).
+\]&lt;/p&gt;
+&lt;p&gt;This contradicts the assumption that there is a negative-weight cycle. Therefore, if Bellman-Ford returns &lt;code&gt;True&lt;/code&gt;, then there are no negative-weight cycles.&lt;/p&gt;
 &lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;Using an adjacency list representation, the runtime of Bellman-Ford is \(O(V^2 + VE)\). The initialization takes \(\Theta(V)\). Each of the \(|V| - 1\) iterations over the edges takes \(\Theta(V + E)\), and the final check for negative-weight cycles takes \(\Theta(V + E)\). If the number of edges and vertices is such that the number of vertices are a lower bound on the edges, then the runtime is \(O(VE)\).&lt;/p&gt;
+&lt;h3 id=&#34;example-22-dot-1-1&#34;&gt;Example 22.1-1&lt;/h3&gt;
+&lt;p&gt;Run Bellman-Ford on the given path using \(z\) as the source. Then change the weight of \((z, x)\) to 4 and run it again with \(s\) as the source.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-22_11-13-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Figure 22.4 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Figure 22.4 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;shortest-paths-on-a-dag&#34;&gt;Shortest Paths on a DAG&lt;/h2&gt;
+&lt;p&gt;If we are given a directed acyclic graph (DAG), we can solve the single-source shortest path problem in \(O(V + E)\) time. By definition, the graph has no cycles and thus no negative-weight cycles.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dag_shortest_paths&lt;/span&gt;(G, w, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    initialize_single_source(G, s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; topological_sort(G):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            relax(u, v, w)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Run &lt;code&gt;dag_shortest_paths&lt;/code&gt; on the graph given below with \(s\) as the source.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-22_11-23-05_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Figure 22.5 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Figure 22.5 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;The runtime of &lt;code&gt;dag_shortest_paths&lt;/code&gt; is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. The topological sort takes \(O(V + E)\) time. Initializing the vertices takes \(O(V)\) time. The first &lt;code&gt;for&lt;/code&gt; loop makes on iteration per vertex, and the inner loop relaxes each edge only once.&lt;/p&gt;
 &lt;h2 id=&#34;dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/h2&gt;
 &lt;p&gt;Dijkstra&amp;rsquo;s algorithm also solves the single-source shortest path problem on a weighted, directed graph \(G = (V,E)\) but requires nonnegative weights on all edges. It works in a breadth-first manner. A minimum priority queue is utilized to keep track of the vertices that have not been visited based on their current minimum shortest-path estimate. The algorithm works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dijkstra&lt;/span&gt;(G, w, s):
@@ -332,14 +420,14 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-25_08-21-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A step-by-step execution of Dijkstra&amp;#39;s algorithm on a graph with non-negative edge weights (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-25_08-21-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A step-by-step execution of Dijkstra&amp;#39;s algorithm on a graph with non-negative edge weights (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A step-by-step execution of Dijkstra&amp;rsquo;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A step-by-step execution of Dijkstra&amp;rsquo;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
     
     
     

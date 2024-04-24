@@ -415,7 +415,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    3 min read
+    5 min read
   </span>
   
 
@@ -592,7 +592,7 @@
 \[
 0 \leq f(u,v) \leq c(u,v).
 \]</li>
-<li><strong>Flow conservation:</strong> For all $u ∈ V - \{s, t\},
+<li><strong>Flow conservation:</strong> For all \(u \in V - \{s, t\}\),
 \[
 \sum_{v \in V} f(v, u) = \sum_{v \in V} f(u, v).
 \]</li>
@@ -657,6 +657,65 @@
 <li>Augmenting paths</li>
 <li>Cuts</li>
 </ol>
+<p>The solution presented by Ford and Fulkerson is not a single algorithm but rather a set of general instructions.</p>
+<ol>
+<li>Initialize \(f(u, v) = 0\) for all \(u,v \in V\), giving an initial flow of 0.</li>
+<li>Increase the flow by finding an <strong>augmenting path</strong> in a <strong>residual network</strong>.</li>
+<li>The edges of the augmented path indicate where to increase the flow.</li>
+</ol>
+<p>This is repeated until the residual network has no more augmenting paths.</p>
+<h3 id="residual-networks">Residual Networks</h3>
+<p>Consider a pair of vertices \(u, v \in V\), the residual capacity \(c_f(u, v)\) is amount of additional flow that can be pushed from \(u\) to \(v\).</p>
+<p>\[
+c_f(u, v)= \begin{cases}
+c(u,v) - f(u, v)\quad \text{if } (u,v) \in E,\\
+f(v, u)\quad \text{if } (v, u) \in E,\\
+0\quad \text{otherwise (i.e., } (u, v), (v, u) \notin E).
+\end{cases}
+\]</p>
+<p>The <strong>residual network</strong> is \(G_f = (V, E_f)\), where</p>
+<p>\[
+E_f= \{(u, v) \in V \times V : c_f(u, v) &gt; 0\}.
+\]</p>
+<p>The edges of \(G_f\) represent those edges in \(G\) with the capacity to change the flow. There is also no requirement for all edges in \(G\) to be present in \(G_f\). As the algorithm works out the solution, we are only considered with edges that permit more flow.</p>
+<p>An edge \((u, v) \in E\) means that the reverse edge \((v, u) \notin E\). However, the residual network can have edges that are not in \(G\). These are used to represent paths in which flow is sent in the reverse direction. This can happen if reducing flow from one edge results in a net increase across some other.</p>
+<p>In \(G_f\), the reverse edges \((v, u)\) represent the flow on \((u, v) \in G\) that could be sent back.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-19_15-29-03_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A flow network and its residual network (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>A flow network and its residual network (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h4 id="augmentation-function">Augmentation Function</h4>
+<p>Given flows \(f\) in \(G\) and \(f&rsquo;\) in \(G_f\), define the <strong>augmentation</strong> of \(f\) by \(f&rsquo;\), as a function \(V \times V \rightarrow \mathbb{R}\):</p>
+<p>\[
+(f \uparrow f&rsquo;)(u, v) = \begin{cases}
+f(u, v) + f&rsquo;(u, v) - f&rsquo;(u, v)\quad \text{it } (u, v) \in E,\\
+0 \quad \text{otherwise}
+\end{cases}
+\]</p>
+<p>for all \((u, v) \in V\).</p>
+<p>This augmentation function represents an increase of flow on \((u, v)\) by \(f&rsquo;(u, v)\) with a decrease by \(f&rsquo;(v, u)\) since pushing flow on the reverse edge in \(G_f\) represents a decrease in \(G\). This is known as <strong>cancellation</strong>.</p>
+<p><strong>Lemma</strong></p>
+<p>Given a flow network \(G\), a flow \(f\) in \(G\), and the residual network \(G_f\), let \(f&rsquo;\) be a flow in \(G_f\). Then \((f \uparrow f&rsquo;)\) is a flow in \(G\) with value \(|f \uparrow f&rsquo;| = |f| + |f&rsquo;|\).</p>
 <h2 id="a-linear-time-solution">A linear time solution</h2>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">

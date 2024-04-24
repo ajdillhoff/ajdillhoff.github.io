@@ -29,8 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Definition Bellman-Ford Dijkstra&rsquo;s Algorithm When you hear the term shortest path, you may think of the shortest physical distance between your current location and wherever it is you&rsquo;re going. Finding the most optimal route via GPS is one of the most widely used mobile applications. Physical paths are not the only types we may wish to find a shortest path for. Other examples include:
-Network Routing: To improve network performance, it is critical to know the shortest path from one system to another in terms of latency.">
+  <meta name="description" content="Table of Contents Definition Bellman-Ford Shortest Paths on a DAG Dijkstra&rsquo;s Algorithm When you hear the term shortest path, you may think of the shortest physical distance between your current location and wherever it is you&rsquo;re going. Finding the most optimal route via GPS is one of the most widely used mobile applications. Physical paths are not the only types we may wish to find a shortest path for. Other examples include:">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/single_source_shortest_paths/">
@@ -139,8 +138,7 @@ Network Routing: To improve network performance, it is critical to know the shor
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/single_source_shortest_paths/">
   <meta property="og:title" content="Single-Source Shortest Paths | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Definition Bellman-Ford Dijkstra&rsquo;s Algorithm When you hear the term shortest path, you may think of the shortest physical distance between your current location and wherever it is you&rsquo;re going. Finding the most optimal route via GPS is one of the most widely used mobile applications. Physical paths are not the only types we may wish to find a shortest path for. Other examples include:
-Network Routing: To improve network performance, it is critical to know the shortest path from one system to another in terms of latency."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Definition Bellman-Ford Shortest Paths on a DAG Dijkstra&rsquo;s Algorithm When you hear the term shortest path, you may think of the shortest physical distance between your current location and wherever it is you&rsquo;re going. Finding the most optimal route via GPS is one of the most widely used mobile applications. Physical paths are not the only types we may wish to find a shortest path for. Other examples include:"><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2023-10-21T00:00:00-05:00">
@@ -417,7 +415,7 @@ Network Routing: To improve network performance, it is critical to know the shor
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    7 min read
+    9 min read
   </span>
   
 
@@ -550,6 +548,7 @@ Network Routing: To improve network performance, it is critical to know the shor
 <ul>
 <li><a href="#definition">Definition</a></li>
 <li><a href="#bellman-ford">Bellman-Ford</a></li>
+<li><a href="#shortest-paths-on-a-dag">Shortest Paths on a DAG</a></li>
 <li><a href="#dijkstra-s-algorithm">Dijkstra&rsquo;s Algorithm</a></li>
 </ul>
 </div>
@@ -574,6 +573,11 @@ w(p) = \sum_{e \in p} w(e).
 \end{cases}
 \]</p>
 <p>where \(P(u, v)\) is the set of all paths from \(u\) to \(v\). The shortest-path weight from \(s\) to \(t\) is given by \(\delta(s, t)\).</p>
+<p>The output of a shortest-path algorithm will produce, for each vertex \(v \in V\):</p>
+<ul>
+<li>\(v.d\): The shortest-path estimate from \(s\) to \(v\).</li>
+<li>\(v.\pi\): The predecessor of \(v\) in the shortest path from \(s\) to \(v\).</li>
+</ul>
 <p>Shortest-path algorithms rely on an optimal substructure property that is defined by Lemma 22.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).</p>
 <p><strong>Lemma 22.1</strong></p>
 <blockquote>
@@ -650,8 +654,90 @@ w(p) = \sum_{e \in p} w(e).
 
 </figure>
 
+<h3 id="correctness">Correctness</h3>
+<p>Bellman-Ford is guaranteed to converge after \(|V| - 1\) iterations, assuming no negative-weight cycles.</p>
+<h4 id="proof">Proof</h4>
+<p>The first iteration relaxes \((v_0, v_1)\). The second iteration relaxes \((v_1, v_2)\), and so on. The <strong>path-relaxation</strong> property from before implies that \(v.d = v_k.d = \delta(s, v_k) = \delta(s, v)\). If there is a negative-weight cycle, then the shortest path to \(v_k\) is not well-defined. This is verified in the final loop over the edges.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (u, v) <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>E:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v<span style="color:#f92672">.</span>d <span style="color:#f92672">&gt;</span> u<span style="color:#f92672">.</span>d <span style="color:#f92672">+</span> w(u, v):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span></code></pre></div><p>If there exists a negative-weight cycle \(c = \langle v_0, v_1, \dots, v_k \rangle\), where \(v_0 = v_k\) that can be reached from \(s\), then</p>
+<p>\[
+\sum_{i=1}^{k} w(v_{i-1}, v_i) &lt; 0.
+\]</p>
+<p>To complete the proof by contradiction, assume that Bellman-Ford returns <code>True</code>. Then we would have that \(v_i.d \leq v_{i-1}.d + w(v_{i-1}, v_i)\) for \(i = 1, 2, \dots, k\) by the <strong>triangle inequality</strong> property. If we sum around the cycle, we get</p>
+<p>\begin{align*}
+\sum_{i=1}^k v_i.d &amp;\leq \sum_{i=1}^k (v_{i-1}.d + w(v_{i-1}, v_i))\\
+&amp;= \sum_{i=1}^k v_{i-1}.d + \sum_{i=1}^k w(v_{i-1}, v_i)\\
+\end{align*}</p>
+<p>Since the vertices are in a cycle, each vertex appears only once in each summation \(\sum_{i=1}^k v_{i}.d\) and \(\sum_{i=1}^k v_{i-1}.d\). Subtracting this from both sides of the inequality, we get</p>
+<p>\[
+0 \leq \sum_{i=1}^k w(v_{i-1}, v_i).
+\]</p>
+<p>This contradicts the assumption that there is a negative-weight cycle. Therefore, if Bellman-Ford returns <code>True</code>, then there are no negative-weight cycles.</p>
 <h3 id="analysis">Analysis</h3>
 <p>Using an adjacency list representation, the runtime of Bellman-Ford is \(O(V^2 + VE)\). The initialization takes \(\Theta(V)\). Each of the \(|V| - 1\) iterations over the edges takes \(\Theta(V + E)\), and the final check for negative-weight cycles takes \(\Theta(V + E)\). If the number of edges and vertices is such that the number of vertices are a lower bound on the edges, then the runtime is \(O(VE)\).</p>
+<h3 id="example-22-dot-1-1">Example 22.1-1</h3>
+<p>Run Bellman-Ford on the given path using \(z\) as the source. Then change the weight of \((z, x)\) to 4 and run it again with \(s\) as the source.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-22_11-13-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Figure 22.4 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Figure 22.4 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="shortest-paths-on-a-dag">Shortest Paths on a DAG</h2>
+<p>If we are given a directed acyclic graph (DAG), we can solve the single-source shortest path problem in \(O(V + E)\) time. By definition, the graph has no cycles and thus no negative-weight cycles.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dag_shortest_paths</span>(G, w, s):
+</span></span><span style="display:flex;"><span>    initialize_single_source(G, s)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> u <span style="color:#f92672">in</span> topological_sort(G):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>adj[u]:
+</span></span><span style="display:flex;"><span>            relax(u, v, w)
+</span></span></code></pre></div><h3 id="example">Example</h3>
+<p>Run <code>dag_shortest_paths</code> on the graph given below with \(s\) as the source.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-04-22_11-23-05_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Figure 22.5 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Figure 22.5 from (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="analysis">Analysis</h3>
+<p>The runtime of <code>dag_shortest_paths</code> is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. The topological sort takes \(O(V + E)\) time. Initializing the vertices takes \(O(V)\) time. The first <code>for</code> loop makes on iteration per vertex, and the inner loop relaxes each edge only once.</p>
 <h2 id="dijkstra-s-algorithm">Dijkstra&rsquo;s Algorithm</h2>
 <p>Dijkstra&rsquo;s algorithm also solves the single-source shortest path problem on a weighted, directed graph \(G = (V,E)\) but requires nonnegative weights on all edges. It works in a breadth-first manner. A minimum priority queue is utilized to keep track of the vertices that have not been visited based on their current minimum shortest-path estimate. The algorithm works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>(G, w, s):
@@ -676,14 +762,14 @@ w(p) = \sum_{e \in p} w(e).
 
 <figure>
 
-<img src="/ox-hugo/2023-10-25_08-21-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A step-by-step execution of Dijkstra&#39;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+<img src="/ox-hugo/2023-10-25_08-21-04_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A step-by-step execution of Dijkstra&#39;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 2: </span>A step-by-step execution of Dijkstra&rsquo;s algorithm on a graph with non-negative edge weights (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    <span class="figure-number">Figure 4: </span>A step-by-step execution of Dijkstra&rsquo;s algorithm on a graph with non-negative edge weights (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
     
     
     

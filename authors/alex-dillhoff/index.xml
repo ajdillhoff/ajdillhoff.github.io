@@ -7,10 +7,210 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Mon, 15 Apr 2024 20:14:00 -0500</lastBuildDate>
+    <lastBuildDate>Sat, 20 Apr 2024 11:32:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>All-Pairs Shortest Paths</title>
+      <link>https://ajdillhoff.github.io/notes/all_pairs_shortest_paths/</link>
+      <pubDate>Sat, 20 Apr 2024 11:32:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/all_pairs_shortest_paths/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#problem-representation&#34;&gt;Problem Representation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#a-naive-solution&#34;&gt;A Naive Solution&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-floyd-warshall-algorithm&#34;&gt;The Floyd-Warshall Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;TychoLink is a telecommunications company looking to optimize its network for the fastest and most efficient data transfer possible. The network consists of multiple routers, each connected by various types of links that differ in latency and bandwidth. The company wants to ensure that data packets can travel from any router to any other router in the network using the path that offers the best balance between low latency and high bandwidth. There are three objectives in total:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Determine the all-pairs shortest paths across the network, taking into account both latency and bandwidth.&lt;/li&gt;
+&lt;li&gt;Minimize the overall latency for data packet transmission across the network.&lt;/li&gt;
+&lt;li&gt;Maximize the effective bandwidth along the chosen paths to ensure high data transfer rates.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Given the solutions discussed in &lt;a href=&#34;https://ajdillhoff.github.io/notes/single_source_shortest_paths/&#34;&gt;Single-Source Shortest Paths&lt;/a&gt;, we can simply run the Bellman-Ford algorithm for each router in the network to find the shortest paths to all other routers. This results in a time complexity of \(O(V^2 E)\). If the network is dense, then the number of edges \(E = \Theta(V^2)\), which results in a time complexity of \(O(V^4)\).&lt;/p&gt;
+&lt;p&gt;These notes discuss another solution, the Floyd-Warshall algorithm, which can find the shortest paths between all pairs of routers in the network in \(O(V^3)\) time. The algorithm is particularly useful when the network is dense, as it is more efficient than running the Bellman-Ford algorithm for each router.&lt;/p&gt;
+&lt;h2 id=&#34;problem-representation&#34;&gt;Problem Representation&lt;/h2&gt;
+&lt;p&gt;Given a network \(G = (V, E)\) and a set of weights \(W = (w_{ij})\) for each edge \((i, j) \in E\), the goal is to find the shortest path between all pairs of vertices in \(V\). The graph and weights will be represented as an adjacency matrix with entries \(w_{ij}\) for each edge \((i, j) \in E\).&lt;/p&gt;
+&lt;p&gt;\[
+w_{ij} = \begin{cases}
+0 &amp;amp; \text{if } i = j \\
+\text{weight of edge } (i, j) &amp;amp; \text{if } i \neq j, (i, j) \in E \\
+\infty &amp;amp; \text{if } i \neq j, (i, j) \notin E.
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;The \((i, j)\) entry of the output matrix is \(\delta(i, j)\), the shortest-path weight from \(i\) to \(j\).&lt;/p&gt;
+&lt;h2 id=&#34;a-naive-solution&#34;&gt;A Naive Solution&lt;/h2&gt;
+&lt;p&gt;To construct a dynamic programming solution, we need to establish that the problem has &lt;strong&gt;optimal substructure&lt;/strong&gt;. The shortest path structure was first discussed in &lt;a href=&#34;https://ajdillhoff.github.io/notes/single_source_shortest_paths/&#34;&gt;Single-Source Shortest Paths&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;recursive-solution&#34;&gt;Recursive Solution&lt;/h3&gt;
+&lt;p&gt;Step 2 is to state the recursive solution. Let \(l_{ij}^{( r)}\) be the minimum weight of any path \(i \leadsto j\) that contains at most \(r\) edges. For \(r = 0\), the cost is either 0 if \(i = j\) or \(\infty\) otherwise.&lt;/p&gt;
+&lt;p&gt;For \(r = 1\), try all possible predecessors \(k\) of \(j\).&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+l_{ij}^{( r)} &amp;amp;= \min \Big\{l_{ij}^{(r-1)}, \min \{l_{ik}^{(r-1)} + w_{kj} : 1 \leq k \leq n\}\Big\}\\
+&amp;amp;= \min \{l_{ik}^{(r-1)} + w_{kj} : 1 \leq k \leq n\}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Either the solution comes from a path of length \(r-1\) or from a path of length \(r-1\) with an additional edge \((k, j)\). The shortest path weights \(\delta(i, j)\) contain at most \(n-1\) edges since the shortest path cannot contain a cycle. This implies that \(\delta(i, j) = l_{ij}^{(n-1)} = l_{ij}^{(n)} = l_{ij}^{(n+1)} = \ldots\)&lt;/p&gt;
+&lt;h3 id=&#34;bottom-up-approach&#34;&gt;Bottom-Up Approach&lt;/h3&gt;
+&lt;p&gt;Starting with a matrix \(W = (w_{ij})\), where \(w_{ij}\) are the edge weights, the following approach computes a series of matrices \(L^{(0)}, L^{(1)}, \ldots, L^{(n-1)}\), where \(L^{( r)} = (l_{ij}^{( r)})\). The final matrix \(L^{(n-1)}\) contains the shortest path weights.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;extend_shortest_paths&lt;/span&gt;(L, W):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(L)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    L_prime &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                L_prime[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(L_prime[i][j], L[i][k] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; W[k][j])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; L_prime
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This function has the structure of matrix multiplication and has a running time of \(O(n^3)\). Since this must be repeated \(n\) times, the total running time is \(O(n^4)\).&lt;/p&gt;
+&lt;p&gt;Since they are so similar, we can actually reframe this as matrix multiplication. This will lead to a more efficient algorithm. Start with the statement being computed inside the loop:&lt;/p&gt;
+&lt;p&gt;\[
+l_{ij}^{( r)} = \min \{l_{ij}^{( r)}, l_{ik}^{(r-1)} + w_{kj}\}.
+\]&lt;/p&gt;
+&lt;p&gt;If we swap \(\min\) with \(+\) and \(\cdot\) with \(\min\), we can rewrite this as a matrix multiplication:&lt;/p&gt;
+&lt;p&gt;\[
+l_{ij}^{( r)} = l_{ij}^{( r)} + l_{ik}^{(r-1)} \cdot w_{kj}.
+\]&lt;/p&gt;
+&lt;p&gt;For this to yield the correct result, we also need to swap the identity of \(\min\), which is \(\infty\), with the identity of \(+\), which is 0.&lt;/p&gt;
+&lt;h3 id=&#34;faster-apsp&#34;&gt;Faster APSP&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;What&amp;rsquo;s the point?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The purpose of this reframing is to benefit from the associative property of matrix multiplication. As it turns out, our modified matrix multiplication using \(\min\) is also associative. This allows us to compute the shortest paths in \(O(n^3 \lg n)\) time. Consider that we only really care about \(L^{(n-1)}\). If we are not using negative weights, then computing anything above \(n-1\) will yield the same result.&lt;/p&gt;
+&lt;p&gt;We can get to this result in fewer steps by using &lt;strong&gt;repeated squaring&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+L^{(1)} &amp;amp;= &amp;amp;W, &amp;amp;\quad\\
+L^{(2)} &amp;amp;= &amp;amp;W^2 &amp;amp;= W \cdot W,\\
+L^{(4)} &amp;amp;= &amp;amp;W^4 &amp;amp;= W^2 \cdot W^2,\\
+&amp;amp;   &amp;amp;\vdots &amp;amp;\\
+L^{(2^{\lceil \lg (n-1) \rceil})} &amp;amp;= &amp;amp;W^{2^{\lceil \lg (n-1) \rceil}} &amp;amp;= W^{2^{\lceil \lg (n-1) \rceil - 1}} \cdot W^{2^{\lceil \lg (n-1) \rceil - 1}}.
+\end{align*}&lt;/p&gt;
+&lt;p&gt;In total, we compute \(O(\lg n)\) matrices, each of which takes \(O(n^3)\) time to compute. The total running time is \(O(n^3 \lg n)\).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;faster_all_pairs_shortest_paths&lt;/span&gt;(W):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(W)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    L &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; W
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    m &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; m &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        L &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; extend_shortest_paths(L, L)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        m &lt;span style=&#34;color:#f92672&#34;&gt;*=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; L
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Since we know that \(L^{( r)} = L^{(n-1)}\) for all \(r \geq n-1\), we can stop the loop when \(m \geq n-1\).&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Exercise 23.1-1:&lt;/strong&gt; Run APSP on the following graph and show the resulting matrices at each step.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-23_17-02-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Figure 23.2 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Figure 23.2 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;the-floyd-warshall-algorithm&#34;&gt;The Floyd-Warshall Algorithm&lt;/h2&gt;
+&lt;p&gt;The next solution to the APSP problem is the &lt;strong&gt;Floyd-Warshall algorithm&lt;/strong&gt;. This algorithm can handle negative weight edges, but it will fail to produce a result if a negative weight cycle exists. It is a dynamic programming approach that reconsiders the structure of a shortest path.&lt;/p&gt;
+&lt;p&gt;Given a path \(p = \langle v_1, v_2, \dots, v_l\rangle\), an &lt;strong&gt;intermediate vertex&lt;/strong&gt; is an vertex of \(p\) other than \(v_1\) and \(v_l\). Then define \(d_{ij}^{(k)}\) as the weight of the shortest path from \(i\) to \(j\) that uses only the vertices \(\{1, 2, \dots, k\}\) as intermediate vertices. Note that the vertices are arbitrarily numbered from 1 to \(n\).&lt;/p&gt;
+&lt;p&gt;Consider a shortest path \(i \leadsto j\) that uses intermediate vertices in the set \(\{1, 2, \dots, k\}\):&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Drop \(k\)&lt;/strong&gt;: If \(k\) is not an intermediate vertex, then the path is a shortest path from \(i\) to \(j\) that uses only the vertices \(\{1, 2, \dots, k-1\}\) as intermediate vertices.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Split \(k\)&lt;/strong&gt;: If \(k\) is an intermediate vertex, split the path \(p\) into \(i \overset{p_1}{\leadsto} k \overset{p_2}{\leadsto} j\). In this case, \(p_1\) is a shortest path from \(i\) to \(k\) that uses only the vertices \(\{1, 2, \dots, k-1\}\) as intermediate vertices, and \(p_2\) is a shortest path from \(k\) to \(j\) that uses only the vertices \(\{1, 2, \dots, k-1\}\) as intermediate vertices.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Notice that, in either case, the set of intermediate vertices is reduced.&lt;/p&gt;
+&lt;h3 id=&#34;recursive-solution&#34;&gt;Recursive Solution&lt;/h3&gt;
+&lt;p&gt;Let \(d_{ij}^{(k)}\) be the weight of a shortest path from \(i\) to \(j\) that uses only the vertices \(\{1, 2, \dots, k\}\) as intermediate vertices. The base case is \(d_{ij}^{(0)} = w_{ij}\).&lt;/p&gt;
+&lt;p&gt;\[
+d_{ij}^{(k)} = \begin{cases}
+w_{ij} &amp;amp; \text{if } k = 0,\\
+\min \{d_{ij}^{(k-1)}, d_{ik}^{(k-1)} + d_{kj}^{(k-1)}\} &amp;amp; \text{if } k \geq 1.
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;The goal is to compute \(D^{(n)} = (d_{ij}^{(n)})\), since all intermediate vertices belong to the set \(\{1, 2, \dots, n\}\).&lt;/p&gt;
+&lt;h3 id=&#34;bottom-up-approach&#34;&gt;Bottom-Up Approach&lt;/h3&gt;
+&lt;p&gt;With a recurrent solution in hand, a bottom-up approach can be used to compute the shortest path. The &lt;strong&gt;Floyd-Warshall&lt;/strong&gt; algorithm takes as input a weighted adjacency matrix \(W = (w_{ij})\) and returns a matrix \(D = (d_{ij})\).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;floyd_warshall&lt;/span&gt;(W):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(W)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; W
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        D_prime &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[float(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;inf&amp;#39;&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                D_prime[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; min(D[i][j], D[i][k] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; D[k][j])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; D_prime
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; D
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This provides a running time of \(\Theta(n^3)\).&lt;/p&gt;
+&lt;h3 id=&#34;constructing-the-shortest-paths&#34;&gt;Constructing the Shortest Paths&lt;/h3&gt;
+&lt;p&gt;The Floyd-Warshall algorithm can be modified to construct the shortest paths themselves. This can be done by maintaining a matrix \(P\) that stores the predecessor of each vertex along the shortest path. Let \(P^{(k)} = (p_{ij}^{(k)})\) for \(k = 0, 1, \dots, n\) be the matrix of predecessors. Each entry \(p_{ij}^{(k)}\) is defined recursively. The base case is&lt;/p&gt;
+&lt;p&gt;\[
+p_{ij}^{(0)} = \begin{cases}
+i &amp;amp; \text{if } i \neq j \text{ and } w_{ij} &amp;lt; \infty,\\
+\text{NIL} &amp;amp; \text{otherwise}.
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;The recursive case is&lt;/p&gt;
+&lt;p&gt;\[
+p_{ij}^{(k)} = \begin{cases}
+p_{kj}^{(k-1)} &amp;amp; \text{if } d_{ij}^{(k-1)} &amp;gt; d_{ik}^{(k-1)} + d_{kj}^{(k-1)},\\
+p_{ij}^{(k-1)} &amp;amp; \text{otherwise}.
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;In words, the recursive case is split into two parts. If the shortest path from \(i\) to \(j\) has \(k\) as an intermediate vertex, then it is \(i \leadsto k \leadsto j\) where \(k \neq j\). In this case, choose \(j\)&amp;rsquo;s predecessor to be the predecessor of \(j\) on a shortest path from \(k\) to \(j\) with all intermediate vertices less than \(k\): \(p_{ij}^{(k)} = p_{kj}^{(k-1)}\).&lt;/p&gt;
+&lt;p&gt;The second subcase is when \(k\) is not an intermediate vertex. Keep the same predecessor as the shortest path from \(i\) to \(j\) with all intermediate vertices less than \(k\): \(p_{ij}^{(k)} = p_{ij}^{(k-1)}\).&lt;/p&gt;
+&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Walk through the Floyd-Warshall algorithm on the graph from the previous example. A Python notebook of this example is available &lt;a href=&#34;https://github.com/ajdillhoff/python-examples/blob/main/data_structures/graphs/floyd_warshall.ipynb&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;in the repository.&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;transitive-closure-of-a-graph&#34;&gt;Transitive Closure of a Graph&lt;/h3&gt;
+&lt;p&gt;The algorithms presented above successfully solve the all-pairs shortest paths problem. &lt;strong&gt;What if we simply wanted to determine if a path exists between for all pairs of vertices?&lt;/strong&gt; The answer to this question lies in the &lt;strong&gt;transitive closure&lt;/strong&gt; of a graph.&lt;/p&gt;
+&lt;p&gt;Let \(G = (V, E)\) be a directed graph with a vertex set \(V = \{1, 2, \dots, n\}\). The &lt;strong&gt;transitive closure&lt;/strong&gt; of \(G\) is a graph \(G^* = (V, E^*)\) such that \((i, j) \in E^*\) if there is a path from \(i\) to \(j\) in \(G\).&lt;/p&gt;
+&lt;p&gt;One solution to this problem is to assign a weight of 1 to each edge of \(E\) and run the Floyd-Warshall algorithm. If \(d_{ij} &amp;lt; n\), then there is a path from \(i\) to \(j\) in \(G\). If \(d_{ij} = \infty\), then there is no path from \(i\) to \(j\) in \(G\). First, substitute the \(\min\) and \(+\) operations with \(\lor\) (OR) and \(\land\) (AND), respectively. This will allow us to determine if a path exists between two vertices.&lt;/p&gt;
+&lt;p&gt;Just like Floyd-Warshall, we will maintain a series of matrices \(T^{(0)}, T^{(1)}, \ldots, T^{(n-1)}\), where \(T^{( r)} = (t_{ij}^{( r)})\). The final matrix \(T^{(n)}\) contains the transitive closure of the graph. The values are defined as&lt;/p&gt;
+&lt;p&gt;\[
+t_{ij}^{( r)} = \begin{cases}
+1 &amp;amp; \text{if } r = 0 \text{ and } (i, j) \in E,\\
+1 &amp;amp; \text{if } r &amp;gt; 0 \text{ and } (t_{ij}^{(r-1)} = 1 \lor (t_{ik}^{(r-1)} \land t_{kj}^{(r-1)})),\\
+0 &amp;amp; \text{otherwise}.
+\end{cases}
+\]&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;transitive_closure&lt;/span&gt;(W):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; len(W)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    T &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; W
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; k &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        T_prime &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)] &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(n):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                T_prime[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; T[i][j] &lt;span style=&#34;color:#f92672&#34;&gt;or&lt;/span&gt; (T[i][k] &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; T[k][j])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        T &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; T_prime
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; T
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This algorithm has a running time of \(\Theta(n^3)\) while using simpler operations compared to the Floyd-Warshall algorithm.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Dynamic Parallelism</title>
+      <link>https://ajdillhoff.github.io/notes/dynamic_parallelism/</link>
+      <pubDate>Fri, 19 Apr 2024 16:52:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/dynamic_parallelism/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Dynamic Parallelism&lt;/strong&gt; is an extension to CUDA that enables kernels to directly call other kernels. Earlier versions of CUDA only allowed kernels to be launched from the host code. When we studied &lt;GPU Pattern: Parallel Scan&gt;, the segmented approach required multiple kernel calls.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Using the cuDNN Library</title>
@@ -486,7 +686,7 @@ d\mathbf{x} = \alpha \cdot \nabla_{\mathbf{x}} g(\mathbf{x}) d\mathbf{z} + \beta
 \[
 0 \leq f(u,v) \leq c(u,v).
 \]&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Flow conservation:&lt;/strong&gt; For all $u ∈ V - \{s, t\},
+&lt;li&gt;&lt;strong&gt;Flow conservation:&lt;/strong&gt; For all \(u \in V - \{s, t\}\),
 \[
 \sum_{v \in V} f(v, u) = \sum_{v \in V} f(u, v).
 \]&lt;/li&gt;
@@ -551,6 +751,65 @@ d\mathbf{x} = \alpha \cdot \nabla_{\mathbf{x}} g(\mathbf{x}) d\mathbf{z} + \beta
 &lt;li&gt;Augmenting paths&lt;/li&gt;
 &lt;li&gt;Cuts&lt;/li&gt;
 &lt;/ol&gt;
+&lt;p&gt;The solution presented by Ford and Fulkerson is not a single algorithm but rather a set of general instructions.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Initialize \(f(u, v) = 0\) for all \(u,v \in V\), giving an initial flow of 0.&lt;/li&gt;
+&lt;li&gt;Increase the flow by finding an &lt;strong&gt;augmenting path&lt;/strong&gt; in a &lt;strong&gt;residual network&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;The edges of the augmented path indicate where to increase the flow.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;This is repeated until the residual network has no more augmenting paths.&lt;/p&gt;
+&lt;h3 id=&#34;residual-networks&#34;&gt;Residual Networks&lt;/h3&gt;
+&lt;p&gt;Consider a pair of vertices \(u, v \in V\), the residual capacity \(c_f(u, v)\) is amount of additional flow that can be pushed from \(u\) to \(v\).&lt;/p&gt;
+&lt;p&gt;\[
+c_f(u, v)= \begin{cases}
+c(u,v) - f(u, v)\quad \text{if } (u,v) \in E,\\
+f(v, u)\quad \text{if } (v, u) \in E,\\
+0\quad \text{otherwise (i.e., } (u, v), (v, u) \notin E).
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;residual network&lt;/strong&gt; is \(G_f = (V, E_f)\), where&lt;/p&gt;
+&lt;p&gt;\[
+E_f= \{(u, v) \in V \times V : c_f(u, v) &amp;gt; 0\}.
+\]&lt;/p&gt;
+&lt;p&gt;The edges of \(G_f\) represent those edges in \(G\) with the capacity to change the flow. There is also no requirement for all edges in \(G\) to be present in \(G_f\). As the algorithm works out the solution, we are only considered with edges that permit more flow.&lt;/p&gt;
+&lt;p&gt;An edge \((u, v) \in E\) means that the reverse edge \((v, u) \notin E\). However, the residual network can have edges that are not in \(G\). These are used to represent paths in which flow is sent in the reverse direction. This can happen if reducing flow from one edge results in a net increase across some other.&lt;/p&gt;
+&lt;p&gt;In \(G_f\), the reverse edges \((v, u)\) represent the flow on \((u, v) \in G\) that could be sent back.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-19_15-29-03_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A flow network and its residual network (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A flow network and its residual network (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;augmentation-function&#34;&gt;Augmentation Function&lt;/h4&gt;
+&lt;p&gt;Given flows \(f\) in \(G\) and \(f&amp;rsquo;\) in \(G_f\), define the &lt;strong&gt;augmentation&lt;/strong&gt; of \(f\) by \(f&amp;rsquo;\), as a function \(V \times V \rightarrow \mathbb{R}\):&lt;/p&gt;
+&lt;p&gt;\[
+(f \uparrow f&amp;rsquo;)(u, v) = \begin{cases}
+f(u, v) + f&amp;rsquo;(u, v) - f&amp;rsquo;(u, v)\quad \text{it } (u, v) \in E,\\
+0 \quad \text{otherwise}
+\end{cases}
+\]&lt;/p&gt;
+&lt;p&gt;for all \((u, v) \in V\).&lt;/p&gt;
+&lt;p&gt;This augmentation function represents an increase of flow on \((u, v)\) by \(f&amp;rsquo;(u, v)\) with a decrease by \(f&amp;rsquo;(v, u)\) since pushing flow on the reverse edge in \(G_f\) represents a decrease in \(G\). This is known as &lt;strong&gt;cancellation&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Lemma&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Given a flow network \(G\), a flow \(f\) in \(G\), and the residual network \(G_f\), let \(f&amp;rsquo;\) be a flow in \(G_f\). Then \((f \uparrow f&amp;rsquo;)\) is a flow in \(G\) with value \(|f \uparrow f&amp;rsquo;| = |f| + |f&amp;rsquo;|\).&lt;/p&gt;
 &lt;h2 id=&#34;a-linear-time-solution&#34;&gt;A linear time solution&lt;/h2&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
@@ -9778,6 +10037,7 @@ We can also query the e-mail addresses of all users who have a character that is
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;#definition&#34;&gt;Definition&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#bellman-ford&#34;&gt;Bellman-Ford&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#shortest-paths-on-a-dag&#34;&gt;Shortest Paths on a DAG&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
@@ -9802,6 +10062,11 @@ w(p) = \sum_{e \in p} w(e).
 \end{cases}
 \]&lt;/p&gt;
 &lt;p&gt;where \(P(u, v)\) is the set of all paths from \(u\) to \(v\). The shortest-path weight from \(s\) to \(t\) is given by \(\delta(s, t)\).&lt;/p&gt;
+&lt;p&gt;The output of a shortest-path algorithm will produce, for each vertex \(v \in V\):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(v.d\): The shortest-path estimate from \(s\) to \(v\).&lt;/li&gt;
+&lt;li&gt;\(v.\pi\): The predecessor of \(v\) in the shortest path from \(s\) to \(v\).&lt;/li&gt;
+&lt;/ul&gt;
 &lt;p&gt;Shortest-path algorithms rely on an optimal substructure property that is defined by Lemma 22.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Lemma 22.1&lt;/strong&gt;&lt;/p&gt;
 &lt;blockquote&gt;
@@ -9878,8 +10143,90 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;/figure&gt;
 
+&lt;h3 id=&#34;correctness&#34;&gt;Correctness&lt;/h3&gt;
+&lt;p&gt;Bellman-Ford is guaranteed to converge after \(|V| - 1\) iterations, assuming no negative-weight cycles.&lt;/p&gt;
+&lt;h4 id=&#34;proof&#34;&gt;Proof&lt;/h4&gt;
+&lt;p&gt;The first iteration relaxes \((v_0, v_1)\). The second iteration relaxes \((v_1, v_2)\), and so on. The &lt;strong&gt;path-relaxation&lt;/strong&gt; property from before implies that \(v.d = v_k.d = \delta(s, v_k) = \delta(s, v)\). If there is a negative-weight cycle, then the shortest path to \(v_k\) is not well-defined. This is verified in the final loop over the edges.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (u, v) &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;E:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; v&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; u&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;d &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; w(u, v):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If there exists a negative-weight cycle \(c = \langle v_0, v_1, \dots, v_k \rangle\), where \(v_0 = v_k\) that can be reached from \(s\), then&lt;/p&gt;
+&lt;p&gt;\[
+\sum_{i=1}^{k} w(v_{i-1}, v_i) &amp;lt; 0.
+\]&lt;/p&gt;
+&lt;p&gt;To complete the proof by contradiction, assume that Bellman-Ford returns &lt;code&gt;True&lt;/code&gt;. Then we would have that \(v_i.d \leq v_{i-1}.d + w(v_{i-1}, v_i)\) for \(i = 1, 2, \dots, k\) by the &lt;strong&gt;triangle inequality&lt;/strong&gt; property. If we sum around the cycle, we get&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\sum_{i=1}^k v_i.d &amp;amp;\leq \sum_{i=1}^k (v_{i-1}.d + w(v_{i-1}, v_i))\\
+&amp;amp;= \sum_{i=1}^k v_{i-1}.d + \sum_{i=1}^k w(v_{i-1}, v_i)\\
+\end{align*}&lt;/p&gt;
+&lt;p&gt;Since the vertices are in a cycle, each vertex appears only once in each summation \(\sum_{i=1}^k v_{i}.d\) and \(\sum_{i=1}^k v_{i-1}.d\). Subtracting this from both sides of the inequality, we get&lt;/p&gt;
+&lt;p&gt;\[
+0 \leq \sum_{i=1}^k w(v_{i-1}, v_i).
+\]&lt;/p&gt;
+&lt;p&gt;This contradicts the assumption that there is a negative-weight cycle. Therefore, if Bellman-Ford returns &lt;code&gt;True&lt;/code&gt;, then there are no negative-weight cycles.&lt;/p&gt;
 &lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
 &lt;p&gt;Using an adjacency list representation, the runtime of Bellman-Ford is \(O(V^2 + VE)\). The initialization takes \(\Theta(V)\). Each of the \(|V| - 1\) iterations over the edges takes \(\Theta(V + E)\), and the final check for negative-weight cycles takes \(\Theta(V + E)\). If the number of edges and vertices is such that the number of vertices are a lower bound on the edges, then the runtime is \(O(VE)\).&lt;/p&gt;
+&lt;h3 id=&#34;example-22-dot-1-1&#34;&gt;Example 22.1-1&lt;/h3&gt;
+&lt;p&gt;Run Bellman-Ford on the given path using \(z\) as the source. Then change the weight of \((z, x)\) to 4 and run it again with \(s\) as the source.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-22_11-13-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Figure 22.4 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Figure 22.4 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;shortest-paths-on-a-dag&#34;&gt;Shortest Paths on a DAG&lt;/h2&gt;
+&lt;p&gt;If we are given a directed acyclic graph (DAG), we can solve the single-source shortest path problem in \(O(V + E)\) time. By definition, the graph has no cycles and thus no negative-weight cycles.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dag_shortest_paths&lt;/span&gt;(G, w, s):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    initialize_single_source(G, s)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; u &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; topological_sort(G):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; v &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; G&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;adj[u]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            relax(u, v, w)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;Run &lt;code&gt;dag_shortest_paths&lt;/code&gt; on the graph given below with \(s\) as the source.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-22_11-23-05_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Figure 22.5 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Figure 22.5 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;analysis&#34;&gt;Analysis&lt;/h3&gt;
+&lt;p&gt;The runtime of &lt;code&gt;dag_shortest_paths&lt;/code&gt; is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. The topological sort takes \(O(V + E)\) time. Initializing the vertices takes \(O(V)\) time. The first &lt;code&gt;for&lt;/code&gt; loop makes on iteration per vertex, and the inner loop relaxes each edge only once.&lt;/p&gt;
 &lt;h2 id=&#34;dijkstra-s-algorithm&#34;&gt;Dijkstra&amp;rsquo;s Algorithm&lt;/h2&gt;
 &lt;p&gt;Dijkstra&amp;rsquo;s algorithm also solves the single-source shortest path problem on a weighted, directed graph \(G = (V,E)\) but requires nonnegative weights on all edges. It works in a breadth-first manner. A minimum priority queue is utilized to keep track of the vertices that have not been visited based on their current minimum shortest-path estimate. The algorithm works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dijkstra&lt;/span&gt;(G, w, s):
@@ -9904,14 +10251,14 @@ w(p) = \sum_{e \in p} w(e).
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-25_08-21-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A step-by-step execution of Dijkstra&amp;#39;s algorithm on a graph with non-negative edge weights (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2023-10-25_08-21-04_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;A step-by-step execution of Dijkstra&amp;#39;s algorithm on a graph with non-negative edge weights (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A step-by-step execution of Dijkstra&amp;rsquo;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A step-by-step execution of Dijkstra&amp;rsquo;s algorithm on a graph with non-negative edge weights (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
     
     
     
