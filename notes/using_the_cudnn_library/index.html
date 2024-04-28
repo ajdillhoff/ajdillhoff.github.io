@@ -417,7 +417,7 @@ Setting up cuDNN To use cuDNN in your applications, each program needs to establ
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    11 min read
+    13 min read
   </span>
   
 
@@ -600,7 +600,33 @@ Setting up cuDNN To use cuDNN in your applications, each program needs to establ
 </span></span></code></pre></div><p>The descriptor is then used to allocate memory for the tensor data.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>data;
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">cudaMalloc</span>(<span style="color:#f92672">&amp;</span>data, n <span style="color:#f92672">*</span> c <span style="color:#f92672">*</span> h <span style="color:#f92672">*</span> w <span style="color:#f92672">*</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">float</span>));
-</span></span></code></pre></div><h2 id="dense-layers">Dense Layers</h2>
+</span></span></code></pre></div><h3 id="retrieving-tensor-information">Retrieving Tensor Information</h3>
+<p>To retrieve the properties of a tensor that already exists, we can use the <code>cudnnGetTensor4dDescriptor</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnGetTensor4dDescriptor</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>  tensorDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnDataType_t</span>         <span style="color:#f92672">*</span>dataType,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>n,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>c,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>h,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>nStride,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>cStride,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>hStride,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>                     <span style="color:#f92672">*</span>wStride)
+</span></span></code></pre></div><p>The parameters are as follows:</p>
+<ul>
+<li><code>tensorDesc</code>: the tensor descriptor</li>
+<li><code>dataType</code>: the data type of the tensor</li>
+<li><code>n</code>: the number of batches</li>
+<li><code>c</code>: the number of channels</li>
+<li><code>h</code>: the height of the tensor</li>
+<li><code>w</code>: the width of the tensor</li>
+<li><code>nStride</code>: the stride of the batch dimension</li>
+<li><code>cStride</code>: the stride of the channel dimension</li>
+<li><code>hStride</code>: the stride of the height dimension</li>
+<li><code>wStride</code>: the stride of the width dimension</li>
+</ul>
+<h2 id="dense-layers">Dense Layers</h2>
 <p>A <strong>dense layer</strong> refers to a fully connected layer in a neural network. Each neuron in the layer is connected to every neuron in the previous layer. The weights of the connections are stored in a matrix, and the biases are stored in a vector. Implementing the forward and backward pass of a dense layer involves matrix multiplication and addition for which cuBLAS has optimized routines.</p>
 <h3 id="forward-pass">Forward Pass</h3>
 <p>The forward pass of a dense layer is computed as follows:</p>
@@ -869,6 +895,53 @@ d\mathbf{x} = \alpha \cdot \nabla_{\mathbf{x}} g(\mathbf{x}) d\mathbf{z} + \beta
 <li><code>yDesc</code>: the output tensor descriptor</li>
 <li><code>y</code>: the output tensor</li>
 </ul>
+<h3 id="backward-pass">Backward Pass</h3>
+<p>There are three different backward passes for a convolutional layer: one for the weights, one for the input tensor, and one for the bias.</p>
+<h4 id="weights">Weights</h4>
+<p>The backward pass for the weights is implemented with the <code>cudnnConvolutionBackwardFilter</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnConvolutionBackwardFilter</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                       handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       xDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>x,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       dyDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>dy,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>  convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionBwdFilterAlgo_t</span>     algo,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>workSpace,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">size_t</span>                              workSpaceSizeInBytes,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnFilterDescriptor_t</span>       dwDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>dw)
+</span></span></code></pre></div><p>A detailed description of the parameters can be found <a href="https://docs.nvidia.com/deeplearning/cudnn/latest/api/cudnn-cnn-library.html#cudnnconvolutionbackwardfilter" target="_blank" rel="noopener noreferrer">here.</a></p>
+<h4 id="bias">Bias</h4>
+<p>The backward pass for the bias is implemented with the <code>cudnnConvolutionBackwardBias</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnConvolutionBackwardBias</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                    handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dyDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>dy,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                      <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>    dbDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                            <span style="color:#f92672">*</span>db)
+</span></span></code></pre></div><p>A detailed description of the parameters can be found <a href="https://docs.nvidia.com/deeplearning/cudnn/latest/api/cudnn-cnn-library.html#cudnnconvolutionbackwardbias" target="_blank" rel="noopener noreferrer">here.</a></p>
+<h4 id="input">Input</h4>
+<p>The backward pass for the input tensor is implemented with the <code>cudnnConvolutionBackwardData</code> function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">cudnnStatus_t</span> <span style="color:#a6e22e">cudnnConvolutionBackwardData</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnHandle_t</span>                       handle,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>alpha,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnFilterDescriptor_t</span>       wDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>w,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       dyDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>dy,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnConvolutionDescriptor_t</span>  convDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">cudnnConvolutionBwdDataAlgo_t</span>       algo,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>workSpace,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">size_t</span>                              workSpaceSizeInBytes,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span>                         <span style="color:#f92672">*</span>beta,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">cudnnTensorDescriptor_t</span>       dxDesc,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span>                               <span style="color:#f92672">*</span>dx)
+</span></span></code></pre></div><p>A detailed description of the parameters can be found <a href="https://docs.nvidia.com/deeplearning/cudnn/latest/api/cudnn-cnn-library.html#cudnnconvolutionbackwarddata" target="_blank" rel="noopener noreferrer">here</a>.</p>
 <h2 id="pooling">Pooling</h2>
 <p>Pooling is a common operation in convolutional neural networks. It reduces the spatial dimensions of the input tensor, which helps to reduce the number of parameters and computation in the network. Using pooling in cuDNN requires creating a descriptor. Make sure to destroy it when you&rsquo;re done.</p>
 <h3 id="creating-a-pooling-descriptor">Creating a pooling descriptor</h3>

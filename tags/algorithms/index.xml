@@ -7,10 +7,190 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sat, 20 Apr 2024 11:32:00 -0500</lastBuildDate>
+    <lastBuildDate>Thu, 25 Apr 2024 11:03:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/tags/algorithms/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>NP-Completeness</title>
+      <link>https://ajdillhoff.github.io/notes/np_completeness/</link>
+      <pubDate>Thu, 25 Apr 2024 11:03:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/np_completeness/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#formal-languages&#34;&gt;Formal Languages&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#reductions&#34;&gt;Reductions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#clique-problem&#34;&gt;Clique Problem&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#vertex-cover-problem&#34;&gt;Vertex Cover Problem&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#hamiltonian-cycle-problem&#34;&gt;Hamiltonian Cycle Problem&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#traveling-salesman-problem&#34;&gt;Traveling Salesman Problem&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Most of the algorithms discussed in a typical algorithms course run in polynomial time. This focus is reasonable since algorithms that run worse than polynomial time have little practical use. To simplify this notion: a problem for which a polynomial-time algorithm exists is &amp;ldquo;easy&amp;rdquo; and a problem for which no polynomial-time algorithm exists is &amp;ldquo;hard&amp;rdquo;. Knowing how to determine whether a problem is easy or hard is extremely useful. If one can identify a hard problem, then an approximate solution may be the best that can be achieved.&lt;/p&gt;
+&lt;p&gt;One of the most fundamental problems in computer science is the classification of problems into these two categories. These notes provide an introduction to this classification.&lt;/p&gt;
+&lt;h3 id=&#34;p-np-and-np-complete&#34;&gt;P, NP, and NP-Complete&lt;/h3&gt;
+&lt;p&gt;There are three classes of algorithms:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Polynomial-time&lt;/li&gt;
+&lt;li&gt;NP (nondeterministic polynomial time)&lt;/li&gt;
+&lt;li&gt;NP-complete&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Problems in P are those solvable in polynomial time. This means &lt;em&gt;any&lt;/em&gt; constant \(k\) such that the running time is \(O(n^k)\).&lt;/p&gt;
+&lt;p&gt;The class NP is a superset of P. These a problems that can be &lt;strong&gt;verified&lt;/strong&gt; in polynomial time. This means that if someone gives you a solution to the problem, you can verify that it is correct in polynomial time. This is different from solving the problem in polynomial time.&lt;/p&gt;
+&lt;p&gt;NP-Complete problems are problems in NP that are as &lt;em&gt;hard&lt;/em&gt; as any other problem in NP. This means that if you can solve an NP-Complete problem in polynomial time, you can solve any problem in NP in polynomial time. This is why NP-Complete problems are so important.&lt;/p&gt;
+&lt;h3 id=&#34;proving-that-a-problem-is-np-complete&#34;&gt;Proving that a problem is NP-Complete&lt;/h3&gt;
+&lt;p&gt;Proving that a problem belongs to either NP or NPC is difficult the first time you do it. Luckily, now that problems have been proven to be NP-Complete, you can use these problems to prove that other problems are NP-Complete. First, let&amp;rsquo;s introduce one more class: NP-Hard. Informally, a problem \(X\) is NP-Hard if it is at least as hard as any problem in NP. If we can reduce every problem \(Y \in NP\) to \(X\) in polynomial time, then \(X\) is NP-Hard. If \(X\) is also in NP, then \(X\) is NP-Complete.&lt;/p&gt;
+&lt;h3 id=&#34;optimization-versus-decision-problems&#34;&gt;Optimization versus decision problems&lt;/h3&gt;
+&lt;p&gt;Many problems are framed as optimization problems. Given some criteria, the goal is to find the best solution according to that criteria. For the shortest path problem, the algorithm finds a path between two vertices in the fewest number of edges. One can intuit that this is a slightly harder problem than that of determining if a path exists using only \(k\) edges. This latter problem is a decision problem.&lt;/p&gt;
+&lt;p&gt;The reason this is worth talking about is that decision problems are often easier to come up with than optimization problems. If one can provide that a decision problem is hard, then its optimization problem is also hard.&lt;/p&gt;
+&lt;h3 id=&#34;reducing-one-problem-to-another&#34;&gt;Reducing one problem to another&lt;/h3&gt;
+&lt;p&gt;A common strategy for relating two problems is to reduce one to the other. For example, if problem \(B\) runs in polynomial time, and we can reduce problem \(A\) to problem \(B\) in polynomial time, then problem \(A\) is also in P. This is because we can solve \(A\) by reducing it to \(B\) and then solving \(B\) in polynomial time.&lt;/p&gt;
+&lt;h2 id=&#34;formal-languages&#34;&gt;Formal Languages&lt;/h2&gt;
+&lt;h2 id=&#34;reductions&#34;&gt;Reductions&lt;/h2&gt;
+&lt;p&gt;The main idea behind reductions is to first show that a problem is NP-Complete. This first proof was done by Cook in 1971. With a problem proven to be NP-Complete, one can then show that other problems are NP-Complete by reducing them to the first problem. This method is far simpler than the original proof and provides a convenient process for proving that a problem is NP-Complete. The process is based on the following lemma.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Lemma 34.8&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;If \(L\) is a language such that \(L&amp;rsquo; \leq_p L\) for some \(L&amp;rsquo; \in \text{NPC}\), then \(L\) is NP-hard. If, in addition, we have \(L \in \text{NP}\), then \(L\) is NP-Complete.&lt;/p&gt;
+&lt;h3 id=&#34;circuit-satisfiability&#34;&gt;Circuit Satisfiability&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;What is this problem?&lt;/li&gt;
+&lt;li&gt;Why is it important?&lt;/li&gt;
+&lt;li&gt;How is it related to NP-Completeness?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Given a boolean combinatorial circuit, is it satisfiable. That is, is there an assignment of values to the inputs that makes the output true?&lt;/p&gt;
+&lt;p&gt;This problem is in the class NP. The formal proof is complex and would take up too much space here.&lt;/p&gt;
+&lt;h4 id=&#34;example-exercise-34-dot-3-1&#34;&gt;Example: Exercise 34.3-1&lt;/h4&gt;
+&lt;p&gt;Verify that the given circuit is unsatisfiable.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-27_14-31-53_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Figure 34.8 from (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Figure 34.8 from (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;For reference, here are definitions for each of the gates listed in the figure.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-27_14-35-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Definitions for the gates in the circuit from Figure 34.7 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Cormen et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Definitions for the gates in the circuit from Figure 34.7 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;How can we prove this circuit is unsatisfiable?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The easiest way to do this is to code it up and brute force it.&lt;/p&gt;
+&lt;h3 id=&#34;formula-satisfiability&#34;&gt;Formula Satisfiability&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Satisfiability (SAT) is NP-Hard.&lt;/li&gt;
+&lt;li&gt;Can show that CIRCUIT-SAT \(\leq_p\) SAT.&lt;/li&gt;
+&lt;li&gt;Then show that SAT \(\leq_p\) 3SAT.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;An instance of the &lt;strong&gt;formula satisfiability (SAT)&lt;/strong&gt; problem is a boolean formula \(\phi\) with&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(n\) variables \(x_1, x_2, \ldots, x_n\)&lt;/li&gt;
+&lt;li&gt;\(m\) clauses \(C_1, C_2, \ldots, C_m\)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For example, the formula&lt;/p&gt;
+&lt;p&gt;\[
+\phi = (x_1 \lor x_2) \land (\lnot x_1 \lor x_3) \land (x_2 \lor x_3)
+\]&lt;/p&gt;
+&lt;p&gt;has the satisfying assignment \(x_1 = 1, x_2 = 0, x_3 = 1\).&lt;/p&gt;
+&lt;h4 id=&#34;sat-belongs-to-np&#34;&gt;SAT belongs to NP&lt;/h4&gt;
+&lt;p&gt;Showing that SAT is in NP is straightforward. Given a boolean formula \(\phi\) and an assignment of values to the variables, one can verify that the formula is satisfied in polynomial time. This is enough to show that SAT is in NP.&lt;/p&gt;
+&lt;h4 id=&#34;circuit-sat-leq-p-sat&#34;&gt;CIRCUIT-SAT \(\leq_p\) SAT&lt;/h4&gt;
+&lt;p&gt;If we can reduce an instance of CIRCUIT-SAT, which is known to be NP-Complete, to SAT, then SAT is also NP-Complete. This proof is by contradiction: assume that SAT is not NP-Complete. Then, CIRCUIT-SAT is not NP-Complete. But we know that CIRCUIT-SAT is NP-Complete, so this is a contradiction.&lt;/p&gt;
+&lt;p&gt;The reduction starts by introducing a variable for each wire and a clause for each gate, as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-04-27_15-34-18_screenshot.png&#34; &gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;The reduction algorithm produces a formula for each gate in terms of an &amp;ldquo;if and only if&amp;rdquo; statement.&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\phi = x_{10} &amp;amp;\land (x_4 \leftrightarrow \lnot x_3)\\
+&amp;amp;\land (x_5 \leftrightarrow (x_1 \lor x_2))\\
+&amp;amp;\land (x_6 \leftrightarrow \lnot x_4)\\
+&amp;amp;\land (x_7 \leftrightarrow (x_1 \land x_2 \land x_4))\\
+&amp;amp;\land (x_8 \leftrightarrow (x_5 \lor x_6))\\
+&amp;amp;\land (x_9 \leftrightarrow (x_6 \lor x_7))\\
+&amp;amp;\land (x_{10} \leftrightarrow (x_6 \land x_8 \land x_9))\\
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;clique-problem&#34;&gt;Clique Problem&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;What is the Clique problem?&lt;/li&gt;
+&lt;li&gt;Why is Clique NPC?&lt;/li&gt;
+&lt;li&gt;Reduction of 3SAT to Clique.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;vertex-cover-problem&#34;&gt;Vertex Cover Problem&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Problem definition.&lt;/li&gt;
+&lt;li&gt;Why is it NPC?&lt;/li&gt;
+&lt;li&gt;Reduction of Clique to Vertex Cover.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;hamiltonian-cycle-problem&#34;&gt;Hamiltonian Cycle Problem&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Problem definition.&lt;/li&gt;
+&lt;li&gt;Why is it NPC?&lt;/li&gt;
+&lt;li&gt;Reduction of Vertex Cover to Hamiltonian Cycle.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;traveling-salesman-problem&#34;&gt;Traveling Salesman Problem&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Problem definition.&lt;/li&gt;
+&lt;li&gt;Why is it NPC?&lt;/li&gt;
+&lt;li&gt;Reduction of Hamiltonian Cycle to Traveling Salesman.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. &lt;i&gt;Introduction to Algorithms&lt;/i&gt;. 4th ed. MIT Press. &lt;a href=&#34;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&#34;&gt;http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>All-Pairs Shortest Paths</title>
