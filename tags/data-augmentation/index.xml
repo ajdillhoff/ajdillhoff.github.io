@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Data Augmentation on Alex Dillhoff</title>
+    <link>https://ajdillhoff.github.io/tags/data-augmentation/</link>
+    <description>Recent content in Data Augmentation on Alex Dillhoff</description>
+    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>Copyright &amp;copy; {year}</copyright>
+    <lastBuildDate>Thu, 06 Jun 2024 17:57:00 -0500</lastBuildDate>
+    
+	    <atom:link href="https://ajdillhoff.github.io/tags/data-augmentation/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Patch Extraction</title>
+      <link>https://ajdillhoff.github.io/notes/patch_extraction/</link>
+      <pubDate>Thu, 06 Jun 2024 17:57:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/patch_extraction/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#native-patch-extraction&#34;&gt;Native Patch Extraction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#changing-perspective&#34;&gt;Changing Perspective&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#the-mechanics-of-as-strided&#34;&gt;The Mechanics of &lt;code&gt;as_strided&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#what-about-rgb&#34;&gt;What about RGB?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;This post is a recreation of &lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha Laskin&amp;rsquo;s Twitter post&lt;/a&gt; about patch extraction in &lt;code&gt;numpy&lt;/code&gt;. I wanted to provide a version of it that can be accessed without requiring a Twitter account.&lt;/p&gt;
+&lt;p&gt;Patch extraction is a common image preprocessing technique that splits an input image into a regular grid of sub images. It is commonly used to prepare an image for input into a Vision Transformer (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;). As Misha points out in their original post, it is also used for convolutions, min and max pooling, and splicing audio and text.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-04-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Patch extraction used for ViT (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Dosovitskiy et al. 2021&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Patch extraction used for ViT (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;native-patch-extraction&#34;&gt;Native Patch Extraction&lt;/h2&gt;
+&lt;p&gt;A general algorithm for patch extraction is easy enough to come up with. If the goal is to extract a grid of patches with equal size, simply loop over a grid specified by the image size and patch size.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;patch_extraction&lt;/span&gt;(img, size):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    H, W &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; img&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    rows, cols &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; H &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; size, W &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; size &lt;span style=&#34;color:#75715e&#34;&gt;# rows and cols should be integers&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# initialize patches array&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    patches &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; np&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;zeros((rows, cols, size, size)) &lt;span style=&#34;color:#75715e&#34;&gt;# patches(0, 0) yields the first patch&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# fill in patches&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(rows):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(cols):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            patches &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; img[size&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;i:size&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;(i&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;), size&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;j:size&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;(j&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; patches
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This naive approach essentially takes a bunch of crops of the original image. The optimization proposed by Misha takes advantage of how the array is stored in memory. The result is this: &lt;strong&gt;instead of extracting the patches, we can change how the array itself is accessed in memory&lt;/strong&gt;. By default, &lt;code&gt;numpy&lt;/code&gt; stores array elements contiguously. This is actually pretty common.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-12-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Array elements are contiguous ([Misha&amp;#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Array elements are contiguous (&lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha&amp;rsquo;s Thread&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;changing-perspective&#34;&gt;Changing Perspective&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;How can we possibly change how the array is accessed?&lt;/strong&gt; Fortunately, NumPy provides the tools do to this. A &lt;code&gt;numpy&lt;/code&gt; array is three important properties that we will use:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;shape&lt;/code&gt;: A list whose length is the number of dimensions of the array. Each entry of the list tells us how many elements belong to that dimension. For example, an array of shape &lt;code&gt;(3, 3)&lt;/code&gt; has 2 dimensions, both of size 3. This would be the shape of the array seen above.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;strides&lt;/code&gt;: Represents the number of bytes needed to traverse the contiguous memory block to read the next element along a given dimension. Using the \(3 \times 3\) matrix from above, its &lt;code&gt;stride&lt;/code&gt; would be &lt;code&gt;(12, 4)&lt;/code&gt; since an &lt;code&gt;int&lt;/code&gt; is 4 bytes, the stride is simply 4 bytes to move to the immediate next element. To traverse to the next row, you would need to move 12 bytes. This is visualized below.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;itemsize&lt;/code&gt;: The size of each element in the array.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-21-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Visualization of strides ([Misha&amp;#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visualization of strides (&lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha&amp;rsquo;s Thread&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Since we already know the output shape of the patch tensor, we can specify the strides needed to get the desired patches. NumPy provides a module with a function that does this for us: &lt;a href=&#34;https://numpy.org/doc/stable/reference/generated/numpy.lib.stride_tricks.as_strided.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;stride_tricks.as_strided&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; numpy.lib &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; stride_tricks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# non-overlapping patches of size 8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;H, W &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; img&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;shape &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [H &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; size, W &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; size] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; [size, size]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# (row, col, patch_row, patch_col)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;strides &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [size &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; s &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; s &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; img&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strides] &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; list(img&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strides)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# extract patches&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;patches &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stride_tricks&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;as_strided(img, shape&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;shape, strides&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;strides)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;the-mechanics-of-as-strided&#34;&gt;The Mechanics of &lt;code&gt;as_strided&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;How does &lt;code&gt;as_strided&lt;/code&gt; work? Consider the example below, where we break a \(4 \times 4\) matrix into a \(2 \times 2\) array of patches, where each patch is \(2 \times 2\).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-29-29_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Breaking a matrix into patches ([Misha&amp;#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Breaking a matrix into patches (&lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha&amp;rsquo;s Thread&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;We need to provide strides for the following:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the patch in the adjacent row&lt;/li&gt;
+&lt;li&gt;the patch in the adjacent column&lt;/li&gt;
+&lt;li&gt;the adjacent row within a patch&lt;/li&gt;
+&lt;li&gt;the adjacent column within a patch&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Let&amp;rsquo;s start with the patch itself. Each value in the patch is a single byte (&lt;code&gt;itemsize = 1&lt;/code&gt;). The stride needed to get to the adjacent column is 1 and the stride needed to get to the next row is 2.&lt;/p&gt;
+&lt;p&gt;Moving between patches is a bit trickier. Since each patch only has 2 columns, moving from the first to the second patch in the same column only requires moving 2 bytes. Moving from the first row of patches to the second requires 8 bytes as seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-37-52_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Strides required for patches ([Misha&amp;#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Strides required for patches (&lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha&amp;rsquo;s Thread&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;what-about-rgb&#34;&gt;What about RGB?&lt;/h2&gt;
+&lt;p&gt;The process given above works great for grayscale images, but what if we want to patchify a color image? Let&amp;rsquo;s take the same \(4 \times 4\) example from above, but assume it is a 3-channel image. We can create this example quickly with &lt;code&gt;numpy&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# It is common to represent images as height, width, channels.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mat &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; np&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;zeros((&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;), dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;np&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;uint8)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strides &lt;span style=&#34;color:#75715e&#34;&gt;# (12, 3, 1)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As an RGB image, each element in the grayscale version now spans 3 values. If each element is a single byte, the stride required to access the adjacent element in the next row is 12. What does this mean for our RGB version? It means we do not have to change much. The stride across the channels is built in. As long as the output shape and strides array are configured, we are in the clear. This requires two modifications.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Each patch is now an RGB image, so &lt;code&gt;[size, size]&lt;/code&gt; should be changed to &lt;code&gt;[size, size, 3]&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Since the original image has 3 values for &lt;code&gt;strides&lt;/code&gt;, only the first two should be taken when setting up the new &lt;code&gt;strides&lt;/code&gt; list: &lt;code&gt;strides = [size * s for s in img.strides[:2]] + list(img.strides)&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-06_18-52-27_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;Computing strides for RGB patch extraction ([Misha&amp;#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Computing strides for RGB patch extraction (&lt;a href=&#34;https://x.com/MishaLaskin/status/1478500251376009220&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Misha&amp;rsquo;s Thread&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;That&amp;rsquo;s it! Happy coding.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, et al. 2021. “An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale.” &lt;i&gt;Arxiv:2010.11929 [Cs]&lt;/i&gt;, June. &lt;a href=&#34;http://arxiv.org/abs/2010.11929&#34;&gt;http://arxiv.org/abs/2010.11929&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

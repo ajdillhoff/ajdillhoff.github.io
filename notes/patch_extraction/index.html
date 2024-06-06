@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Native Patch Extraction Changing Perspective The Mechanics of as_strided What about RGB? This post is a recreation of Misha Laskin&rsquo;s Twitter post about patch extraction in numpy. I wanted to provide a version of it that can be accessed without requiring a Twitter account.
+Patch extraction is a common image preprocessing technique that splits an input image into a regular grid of sub images. It is commonly used to prepare an image for input into a Vision Transformer (Dosovitskiy et al.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/patch_extraction/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/patch_extraction/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/patch_extraction/">
+  <meta property="og:title" content="Patch Extraction | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Native Patch Extraction Changing Perspective The Mechanics of as_strided What about RGB? This post is a recreation of Misha Laskin&rsquo;s Twitter post about patch extraction in numpy. I wanted to provide a version of it that can be accessed without requiring a Twitter account.
+Patch extraction is a common image preprocessing technique that splits an input image into a regular grid of sub images. It is commonly used to prepare an image for input into a Vision Transformer (Dosovitskiy et al."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-06-06T17:57:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-06-06T17:57:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Patch Extraction | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Patch Extraction</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-06-06 17:57:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-06-06 17:57:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jun 6, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/patch_extraction/&amp;text=Patch%20Extraction" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/patch_extraction/&amp;t=Patch%20Extraction" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Patch%20Extraction&amp;body=https://ajdillhoff.github.io/notes/patch_extraction/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/patch_extraction/&amp;title=Patch%20Extraction" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Patch%20Extraction%20https://ajdillhoff.github.io/notes/patch_extraction/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/patch_extraction/&amp;title=Patch%20Extraction" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#native-patch-extraction">Native Patch Extraction</a></li>
+<li><a href="#changing-perspective">Changing Perspective</a></li>
+<li><a href="#the-mechanics-of-as-strided">The Mechanics of <code>as_strided</code></a></li>
+<li><a href="#what-about-rgb">What about RGB?</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>This post is a recreation of <a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha Laskin&rsquo;s Twitter post</a> about patch extraction in <code>numpy</code>. I wanted to provide a version of it that can be accessed without requiring a Twitter account.</p>
+<p>Patch extraction is a common image preprocessing technique that splits an input image into a regular grid of sub images. It is commonly used to prepare an image for input into a Vision Transformer (<a href="#citeproc_bib_item_1">Dosovitskiy et al. 2021</a>). As Misha points out in their original post, it is also used for convolutions, min and max pooling, and splicing audio and text.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-04-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Patch extraction used for ViT (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Patch extraction used for ViT (<a href="#citeproc_bib_item_1">Dosovitskiy et al. 2021</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="native-patch-extraction">Native Patch Extraction</h2>
+<p>A general algorithm for patch extraction is easy enough to come up with. If the goal is to extract a grid of patches with equal size, simply loop over a grid specified by the image size and patch size.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">patch_extraction</span>(img, size):
+</span></span><span style="display:flex;"><span>    H, W <span style="color:#f92672">=</span> img<span style="color:#f92672">.</span>shape
+</span></span><span style="display:flex;"><span>    rows, cols <span style="color:#f92672">=</span> H <span style="color:#f92672">//</span> size, W <span style="color:#f92672">//</span> size <span style="color:#75715e"># rows and cols should be integers</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># initialize patches array</span>
+</span></span><span style="display:flex;"><span>    patches <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((rows, cols, size, size)) <span style="color:#75715e"># patches(0, 0) yields the first patch</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># fill in patches</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(rows):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(cols):
+</span></span><span style="display:flex;"><span>            patches <span style="color:#f92672">=</span> img[size<span style="color:#f92672">*</span>i:size<span style="color:#f92672">*</span>(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), size<span style="color:#f92672">*</span>j:size<span style="color:#f92672">*</span>(j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> patches
+</span></span></code></pre></div><p>This naive approach essentially takes a bunch of crops of the original image. The optimization proposed by Misha takes advantage of how the array is stored in memory. The result is this: <strong>instead of extracting the patches, we can change how the array itself is accessed in memory</strong>. By default, <code>numpy</code> stores array elements contiguously. This is actually pretty common.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-12-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Array elements are contiguous ([Misha&#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Array elements are contiguous (<a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha&rsquo;s Thread</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="changing-perspective">Changing Perspective</h2>
+<p><strong>How can we possibly change how the array is accessed?</strong> Fortunately, NumPy provides the tools do to this. A <code>numpy</code> array is three important properties that we will use:</p>
+<ol>
+<li><code>shape</code>: A list whose length is the number of dimensions of the array. Each entry of the list tells us how many elements belong to that dimension. For example, an array of shape <code>(3, 3)</code> has 2 dimensions, both of size 3. This would be the shape of the array seen above.</li>
+<li><code>strides</code>: Represents the number of bytes needed to traverse the contiguous memory block to read the next element along a given dimension. Using the \(3 \times 3\) matrix from above, its <code>stride</code> would be <code>(12, 4)</code> since an <code>int</code> is 4 bytes, the stride is simply 4 bytes to move to the immediate next element. To traverse to the next row, you would need to move 12 bytes. This is visualized below.</li>
+<li><code>itemsize</code>: The size of each element in the array.</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-21-38_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visualization of strides ([Misha&#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Visualization of strides (<a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha&rsquo;s Thread</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Since we already know the output shape of the patch tensor, we can specify the strides needed to get the desired patches. NumPy provides a module with a function that does this for us: <a href="https://numpy.org/doc/stable/reference/generated/numpy.lib.stride_tricks.as_strided.html" target="_blank" rel="noopener noreferrer">stride_tricks.as_strided</a>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> numpy.lib <span style="color:#f92672">import</span> stride_tricks
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># non-overlapping patches of size 8</span>
+</span></span><span style="display:flex;"><span>size <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>H, W <span style="color:#f92672">=</span> img<span style="color:#f92672">.</span>shape
+</span></span><span style="display:flex;"><span>shape <span style="color:#f92672">=</span> [H <span style="color:#f92672">//</span> size, W <span style="color:#f92672">//</span> size] <span style="color:#f92672">+</span> [size, size]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># (row, col, patch_row, patch_col)</span>
+</span></span><span style="display:flex;"><span>strides <span style="color:#f92672">=</span> [size <span style="color:#f92672">*</span> s <span style="color:#66d9ef">for</span> s <span style="color:#f92672">in</span> img<span style="color:#f92672">.</span>strides] <span style="color:#f92672">+</span> list(img<span style="color:#f92672">.</span>strides)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># extract patches</span>
+</span></span><span style="display:flex;"><span>patches <span style="color:#f92672">=</span> stride_tricks<span style="color:#f92672">.</span>as_strided(img, shape<span style="color:#f92672">=</span>shape, strides<span style="color:#f92672">=</span>strides)
+</span></span></code></pre></div><h2 id="the-mechanics-of-as-strided">The Mechanics of <code>as_strided</code></h2>
+<p>How does <code>as_strided</code> work? Consider the example below, where we break a \(4 \times 4\) matrix into a \(2 \times 2\) array of patches, where each patch is \(2 \times 2\).</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-29-29_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Breaking a matrix into patches ([Misha&#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Breaking a matrix into patches (<a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha&rsquo;s Thread</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>We need to provide strides for the following:</p>
+<ol>
+<li>the patch in the adjacent row</li>
+<li>the patch in the adjacent column</li>
+<li>the adjacent row within a patch</li>
+<li>the adjacent column within a patch</li>
+</ol>
+<p>Let&rsquo;s start with the patch itself. Each value in the patch is a single byte (<code>itemsize = 1</code>). The stride needed to get to the adjacent column is 1 and the stride needed to get to the next row is 2.</p>
+<p>Moving between patches is a bit trickier. Since each patch only has 2 columns, moving from the first to the second patch in the same column only requires moving 2 bytes. Moving from the first row of patches to the second requires 8 bytes as seen below.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-37-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Strides required for patches ([Misha&#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Strides required for patches (<a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha&rsquo;s Thread</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="what-about-rgb">What about RGB?</h2>
+<p>The process given above works great for grayscale images, but what if we want to patchify a color image? Let&rsquo;s take the same \(4 \times 4\) example from above, but assume it is a 3-channel image. We can create this example quickly with <code>numpy</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># It is common to represent images as height, width, channels.</span>
+</span></span><span style="display:flex;"><span>mat <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">3</span>), dtype<span style="color:#f92672">=</span>np<span style="color:#f92672">.</span>uint8)
+</span></span><span style="display:flex;"><span>mat<span style="color:#f92672">.</span>strides <span style="color:#75715e"># (12, 3, 1)</span>
+</span></span></code></pre></div><p>As an RGB image, each element in the grayscale version now spans 3 values. If each element is a single byte, the stride required to access the adjacent element in the next row is 12. What does this mean for our RGB version? It means we do not have to change much. The stride across the channels is built in. As long as the output shape and strides array are configured, we are in the clear. This requires two modifications.</p>
+<ol>
+<li>Each patch is now an RGB image, so <code>[size, size]</code> should be changed to <code>[size, size, 3]</code>.</li>
+<li>Since the original image has 3 values for <code>strides</code>, only the first two should be taken when setting up the new <code>strides</code> list: <code>strides = [size * s for s in img.strides[:2]] + list(img.strides)</code>.</li>
+</ol>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-06_18-52-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Computing strides for RGB patch extraction ([Misha&#39;s Thread](https://x.com/MishaLaskin/status/1478500251376009220))" >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Computing strides for RGB patch extraction (<a href="https://x.com/MishaLaskin/status/1478500251376009220" target="_blank" rel="noopener noreferrer">Misha&rsquo;s Thread</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>That&rsquo;s it! Happy coding.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, et al. 2021. “An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale.” <i>Arxiv:2010.11929 [Cs]</i>, June. <a href="http://arxiv.org/abs/2010.11929">http://arxiv.org/abs/2010.11929</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/deep-learning/">deep learning</a>
+  
+  <a class="badge badge-light" href="/tags/data-augmentation/">data augmentation</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/using_the_cudnn_library/">Using the cuDNN Library</a></li>
+          
+          <li><a href="/notes/natural_language_processing/">Natural Language Processing</a></li>
+          
+          <li><a href="/notes/transformers/">Transformers</a></li>
+          
+          <li><a href="/notes/long_short_term_memory/">Long Short-Term Memory</a></li>
+          
+          <li><a href="/notes/recurrent_neural_networks/">Recurrent Neural Networks</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
