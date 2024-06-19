@@ -28,6 +28,30 @@
 &lt;p&gt;&lt;strong&gt;Bag of Words&lt;/strong&gt; is a technique used in Natural Language Processing for document classification. It is a collection of word counts. To create a Bag of Words for a document, it necessary to create a dictionary first. Choosing the a dictionary is based on many factors including computational limitations. Next, the documents in a dataset are tokenized into words. The word counts are collected as part of a histogram and used as a feature vector for a machine learning model.&lt;/p&gt;
 &lt;p&gt;The dictionary is the same for all documents in the original dataset. Ideally, the Bag of Word vectors for each document in the same class will be similar. This technique works well for problems in natural language processing, where each input document will have a varying number of words. By using a Bag of Words, the input data is transformed into a fixed length feature vector.&lt;/p&gt;
 &lt;h2 id=&#34;bag-of-visual-words&#34;&gt;Bag of Visual Words&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-17_18-40-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;An image and its visual &amp;#34;words&amp;#34; ([Li et al.](http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An image and its visual &amp;ldquo;words&amp;rdquo; (&lt;a href=&#34;http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Li et al.&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;The Bag of Visual Words model adapts this technique to computer vision. Instead of words, distinct visual features are extracted from each image. Some images may have more features than others, similar to how some documents will have different word counts. The dictionary is created by clustering the visual features into a finite number of groups, determined as a hyperparameter. The visual features for each image are then counted and used as a feature vector for a machine learning model.&lt;/p&gt;
 &lt;h3 id=&#34;extract-visual-features&#34;&gt;Extract Visual Features&lt;/h3&gt;
 &lt;p&gt;The first step in creating a Bag of Visual Words is to extract visual features from each image. The visual features are typically extracted using a technique like SIFT, SURF, or ORB. These techniques are designed to extract features that are invariant to scaling, rotation, and translation. The visual features are then stored in a list for each image.&lt;/p&gt;
@@ -35,6 +59,30 @@
 &lt;p&gt;Creating the dictionary requires clustering the features into a finite number of groups. The number of groups will vary depending on the complexity of the data. For a given dataset, this can be determined empirically. The most common clustering algorithm for this is K-Means, in which \(k\) different clusters are created and updated iteratively. The visual features are then assigned to the nearest cluster, and the cluster centers are updated. This process is repeated until the cluster centers converge.&lt;/p&gt;
 &lt;h3 id=&#34;build-sparse-frequency-vectors&#34;&gt;Build Sparse Frequency Vectors&lt;/h3&gt;
 &lt;p&gt;The next step is to create a histogram of the visual features for each image. The histogram is a sparse vector, where each element represents the count of a visual feature in the image. The histogram is then normalized to create a feature vector. Given an input image, the feature vector is extracted and assigned a label based on the cluster model. That label is one of the \(n\) chosen words in the vocabulary, which is incremented in the histogram.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-17_18-49-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Histogram creates from visual words ([Li et al.](http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Histogram creates from visual words (&lt;a href=&#34;http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Li et al.&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;h3 id=&#34;adjust-frequency-vectors&#34;&gt;Adjust Frequency Vectors&lt;/h3&gt;
 &lt;p&gt;The feature vectors are then adjusted to account for the frequency of the visual features. This is done by applying a weighting scheme to them. The most common weighting scheme is called Term Frequency-Inverse Document Frequency (TF-IDF). TF-IDF scheme adjusts the frequency of a word in a document based on the frequency in the entire dataset. It is calculated as follows:&lt;/p&gt;
 &lt;p&gt;\[
@@ -1972,6 +2020,304 @@ Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.&lt;/p&gt;
 &lt;/figure&gt;
 
 &lt;p&gt;#print_bibliography: t&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Image Segmentation</title>
+      <link>https://ajdillhoff.github.io/notes/image_segmentation/</link>
+      <pubDate>Tue, 22 Feb 2022 00:00:00 -0600</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/image_segmentation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#resources&#34;&gt;Resources&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#gestalt-theory&#34;&gt;Gestalt Theory&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#grouping&#34;&gt;Grouping&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#segmentation-methods&#34;&gt;Segmentation Methods&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/bsds/&lt;/a&gt; (Berkeley Segmentation Database)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/abs/2105.15203v2&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://arxiv.org/abs/2105.15203v2&lt;/a&gt; (SegFormer)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/abs/1703.06870&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://arxiv.org/abs/1703.06870&lt;/a&gt; (Mask R-CNN)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/sithu31296/semantic-segmentation&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://github.com/sithu31296/semantic-segmentation&lt;/a&gt; (Collection of SOTA models)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Feature extraction methods such as &lt;a href=&#34;https://ajdillhoff.github.io/notes/scale_invariant_feature_transforms/&#34;&gt;SIFT&lt;/a&gt; provide us with many distinct, low-level features that are useful for providing local descriptions images. We now &amp;ldquo;zoom out&amp;rdquo; and take a slightly higher level look at the next stage of image summarization.
+Our goal here is to take these low-level features and group, or fit, them together such that they represent a higher level feature. For example, from small patches representing color changes or edges, we may wish to build higher-level feature representing an eye, mouth, and nose.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-19_16-29-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Capsule networks learn template components that make up handwritten images (Kosiorek et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Capsule networks learn template components that make up handwritten images (Kosiorek et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The goal of &lt;strong&gt;image segmentation&lt;/strong&gt; is to obtain a compact representation of distinct features in an image. We will see that this task is loosely defined and will vary from application to application. For example, in one task we may wish to segment individual people detected in an image. In another task, we may wish to segment the clothes they are wearing to identify certain fashion trends or make predictions about the time of year based on an image.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-19_16-30-13_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Mask R-CNN results on COCO dataset (He et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Mask R-CNN results on COCO dataset (He et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Image segmentation is one of the oldest tasks in computer vision and, as such, encompasses many methods and techniques. The following list of segmentation categories is not exhaustive, but covers many notable approaches.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Region:&lt;/strong&gt; Methods that group by regions and either grow, merge, or spread them fall into this category. A simple region-based approach would be to apply morphological operations on thresholded images.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Boundary:&lt;/strong&gt; Separating parts of the image based on edges, lines, or specific points.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Clustering:&lt;/strong&gt; Methods that utilize some form of clustering such as K-means or Gaussian models to group pixels fall into this category.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Watershed:&lt;/strong&gt; Groups pixels by treating the image as a topographical map. Consider a large pool with 4 local minima such that there are 4 tiny pools inside it. As you fill the entire pool up, eventually the water line from each of the 4 smaller pools will touch, creating a boundary between different regions.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Graph-Based:&lt;/strong&gt; Segmentation algorithms based on graph theory.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mean-Shift:&lt;/strong&gt; Clustering methods fall into this category.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Normalized Cuts:&lt;/strong&gt; Quantifies the &lt;em&gt;strength&lt;/em&gt; of connectedness between groups before separating weak connections.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Each of these styles can be used for general segmentation or a well-defined downstream task. General segmentation may be used for unsupservised segmentation of an image for the purpose of creating superpixels (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Achanta et al. 2012&lt;/a&gt;). A common downstream task is &lt;strong&gt;semantic segmentation&lt;/strong&gt;, where distinct objects in an image are segmented. An even more difficult version of semantic segmentation is &lt;strong&gt;instance segmentation&lt;/strong&gt; where multiple instances of objects are labelled separately.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-19_16-30-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Comparison results from SegFormer paper (Xie et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Comparison results from SegFormer paper (Xie et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;gestalt-theory&#34;&gt;Gestalt Theory&lt;/h2&gt;
+&lt;p&gt;Gestalt psychology provides a theory of perception emphasizing grouping patterns. Examining different ways to think about grouping sheds light on the open-endedness of segmentation in general.&lt;/p&gt;
+&lt;h2 id=&#34;grouping&#34;&gt;Grouping&lt;/h2&gt;
+&lt;p&gt;At the pixel-level, features such as edges will look similar regardless of the context.
+An edge segment from a car will look similar to that of a building at a small enough scale.
+As soon as those features are grouped together, their representation completely changes.
+A collection of edges becomes a square or a corner.
+The higher-level of grouping we have, the more that the collection of features begin to diverge from each other.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.katnoria.com/gradvizv1/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;ConvNet Gradient Visualization&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Consider the famouse Muller-Lyer illusion seen below.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_20-41-36_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Looking at the details individually, it is easier to see that the lines are the same length.
+When considering the grouped features around them, they appear different.&lt;/p&gt;
+&lt;p&gt;Another view of segmentation considers what is the figure versus what is the ground, or background.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_20-49-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The &lt;a href=&#34;https://en.wikipedia.org/wiki/Gestalt_psychology&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Gestalt school of psychology&lt;/a&gt; posited that grouping was the key to visual understanding.
+Towards establishing a theory of segmentation, a set of factors was proposed:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Proximity&lt;/strong&gt; - Group elements that are close together.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Similarity&lt;/strong&gt; - Elements that share some sort of measurable similarity are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Common fate&lt;/strong&gt; - Often tied to temporal features, elements with a similar trajectory are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Common region&lt;/strong&gt; - Elements enclosed in a region are part of the same group. This region could be arbitrary.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Parallelism&lt;/strong&gt; - Parallel elements are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Closure&lt;/strong&gt; - Lined or curves that are closed.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Symmetry&lt;/strong&gt; - Elements exhibiting some sort of symmetry. For example, a mirrored shaped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Continuity&lt;/strong&gt; - Continuous curves are grouped.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Familiar configuration&lt;/strong&gt; - Lower level elements, when grouped together, form a higher level object.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-03-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-04-44_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;From Forsyth and Ponce &amp;#34;Computer Vision - A Modern Approach&amp;#34;&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;From Forsyth and Ponce &amp;ldquo;Computer Vision - A Modern Approach&amp;rdquo;
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-24_18-23-16_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Sky and Water by M.C. Escher&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Sky and Water by M.C. Escher
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Intuiting applications for some of these rules is easier than others.
+For example, familiar configuration suggests that some familiar object can be identified by the sum of its parts.
+This is especially helpful for problems where the whole object is occluded.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-02-22_21-09-15_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Parts of the hand are occluded either by the hand itself or some object (Mueller et al.)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Parts of the hand are occluded either by the hand itself or some object (Mueller et al.)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Common fate is a useful rule when considering tracking an object or group of objects over a series of frames.
+Even something a simple as frame differencing is an efficient preprocessing step to removing unrelated information.&lt;/p&gt;
+&lt;h2 id=&#34;segmentation-methods&#34;&gt;Segmentation Methods&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ajdillhoff.github.io/notes/active_contours/&#34;&gt;Active Contours&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://ajdillhoff.github.io/notes/segmentation_via_clustering/&#34;&gt;Segmentation via Clustering&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared to State-of-the-Art Superpixel Methods.” &lt;i&gt;Ieee Transactions on Pattern Analysis and Machine Intelligence&lt;/i&gt; 34 (11): 2274–82. &lt;a href=&#34;https://doi.org/10.1109/TPAMI.2012.120&#34;&gt;https://doi.org/10.1109/TPAMI.2012.120&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     

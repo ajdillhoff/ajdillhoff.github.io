@@ -121,6 +121,30 @@
 &lt;p&gt;&lt;strong&gt;Bag of Words&lt;/strong&gt; is a technique used in Natural Language Processing for document classification. It is a collection of word counts. To create a Bag of Words for a document, it necessary to create a dictionary first. Choosing the a dictionary is based on many factors including computational limitations. Next, the documents in a dataset are tokenized into words. The word counts are collected as part of a histogram and used as a feature vector for a machine learning model.&lt;/p&gt;
 &lt;p&gt;The dictionary is the same for all documents in the original dataset. Ideally, the Bag of Word vectors for each document in the same class will be similar. This technique works well for problems in natural language processing, where each input document will have a varying number of words. By using a Bag of Words, the input data is transformed into a fixed length feature vector.&lt;/p&gt;
 &lt;h2 id=&#34;bag-of-visual-words&#34;&gt;Bag of Visual Words&lt;/h2&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-17_18-40-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;An image and its visual &amp;#34;words&amp;#34; ([Li et al.](http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An image and its visual &amp;ldquo;words&amp;rdquo; (&lt;a href=&#34;http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Li et al.&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;p&gt;The Bag of Visual Words model adapts this technique to computer vision. Instead of words, distinct visual features are extracted from each image. Some images may have more features than others, similar to how some documents will have different word counts. The dictionary is created by clustering the visual features into a finite number of groups, determined as a hyperparameter. The visual features for each image are then counted and used as a feature vector for a machine learning model.&lt;/p&gt;
 &lt;h3 id=&#34;extract-visual-features&#34;&gt;Extract Visual Features&lt;/h3&gt;
 &lt;p&gt;The first step in creating a Bag of Visual Words is to extract visual features from each image. The visual features are typically extracted using a technique like SIFT, SURF, or ORB. These techniques are designed to extract features that are invariant to scaling, rotation, and translation. The visual features are then stored in a list for each image.&lt;/p&gt;
@@ -128,6 +152,30 @@
 &lt;p&gt;Creating the dictionary requires clustering the features into a finite number of groups. The number of groups will vary depending on the complexity of the data. For a given dataset, this can be determined empirically. The most common clustering algorithm for this is K-Means, in which \(k\) different clusters are created and updated iteratively. The visual features are then assigned to the nearest cluster, and the cluster centers are updated. This process is repeated until the cluster centers converge.&lt;/p&gt;
 &lt;h3 id=&#34;build-sparse-frequency-vectors&#34;&gt;Build Sparse Frequency Vectors&lt;/h3&gt;
 &lt;p&gt;The next step is to create a histogram of the visual features for each image. The histogram is a sparse vector, where each element represents the count of a visual feature in the image. The histogram is then normalized to create a feature vector. Given an input image, the feature vector is extracted and assigned a label based on the cluster model. That label is one of the \(n\) chosen words in the vocabulary, which is incremented in the histogram.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-17_18-49-57_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;Histogram creates from visual words ([Li et al.](http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html))&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Histogram creates from visual words (&lt;a href=&#34;http://people.csail.mit.edu/torralba/shortCourseRLOC/index.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Li et al.&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
 &lt;h3 id=&#34;adjust-frequency-vectors&#34;&gt;Adjust Frequency Vectors&lt;/h3&gt;
 &lt;p&gt;The feature vectors are then adjusted to account for the frequency of the visual features. This is done by applying a weighting scheme to them. The most common weighting scheme is called Term Frequency-Inverse Document Frequency (TF-IDF). TF-IDF scheme adjusts the frequency of a word in a document based on the frequency in the entire dataset. It is calculated as follows:&lt;/p&gt;
 &lt;p&gt;\[
