@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Types of Errors Debugging Techniques Examples With great power comes great responsibility. -Ben Parker
+C is a powerful language, but it is also considered unsafe. Mistakes stemming from pointer arithmetic, memory allocation, and other low-level operations can lead to segmentation faults, memory leaks, and other undefined behavior. This is one of the reasons why advocates are pushing for the use of safer languages like Rust.
+These notes will cover some of the tools and techniques that can be used to debug C programs, from simple printf statements to more advanced tools like gdb.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/debugging_in_c/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/debugging_in_c/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/debugging_in_c/">
+  <meta property="og:title" content="Debugging in C | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Types of Errors Debugging Techniques Examples With great power comes great responsibility. -Ben Parker
+C is a powerful language, but it is also considered unsafe. Mistakes stemming from pointer arithmetic, memory allocation, and other low-level operations can lead to segmentation faults, memory leaks, and other undefined behavior. This is one of the reasons why advocates are pushing for the use of safer languages like Rust.
+These notes will cover some of the tools and techniques that can be used to debug C programs, from simple printf statements to more advanced tools like gdb."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-06-22T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-06-22T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Debugging in C | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Debugging in C</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-06-22 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-06-22 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jun 22, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    8 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/debugging_in_c/&amp;text=Debugging%20in%20C" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/debugging_in_c/&amp;t=Debugging%20in%20C" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Debugging%20in%20C&amp;body=https://ajdillhoff.github.io/notes/debugging_in_c/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/debugging_in_c/&amp;title=Debugging%20in%20C" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Debugging%20in%20C%20https://ajdillhoff.github.io/notes/debugging_in_c/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/debugging_in_c/&amp;title=Debugging%20in%20C" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#types-of-errors">Types of Errors</a></li>
+<li><a href="#debugging-techniques">Debugging Techniques</a></li>
+<li><a href="#examples">Examples</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<blockquote>
+<p>With great power comes great responsibility. -Ben Parker</p>
+</blockquote>
+<p>C is a powerful language, but it is also considered <em>unsafe</em>. Mistakes stemming from pointer arithmetic, memory allocation, and other low-level operations can lead to segmentation faults, memory leaks, and other undefined behavior. This is one of the reasons why advocates are pushing for the use of safer languages like <a href="https://www.rust-lang.org/" target="_blank" rel="noopener noreferrer">Rust</a>.</p>
+<p>These notes will cover some of the tools and techniques that can be used to debug C programs, from simple <code>printf</code> statements to more advanced tools like <code>gdb</code>.</p>
+<h2 id="types-of-errors">Types of Errors</h2>
+<p>Classifying the different types of errors is the first step towards becoming an expert debugger. If you can quickly identify what type of problem you have, you will be able to move towards a solution faster.</p>
+<h3 id="syntax-errors">Syntax Errors</h3>
+<p>A <strong>syntax error</strong> is one in which a minor syntactical mistake was made in the code. For example, C requires that all statements end with a semicolon. If you forget to add one, the compiler will fail to compile your code and produce a relevent error message. These are the simplest types of errors to fix because they are typically accompanied by a helpful compiler message.</p>
+<p>Consider the following example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Hello, World!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This code will produce the following error message:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>hello.c: In function ‘main’:
+</span></span><span style="display:flex;"><span>hello.c:4:30: error: expected ‘;’ before ‘return’
+</span></span><span style="display:flex;"><span>    4 |     printf(&#34;Hello, World!\n&#34;)
+</span></span><span style="display:flex;"><span>      |                              ^
+</span></span><span style="display:flex;"><span>      |                              ;
+</span></span><span style="display:flex;"><span>    5 |     return 0;
+</span></span><span style="display:flex;"><span>      |     ~~~~~~
+</span></span></code></pre></div><p>Your compiler may vary slightly, but the message is clear: you forgot to add a semicolon at the end of the <code>printf</code> statement. You may read that message and find it a tad misleading. It says that the semicolon was expected before <code>return</code>. You might expect it mention that it is missing at the end of the <code>printf</code> statement. This is because the compiler would not detect the error until it reaches the <code>return</code> statement. It is important to read the error message carefully and look at the line numbers to determine where the error actually is.</p>
+<h3 id="semantic-errors">Semantic Errors</h3>
+<p><strong>Semantic errors</strong> do not produce a compiler error, so the program will still compile and run. These errors range from easy to extremely difficult depending on the size of the program and how often the error occurs. Consider the following working example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> subtotal <span style="color:#f92672">=</span> <span style="color:#ae81ff">52.75</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> num_purchases <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (num_purchases <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>        subtotal <span style="color:#f92672">=</span> subtotal <span style="color:#f92672">-</span> (subtotal <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.10</span>);  <span style="color:#75715e">// 10% discount
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Total: $%.2f</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, subtotal);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This program checks if a customer loyalty discount should be applied. If they have purchased 10 or more items, they receive a 10% discount. The program compiles and runs without any errors and works correctly. Let&rsquo;s look at a slightly modified version of this code.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> subtotal <span style="color:#f92672">=</span> <span style="color:#ae81ff">52.75</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> num_purchases <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (num_purchases <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Congratulations! You&#39;ve unlocked a 10% discount.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>        subtotal <span style="color:#f92672">=</span> subtotal <span style="color:#f92672">-</span> (subtotal <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.10</span>);  <span style="color:#75715e">// 10% discount
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Total: $%.2f</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, subtotal);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This code compiles and runs but no longer matches our original intent. Can you spot the error?</p>
+<p>The <code>if</code> statement only applies to the first line of code after it. This is a common mistake that can be difficult to spot in larger programs. In this case, a discount is applied regardless of the number of purchases because only the <code>printf</code> statement following the <code>if</code> statement is considered within the scope of the <code>if</code>, even though the next line is indented. <strong>The fix is simple: add curly braces to the <code>if</code> statement.</strong></p>
+<h3 id="logical-errors">Logical Errors</h3>
+<h3 id="runtime-errors">Runtime Errors</h3>
+<h2 id="debugging-techniques">Debugging Techniques</h2>
+<h3 id="simple-debugging">Simple Debugging</h3>
+<p>The simplest way to debug a C program is to litter it with <code>printf</code> statements until you narrow down exactly where the problem is. It works, sure, but it&rsquo;s not very efficient. Depending on the size of your program, it can be very time consuming to add and remove <code>printf</code> statements. To this point, I would always recommend adding a <code>debug</code> target to your <code>Makefile</code> that compiles your program with debugging symbols. When used with a macro specifically for debugging, you can easily add and remove debugging statements without needing to manually remove them.</p>
+<h3 id="debugging-with-gdb">Debugging with <code>gdb</code></h3>
+<p><code>GDB</code> stands for GNU Debugger. It is a command-line debugger that can be used to step through a program line-by-line, set breakpoints, and inspect memory. It is a very powerful tool, but it can be a bit intimidating to use at first. This section will cover some of the basic commands that can be used to debug a program. Another variant of this for ARM-based processors like the new Macbooks is called <code>lldb</code>. It is very similar to <code>gdb</code> and can be used in the same way. I will include both versions of the commands as we go along.</p>
+<p><code>GDB</code> typically comes pre-installed on most Linux distributions. If you are using a Mac, you can install it with <code>brew</code>. It is available for Windows via <a href="https://www.msys2.org/" target="_blank" rel="noopener noreferrer">MSYS2</a>. I trust you know how to install it on your own system. Once you have it installed, you can run it by typing <code>gdb</code> in your terminal. You will be greeted with a prompt that looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>GNU gdb (Ubuntu 12.1-0ubuntu1~22.04) 12.1
+</span></span><span style="display:flex;"><span>Copyright (C) 2022 Free Software Foundation, Inc.
+</span></span><span style="display:flex;"><span>License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span></span><span style="display:flex;"><span>This is free software: you are free to change and redistribute it.
+</span></span><span style="display:flex;"><span>There is NO WARRANTY, to the extent permitted by law.
+</span></span><span style="display:flex;"><span>Type &#34;show copying&#34; and &#34;show warranty&#34; for details.
+</span></span><span style="display:flex;"><span>This GDB was configured as &#34;x86_64-linux-gnu&#34;.
+</span></span><span style="display:flex;"><span>Type &#34;show configuration&#34; for configuration details.
+</span></span><span style="display:flex;"><span>For bug reporting instructions, please see:
+</span></span><span style="display:flex;"><span>&lt;https://www.gnu.org/software/gdb/bugs/&gt;.
+</span></span><span style="display:flex;"><span>Find the GDB manual and other documentation resources online at:
+</span></span><span style="display:flex;"><span>    &lt;http://www.gnu.org/software/gdb/documentation/&gt;.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>For help, type &#34;help&#34;.
+</span></span><span style="display:flex;"><span>Type &#34;apropos word&#34; to search for commands related to &#34;word&#34;.
+</span></span><span style="display:flex;"><span>(gdb)
+</span></span></code></pre></div><p>In order for <code>gdb</code> to be useful, you need to compile your program with debugging symbols. This can be done by adding the <code>-g</code> flag to your <code>gcc</code> command. It is also recommended to disable compiler optimizations with the <code>-O0</code> flag. This will ensure that the code you are debugging is as close to the source code as possible. For example, if you have a program called <code>hello.c</code>, you can compile it with debugging symbols like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gcc -g -O0 hello.c -o hello
+</span></span></code></pre></div><p>Once you have compiled your program with debugging symbols, you can run it with <code>gdb</code> like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gdb ./hello
+</span></span></code></pre></div><p>This will not actually begin running the program itself. Instead, it loads <code>gdb</code> which initializes the debugger. You can run the program with <code>run</code> to start execution. Let&rsquo;s make a simple program to debug a memory issue.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>ptr;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>ptr <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>ptr);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Running this on my machine produces the following output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span><span style="display:flex;"><span>Starting program: /home/alex/dev/teaching/cse1320/CSE1320-Examples/debugging/a.out
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>Thread debugging using libthread_db enabled<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Using host libthread_db library <span style="color:#e6db74">&#34;/lib/x86_64-linux-gnu/libthread_db.so.1&#34;</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Program received signal SIGSEGV, Segmentation fault.
+</span></span><span style="display:flex;"><span>0x0000555555555159 in main <span style="color:#f92672">()</span> at forgot_alloc.c:6
+</span></span><span style="display:flex;"><span>6	    *ptr <span style="color:#f92672">=</span> 42;
+</span></span></code></pre></div><p>We already get a lot of information that would have taken us much longer to acquire through the simple <code>printf</code> method. Without adding any debugging statements, we know the exact line which caused the segmentation fault. We also know that it was caused by a <code>SIGSEGV</code> signal. This is a signal that is sent to a process when it tries to access memory that it does not have access to. In this case, we are trying to write to a memory address that we have not allocated. This is a very common mistake in C programs.</p>
+<h4 id="using-breakpoints">Using breakpoints</h4>
+<p>We can use breakpoints to stop execution at a specific line. This is useful if we want to inspect the state of the program at a specific point in time. We can set a breakpoint at a specific line with the <code>break</code> command. For example, if we want to stop execution at line 6, we can do this:</p>
+<p><strong>GDB</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x555555555159: file forgot_alloc.c, line 6.
+</span></span></code></pre></div><p><strong>LLDB</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x555555555159: file forgot_alloc.c, line 6.
+</span></span></code></pre></div><p>Running the program again from the beginning will stop execution at line 6. We can then inspect the value of <code>ptr</code> with the <code>print</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span><span style="display:flex;"><span>The program being debugged has been started already.
+</span></span><span style="display:flex;"><span>Start it from the beginning? <span style="color:#f92672">(</span>y or n<span style="color:#f92672">)</span> y
+</span></span><span style="display:flex;"><span>Starting program: /home/alex/dev/teaching/cse1320/CSE1320-Examples/debugging/a.out
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>Thread debugging using libthread_db enabled<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Using host libthread_db library <span style="color:#e6db74">&#34;/lib/x86_64-linux-gnu/libthread_db.so.1&#34;</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, main <span style="color:#f92672">()</span> at forgot_alloc.c:6
+</span></span><span style="display:flex;"><span>6	    *ptr <span style="color:#f92672">=</span> 42;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print ptr
+</span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>int *<span style="color:#f92672">)</span> 0x555555555060 &lt;_start&gt;
+</span></span></code></pre></div><p>I wanted to start with this example, because you should <em>never</em> let this scenario happen. I&rsquo;m not saying that you should always write bugless code, but this example highlights a very common mistake: forgetting to initialize your variables. In C, every single pointer variable should always be initialized to <code>NULL</code>. Let&rsquo;s make that change, recompile the program, and debug again. Again, set a breakpoint at line 6 so we can see the value of <code>ptr</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) print ptr
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">=</span> (<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>) <span style="color:#ae81ff">0x0</span>
+</span></span></code></pre></div><p>Ensuring that our pointers are always initialized to <code>NULL</code> saves us a LOT of headaches.</p>
+<h4 id="inspecting-memory">Inspecting Memory</h4>
+<p>We can inspect the memory of our program with the <code>x</code> command. This command takes two arguments: the number of units to print and the format. For example, if we want to print the first 10 bytes of memory, we can do this:</p>
+<p>#+begin_src bash
+(gdb) x/10b ptr</p>
+<h2 id="examples">Examples</h2>
+<ol>
+<li>Allocate memory in a function that will inevitably lead to a segmentation fault.</li>
+<li>Discover the original source of the allocation.</li>
+</ol>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/programming/">programming</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/introduction_to_git/">Introduction to Git</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
