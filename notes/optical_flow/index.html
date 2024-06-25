@@ -29,8 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Review of Szeliski Introduction Motion Features Computing Optical Flow Assumptions of Small Motion Review of Szeliski Estimating motion
-Error metric Search function Introduction Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a motion field, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.">
+  <meta name="description" content="Table of Contents Introduction Motion Features Computing Optical Flow Assumptions of Small Motion Applications Introduction Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a motion field, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/optical_flow/">
@@ -139,13 +138,12 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/optical_flow/">
   <meta property="og:title" content="Optical Flow | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Review of Szeliski Introduction Motion Features Computing Optical Flow Assumptions of Small Motion Review of Szeliski Estimating motion
-Error metric Search function Introduction Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a motion field, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Introduction Motion Features Computing Optical Flow Assumptions of Small Motion Applications Introduction Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a motion field, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-03-06T00:00:00-06:00">
   
-  <meta property="article:modified_time" content="2022-03-06T00:00:00-06:00">
+  <meta property="article:modified_time" content="2024-06-24T00:00:00&#43;00:00">
   
 
   
@@ -383,7 +381,7 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
 
 
 <meta content="2022-03-06 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2022-03-06 00:00:00 -0600 CST" itemprop="dateModified">
+<meta content="2024-06-24 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -407,8 +405,10 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
     
     
       
+          Last updated on
+      
     
-    <time>Mar 6, 2022</time>
+    <time>Jun 24, 2024</time>
   </span>
   
 
@@ -417,7 +417,7 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    5 min read
+    6 min read
   </span>
   
 
@@ -548,23 +548,19 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
       <div class="ox-hugo-toc toc">
 <div class="heading">Table of Contents</div>
 <ul>
-<li><a href="#review-of-szeliski">Review of Szeliski</a></li>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#motion-features">Motion Features</a></li>
 <li><a href="#computing-optical-flow">Computing Optical Flow</a></li>
 <li><a href="#assumptions-of-small-motion">Assumptions of Small Motion</a></li>
+<li><a href="#applications">Applications</a></li>
 </ul>
 </div>
 <!--endtoc-->
-<h2 id="review-of-szeliski">Review of Szeliski</h2>
-<p><strong>Estimating motion</strong></p>
-<ol>
-<li>Error metric</li>
-<li>Search function</li>
-</ol>
 <h2 id="introduction">Introduction</h2>
 <p>Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a <strong>motion field</strong>, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.</p>
-<p><strong>TODO</strong> Frame differencing figure</p>
+<p>Many different approaches to optical flow have been proposed from classical, algorithmic methods to deep learning-based methods. These notes will focus on the definition and classical methods, leaving the rest for future lectures.</p>
+<h2 id="motion-features">Motion Features</h2>
+<p>Motion features are used a wide variety of tasks from compression, image segmentation, tracking, detection, video de-noising, and more. For example, human activity recognition methods can leverage motion features to identify complex actions. Along with traditional image-based features,</p>
 <p>Consider a sphere with Lambertian reflectance.</p>
 <p>If the sphere is rotated:</p>
 <ol>
@@ -576,11 +572,7 @@ Error metric Search function Introduction Optical flow refers to the apparent mo
 <li>What does the motion field look like?</li>
 <li>What does the optical flow look like?</li>
 </ol>
-<h2 id="motion-features">Motion Features</h2>
-<p>Motion features are used a wide variety of tasks from compression, image segmentation, tracking, detection, video de-noising, and more.
-Consider a fixed camera with a sphere centered in the middle of the frame.
-As the frame moves towards the camera, its apparent size will become larger.
-If we were to analyze the optical flow of such a sequence, we would see that the flow is radial as the sphere, projected as a circle, grows.</p>
+<p>It is also possible to infer relative depth from video. As the sphere moves towards the camera, its apparent size will become larger. If we were to analyze the optical flow of such a sequence, we would see that the flow is radial as the sphere, projected as a circle, grows.</p>
 
 
 
@@ -639,16 +631,41 @@ The points in the image appear to translate towards the right edge of the frame.
 Points that are close to the camera appear to move faster than those that are farther away.
 This can be used to estimate the apparent depth between objects in a scene.</p>
 <h2 id="computing-optical-flow">Computing Optical Flow</h2>
-<p>A popular assumption for optical flow, as discussed in (<a href="#citeproc_bib_item_2">Horn and Schunck 1980</a>), is that of brightness constancy.
-That is, a local feature has the same image intensity in one frame as it does in the subsequent frame.</p>
+<p>A popular assumption for optical flow, as discussed in (<a href="#citeproc_bib_item_2">Horn and Schunck 1980</a>), is that of <strong>brightness constancy</strong>. A local feature has the same image intensity in one frame as it does in the subsequent frame.</p>
 <p>\[
 I(x + u, y + v, t + 1) = I(x, y, t)
 \]</p>
-<p>To formulate the problem as a differentiable function, an additional spatial smoothness assumption is made.
-It is assumed that a pixel&rsquo;s neighbors will also have the same optical flow as the pixel in question.
-This is a reasonable assumption that asserts that patches are locally rigid and will exhibit uniform motion.</p>
-<p>Given these two constraints, we can formulate an objective function.
-First, the objective function assuming brightness constancy is given by</p>
+<h3 id="the-aperture-problem">The Aperture Problem</h3>
+<p>Consider a small window in an image. As the subject in the image moves, the window will only capture the motion in the direction of the gradient. This is known as the <strong>aperture problem</strong>.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-06-24_19-36-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;The aperture problem (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Murakami 2004&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>The aperture problem (<a href="#citeproc_bib_item_4">Murakami 2004</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The problem is that only one direction of motion can be established, but there are many possible directions of motion. Mathematically, the system is underconstrained because there are two unknowns (\(u\) and \(v\)) for each pixel.</p>
+<h3 id="local-constancy-and-smoothness">Local Constancy and Smoothness</h3>
+<p>One way to address the aperture problem is to assume that the motion is constant within a local neighborhood (<a href="#citeproc_bib_item_3">Lucas and Kanade, n.d.</a>). Given a window of size \(n \times n\), we have \(n^2\) equations for each pixel. This is a more constrained system and can be solved using the normal equations.</p>
+<p>An additional assumption is that the motion is smooth across the image. This is known as the <strong>smoothness assumption</strong>. The energy function is then modified to include a term that penalizes the difference in motion between neighboring pixels (<a href="#citeproc_bib_item_2">Horn and Schunck 1980</a>).</p>
+<p>Given these two constraints, we can formulate an objective function. First, the objective function assuming brightness constancy is given by</p>
 <p>\[
 E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I(x_s + u_s, y_s + v_s, t + 1) - I(x, y, t))^2.
 \]</p>
@@ -664,7 +681,8 @@ E(\mathbf{u}, \mathbf{v}) = E_D + \lambda E_S.
 <p>\[
 I_x u + I_y v + I_t = 0.
 \]</p>
-<p>The entire energy to be minimized is then</p>
+<p>To be more specific, a Taylor series approximation of the original difference equation is used to derive the above equation. The Taylor series is truncated at the first order since the assumption is that the motion is small; the higher order terms are negligible. Taking the first order approximation allows us to compute the flow at sub-pixel accuracy. More importantly, it allows us to frame the problem as a system of linear equations.
+The entire energy to be minimized is then</p>
 <p>\[
 E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I_{x,s}u_s + I_{y,s}v_s + I_{t,s})^2 + \lambda \sum_{n\in G(s)}(u_s - u_n)^2 + \sum_{n \in G(s)}(v_s - v_n)^2.
 \]</p>
@@ -694,14 +712,14 @@ By creating an image pyramid over several resolutions, the assumption of small m
 
 <figure>
 
-<img src="/ox-hugo/2022-03-06_19-37-48_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hierarchical motion estimation (Bergen et al.)" >
+<img src="/ox-hugo/2022-03-06_19-37-48_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Hierarchical motion estimation (Bergen et al.)" >
 
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 3: </span>Hierarchical motion estimation (Bergen et al.)
+    <span class="figure-number">Figure 4: </span>Hierarchical motion estimation (Bergen et al.)
     
     
     
@@ -714,10 +732,22 @@ By creating an image pyramid over several resolutions, the assumption of small m
 Next, they are used to warp the image to match the one at \(t-1\).
 The warped image and true image at \(t-1\) are compared to refine the parameters.
 The refined parameters are then sent to the next scale layer.</p>
+<h2 id="applications">Applications</h2>
+<ol>
+<li>Features for tracking</li>
+<li>Segmentation</li>
+<li>Optical mouse (used in early mice)</li>
+<li>Image stabilization</li>
+<li>Video compression</li>
+<li>Datasets (<a href="http://sintel.is.tue.mpg.de/" target="_blank" rel="noopener noreferrer">Sintel</a>)</li>
+<li>&hellip; and more</li>
+</ol>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Bergen, James R, P Anandan, Keith J Hanna, and Rajesh Hingorani. n.d. “Hierarchical Model-Based Motion Estimation,” 16.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Horn, Berthold K. P., and Brian G. Schunck. 1980. “Determining Optical Flow.” <a href="https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2">https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Lucas, Bruce D, and Takeo Kanade. n.d. “An Iterative Image Registration Technique with an Application to Stereo Vision,” 10.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Murakami, Ikuya. 2004. “The aperture problem in egocentric motion,” 174–77. <a href="https://doi.org/https://doi-org.ezproxy.uta.edu/10.1016/j.tins.2004.01.009">https://doi.org/https://doi-org.ezproxy.uta.edu/10.1016/j.tins.2004.01.009</a>.</div>
 </div>
 
     </div>

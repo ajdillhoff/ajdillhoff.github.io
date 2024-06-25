@@ -21267,23 +21267,19 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#review-of-szeliski&#34;&gt;Review of Szeliski&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#motion-features&#34;&gt;Motion Features&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#assumptions-of-small-motion&#34;&gt;Assumptions of Small Motion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#applications&#34;&gt;Applications&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;review-of-szeliski&#34;&gt;Review of Szeliski&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Estimating motion&lt;/strong&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Error metric&lt;/li&gt;
-&lt;li&gt;Search function&lt;/li&gt;
-&lt;/ol&gt;
 &lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;Optical flow refers to the apparent motion in a 2D image. Optical flow methods estimate a &lt;strong&gt;motion field&lt;/strong&gt;, which refers to the true motion of objects in 3D. If a fixed camera records a video of someone walking from the left side of the screen to the right, a difference of two consecutive frames reveals much about the apparent motion.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO&lt;/strong&gt; Frame differencing figure&lt;/p&gt;
+&lt;p&gt;Many different approaches to optical flow have been proposed from classical, algorithmic methods to deep learning-based methods. These notes will focus on the definition and classical methods, leaving the rest for future lectures.&lt;/p&gt;
+&lt;h2 id=&#34;motion-features&#34;&gt;Motion Features&lt;/h2&gt;
+&lt;p&gt;Motion features are used a wide variety of tasks from compression, image segmentation, tracking, detection, video de-noising, and more. For example, human activity recognition methods can leverage motion features to identify complex actions. Along with traditional image-based features,&lt;/p&gt;
 &lt;p&gt;Consider a sphere with Lambertian reflectance.&lt;/p&gt;
 &lt;p&gt;If the sphere is rotated:&lt;/p&gt;
 &lt;ol&gt;
@@ -21295,11 +21291,7 @@ This is achieved by multiplying the Gaussians together.&lt;/p&gt;
 &lt;li&gt;What does the motion field look like?&lt;/li&gt;
 &lt;li&gt;What does the optical flow look like?&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h2 id=&#34;motion-features&#34;&gt;Motion Features&lt;/h2&gt;
-&lt;p&gt;Motion features are used a wide variety of tasks from compression, image segmentation, tracking, detection, video de-noising, and more.
-Consider a fixed camera with a sphere centered in the middle of the frame.
-As the frame moves towards the camera, its apparent size will become larger.
-If we were to analyze the optical flow of such a sequence, we would see that the flow is radial as the sphere, projected as a circle, grows.&lt;/p&gt;
+&lt;p&gt;It is also possible to infer relative depth from video. As the sphere moves towards the camera, its apparent size will become larger. If we were to analyze the optical flow of such a sequence, we would see that the flow is radial as the sphere, projected as a circle, grows.&lt;/p&gt;
 
 
 
@@ -21358,16 +21350,41 @@ The points in the image appear to translate towards the right edge of the frame.
 Points that are close to the camera appear to move faster than those that are farther away.
 This can be used to estimate the apparent depth between objects in a scene.&lt;/p&gt;
 &lt;h2 id=&#34;computing-optical-flow&#34;&gt;Computing Optical Flow&lt;/h2&gt;
-&lt;p&gt;A popular assumption for optical flow, as discussed in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;), is that of brightness constancy.
-That is, a local feature has the same image intensity in one frame as it does in the subsequent frame.&lt;/p&gt;
+&lt;p&gt;A popular assumption for optical flow, as discussed in (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;), is that of &lt;strong&gt;brightness constancy&lt;/strong&gt;. A local feature has the same image intensity in one frame as it does in the subsequent frame.&lt;/p&gt;
 &lt;p&gt;\[
 I(x + u, y + v, t + 1) = I(x, y, t)
 \]&lt;/p&gt;
-&lt;p&gt;To formulate the problem as a differentiable function, an additional spatial smoothness assumption is made.
-It is assumed that a pixel&amp;rsquo;s neighbors will also have the same optical flow as the pixel in question.
-This is a reasonable assumption that asserts that patches are locally rigid and will exhibit uniform motion.&lt;/p&gt;
-&lt;p&gt;Given these two constraints, we can formulate an objective function.
-First, the objective function assuming brightness constancy is given by&lt;/p&gt;
+&lt;h3 id=&#34;the-aperture-problem&#34;&gt;The Aperture Problem&lt;/h3&gt;
+&lt;p&gt;Consider a small window in an image. As the subject in the image moves, the window will only capture the motion in the direction of the gradient. This is known as the &lt;strong&gt;aperture problem&lt;/strong&gt;.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-06-24_19-36-14_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;The aperture problem (&amp;lt;a href=&amp;#34;#citeproc_bib_item_4&amp;#34;&amp;gt;Murakami 2004&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;The aperture problem (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Murakami 2004&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The problem is that only one direction of motion can be established, but there are many possible directions of motion. Mathematically, the system is underconstrained because there are two unknowns (\(u\) and \(v\)) for each pixel.&lt;/p&gt;
+&lt;h3 id=&#34;local-constancy-and-smoothness&#34;&gt;Local Constancy and Smoothness&lt;/h3&gt;
+&lt;p&gt;One way to address the aperture problem is to assume that the motion is constant within a local neighborhood (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Lucas and Kanade, n.d.&lt;/a&gt;). Given a window of size \(n \times n\), we have \(n^2\) equations for each pixel. This is a more constrained system and can be solved using the normal equations.&lt;/p&gt;
+&lt;p&gt;An additional assumption is that the motion is smooth across the image. This is known as the &lt;strong&gt;smoothness assumption&lt;/strong&gt;. The energy function is then modified to include a term that penalizes the difference in motion between neighboring pixels (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Horn and Schunck 1980&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Given these two constraints, we can formulate an objective function. First, the objective function assuming brightness constancy is given by&lt;/p&gt;
 &lt;p&gt;\[
 E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I(x_s + u_s, y_s + v_s, t + 1) - I(x, y, t))^2.
 \]&lt;/p&gt;
@@ -21383,7 +21400,8 @@ E(\mathbf{u}, \mathbf{v}) = E_D + \lambda E_S.
 &lt;p&gt;\[
 I_x u + I_y v + I_t = 0.
 \]&lt;/p&gt;
-&lt;p&gt;The entire energy to be minimized is then&lt;/p&gt;
+&lt;p&gt;To be more specific, a Taylor series approximation of the original difference equation is used to derive the above equation. The Taylor series is truncated at the first order since the assumption is that the motion is small; the higher order terms are negligible. Taking the first order approximation allows us to compute the flow at sub-pixel accuracy. More importantly, it allows us to frame the problem as a system of linear equations.
+The entire energy to be minimized is then&lt;/p&gt;
 &lt;p&gt;\[
 E_D(\mathbf{u}, \mathbf{v}) = \sum_{s}(I_{x,s}u_s + I_{y,s}v_s + I_{t,s})^2 + \lambda \sum_{n\in G(s)}(u_s - u_n)^2 + \sum_{n \in G(s)}(v_s - v_n)^2.
 \]&lt;/p&gt;
@@ -21413,14 +21431,14 @@ By creating an image pyramid over several resolutions, the assumption of small m
 
 &lt;figure&gt;
 
-&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-06_19-37-48_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Hierarchical motion estimation (Bergen et al.)&#34; &gt;
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-03-06_19-37-48_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Hierarchical motion estimation (Bergen et al.)&#34; &gt;
 
 
 
 &lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
   
   &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Hierarchical motion estimation (Bergen et al.)
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Hierarchical motion estimation (Bergen et al.)
     
     
     
@@ -21433,10 +21451,22 @@ By creating an image pyramid over several resolutions, the assumption of small m
 Next, they are used to warp the image to match the one at \(t-1\).
 The warped image and true image at \(t-1\) are compared to refine the parameters.
 The refined parameters are then sent to the next scale layer.&lt;/p&gt;
+&lt;h2 id=&#34;applications&#34;&gt;Applications&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Features for tracking&lt;/li&gt;
+&lt;li&gt;Segmentation&lt;/li&gt;
+&lt;li&gt;Optical mouse (used in early mice)&lt;/li&gt;
+&lt;li&gt;Image stabilization&lt;/li&gt;
+&lt;li&gt;Video compression&lt;/li&gt;
+&lt;li&gt;Datasets (&lt;a href=&#34;http://sintel.is.tue.mpg.de/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Sintel&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&amp;hellip; and more&lt;/li&gt;
+&lt;/ol&gt;
 &lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
 &lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Bergen, James R, P Anandan, Keith J Hanna, and Rajesh Hingorani. n.d. “Hierarchical Model-Based Motion Estimation,” 16.&lt;/div&gt;
   &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Horn, Berthold K. P., and Brian G. Schunck. 1980. “Determining Optical Flow.” &lt;a href=&#34;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&#34;&gt;https://dspace.mit.edu/bitstream/handle/1721.1/6337/%EE%80%80AIM%EE%80%81-572.pdf?sequence=2&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Lucas, Bruce D, and Takeo Kanade. n.d. “An Iterative Image Registration Technique with an Application to Stereo Vision,” 10.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Murakami, Ikuya. 2004. “The aperture problem in egocentric motion,” 174–77. &lt;a href=&#34;https://doi.org/https://doi-org.ezproxy.uta.edu/10.1016/j.tins.2004.01.009&#34;&gt;https://doi.org/https://doi-org.ezproxy.uta.edu/10.1016/j.tins.2004.01.009&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
 </description>
     </item>
@@ -28997,7 +29027,6 @@ f(\mathbf{x}) = \mathbf{w}^T\phi(\mathbf{x}),
 &lt;p&gt;where \(\phi(\mathbf{x})\) is a function which transforms our original input into some new feature space. The transformed input is assumed to be linearly separable so that a decision boundary can be computed. In the original logistic regression problem, a decision boundary was found through optimization. For linearly separable data, there are an infinite number of decision boundaries that satisfy the problem.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;What about the quality of the decision boundary?&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Is one decision boundary better than the other?&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TODO:&lt;/strong&gt; Add a few plots comparing decision boundaries&lt;/p&gt;
 &lt;h2 id=&#34;formulation&#34;&gt;Formulation&lt;/h2&gt;
 &lt;p&gt;Given a training set \(\{\mathbf{x}_1, \dots, \mathbf{x}_n\}\) with labels \(\{y_1, \dots, y_n\}\), where \(y_i \in \{-1, 1\}\), we construct a linear model which classifies an input sample depending on the sign of the output.&lt;/p&gt;
 &lt;p&gt;Our decision rule for classification, given some input \(\mathbf{x}\), is&lt;/p&gt;
