@@ -29,7 +29,7 @@
   
     
   
-  <meta name="description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen.">
+  <meta name="description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Estimating Camera Parameters Application: Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/camera_models/">
@@ -138,12 +138,12 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/camera_models/">
   <meta property="og:title" content="Camera Models | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="Table of Contents Reading Outline Pinhole Model From World Space to Image Space Camera Parameters Estimating Camera Parameters Application: Camera Calibration Reading Chapters 1 and 7 (Forsyth and Ponce) https://www.scratchapixel.com/ https://docs.google.com/presentation/d/1RMyNQR9jGdJm64FCiuvoyJiL6r3H18jeNIyocIO9sfA/edit#slide=id.p http://vision.stanford.edu/teaching/cs131_fall1617/lectures/lecture8_camera_models_cs131_2016.pdf http://vlm1.uta.edu/~athitsos/courses/cse4310_spring2021/lectures/11_geometry.pdf Outline Pinhole model Coordinates of a pinhole model Perspective projections Homogeneous coordinates Computer graphics perspective Lenses Intrinsic and extrensic parameters From world to camera to image space Camera calibration Pinhole Model Imagine piercing a small hole into a plate and placing it in front of a black screen."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2022-03-11T00:00:00-06:00">
   
-  <meta property="article:modified_time" content="2024-02-25T00:00:00&#43;00:00">
+  <meta property="article:modified_time" content="2024-07-10T00:00:00&#43;00:00">
   
 
   
@@ -381,7 +381,7 @@
 
 
 <meta content="2022-03-11 00:00:00 -0600 CST" itemprop="datePublished">
-<meta content="2024-02-25 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+<meta content="2024-07-10 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -408,7 +408,7 @@
           Last updated on
       
     
-    <time>Feb 25, 2024</time>
+    <time>Jul 10, 2024</time>
   </span>
   
 
@@ -417,7 +417,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    15 min read
+    17 min read
   </span>
   
 
@@ -553,7 +553,8 @@
 <li><a href="#pinhole-model">Pinhole Model</a></li>
 <li><a href="#from-world-space-to-image-space">From World Space to Image Space</a></li>
 <li><a href="#camera-parameters">Camera Parameters</a></li>
-<li><a href="#camera-calibration">Camera Calibration</a></li>
+<li><a href="#estimating-camera-parameters">Estimating Camera Parameters</a></li>
+<li><a href="#application-camera-calibration">Application: Camera Calibration</a></li>
 </ul>
 </div>
 <!--endtoc-->
@@ -1117,13 +1118,51 @@ r_{31} &amp; r_{32} &amp; r_{33} &amp; t_z\\
 \mathbf{p} = KM[\mathbf{p}]_W,
 \]</p>
 <p>where \([\mathbf{p}]_W = \begin{bmatrix}x\\y\\z\\1\end{bmatrix}\).</p>
-<h2 id="camera-calibration">Camera Calibration</h2>
-<p>There are many applications which require that we know the exact camera parameters, including augmented reality, inpainting techniques, and depth estimation.
-We now investigate how, given a fixed world coordinate system with known structure, we can approximate the camera parameters.</p>
-<p>Popular software solutions for calibrating cameras are provided by <a href="http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example.html" target="_blank" rel="noopener noreferrer">MATLAB</a> and <a href="https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html" target="_blank" rel="noopener noreferrer">OpenCV</a>.
-These are based off of work by <a href="https://www.microsoft.com/en-us/research/project/a-flexible-new-technique-for-camera-calibration-2/?from=https%3A%2F%2Fresearch.microsoft.com%2F%7Ezhang%2FCalib%2F" target="_blank" rel="noopener noreferrer">Zhengyou Zhang</a>.
-We will follow the original publication to explain the solutions to camera calibration.
-As such, the notation will change a bit.</p>
+<h2 id="estimating-camera-parameters">Estimating Camera Parameters</h2>
+<p>There are many applications which require that we know the exact camera parameters, including augmented reality, inpainting techniques, and depth estimation. We now investigate how, given a fixed world coordinate system with known structure, we can approximate the camera parameters.</p>
+<p>Consider a set of \(n\) image-to-world point correspondences \(\mathbf{X}_i \leftrightarrow \mathbf{x}_i\). The goal is to compute a homography \(\mathbf{H}\) that relates the image points to the world points: \(\mathbf{x}_i = \mathbf{H}\mathbf{X}_i\). This relationship can be written as \(\mathbf{x}_i \times \mathbf{H}\mathbf{X}_i = 0\) because the cross product of two vectors is zero if they are parallel. \(H\mathbf{x}_i\) can be written as</p>
+<p>\begin{pmatrix}
+\mathbf{h}_1^T\mathbf{x}_i\\
+\mathbf{h}_2^T\mathbf{x}_i\\
+\mathbf{h}_3^T\mathbf{x}_i\\
+\end{pmatrix}</p>
+<p>Then the cross product is given by</p>
+<p>\begin{pmatrix}
+y_i\mathbf{h}_3^T\mathbf{X}_i - w_i\mathbf{h}_2^T\mathbf{X}_i\\
+w_i\mathbf{h}_1^T\mathbf{X}_i - x_i\mathbf{h}_3^T\mathbf{X}_i\\
+x_i\mathbf{h}_2^T\mathbf{X}_i - y_i\mathbf{h}_1^T\mathbf{X}_i\\
+\end{pmatrix}</p>
+<p>Observing that \(\mathbf{h}_j^T\mathbf{X}_i = \mathbf{X}_i^T\mathbf{h}_j\), we can write this as a homogeneous linear system.</p>
+<p>\[
+\begin{bmatrix}
+\mathbf{0}^T &amp; -w_i\mathbf{X}_i^T &amp; y_i\mathbf{X}_i^T\\
+w_i\mathbf{X}_i^T &amp; \mathbf{0}^T &amp; -x_i\mathbf{X}_i^T\\
+-y_i\mathbf{X}_i^T &amp; x_i\mathbf{X}_i^T &amp; \mathbf{0}^T\\
+\end{bmatrix} \begin{pmatrix}
+\mathbf{h}_1\\
+\mathbf{h}_2\\
+\mathbf{h}_3\\
+\end{pmatrix} = \mathbf{0}
+\]</p>
+<p>This is a linear system whose third equation is linearly dependent on the first two, thus we only need to solve the first two equations.</p>
+<p>\[
+\begin{bmatrix}
+\mathbf{0}^T &amp; -w_i\mathbf{X}_i^T &amp; y_i\mathbf{X}_i^T\\
+w_i\mathbf{X}_i^T &amp; \mathbf{0}^T &amp; -x_i\mathbf{X}_i^T\\
+\end{bmatrix} \begin{pmatrix}
+\mathbf{h}_1\\
+\mathbf{h}_2\\
+\mathbf{h}_3\\
+\end{pmatrix} = \mathbf{0}
+\]</p>
+<p>In practice, this system is denoted as \(A_i \mathbf{h} = \mathbf{0}\) where \(A_i\) is a \(2 \times 9\) matrix and \(\mathbf{h}\) is a \(9 \times 1\) vector. This implies that we need at least 4 point correspondences to solve for \(\mathbf{h}\). These correspondences can be used to create 4 matrices \(A_i\) which are then stacked to form a \(8 \times 9\) matrix \(A\). <strong>But wait&hellip; \(A\) is only rank 8!</strong> This is because the solution can only be determined up to a scale factor.</p>
+<p>If we the matrix had rank 9, then the solution would be trivial. Remember, we&rsquo;re working with a homogeneous linear system.</p>
+<h3 id="relationship-to-camera-parameters">Relationship to Camera Parameters</h3>
+<p>Given the basic solution, let&rsquo;s relate this to the camera parameters. Our goal is to estimate \(P\) which is a \(3 \times 4\) matrix. This matrix is composed of the intrinsic matrix \(K\) and the extrinsic matrix \(M\). Since each row of \(P\) is a 4-vector, each \(A_i\) is a \(2 \times 12\) matrix.</p>
+<h3 id="algebraic-versus-geometric-error">Algebraic versus Geometric Error</h3>
+<p>The solution to the linear system minimizes the algebraic error. Even if the points are perfectly matched, the solution may not be accurate. This is because the solution is only determined up to a scale factor. The geometric error is minimized by using a non-linear optimization technique such as <a href="https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm" target="_blank" rel="noopener noreferrer">Levenberg-Marquardt</a>.</p>
+<h2 id="application-camera-calibration">Application: Camera Calibration</h2>
+<p>Popular software solutions for calibrating cameras are provided by <a href="http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example.html" target="_blank" rel="noopener noreferrer">MATLAB</a> and <a href="https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html" target="_blank" rel="noopener noreferrer">OpenCV</a>. These are based off of work by <a href="https://www.microsoft.com/en-us/research/project/a-flexible-new-technique-for-camera-calibration-2/?from=https%3A%2F%2Fresearch.microsoft.com%2F%7Ezhang%2FCalib%2F" target="_blank" rel="noopener noreferrer">Zhengyou Zhang</a>. We will follow the original publication to explain the solutions to camera calibration. As such, the notation will change a bit.</p>
 <p>The first goal is to relate the model points \(\mathbf{M}\) to the image points \(\mathbf{m}\) by a homography \(\mathbf{H}\) such that</p>
 <p>\[
 s\hat{\mathbf{m}} = \mathbf{H} \hat{\mathbf{M}},

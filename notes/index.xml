@@ -19630,6 +19630,12 @@ The goal of steropsis is to reconstruct a 3D representation of the world given c
 Methods exist to estimate the required transformation parameters using points based on matching image features.
 If some set of points which a fixed coordinate system is known, such as a calibration pattern, the problem becomes even simpler.
 Knowing the exact world point as it is projected in all image planes is essentially a ground truth.&lt;/p&gt;
+&lt;p&gt;Hartley and Zisserman address three primary questions when dealing with two views:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Correspondence geometry:&lt;/strong&gt; How does a point in one view constraint the corresponding point in a second view?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Camera geometry:&lt;/strong&gt; How do we determine the cameras of both views given a set of corresponding image points?&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Scene geometry:&lt;/strong&gt; If we know the cameras and have a set of corresponding points, how can we compute the depth?&lt;/li&gt;
+&lt;/ol&gt;
 &lt;h2 id=&#34;epipolar-geometry&#34;&gt;Epipolar Geometry&lt;/h2&gt;
 &lt;p&gt;Epipolar geometry is the backbone of stereopsis.
 We will first define what epipolar geometry is, how it is used in the stereo vision problem, and the core constraint that limits our search space of point correspondences.
@@ -20077,7 +20083,8 @@ that result in the smallest increase in error.&lt;/p&gt;
 &lt;li&gt;&lt;a href=&#34;#pinhole-model&#34;&gt;Pinhole Model&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#from-world-space-to-image-space&#34;&gt;From World Space to Image Space&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#camera-parameters&#34;&gt;Camera Parameters&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#camera-calibration&#34;&gt;Camera Calibration&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#estimating-camera-parameters&#34;&gt;Estimating Camera Parameters&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#application-camera-calibration&#34;&gt;Application: Camera Calibration&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
@@ -20641,13 +20648,51 @@ r_{31} &amp;amp; r_{32} &amp;amp; r_{33} &amp;amp; t_z\\
 \mathbf{p} = KM[\mathbf{p}]_W,
 \]&lt;/p&gt;
 &lt;p&gt;where \([\mathbf{p}]_W = \begin{bmatrix}x\\y\\z\\1\end{bmatrix}\).&lt;/p&gt;
-&lt;h2 id=&#34;camera-calibration&#34;&gt;Camera Calibration&lt;/h2&gt;
-&lt;p&gt;There are many applications which require that we know the exact camera parameters, including augmented reality, inpainting techniques, and depth estimation.
-We now investigate how, given a fixed world coordinate system with known structure, we can approximate the camera parameters.&lt;/p&gt;
-&lt;p&gt;Popular software solutions for calibrating cameras are provided by &lt;a href=&#34;http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;MATLAB&lt;/a&gt; and &lt;a href=&#34;https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;OpenCV&lt;/a&gt;.
-These are based off of work by &lt;a href=&#34;https://www.microsoft.com/en-us/research/project/a-flexible-new-technique-for-camera-calibration-2/?from=https%3A%2F%2Fresearch.microsoft.com%2F%7Ezhang%2FCalib%2F&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Zhengyou Zhang&lt;/a&gt;.
-We will follow the original publication to explain the solutions to camera calibration.
-As such, the notation will change a bit.&lt;/p&gt;
+&lt;h2 id=&#34;estimating-camera-parameters&#34;&gt;Estimating Camera Parameters&lt;/h2&gt;
+&lt;p&gt;There are many applications which require that we know the exact camera parameters, including augmented reality, inpainting techniques, and depth estimation. We now investigate how, given a fixed world coordinate system with known structure, we can approximate the camera parameters.&lt;/p&gt;
+&lt;p&gt;Consider a set of \(n\) image-to-world point correspondences \(\mathbf{X}_i \leftrightarrow \mathbf{x}_i\). The goal is to compute a homography \(\mathbf{H}\) that relates the image points to the world points: \(\mathbf{x}_i = \mathbf{H}\mathbf{X}_i\). This relationship can be written as \(\mathbf{x}_i \times \mathbf{H}\mathbf{X}_i = 0\) because the cross product of two vectors is zero if they are parallel. \(H\mathbf{x}_i\) can be written as&lt;/p&gt;
+&lt;p&gt;\begin{pmatrix}
+\mathbf{h}_1^T\mathbf{x}_i\\
+\mathbf{h}_2^T\mathbf{x}_i\\
+\mathbf{h}_3^T\mathbf{x}_i\\
+\end{pmatrix}&lt;/p&gt;
+&lt;p&gt;Then the cross product is given by&lt;/p&gt;
+&lt;p&gt;\begin{pmatrix}
+y_i\mathbf{h}_3^T\mathbf{X}_i - w_i\mathbf{h}_2^T\mathbf{X}_i\\
+w_i\mathbf{h}_1^T\mathbf{X}_i - x_i\mathbf{h}_3^T\mathbf{X}_i\\
+x_i\mathbf{h}_2^T\mathbf{X}_i - y_i\mathbf{h}_1^T\mathbf{X}_i\\
+\end{pmatrix}&lt;/p&gt;
+&lt;p&gt;Observing that \(\mathbf{h}_j^T\mathbf{X}_i = \mathbf{X}_i^T\mathbf{h}_j\), we can write this as a homogeneous linear system.&lt;/p&gt;
+&lt;p&gt;\[
+\begin{bmatrix}
+\mathbf{0}^T &amp;amp; -w_i\mathbf{X}_i^T &amp;amp; y_i\mathbf{X}_i^T\\
+w_i\mathbf{X}_i^T &amp;amp; \mathbf{0}^T &amp;amp; -x_i\mathbf{X}_i^T\\
+-y_i\mathbf{X}_i^T &amp;amp; x_i\mathbf{X}_i^T &amp;amp; \mathbf{0}^T\\
+\end{bmatrix} \begin{pmatrix}
+\mathbf{h}_1\\
+\mathbf{h}_2\\
+\mathbf{h}_3\\
+\end{pmatrix} = \mathbf{0}
+\]&lt;/p&gt;
+&lt;p&gt;This is a linear system whose third equation is linearly dependent on the first two, thus we only need to solve the first two equations.&lt;/p&gt;
+&lt;p&gt;\[
+\begin{bmatrix}
+\mathbf{0}^T &amp;amp; -w_i\mathbf{X}_i^T &amp;amp; y_i\mathbf{X}_i^T\\
+w_i\mathbf{X}_i^T &amp;amp; \mathbf{0}^T &amp;amp; -x_i\mathbf{X}_i^T\\
+\end{bmatrix} \begin{pmatrix}
+\mathbf{h}_1\\
+\mathbf{h}_2\\
+\mathbf{h}_3\\
+\end{pmatrix} = \mathbf{0}
+\]&lt;/p&gt;
+&lt;p&gt;In practice, this system is denoted as \(A_i \mathbf{h} = \mathbf{0}\) where \(A_i\) is a \(2 \times 9\) matrix and \(\mathbf{h}\) is a \(9 \times 1\) vector. This implies that we need at least 4 point correspondences to solve for \(\mathbf{h}\). These correspondences can be used to create 4 matrices \(A_i\) which are then stacked to form a \(8 \times 9\) matrix \(A\). &lt;strong&gt;But wait&amp;hellip; \(A\) is only rank 8!&lt;/strong&gt; This is because the solution can only be determined up to a scale factor.&lt;/p&gt;
+&lt;p&gt;If we the matrix had rank 9, then the solution would be trivial. Remember, we&amp;rsquo;re working with a homogeneous linear system.&lt;/p&gt;
+&lt;h3 id=&#34;relationship-to-camera-parameters&#34;&gt;Relationship to Camera Parameters&lt;/h3&gt;
+&lt;p&gt;Given the basic solution, let&amp;rsquo;s relate this to the camera parameters. Our goal is to estimate \(P\) which is a \(3 \times 4\) matrix. This matrix is composed of the intrinsic matrix \(K\) and the extrinsic matrix \(M\). Since each row of \(P\) is a 4-vector, each \(A_i\) is a \(2 \times 12\) matrix.&lt;/p&gt;
+&lt;h3 id=&#34;algebraic-versus-geometric-error&#34;&gt;Algebraic versus Geometric Error&lt;/h3&gt;
+&lt;p&gt;The solution to the linear system minimizes the algebraic error. Even if the points are perfectly matched, the solution may not be accurate. This is because the solution is only determined up to a scale factor. The geometric error is minimized by using a non-linear optimization technique such as &lt;a href=&#34;https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Levenberg-Marquardt&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;application-camera-calibration&#34;&gt;Application: Camera Calibration&lt;/h2&gt;
+&lt;p&gt;Popular software solutions for calibrating cameras are provided by &lt;a href=&#34;http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;MATLAB&lt;/a&gt; and &lt;a href=&#34;https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;OpenCV&lt;/a&gt;. These are based off of work by &lt;a href=&#34;https://www.microsoft.com/en-us/research/project/a-flexible-new-technique-for-camera-calibration-2/?from=https%3A%2F%2Fresearch.microsoft.com%2F%7Ezhang%2FCalib%2F&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Zhengyou Zhang&lt;/a&gt;. We will follow the original publication to explain the solutions to camera calibration. As such, the notation will change a bit.&lt;/p&gt;
 &lt;p&gt;The first goal is to relate the model points \(\mathbf{M}\) to the image points \(\mathbf{m}\) by a homography \(\mathbf{H}\) such that&lt;/p&gt;
 &lt;p&gt;\[
 s\hat{\mathbf{m}} = \mathbf{H} \hat{\mathbf{M}},
