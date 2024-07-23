@@ -419,7 +419,7 @@ These notes will cover some of the tools and techniques that can be used to debu
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    8 min read
+    9 min read
   </span>
   
 
@@ -614,6 +614,48 @@ These notes will cover some of the tools and techniques that can be used to debu
 </span></span></code></pre></div><p>This code compiles and runs but no longer matches our original intent. Can you spot the error?</p>
 <p>The <code>if</code> statement only applies to the first line of code after it. This is a common mistake that can be difficult to spot in larger programs. In this case, a discount is applied regardless of the number of purchases because only the <code>printf</code> statement following the <code>if</code> statement is considered within the scope of the <code>if</code>, even though the next line is indented. <strong>The fix is simple: add curly braces to the <code>if</code> statement.</strong></p>
 <h3 id="logical-errors">Logical Errors</h3>
+<p>Errors in logic can be hard to detect, especially as the scope of our problem grows. These errors are not necessarily syntax errors, and they may not even produce a compiler error. They are usually detected by testing the program and verifying that the output matches the expected output.</p>
+<p>Consider the <a href="https://en.wikipedia.org/wiki/Collatz_conjecture" target="_blank" rel="noopener noreferrer">Collatz conjecture</a> problem, as seen on <a href="https://projecteuler.net/problem=14" target="_blank" rel="noopener noreferrer">Project Euler</a>:</p>
+<blockquote>
+<p>The following iterative sequence is defined for the set of positive integers:</p>
+<p>n → n/2 (n is even)
+n → 3n + 1 (n is odd)</p>
+<p>Using the rule above and starting with 13, we generate the following sequence:</p>
+<p>13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1</p>
+<p>It can be seen that this sequence (starting at 13 and finishing at 1) contains 10 terms. Although it has not been proved yet (Collatz Problem), it is thought that all starting numbers finish at 1.</p>
+<p>Which starting number, under one million, produces the longest chain?</p>
+</blockquote>
+<p>An incorrect solution to the problem is shown below.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">collatz_steps</span>(<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> steps <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (n <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>n <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            n <span style="color:#f92672">=</span> n <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            n <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%lld&#34;</span>, n);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (n <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34; -&gt; &#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        steps<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> steps;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> n <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> <span style="color:#a6e22e">collatz_steps</span>(n);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Number of steps for %lld to reach 1: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, n, result);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This solution is <em>almost</em> correct. The issue lies in the <code>if</code> statement in the <code>collatz_steps</code> function. The condition <code>!n % 2 == 0</code> is incorrect. The correct condition should be <code>n % 2 == 0</code>. If you organize your code such that your functions are relatively small and modular, you can easily test each function individually to ensure that it works as expected.</p>
 <h3 id="runtime-errors">Runtime Errors</h3>
 <h2 id="debugging-techniques">Debugging Techniques</h2>
 <h3 id="simple-debugging">Simple Debugging</h3>
@@ -687,9 +729,10 @@ These notes will cover some of the tools and techniques that can be used to debu
 </span></span></code></pre></div><p>Ensuring that our pointers are always initialized to <code>NULL</code> saves us a LOT of headaches.</p>
 <h4 id="inspecting-memory">Inspecting Memory</h4>
 <p>We can inspect the memory of our program with the <code>x</code> command. This command takes two arguments: the number of units to print and the format. For example, if we want to print the first 10 bytes of memory, we can do this:</p>
-<p>#+begin_src bash
-(gdb) x/10b ptr</p>
-<h2 id="examples">Examples</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10b ptr
+</span></span><span style="display:flex;"><span>0x0:	0	0	0	0	0	0	0	<span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x8:	0	<span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><h2 id="examples">Examples</h2>
 <ol>
 <li>Allocate memory in a function that will inevitably lead to a segmentation fault.</li>
 <li>Discover the original source of the allocation.</li>

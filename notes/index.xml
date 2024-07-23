@@ -85,6 +85,48 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This code compiles and runs but no longer matches our original intent. Can you spot the error?&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;if&lt;/code&gt; statement only applies to the first line of code after it. This is a common mistake that can be difficult to spot in larger programs. In this case, a discount is applied regardless of the number of purchases because only the &lt;code&gt;printf&lt;/code&gt; statement following the &lt;code&gt;if&lt;/code&gt; statement is considered within the scope of the &lt;code&gt;if&lt;/code&gt;, even though the next line is indented. &lt;strong&gt;The fix is simple: add curly braces to the &lt;code&gt;if&lt;/code&gt; statement.&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;logical-errors&#34;&gt;Logical Errors&lt;/h3&gt;
+&lt;p&gt;Errors in logic can be hard to detect, especially as the scope of our problem grows. These errors are not necessarily syntax errors, and they may not even produce a compiler error. They are usually detected by testing the program and verifying that the output matches the expected output.&lt;/p&gt;
+&lt;p&gt;Consider the &lt;a href=&#34;https://en.wikipedia.org/wiki/Collatz_conjecture&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Collatz conjecture&lt;/a&gt; problem, as seen on &lt;a href=&#34;https://projecteuler.net/problem=14&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Project Euler&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The following iterative sequence is defined for the set of positive integers:&lt;/p&gt;
+&lt;p&gt;n → n/2 (n is even)
+n → 3n + 1 (n is odd)&lt;/p&gt;
+&lt;p&gt;Using the rule above and starting with 13, we generate the following sequence:&lt;/p&gt;
+&lt;p&gt;13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1&lt;/p&gt;
+&lt;p&gt;It can be seen that this sequence (starting at 13 and finishing at 1) contains 10 terms. Although it has not been proved yet (Collatz Problem), it is thought that all starting numbers finish at 1.&lt;/p&gt;
+&lt;p&gt;Which starting number, under one million, produces the longest chain?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;An incorrect solution to the problem is shown below.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;collatz_steps&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; n) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; steps &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (n &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;n &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%lld&amp;#34;&lt;/span&gt;, n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (n &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; -&amp;gt; &amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        steps&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; steps;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;12&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;collatz_steps&lt;/span&gt;(n);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Number of steps for %lld to reach 1: %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, n, result);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This solution is &lt;em&gt;almost&lt;/em&gt; correct. The issue lies in the &lt;code&gt;if&lt;/code&gt; statement in the &lt;code&gt;collatz_steps&lt;/code&gt; function. The condition &lt;code&gt;!n % 2 == 0&lt;/code&gt; is incorrect. The correct condition should be &lt;code&gt;n % 2 == 0&lt;/code&gt;. If you organize your code such that your functions are relatively small and modular, you can easily test each function individually to ensure that it works as expected.&lt;/p&gt;
 &lt;h3 id=&#34;runtime-errors&#34;&gt;Runtime Errors&lt;/h3&gt;
 &lt;h2 id=&#34;debugging-techniques&#34;&gt;Debugging Techniques&lt;/h2&gt;
 &lt;h3 id=&#34;simple-debugging&#34;&gt;Simple Debugging&lt;/h3&gt;
@@ -158,9 +200,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Ensuring that our pointers are always initialized to &lt;code&gt;NULL&lt;/code&gt; saves us a LOT of headaches.&lt;/p&gt;
 &lt;h4 id=&#34;inspecting-memory&#34;&gt;Inspecting Memory&lt;/h4&gt;
 &lt;p&gt;We can inspect the memory of our program with the &lt;code&gt;x&lt;/code&gt; command. This command takes two arguments: the number of units to print and the format. For example, if we want to print the first 10 bytes of memory, we can do this:&lt;/p&gt;
-&lt;p&gt;#+begin_src bash
-(gdb) x/10b ptr&lt;/p&gt;
-&lt;h2 id=&#34;examples&#34;&gt;Examples&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; x/10b ptr
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x0:	0	0	0	0	0	0	0	&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8:	0	&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;examples&#34;&gt;Examples&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;Allocate memory in a function that will inevitably lead to a segmentation fault.&lt;/li&gt;
 &lt;li&gt;Discover the original source of the allocation.&lt;/li&gt;
