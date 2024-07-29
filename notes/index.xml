@@ -17822,6 +17822,404 @@ Training a linear discriminant function using least squares results in the follo
     </item>
     
     <item>
+      <title>Object Detection</title>
+      <link>https://ajdillhoff.github.io/notes/object_detection/</link>
+      <pubDate>Mon, 18 Apr 2022 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/object_detection/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#papers&#34;&gt;Papers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#evaluating-object-detection-methods&#34;&gt;Evaluating Object Detection Methods&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#datasets&#34;&gt;Datasets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#an-incomplete-history-of-deep-learning-based-object-detection&#34;&gt;An Incomplete History of Deep-Learning-based Object Detection&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;papers&#34;&gt;Papers&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://awesomeopensource.com/projects/object-detection&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://awesomeopensource.com/projects/object-detection&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;evaluating-object-detection-methods&#34;&gt;Evaluating Object Detection Methods&lt;/h2&gt;
+&lt;p&gt;Object detection algorithms are evaluated using the mean of Average Precision (mAP) across all classes in the dataset.&lt;/p&gt;
+&lt;p&gt;Precision and recall are computed from the predictions and the ground truth. A sample and the model&amp;rsquo;s prediction can either be positive or negative when it comes to classification. Either it belongs to a class or it does not. The table below summarizes the outcomes between the model&amp;rsquo;s prediction and the true underlying class.&lt;/p&gt;
+&lt;p&gt;
+  &lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2022-04-17_18-17-14_screenshot.png&#34; alt=&#34;&#34;&gt;
+
+Object detection algorithms are evaluated using the mean of Average Precision (mAP) across all classes in the dataset.&lt;/p&gt;
+&lt;p&gt;Precision and recall are computed from the predictions and the ground truth. A sample and the model&amp;rsquo;s prediction can either be positive or negative when it comes to classification. Either it belongs to a class or it does not. The table below summarizes the outcomes between the model&amp;rsquo;s prediction and the true underlying class.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Precision&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+\frac{TP}{TP + FP}
+\]&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Recall&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;\[
+\frac{TP}{TP + FN}
+\]&lt;/p&gt;
+&lt;p&gt;Object detection models predict a bounding box for a given class. A correct bounding box can be identified as one that has an Intersection-over-Union (IoU) score of &amp;gt; 0.5.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-27_16-24-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;IoU Visualization (&amp;lt;a href=&amp;#34;#citeproc_bib_item_7&amp;#34;&amp;gt;Szeliski 2021&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;IoU Visualization (&lt;a href=&#34;#citeproc_bib_item_7&#34;&gt;Szeliski 2021&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;If you were to plot the precision versus recall of a single class, the area under the curve would be the average precision.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-27_16-32-40_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Average Precision Curves (Girshick, 2020)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Average Precision Curves (Girshick, 2020)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The curve implicitly represents varying probability thresholds! As recall increases, precision will generally decrease. This reflects the fact that a model that recalls all input samples as a particular class will sure be misclassifying them. &lt;strong&gt;Keep in mind that recall by itself is not a measure of correctness.&lt;/strong&gt; Ideally, the curve will be closer to the top right of the graph, indicating high precision and recall.&lt;/p&gt;
+&lt;h2 id=&#34;datasets&#34;&gt;Datasets&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://host.robots.ox.ac.uk/pascal/VOC/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Pascal VOC&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://cocodataset.org/#home&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;COCO&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;an-incomplete-history-of-deep-learning-based-object-detection&#34;&gt;An Incomplete History of Deep-Learning-based Object Detection&lt;/h2&gt;
+&lt;h3 id=&#34;rich-feature-hierarchies-for-accuracy-object-detection-and-semantic-segmentation&#34;&gt;Rich Feature Hierarchies for Accuracy Object Detection and Semantic Segmentation (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Girshick et al. 2014&lt;/a&gt;)&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The last decade of progress on various visual recognition tasks has been based considerably on the use of SIFT and HOG (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Girshick et al. 2014&lt;/a&gt;).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This is one of the earliest papers to leverage deep learning for object detection. The overall approach is a piecewise one, where the CNN is only used for classification.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-27_17-11-41_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;System overview of the R-CNN approach (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Girshick et al. 2014&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;System overview of the R-CNN approach (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Girshick et al. 2014&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Insights&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Increased mean average precision (mAP) by more than 30% on VOC 2012.&lt;/li&gt;
+&lt;li&gt;Candidate regions are generated using Selective Search (&lt;a href=&#34;#citeproc_bib_item_9&#34;&gt;Uijlings et al. 2013&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;CNNs are used to perform object classification for each region proposal.&lt;/li&gt;
+&lt;li&gt;Employs bounding box regression to refine the predicted bounding boxes.&lt;/li&gt;
+&lt;li&gt;&amp;ldquo;&amp;hellip;when labeled training data is scarce, supervised pre-training for an auxiliary task, followed by domain-specific fine-tuning, yields a significant performance boost.&amp;rdquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;region-proposals&#34;&gt;Region Proposals&lt;/h4&gt;
+&lt;p&gt;The Selective Search algorithm is used to generate region proposals. The algorithm is based on hierarchical grouping of superpixels. Given an input image, approximately 2000 region proposals are generated. Each region proposal is a rectangular bounding box that encloses a region of interest. Since the bounding boxes are not square, the prposals are warped to a fixed size before being fed into the CNN.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-27_17-17-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 5: &amp;lt;/span&amp;gt;Selective Search region proposals (&amp;lt;a href=&amp;#34;#citeproc_bib_item_9&amp;#34;&amp;gt;Uijlings et al. 2013&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Selective Search region proposals (&lt;a href=&#34;#citeproc_bib_item_9&#34;&gt;Uijlings et al. 2013&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;feature-extraction&#34;&gt;Feature Extraction&lt;/h4&gt;
+&lt;p&gt;Each warped image is passed through a CNN backbone pre-trained on ImageNet. The output is a 4096-dimensional feature vector. In the context of today&amp;rsquo;s methods, this certainly does not seem like a very sophisticated approach. Given the context of the time, this was a significant improvement over the SIFT and HOG features that were previously used. The other benefit is that the CNN can be fine-tuned on the target dataset, if desired.&lt;/p&gt;
+&lt;h4 id=&#34;classification&#34;&gt;Classification&lt;/h4&gt;
+&lt;p&gt;The feature vectors from the CNN are used as input to a linear SVM for classification. The SVM is trained to classify the region proposals into one of the classes in the dataset. As stated before, this really is a piecewise solution. It is also very slow, as each region proposal must be passed through the CNN and SVM.&lt;/p&gt;
+&lt;h4 id=&#34;training&#34;&gt;Training&lt;/h4&gt;
+&lt;p&gt;The CNN and SVM both need to be trained. The CNN is first pre-trained on ImageNet, but it still needs to be fine-tuned on the target dataset. Not only is the target dataset out of domain, but the images themselves are warped. The authors do admit that it is reasonable to simply use the output of the softmax layer for classification in stead of training an SVM. In their experiments, they found that the SVM provided a slight improvement in performance.&lt;/p&gt;
+&lt;h4 id=&#34;inference&#34;&gt;Inference&lt;/h4&gt;
+&lt;p&gt;Given roughly 2000 region proposals, how is a final prediction made? For each class, non-maximum suppression is applied to the region proposals. A region is rejected if it has an IoU overlap with a higher scoring region above a certain threshold.&lt;/p&gt;
+&lt;h3 id=&#34;fast-r-cnn&#34;&gt;Fast R-CNN (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Girshick 2015&lt;/a&gt;)&lt;/h3&gt;
+&lt;p&gt;Published roughly a year after the original R-CNN paper, Fast R-CNN addresses many of the shortcomings and ineffeciencies of the original approach. The main innovation is the introduction of the Region of Interest (RoI) pooling layer. This layer allows the CNN to be applied to the entire image, rather than to each region proposal individually.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-27_17-55-06_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 6: &amp;lt;/span&amp;gt;System overview of Fast R-CNN (&amp;lt;a href=&amp;#34;#citeproc_bib_item_1&amp;#34;&amp;gt;Girshick 2015&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;System overview of Fast R-CNN (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Girshick 2015&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Insights&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Single-stage training joinly optimizes a softmax classifier and bounding box regressor.&lt;/li&gt;
+&lt;li&gt;RoI pooling layer allows the CNN to be applied to the entire image.&lt;/li&gt;
+&lt;li&gt;Object proposals are still provided by Selective Search, but only a single forward pass is needed to extract features and make predictions.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;roi-pooling&#34;&gt;RoI Pooling&lt;/h4&gt;
+&lt;p&gt;Given an input image, a feature extracting CNN produces a feature map. For each region proposal the RoI pooling layer extracts a feature vector directly from the feature map. The feature vector is passed through a fully connected network to produce a class score and bounding box regression.&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;region proposal&lt;/strong&gt; is defined by a four-tuple \((r, c, h, w)\) defining the top-left corner \((r, c)\) and the height and width \((h, w)\) of the region. The RoI pooling layer divides the window into a \(H \times W\) grid of sub-windows, where \(H\) and \(W\) are hyperparameters. A max pooling operation is applied to each sub-window to produce a fixed-size output.&lt;/p&gt;
+&lt;h4 id=&#34;training&#34;&gt;Training&lt;/h4&gt;
+&lt;p&gt;Three different CNN backbones were tested. The last max pooling layer is replaced with the RoI pooling layer. From there, the two branches of the network are added: a softmax classifier and a bounding box regressor. The softmax classifier is trained to classify the region proposals into one of the classes in the dataset. The bounding box regressor is trained to refine the predicted bounding boxes.&lt;/p&gt;
+&lt;p&gt;Another key efficiency improvement comes from hierarchical sampling during training. Since the RoI pooling layer allows the CNN to be applied to the entire image, the same feature map can be used for multiple region proposals. This is in contrast to the original R-CNN approach, where each region proposal was passed through the CNN individually. When training, the authors sample a mini-batch of \(N\) images and \(R\) regions, yielding \(R / N\) RoIs from each image.&lt;/p&gt;
+&lt;h4 id=&#34;results&#34;&gt;Results&lt;/h4&gt;
+&lt;p&gt;This work achieved state-of-the-art results on VOC 2007 (70.0), 2010 (68.8), and 2012 (68.4). Additionally, the model was able to run at about 5 frames per second on a GPU.&lt;/p&gt;
+&lt;h3 id=&#34;faster-r-cnn&#34;&gt;Faster R-CNN (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Ren et al. 2017&lt;/a&gt;)&lt;/h3&gt;
+&lt;p&gt;Fast R-CNN improved on many of the glaring issues presented in the original R-CNN paper. One major bottleneck left was the Selective Search algorithm used to generate region proposals. In the third iteration, Faster R-CNN, the authors introduce the Region Proposal Network (RPN) to replace slower region proposal methods.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Key Insights&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Region Proposal Network (RPN) generates region proposals.&lt;/li&gt;
+&lt;li&gt;RPN is a fully convolutional network that shares features with the object detection network.&lt;/li&gt;
+&lt;li&gt;Anchor boxes of varying aspect ratios are used to predict region proposals.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;region-proposal-network&#34;&gt;Region Proposal Network&lt;/h4&gt;
+&lt;p&gt;The RPN uses a sliding window approach to generate region proposals. Instead of using a separate CNN, it leverages the feature maps generated by a backbone CNN such as VGG or ResNet.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_17-59-11_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 7: &amp;lt;/span&amp;gt;Region Proposal Network (RPN) (&amp;lt;a href=&amp;#34;#citeproc_bib_item_6&amp;#34;&amp;gt;Ren et al. 2017&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Region Proposal Network (RPN) (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Ren et al. 2017&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The RPN produces a feature vector for each sliding window, which is fed into a bounding box regressor and classifier. For each of these sliding windows, \(k\) &lt;strong&gt;anchor&lt;/strong&gt; boxes are generated. In their experiments, they generate 9 anchors based on 3 scales and 3 aspect ratios.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_18-02-38_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 8: &amp;lt;/span&amp;gt;Anchor boxes (&amp;lt;a href=&amp;#34;#citeproc_bib_item_6&amp;#34;&amp;gt;Ren et al. 2017&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Anchor boxes (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Ren et al. 2017&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;Why use anchor boxes instead of directly predicting bounding boxes?&lt;/strong&gt; The authors argue that using anchor boxes simplifies the problem. It adds translation invariance: if an object is translated, the proposal should translate accordingly. This approach is also more cost-efficient. Consider an input image for which multiple scales of bounding boxes are generated. To generate multiple scales, the image would need to be resized and passed through the network multiple times. With anchor boxes, the network only needs to be run once.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_18-12-19_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 9: &amp;lt;/span&amp;gt;Different schemes for addressing multiple scales and sizes (&amp;lt;a href=&amp;#34;#citeproc_bib_item_6&amp;#34;&amp;gt;Ren et al. 2017&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Different schemes for addressing multiple scales and sizes (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Ren et al. 2017&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;h4 id=&#34;results&#34;&gt;Results&lt;/h4&gt;
+&lt;p&gt;Faster R-CNN achieved state-of-the-art results on VOC 2007 (73.2) and 2012 (70.4). These scores increase to 78.8 and 75.9 when using the COCO dataset. Additionally, they evaluate on MS COCO, achieving a mAP@.5 of 42.7, meaning that the model is able to detect 42.7% of the objects in the dataset with an IoU of 0.5 or greater. This score goes down to 21.9% when the IoU threshold is expanded in the range of 0.5 to 0.95.&lt;/p&gt;
+&lt;h3 id=&#34;you-only-look-once&#34;&gt;You Only Look Once&lt;/h3&gt;
+&lt;p&gt;You Only Look Once (YOLO) is a single-stage object detection algorithm that is able to predict multiple bounding boxes and class probabilities in a single forward pass (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Redmon et al. 2016&lt;/a&gt;). Since 2016, it has benefitted from many improvements, some documented by peer-reviewed papers and others by the community. For a recent survey of YOLO and its variants, see (&lt;a href=&#34;#citeproc_bib_item_8&#34;&gt;Terven, Córdova-Esparza, and Romero-González 2023&lt;/a&gt;).&lt;/p&gt;
+&lt;h4 id=&#34;yolov1&#34;&gt;YOLOv1 (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Redmon et al. 2016&lt;/a&gt;)&lt;/h4&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_20-02-46_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 10: &amp;lt;/span&amp;gt;YOLOv1 Overview (&amp;lt;a href=&amp;#34;#citeproc_bib_item_5&amp;#34;&amp;gt;Redmon et al. 2016&amp;lt;/a&amp;gt;)&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;YOLOv1 Overview (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Redmon et al. 2016&lt;/a&gt;)
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The original YOLO method works by dividing an input image into a \(S \times S\) grid. Each grid cell predicts \(B\) bounding boxes and confidence scores for each box, along with \(C\) class probabilities.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_20-18-23_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 11: &amp;lt;/span&amp;gt;The Model (&amp;lt;a href=&amp;#34;#citeproc_bib_item_5&amp;#34;&amp;gt;Redmon et al. 2016&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;The Model (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Redmon et al. 2016&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;During training, only one predictor should be responsible for each object. This is enforced by assigning a predictor to an object based on the highest IoU with the ground truth. For inference, the model outputs bounding boxes with a confidence score greater than a threshold. The entire model is trained using a multi-part loss function that includes terms for objectness, classification, and bounding box regression.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-28_20-21-15_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 12: &amp;lt;/span&amp;gt;Annotated description of YOLO loss (&amp;lt;a href=&amp;#34;#citeproc_bib_item_8&amp;#34;&amp;gt;Terven, Córdova-Esparza, and Romero-González 2023&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Annotated description of YOLO loss (&lt;a href=&#34;#citeproc_bib_item_8&#34;&gt;Terven, Córdova-Esparza, and Romero-González 2023&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;YOLOv1 was evaluated on the VOC 2007 dataset, achieving a mAP of 63.4. The model was able to run at 45 frames per second on a GPU.&lt;/p&gt;
+&lt;h4 id=&#34;yolov2-better-faster-and-stronger&#34;&gt;YOLOv2: Better, Faster, and Stronger (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Redmon and Farhadi 2016&lt;/a&gt;)&lt;/h4&gt;
+&lt;p&gt;YOLOv2 was publised at CVPR 2017 and introduced several key improvements over YOLOv1.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Batch normalization&lt;/strong&gt; acts as a regularizer to reduce overfitting during training.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fully convolutional&lt;/strong&gt;. All dense layers are replaced with convolutional layers.&lt;/li&gt;
+&lt;li&gt;Following Faster R-CNN, YOLOv2 uses &lt;strong&gt;anchor boxes&lt;/strong&gt; to predict bounding boxes.&lt;/li&gt;
+&lt;li&gt;A predetermined set of anchor box sizes are computed using k-means clustering on the training data.&lt;/li&gt;
+&lt;li&gt;The model was trained to be robust to varying sizes via &lt;strong&gt;multi-scale training&lt;/strong&gt;, where the input image is randomly resized during training.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-task Learning&lt;/strong&gt;. The network is pre-trained on ImageNet, where no object detection labels are used. In the event that an input sample does not contain a bounding box annotation, the model is trained to predict the background class.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;YOLOv2 achieved a 73.4% mAP on VOC 2012, beating Faster R-CNN.&lt;/p&gt;
+&lt;h4 id=&#34;yolov3&#34;&gt;YOLOv3 (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Redmon and Farhadi 2018&lt;/a&gt;)&lt;/h4&gt;
+&lt;p&gt;The third improvement to YOLO was not published at a major conference, but was released on arXiv. The main improvement is a deeper 53-layer backbone network with residual connections. The new method also supports multi-scale predictions by predicting three boxes at three different scales. The same anchor box computation via k-means is done in this work, with the number of priors being expanded to support three different scales.&lt;/p&gt;
+&lt;h4 id=&#34;yolov4-and-beyond&#34;&gt;YOLOv4 and beyond&lt;/h4&gt;
+&lt;p&gt;The remaining iterations were developed by other members of the community and introduce several key improvements while maintaining the spirit and goals of the original paper. For more information, see the informative survey paper by (&lt;a href=&#34;#citeproc_bib_item_8&#34;&gt;Terven, Córdova-Esparza, and Romero-González 2023&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Girshick, Ross. 2015. “Fast R-CNN,” April. &lt;a href=&#34;https://doi.org/10.48550/arXiv.1504.08083&#34;&gt;https://doi.org/10.48550/arXiv.1504.08083&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Girshick, Ross, Jeff Donahue, Trevor Darrell, and Jitendra Malik. 2014. “Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation.” &lt;i&gt;Arxiv:1311.2524 [Cs]&lt;/i&gt;, October. &lt;a href=&#34;http://arxiv.org/abs/1311.2524&#34;&gt;http://arxiv.org/abs/1311.2524&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Redmon, Joseph, and Ali Farhadi. 2016. “YOLO9000: Better, Faster, Stronger.” &lt;i&gt;Arxiv:1612.08242 [Cs]&lt;/i&gt;, December. &lt;a href=&#34;http://arxiv.org/abs/1612.08242&#34;&gt;http://arxiv.org/abs/1612.08242&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;———. 2018. “YOLOv3: An Incremental Improvement,” 6.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Redmon, Joseph, Santosh Divvala, Ross Girshick, and Ali Farhadi. 2016. “You Only Look Once: Unified, Real-Time Object Detection.” &lt;i&gt;Arxiv:1506.02640 [Cs]&lt;/i&gt;, May. &lt;a href=&#34;http://arxiv.org/abs/1506.02640&#34;&gt;http://arxiv.org/abs/1506.02640&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_6&#34;&gt;&lt;/a&gt;Ren, Shaoqing, Kaiming He, Ross Girshick, and Jian Sun. 2017. “Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks.” &lt;i&gt;Ieee Transactions on Pattern Analysis and Machine Intelligence&lt;/i&gt; 39 (6): 1137–49. &lt;a href=&#34;https://doi.org/10.1109/TPAMI.2016.2577031&#34;&gt;https://doi.org/10.1109/TPAMI.2016.2577031&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_7&#34;&gt;&lt;/a&gt;Szeliski, Richard. 2021. &lt;i&gt;Computer Vision: Algorithms and Applications&lt;/i&gt;. 2nd ed. &lt;a href=&#34;http://szeliski.org/Book/2ndEdition.htm&#34;&gt;http://szeliski.org/Book/2ndEdition.htm&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_8&#34;&gt;&lt;/a&gt;Terven, Juan, Diana-Margarita Córdova-Esparza, and Julio-Alejandro Romero-González. 2023. “A Comprehensive Review of YOLO Architectures in Computer Vision: From YOLOv1 to YOLOv8 and YOLO-NAS.” &lt;i&gt;Machine Learning and Knowledge Extraction&lt;/i&gt; 5 (4): 1680–1716. &lt;a href=&#34;https://doi.org/10.3390/make5040083&#34;&gt;https://doi.org/10.3390/make5040083&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_9&#34;&gt;&lt;/a&gt;Uijlings, J. R. R., K. E. A. van de Sande, T. Gevers, and A. W. M. Smeulders. 2013. “Selective Search for Object Recognition.” &lt;i&gt;International Journal of Computer Vision&lt;/i&gt; 104 (2): 154–71. &lt;a href=&#34;https://doi.org/10.1007/s11263-013-0620-5&#34;&gt;https://doi.org/10.1007/s11263-013-0620-5&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Long Short-Term Memory</title>
       <link>https://ajdillhoff.github.io/notes/long_short_term_memory/</link>
       <pubDate>Tue, 12 Apr 2022 00:00:00 -0500</pubDate>
