@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Table of Contents Introduction Mask R-CNN (He et al. 2018) CenterMask (Lee and Park 2020) Cascade R-CNN (Cai and Vasconcelos 2019) MaskFormer (Cheng, Schwing, and Kirillov 2021) Mask2Former (Cheng et al. 2022) Mask-FrozenDETR (Liang and Yuan 2023) Segment Anything (Kirillov et al. 2023) Segment Anything 2 (Ravi et al. 2024) Introduction Mask R-CNN (He et al. 2018) Mask R-CNN adapts Faster R-CNN to include a branch for instance segmentation (Ren et al.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/instance_segmentation/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/instance_segmentation/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/instance_segmentation/">
+  <meta property="og:title" content="Instance Segmentation | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Introduction Mask R-CNN (He et al. 2018) CenterMask (Lee and Park 2020) Cascade R-CNN (Cai and Vasconcelos 2019) MaskFormer (Cheng, Schwing, and Kirillov 2021) Mask2Former (Cheng et al. 2022) Mask-FrozenDETR (Liang and Yuan 2023) Segment Anything (Kirillov et al. 2023) Segment Anything 2 (Ravi et al. 2024) Introduction Mask R-CNN (He et al. 2018) Mask R-CNN adapts Faster R-CNN to include a branch for instance segmentation (Ren et al."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2022-04-18T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-07-29T00:00:00&#43;00:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Instance Segmentation | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Instance Segmentation</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2022-04-18 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-07-29 00:00:00 &#43;0000 UTC" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    <time>Jul 29, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/instance_segmentation/&amp;text=Instance%20Segmentation" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/instance_segmentation/&amp;t=Instance%20Segmentation" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Instance%20Segmentation&amp;body=https://ajdillhoff.github.io/notes/instance_segmentation/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/instance_segmentation/&amp;title=Instance%20Segmentation" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Instance%20Segmentation%20https://ajdillhoff.github.io/notes/instance_segmentation/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/instance_segmentation/&amp;title=Instance%20Segmentation" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#mask-r-cnn">Mask R-CNN (<a href="#citeproc_bib_item_4">He et al. 2018</a>)</a></li>
+<li><a href="#centermask">CenterMask (<a href="#citeproc_bib_item_6">Lee and Park 2020</a>)</a></li>
+<li><a href="#cascade-r-cnn">Cascade R-CNN (<a href="#citeproc_bib_item_1">Cai and Vasconcelos 2019</a>)</a></li>
+<li><a href="#maskformer">MaskFormer (<a href="#citeproc_bib_item_3">Cheng, Schwing, and Kirillov 2021</a>)</a></li>
+<li><a href="#mask2former">Mask2Former (<a href="#citeproc_bib_item_2">Cheng et al. 2022</a>)</a></li>
+<li><a href="#mask-frozendetr">Mask-FrozenDETR (<a href="#citeproc_bib_item_7">Liang and Yuan 2023</a>)</a></li>
+<li><a href="#segment-anything">Segment Anything (<a href="#citeproc_bib_item_5">Kirillov et al. 2023</a>)</a></li>
+<li><a href="#segment-anything-2">Segment Anything 2 (<a href="#citeproc_bib_item_9">Ravi et al. 2024</a>)</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<h2 id="introduction">Introduction</h2>
+<h2 id="mask-r-cnn">Mask R-CNN (<a href="#citeproc_bib_item_4">He et al. 2018</a>)</h2>
+<p>Mask R-CNN adapts Faster R-CNN to include a branch for instance segmentation (<a href="#citeproc_bib_item_10">Ren et al. 2017</a>). This branch predicts a binary mask for each RoI, and the training loss is updated to include this branch.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_14-03-43_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Mask R-CNN framework (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;He et al. 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Mask R-CNN framework (<a href="#citeproc_bib_item_4">He et al. 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p><strong>Key Contributions</strong></p>
+<ul>
+<li>Introduces RoIAlign to preserve exact spatial locations.</li>
+<li>Decouples mask and class predictions, allowing the network to generate masks for each class without competition among classes.</li>
+<li>Achieved SOTA reults on COCO instance segmentation, object detection, and human pose estimation.</li>
+</ul>
+<h3 id="roialign">RoIAlign</h3>
+<p>Transforming a spatial-preserving representation into a compressed output necessarily removes that spatial encoding. In other words, the spatial information is lost when the feature map is downsampled. To address this, Mask R-CNN introduces RoIAlign, which preserves the spatial information of the feature map. RoIAlign is a bilinear interpolation method that samples the feature map at the exact locations of the RoI.</p>
+<p>Regions of Interest (RoIs) are generated based on the output feature map of the backbone network. These bounding boxes do not line up perfectly with the feature map. RoIPooling would round the coordinates to the nearest integer, which can lead to misalignment. This was not an issue in Faster R-CNN, where the goal was to predict the class and bounding box. However, for instance segmentation, the spatial information is crucial.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_14-10-35_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;RoIAlign. Dashed grid - feature map, solid grid - RoI (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;He et al. 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>RoIAlign. Dashed grid - feature map, solid grid - RoI (<a href="#citeproc_bib_item_4">He et al. 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>As seen in the figure above, RoIAlign computes the exact values of the feature map at regularly sampled locations in teach RoI bin. The sampled points in each bin are aggregated via max or average pooling. The output is still the same size as the RoI, but it takes data from the feature map at the exact locations of the RoI.</p>
+<h3 id="mask-head">Mask Head</h3>
+<p>Given the feature map produce by RoIAlign, the mask network head is a small convolutional network that upsamples the feature map using a series of convolutions and deconvolutions. The output is a binary mask for each RoI. Not only does the mask head serve to decouple the mask prediction from box and class prediction, but it also allows the network to learn features specific to mask generation.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_14-38-38_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Head Architecture (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;He et al. 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>Head Architecture (<a href="#citeproc_bib_item_4">He et al. 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="results">Results</h3>
+<p>Mask R-CNN achieved state-of-the-art results on the COCO dataset for instance segmentation, object detection, and human pose estimation. Using ResNeXt-101-FPN, Mask R-CNN achieved better performance over the leading models from the previous year&rsquo;s competition, netting 37.1% AP on the COCO test-dev set.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_18-26-12_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Qualitative results versus FCIS (leading competitor) (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;He et al. 2018&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Qualitative results versus FCIS (leading competitor) (<a href="#citeproc_bib_item_4">He et al. 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h2 id="centermask">CenterMask (<a href="#citeproc_bib_item_6">Lee and Park 2020</a>)</h2>
+<p>CenterMask is a real-time anchor-free instance segmentation method. It adds a novel Spatial Attention-Guided Mask branch on top of the FCOS object detector.</p>
+<p><strong>Summary</strong></p>
+<ul>
+<li>Anchor-free approach for bounding boxes.</li>
+<li>Spatial Attention-Guided Mask branch for instance segmentation.</li>
+<li>Two-stage architecture for object detection and mask prediction.</li>
+<li>Objects are represented by their center key points and bounding box sizes.</li>
+<li>Outperforms Mask R-CNN on common benchmarks.</li>
+</ul>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_18-39-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Architecture of CenterMask (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Lee and Park 2020&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 5: </span>Architecture of CenterMask (<a href="#citeproc_bib_item_6">Lee and Park 2020</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="backbone">Backbone</h3>
+<p>The authors adapt VoVNet (Variety of View), a CNN-based architecture, as the backbone network. VoVNet is designed to capture multi-scale features and has a high computational efficiency. VoVNet2 adds a spatial attention module to the original VoVNet architecture along with residual connections.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_18-49-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;VoVNet2 Backbone comparison (&lt;a href=&#34;#citeproc_bib_item_6&#34;&gt;Lee and Park 2020&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>VoVNet2 Backbone comparison (<a href="#citeproc_bib_item_6">Lee and Park 2020</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The residual connections were added to the original VoVNet architecture to improve the gradient flow during training. In the original network, performance degradation occurred when stacking multile One-Shot Aggregation (OSA) blocks. The OSA blocks are designed to capture multi-scale features by aggregating information from different scales via successive convolutions. The features are concatenated and passed through a bottleneck layer to reduce the number of channels.</p>
+<p>The effective Squeeze-Excitation layer takes the concatenated features and applies a global average pooling operation per channel. The produces a \(1 \times 1 \times C\) tensor, where \(C\) is the number of channels. This is passed through a fully connected layer with a sigmoid function to produce a channel-wise attention map. The attention map is then multiplied with the input features to produce the final output. This allows the network to focus on the most important features.</p>
+<h3 id="feature-pyramid-networks">Feature Pyramid Networks (<a href="#citeproc_bib_item_8">Lin et al. 2017</a>)</h3>
+<p>The output of the backbone network is passed through a Feature Pyramid Network (FPN) to extract multi-scale features. The FPN is a top-down architecture with lateral connections that allow the network to capture features at different scales. Since multiple scales are produced, RoIAlign must be adapted to handle them.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-29_19-52-54_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;FPN Architecture (&lt;a href=&#34;#citeproc_bib_item_8&#34;&gt;Lin et al. 2017&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>FPN Architecture (<a href="#citeproc_bib_item_8">Lin et al. 2017</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="scale-adaptive-roi-assignment">Scale-adaptive RoI Assignment</h3>
+<p>The output of the backbone + FPN is a series of feature maps at different scales. The authors propose a scale-adaptive RoI assignment method to assign RoIs to the appropriate feature map. This is done by calculating the area of the RoI and assigning it to the feature map that best matches the RoI size. This allows the network to focus on the most relevant features for each object. Given the appropriate feature map, RoIAlign is used to extract the features for each RoI.</p>
+<h3 id="fcos-detection-head">FCOS Detection Head</h3>
+<p>FCOS is a region proposal network that predicts bounding boxes and class labels without using predefined anchor boxes. Object detection is treated as a dense, per-pixel prediction task. The predicted bounding boxes are used to crop the feature map, which is then passed to the mask branch.</p>
+<p><strong>Summary</strong></p>
+<ul>
+<li>Uses a CNN with a Feature Pyramid Network to extract multi-scale features. In this case, the VoVNet2 backbone is used.</li>
+<li>Predicts a 4D vector plus a class label at each spatial location of a feature map.</li>
+<li>Predicts deviation of a pixel from the center of its bounding box.</li>
+</ul>
+<h3 id="sag-mask-branch">SAG-Mask Branch</h3>
+<p>The Spatial Attention-Guided Mask branch highlights meaningful pixels while suppressing irrelevant ones via spatial attention. The input to this branch are the features extracted from RoI Align. These come from the backbone + FPN module.</p>
+<p>The feature maps go through a round of 4 convolutional layers for further feature processing. The SAM module itself generates average and max-pooled features along the channel axis: \(P_{avg},\ P_{max} \in \mathbb{R}^{1 \times W \times H}\). These are concatenated and processed through another convolutional layer with a sigmoid activation function.</p>
+<p>\[
+A_{sag}(X_i) = \sigma(F_{3 \times 3}(P_{max} \circ P_{avg}))
+\]</p>
+<p>The sigmoid ensures that each output value represents how much attention should be paid to the original input features. This is then multiplied element-wise with the original output, resuling in an attention-guided feature map.</p>
+<p>\[
+X_{sag} = A_{sag}(X_i) \otimes X_i
+\]</p>
+<h3 id="results">Results</h3>
+<p>CenterMask achieved 40.6% mask AP (over all thresholds) using their base model, a 1.3% improvement over Mask R-CNN. They also achieved 41.8% when built using Detectron2. However, Detectron2 was released after their original submission, so the results are not official.</p>
+<h2 id="cascade-r-cnn">Cascade R-CNN (<a href="#citeproc_bib_item_1">Cai and Vasconcelos 2019</a>)</h2>
+<p>This paper addresses two key problems with high-quality detections.</p>
+<ol>
+<li>
+<p>Overfitting due to vanishing positive samples for large thresholds.</p>
+<p>When training object detectors, the IoU threshold is used to determine whether a detection is a positive or negative sample. A higher IoU is a stricter criteria for what constitutes a positive sample. As this threshold increases, the number of positive samples decreases since it is more challenging for the model to detect. <strong>Typically, the proposals are selected as positive examples during training if they have at least 0.5 IoU. Raising that threshold means that the model sees fewer positive samples, leading to overfitting.</strong></p>
+</li>
+<li>
+<p>Inference-time quality mismatch between detector and test hypotheses.</p>
+<p>Training deals with lower quality samples (IoU ~0.5), but test samples include a range of low and high quality samples. This can lead to poor performance during inference.</p>
+</li>
+</ol>
+<p><strong>Summary</strong></p>
+<ul>
+<li>Uses an RPN as in Faster R-CNN.</li>
+<li>Performs iterative refinements to bounding box predictions using multi-stage detection.</li>
+<li>Achieves SOTA performance for object detection (50.9% AP) and instance segmentation (42.3% AP).</li>
+</ul>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-30_09-21-27_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Comparison of architectures (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cai and Vasconcelos 2019&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>Comparison of architectures (<a href="#citeproc_bib_item_1">Cai and Vasconcelos 2019</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<h3 id="multi-stage-detection-heads">Multi-Stage Detection Heads</h3>
+<p>Multi-stage detection allows the model to progressively refine bounding box predictions. This allows the model to train with both low and high quality samples, alleviating the problems of overfitting and quality mismatch.</p>
+<h4 id="initial-detection">Initial Detection</h4>
+<p>The method begins similarly to Faster R-CNN. A RPN generates the initial proposals which are processed by the first detection stage. The output is a set of refined bounding boxes along with object labels and confidence scores. The first stage follows previous convention and sets the IoU of positive samples to 0.5. That is, positive samples are labeled as such in training if they have &gt;= 0.5 IoU with the ground truth.</p>
+<h4 id="progressive-refinement">Progressive Refinement</h4>
+<p>Each stage after that uses the output bounding boxes from the previous stage as input. The IoU is increased during training in subsequent stages to focus on higher quality detections. For example, if stage one trains on 0.5 IoU, then stage two will take those bounding boxes and select positive samples with 0.6 IoU, and so on.</p>
+<h3 id="cascade-mask-r-cnn">Cascade Mask R-CNN</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-07-30_09-15-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Original Mask R-CNN (left) and three different Cascade Mask R-CNN strategies (right) (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cai and Vasconcelos 2019&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>Original Mask R-CNN (left) and three different Cascade Mask R-CNN strategies (right) (<a href="#citeproc_bib_item_1">Cai and Vasconcelos 2019</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To adapt the model for instance segmentation, the segmentation branch is inserted in parallel to the detection branch. The main question during develop was <em>where</em> to add the segmentation branch and <em>how many</em> should be added. The authors try several different configurations, as seen in the figure above. Experimentally, the third (right-most) strategy depicted above yields the greatest performance of 35.5% AP.</p>
+<h2 id="maskformer">MaskFormer (<a href="#citeproc_bib_item_3">Cheng, Schwing, and Kirillov 2021</a>)</h2>
+<h2 id="mask2former">Mask2Former (<a href="#citeproc_bib_item_2">Cheng et al. 2022</a>)</h2>
+<h2 id="mask-frozendetr">Mask-FrozenDETR (<a href="#citeproc_bib_item_7">Liang and Yuan 2023</a>)</h2>
+<h2 id="segment-anything">Segment Anything (<a href="#citeproc_bib_item_5">Kirillov et al. 2023</a>)</h2>
+<h2 id="segment-anything-2">Segment Anything 2 (<a href="#citeproc_bib_item_9">Ravi et al. 2024</a>)</h2>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cai, Zhaowei, and Nuno Vasconcelos. 2019. “Cascade R-CNN: High Quality Object Detection and Instance Segmentation.” arXiv. <a href="https://doi.org/10.48550/arXiv.1906.09756">https://doi.org/10.48550/arXiv.1906.09756</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Cheng, Bowen, Ishan Misra, Alexander G. Schwing, Alexander Kirillov, and Rohit Girdhar. 2022. “Masked-Attention Mask Transformer for Universal Image Segmentation.” In <i>2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</i>, 1280–89. New Orleans, LA, USA: IEEE. <a href="https://doi.org/10.1109/CVPR52688.2022.00135">https://doi.org/10.1109/CVPR52688.2022.00135</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Cheng, Bowen, Alexander G Schwing, and Alexander Kirillov. 2021. “Per-Pixel Classiﬁcation Is Not All You Need for Semantic Segmentation.” <i>Neurips</i>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>He, Kaiming, Georgia Gkioxari, Piotr Dollár, and Ross Girshick. 2018. “Mask R-CNN.” <i>Arxiv:1703.06870 [Cs]</i>, January. <a href="http://arxiv.org/abs/1703.06870">http://arxiv.org/abs/1703.06870</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Kirillov, Alexander, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, et al. 2023. “Segment Anything.” arXiv. <a href="http://arxiv.org/abs/2304.02643">http://arxiv.org/abs/2304.02643</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_6"></a>Lee, Youngwan, and Jongyoul Park. 2020. “CenterMask : Real-Time Anchor-Free Instance Segmentation.” arXiv. <a href="https://doi.org/10.48550/arXiv.1911.06667">https://doi.org/10.48550/arXiv.1911.06667</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Liang, Zhanhao, and Yuhui Yuan. 2023. “Mask Frozen-DETR: High Quality Instance Segmentation with One GPU.” arXiv. <a href="http://arxiv.org/abs/2308.03747">http://arxiv.org/abs/2308.03747</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_8"></a>Lin, Tsung-Yi, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan, and Serge Belongie. 2017. “Feature Pyramid Networks for Object Detection.” arXiv. <a href="https://doi.org/10.48550/arXiv.1612.03144">https://doi.org/10.48550/arXiv.1612.03144</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_9"></a>Ravi, Nikhila, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, et al. 2024. “SAM 2: Segment Anything in Images and Videos,” July.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_10"></a>Ren, Shaoqing, Kaiming He, Ross Girshick, and Jian Sun. 2017. “Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks.” <i>Ieee Transactions on Pattern Analysis and Machine Intelligence</i> 39 (6): 1137–49. <a href="https://doi.org/10.1109/TPAMI.2016.2577031">https://doi.org/10.1109/TPAMI.2016.2577031</a>.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-vision/">computer vision</a>
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/notes/object_detection/">Object Detection</a></li>
+          
+          <li><a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a></li>
+          
+          <li><a href="/notes/boosting/">Boosting</a></li>
+          
+          <li><a href="/notes/decision_trees/">Decision Trees</a></li>
+          
+          <li><a href="/notes/camera_models/">Camera Models</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    
+    <script id="dsq-count-scr" src="//themefisher-template.disqus.com/count.js" async></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -29,10 +29,10 @@
   
     
   
-  <meta name="description" content="Table of Contents Generalization Bias Variance Bias-Variance Tradeoff Generalization When fitting machine learning models to data, we want them to generalize well to the distribution that we have sampled from. We can measure a model&rsquo;s ability to generalize by evaluating it on previously unseen data that is sampled from the same distribution as the training set. However, we often do not know the true underlying distribution. So we must fit the models to empirical distributions derived from observed data.">
+  <meta name="description" content="Table of Contents Adapting Transformers for Image Classification Notable Developments Adapting Transformers for Image Classification Notable Developments iGPT Motivated by the success of pre-training in models like BERT and GPT-2. Auto-regressively predicts pixels, meaning it is trained to reproduce its input from missing values. Does not encode 2D spatial structure, but still seems to &ldquo;understand&rdquo; it. Input is given in &ldquo;raster-order&rdquo;: top-to-bottom, left-to-right. Predicts raw pixel values. Demonstrate the effectiveness of learned features by finetuning on downstream tasks such as image classification.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/bias_and_variance/">
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/">
 
   
 
@@ -124,7 +124,7 @@
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://ajdillhoff.github.io/notes/bias_and_variance/">
+  <link rel="canonical" href="https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/">
 
   
   
@@ -136,26 +136,26 @@
   <meta property="twitter:card" content="summary">
   
   <meta property="og:site_name" content="Alex Dillhoff">
-  <meta property="og:url" content="https://ajdillhoff.github.io/notes/bias_and_variance/">
-  <meta property="og:title" content="Bias and Variance | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Generalization Bias Variance Bias-Variance Tradeoff Generalization When fitting machine learning models to data, we want them to generalize well to the distribution that we have sampled from. We can measure a model&rsquo;s ability to generalize by evaluating it on previously unseen data that is sampled from the same distribution as the training set. However, we often do not know the true underlying distribution. So we must fit the models to empirical distributions derived from observed data."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:url" content="https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/">
+  <meta property="og:title" content="Transformers for Computer Vision | Alex Dillhoff">
+  <meta property="og:description" content="Table of Contents Adapting Transformers for Image Classification Notable Developments Adapting Transformers for Image Classification Notable Developments iGPT Motivated by the success of pre-training in models like BERT and GPT-2. Auto-regressively predicts pixels, meaning it is trained to reproduce its input from missing values. Does not encode 2D spatial structure, but still seems to &ldquo;understand&rdquo; it. Input is given in &ldquo;raster-order&rdquo;: top-to-bottom, left-to-right. Predicts raw pixel values. Demonstrate the effectiveness of learned features by finetuning on downstream tasks such as image classification."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
-  <meta property="article:published_time" content="2023-07-04T00:00:00-05:00">
+  <meta property="article:published_time" content="2023-04-18T00:00:00-05:00">
   
-  <meta property="article:modified_time" content="2023-07-04T00:00:00-05:00">
+  <meta property="article:modified_time" content="2024-07-29T00:00:00&#43;00:00">
   
-
-  
-
 
   
 
 
+  
 
 
 
-  <title>Bias and Variance | Alex Dillhoff</title>
+
+
+  <title>Transformers for Computer Vision | Alex Dillhoff</title>
 
   <script>
   MathJax = {
@@ -371,7 +371,7 @@
     
     
     <div class="article-container py-3">
-      <h1 itemprop="name">Bias and Variance</h1>
+      <h1 itemprop="name">Transformers for Computer Vision</h1>
 
       
 
@@ -380,8 +380,8 @@
 
 
 
-<meta content="2023-07-04 00:00:00 -0500 CDT" itemprop="datePublished">
-<meta content="2023-07-04 00:00:00 -0500 CDT" itemprop="dateModified">
+<meta content="2023-04-18 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-07-29 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -405,8 +405,10 @@
     
     
       
+          Last updated on
+      
     
-    <time>Jul 4, 2023</time>
+    <time>Jul 29, 2024</time>
   </span>
   
 
@@ -415,7 +417,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    3 min read
+    2 min read
   </span>
   
 
@@ -441,7 +443,7 @@
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/bias_and_variance/&amp;text=Bias%20and%20Variance" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/&amp;text=Transformers%20for%20Computer%20Vision" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -454,7 +456,7 @@
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/bias_and_variance/&amp;t=Bias%20and%20Variance" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/&amp;t=Transformers%20for%20Computer%20Vision" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook-f"></i>
         </a>
       </li>
@@ -467,7 +469,7 @@
       
       
       <li>
-        <a href="mailto:?subject=Bias%20and%20Variance&amp;body=https://ajdillhoff.github.io/notes/bias_and_variance/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Transformers%20for%20Computer%20Vision&amp;body=https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -480,7 +482,7 @@
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/bias_and_variance/&amp;title=Bias%20and%20Variance" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/&amp;title=Transformers%20for%20Computer%20Vision" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -493,7 +495,7 @@
       
       
       <li>
-        <a href="https://web.whatsapp.com/send?text=Bias%20and%20Variance%20https://ajdillhoff.github.io/notes/bias_and_variance/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="https://web.whatsapp.com/send?text=Transformers%20for%20Computer%20Vision%20https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -506,7 +508,7 @@
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/bias_and_variance/&amp;title=Bias%20and%20Variance" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/notes/transfomers_for_computer_vision/&amp;title=Transformers%20for%20Computer%20Vision" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -546,78 +548,43 @@
       <div class="ox-hugo-toc toc">
 <div class="heading">Table of Contents</div>
 <ul>
-<li><a href="#generalization">Generalization</a></li>
-<li><a href="#bias">Bias</a></li>
-<li><a href="#variance">Variance</a></li>
-<li><a href="#bias-variance-tradeoff">Bias-Variance Tradeoff</a></li>
+<li><a href="#adapting-transformers-for-image-classification">Adapting Transformers for Image Classification</a></li>
+<li><a href="#notable-developments">Notable Developments</a></li>
 </ul>
 </div>
 <!--endtoc-->
-<h2 id="generalization">Generalization</h2>
-<p>When fitting machine learning models to data, we want them to <strong>generalize</strong> well to the distribution that we have sampled from. We can measure a model&rsquo;s ability to generalize by evaluating it on previously unseen data that is sampled from the same distribution as the training set. However, we often do not know the true underlying distribution. So we must fit the models to empirical distributions derived from observed data.</p>
-<p>Measuring bias and variance is crucial for determining the quality of a model. <strong>Bias</strong> refers to the difference between the average prediction of a model and the correct value we are trying to predict. A model with high bias oversimplifies the problem and leads to high error on both training and test data. <strong>Variance</strong> refers to the sensitivity of a model to fluctuations in the training set. High variance suggests that the model&rsquo;s performance changes significantly when it is fit on different samplings of the training data, which can lead to overfitting.</p>
-<p>To achieve good generalization, it is essential to find a balance between bias and variance, minimizing the total error. This can be done by selecting appropriate model complexity and using regularization techniques to prevent overfitting or underfitting. Additionally, model validation techniques, such as hold-out validation and cross-validation, can be employed to assess a model&rsquo;s ability to generalize to unseen data.</p>
-<h2 id="bias">Bias</h2>
-<p>Consider fitting a simple linear model to nonlinear data. The model will not be able to generalize well, regardless of the size of the training set. In fact, it would also exhibit poor performance when evaluated on the training set as well. When a model has not learned the patterns in the training data and is likewise unable to generalize to new data, it is known as <strong>underfitting</strong>. In this case, such a model has <strong>high bias</strong>.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2023-07-04_22-51-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regardless of the dataset sampled, a linear model exhibits high bias." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 1: </span>Regardless of the dataset sampled, a linear model exhibits high bias.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<h2 id="variance">Variance</h2>
-<p>Variance is described in terms of the model fitting procedure and the training data. In terms of data, variance measures dispersion. It could also be interpreted as a measure of diversity. Sets with low variance contain samples that are close to the mean, and sampling from such a set would produce rather consistent data points.</p>
-<p>In terms of model fitting, a model that fits the training data well but not the test data describes <strong>overfitting</strong>. This is because the training data is only an empirical sample of the true underlying distribution. A different sampling of the distribution may yield a set that more closely resembles the test set. Due to the <strong>variance</strong> of the underlying distribution, our model overfits the patterns that exist in the training set.</p>
-
-
-
-
-
-
-<figure>
-
-<img src="/ox-hugo/2023-07-04_17-54-36_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A 5th degree polynomial trained on 3 different samplings of the distribution." >
-
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 2: </span>A 5th degree polynomial trained on 3 different samplings of the distribution.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-
-<h2 id="bias-variance-tradeoff">Bias-Variance Tradeoff</h2>
-<p>If a model is not complex enough to capture the underlying distribution, it will perform poorly on both the training and test sets. Indeed, the model has low bias. If the model is too complex, it will exhibit low bias and high variance, overfitting the training set while failing to generalize well to unseen data. The solution then is to find a tradeoff between bias and variance with respect to the model complexity.</p>
+<h2 id="adapting-transformers-for-image-classification">Adapting Transformers for Image Classification</h2>
+<h2 id="notable-developments">Notable Developments</h2>
+<h3 id="igpt">iGPT</h3>
+<ul>
+<li>Motivated by the success of pre-training in models like BERT and GPT-2.</li>
+<li>Auto-regressively predicts pixels, meaning it is trained to reproduce its input from missing values.</li>
+<li>Does not encode 2D spatial structure, but still seems to &ldquo;understand&rdquo; it.</li>
+<li>Input is given in &ldquo;raster-order&rdquo;: top-to-bottom, left-to-right.</li>
+<li>Predicts raw pixel values.</li>
+<li>Demonstrate the effectiveness of learned features by finetuning on downstream tasks such as image classification.</li>
+<li>Due to context size, the input has to be scaled down to \(32 \times 32 \times 3\).</li>
+</ul>
+<h3 id="vit">ViT</h3>
+<ul>
+<li>Divide the input into sequence of 2D patches \(\mathbf{x}_p \in \mathbb{R}^{N \times (P^2 \cdot C)}\), where \(C\) is the number of channels, \((P, P)\) is the resolution of each patch, and \(N = HW/P^2\).</li>
+<li>Embed the patches with a linear projection. The embedded vectors have \(D\) dimensions.</li>
+<li>Use an off-the-shelf Transformer encoder.</li>
+<li>Positional encoding via 1D position embeddings. 2D position embeddings are more complicated and did not provide a better result.</li>
+<li>Output of encoder is input to linear classification head.</li>
+<li>The full image could not be used due to the attention layers. This would require some \(W \in \mathbb{R}^{(H \times W \times C)^2}\)</li>
+<li>Create 196 patches of \(3 \times 16 \times 16\) flattened to \(196 \times 768\).</li>
+<li>A classification token is added to the image patch.</li>
+<li>More parameters and training compared to CNNs.</li>
+</ul>
 
     </div>
 
     
 
 <div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/computer-vision/">computer vision</a>
   
   <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
   
@@ -722,13 +689,13 @@
         <h3>Related</h3>
         <ul>
           
-          <li><a href="/notes/transfomers_for_computer_vision/">Transformers for Computer Vision</a></li>
-          
-          <li><a href="/notes/sequential_minimal_optimization/">Sequential Minimal Optimization</a></li>
-          
           <li><a href="/notes/instance_segmentation/">Instance Segmentation</a></li>
           
           <li><a href="/notes/object_detection/">Object Detection</a></li>
+          
+          <li><a href="/notes/sequential_minimal_optimization/">Sequential Minimal Optimization</a></li>
+          
+          <li><a href="/notes/convolutional_neural_networks/">Convolutional Neural Networks</a></li>
           
           <li><a href="/notes/boosting/">Boosting</a></li>
           
