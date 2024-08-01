@@ -108,35 +108,139 @@
       <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
 &lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#adapting-transformers-for-image-classification&#34;&gt;Adapting Transformers for Image Classification&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#notable-developments&#34;&gt;Notable Developments&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#vision-transformer--vit&#34;&gt;Vision Transformer (ViT) (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#swin-transformer&#34;&gt;Swin Transformer (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Liu et al. 2021&lt;/a&gt;)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!--endtoc--&gt;
-&lt;h2 id=&#34;adapting-transformers-for-image-classification&#34;&gt;Adapting Transformers for Image Classification&lt;/h2&gt;
-&lt;h2 id=&#34;notable-developments&#34;&gt;Notable Developments&lt;/h2&gt;
-&lt;h3 id=&#34;igpt&#34;&gt;iGPT&lt;/h3&gt;
+&lt;h2 id=&#34;vision-transformer--vit&#34;&gt;Vision Transformer (ViT) (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;)&lt;/h2&gt;
+&lt;p&gt;The original Vision Transformer (ViT) was published by Google Brain with a simple objective: apply the Transformer architecture to images, adding as few modifications necessary. When trained on ImageNet, as was standard practice, the performance of ViT does not match models like ResNet. However, scaling up to hundreds of millions results in a better performing model.&lt;/p&gt;
+&lt;p&gt;This point is highlighted in the introduction of the paper, but isn&amp;rsquo;t that something that should be expected? If anything, that result simply implies that CNNs are more parameter efficient than ViT. Seeing as this was one of the first adaptations of this architecture to vision, some slack should be given.&lt;/p&gt;
+&lt;h3 id=&#34;the-model&#34;&gt;The Model&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-30_17-12-54_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Overview of ViT (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Dosovitskiy et al. 2021&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Overview of ViT (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The first challenge is to figure out how to pass an image as input to a Transformer. In the original paper, the input is a sequence of text embeddings. If we get creative, there are a number of ways we could break up an image.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Split the image into individual patches.&lt;/p&gt;
+&lt;p&gt;This is what the ViT paper does. Each patch is flattened to a \(P^2 \cdot C\) vector, where \(P\) is the size of each square patch. Another reason the image is split into patches is to reduce the size of weight matrix of the attention layers. Using the entire image as a single input would be prohibitive.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Process individual image patches through a CNN.&lt;/p&gt;
+&lt;p&gt;This approach has been tried with some success, but isn&amp;rsquo;t the preferred approach for this paper. The goal, after all, is to conform as closely as possible to the original architecture. One could really run away with this idea. Processing each patch independently through a CNN woud be cumbersome and most likely result in a loss of spatial information. The original image could be processed through a CNN before splitting up the feature maps. This is discussed in the ViT paper as the &lt;strong&gt;hybrid approach&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Use output feature maps from a CNN.&lt;/p&gt;
+&lt;p&gt;This approach relates somewhat to number 2. Given a series of output feature maps \(X \in \mathbb{R}^{C \times H \times W}\), pass each feature map as its own &lt;em&gt;patch&lt;/em&gt; a la the author&amp;rsquo;s approach. The feature maps would not be related spatially, but through the channels.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Taking the first approach, the patches are projected to a \(D\) dimensional vector the authors refer to as &lt;strong&gt;patch embeddings&lt;/strong&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;learnable-embeddings&#34;&gt;Learnable Embeddings&lt;/h4&gt;
+&lt;p&gt;As is done in BERT, the author&amp;rsquo;s attach a &lt;code&gt;[class]&lt;/code&gt; token to the sequence of embedded patches. The purpose of this is to aggregate information from all the patches via self-attention. The output is a learned global representation of the input image. This output vector is then passed through a classification head.&lt;/p&gt;
+&lt;h4 id=&#34;position-embeddings&#34;&gt;Position Embeddings&lt;/h4&gt;
+&lt;p&gt;Two immediate choices for position embeddings are either 1D or 2D-aware. The embeddings themselves are learnable. The authors opt for 1D learnable embeddings due to their simplicity and the fact that there was no noticeable performance difference when using 2D-aware embeddings.&lt;/p&gt;
+&lt;p&gt;The position embeddings are crucial for ViT since the each patch is represented as an embedding. While each patch embedding does retain locality, the relationship between the patches is not preserved. This relationship is learned via position embeddings. Basically, the &lt;strong&gt;inductive biases&lt;/strong&gt; that CNNs have must be learned in a ViT.&lt;/p&gt;
+&lt;h4 id=&#34;using-higher-resolutions&#34;&gt;Using Higher Resolutions&lt;/h4&gt;
+&lt;p&gt;When using higher resolution input, the patch size is kept the same. This means that the sequence length is increases to accommodate the larger number of patches. Although the input to the Transformer can handle an abitrary sequence length, the position embeddings learned at one resolution are useless when fine-tuned on another.&lt;/p&gt;
+&lt;h3 id=&#34;evaluations&#34;&gt;Evaluations&lt;/h3&gt;
+&lt;p&gt;Most of the information in the original ViT paper is dedicated to experiments. The model itself is a simple adaptation. The primary goal then is to evaluate its characteristics and how it performs compared to CNNs.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Key Results&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;Motivated by the success of pre-training in models like BERT and GPT-2.&lt;/li&gt;
-&lt;li&gt;Auto-regressively predicts pixels, meaning it is trained to reproduce its input from missing values.&lt;/li&gt;
-&lt;li&gt;Does not encode 2D spatial structure, but still seems to &amp;ldquo;understand&amp;rdquo; it.&lt;/li&gt;
-&lt;li&gt;Input is given in &amp;ldquo;raster-order&amp;rdquo;: top-to-bottom, left-to-right.&lt;/li&gt;
-&lt;li&gt;Predicts raw pixel values.&lt;/li&gt;
-&lt;li&gt;Demonstrate the effectiveness of learned features by finetuning on downstream tasks such as image classification.&lt;/li&gt;
-&lt;li&gt;Due to context size, the input has to be scaled down to \(32 \times 32 \times 3\).&lt;/li&gt;
+&lt;li&gt;ViT achieves better downstream accuracy than SOTA ResNet-based approaches using JFT-300M for pre-training.&lt;/li&gt;
+&lt;li&gt;ViT requires fewer computational resources.&lt;/li&gt;
+&lt;li&gt;CNN models perform better when pre-trained on smaller datasets compared to ViT, but ViT surpasses them when using very large datasets.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;vit&#34;&gt;ViT&lt;/h3&gt;
+&lt;h3 id=&#34;properties&#34;&gt;Properties&lt;/h3&gt;
+&lt;p&gt;The principal components of the patch embeddings resemble features learned in the early layers of a CNN. The authors did not investigate whether ViT builds a hierarchy of features similar to CNNs. However, later work confirmed that the features learned at each layer of a ViT progress in a similar manner (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Ghiasi et al. 2022&lt;/a&gt;).&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-31_15-29-26_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;The progression for visualized features of ViT B-32 (&amp;lt;a href=&amp;#34;#citeproc_bib_item_3&amp;#34;&amp;gt;Ghiasi et al. 2022&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;The progression for visualized features of ViT B-32 (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Ghiasi et al. 2022&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The position embeddings were also analyzed and the authors found that patches that are grouped together tend to have similar embeddings. The fact that these embeddings learned 2D relationships gives weight to the argument that hand-crafted 2D-aware embeddings do not perform any better.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-07-31_15-37-18_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;Position embedding similarity (&amp;lt;a href=&amp;#34;#citeproc_bib_item_2&amp;#34;&amp;gt;Dosovitskiy et al. 2021&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Position embedding similarity (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Dosovitskiy et al. 2021&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The self-attention mechanisms in ViT attend to information globally across the entire image. The authors verify this by computing the average distance in image space across which the information is used. The distance varies between the different attention heads. Some heads attend to most of the detail in the lowest layer. This suggests that global information is used by the model since it attends across the representations in these early layers. Other heads have a smaller attention distance, suggesting they are focusing on local information.&lt;/p&gt;
+&lt;p&gt;One interesting result with respect to the hybrid models it that they do not observe as much local attention. This is most likely because local spatial relationships are captured by the early layers of a CNN. In hybrid models, the Transformer received processed feature maps from CNNs.&lt;/p&gt;
+&lt;h3 id=&#34;self-supervision&#34;&gt;Self-Supervision&lt;/h3&gt;
+&lt;p&gt;Self-supervised pre-training is one of the key ingredients to training LLMs (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Radford et al. 2018&lt;/a&gt;), (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Devlin et al. 2019&lt;/a&gt;). The authors of ViT experiment with self-supervised pre-training by masking out different patches and having the model predict the masked regions, similar to BERT (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Devlin et al. 2019&lt;/a&gt;). With self-supervised pre-training, ViT-B/16 achieves 79.9% accuracy on ImageNet, 2% higher compared to training from scratch.&lt;/p&gt;
+&lt;h2 id=&#34;swin-transformer&#34;&gt;Swin Transformer (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Liu et al. 2021&lt;/a&gt;)&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;Divide the input into sequence of 2D patches \(\mathbf{x}_p \in \mathbb{R}^{N \times (P^2 \cdot C)}\), where \(C\) is the number of channels, \((P, P)\) is the resolution of each patch, and \(N = HW/P^2\).&lt;/li&gt;
-&lt;li&gt;Embed the patches with a linear projection. The embedded vectors have \(D\) dimensions.&lt;/li&gt;
-&lt;li&gt;Use an off-the-shelf Transformer encoder.&lt;/li&gt;
-&lt;li&gt;Positional encoding via 1D position embeddings. 2D position embeddings are more complicated and did not provide a better result.&lt;/li&gt;
-&lt;li&gt;Output of encoder is input to linear classification head.&lt;/li&gt;
-&lt;li&gt;The full image could not be used due to the attention layers. This would require some \(W \in \mathbb{R}^{(H \times W \times C)^2}\)&lt;/li&gt;
-&lt;li&gt;Create 196 patches of \(3 \times 16 \times 16\) flattened to \(196 \times 768\).&lt;/li&gt;
-&lt;li&gt;A classification token is added to the image patch.&lt;/li&gt;
-&lt;li&gt;More parameters and training compared to CNNs.&lt;/li&gt;
+&lt;li&gt;Introduces a general backbone for computer vision tasks.&lt;/li&gt;
+&lt;li&gt;Builds a &lt;em&gt;hierarchical&lt;/em&gt; transformer to allow for non-overlapping windows.&lt;/li&gt;
+&lt;li&gt;Can be used for classification, object detection, and instance segmentation.&lt;/li&gt;
 &lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. “BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.1810.04805&#34;&gt;https://doi.org/10.48550/arXiv.1810.04805&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, et al. 2021. “An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale.” &lt;i&gt;Arxiv:2010.11929 [Cs]&lt;/i&gt;, June. &lt;a href=&#34;http://arxiv.org/abs/2010.11929&#34;&gt;http://arxiv.org/abs/2010.11929&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Ghiasi, Amin, Hamid Kazemi, Eitan Borgnia, Steven Reich, Manli Shu, Micah Goldblum, Andrew Gordon Wilson, and Tom Goldstein. 2022. “What Do Vision Transformers Learn? A Visual Exploration.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2212.06727&#34;&gt;https://doi.org/10.48550/arXiv.2212.06727&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Liu, Ze, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. 2021. “Swin Transformer: Hierarchical Vision Transformer Using Shifted Windows.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2103.14030&#34;&gt;https://doi.org/10.48550/arXiv.2103.14030&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2018. “Improving Language Understanding by Generative Pre-Training,” 12.&lt;/div&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -457,7 +561,7 @@ X_{sag} = A_{sag}(X_i) \otimes X_i
 
 &lt;/figure&gt;
 
-&lt;p&gt;To adapt the model for instance segmentation, the segmentation branch is inserted in parallel to the detection branch. The main question during develop was &lt;em&gt;where&lt;/em&gt; to add the segmentation branch and &lt;em&gt;how many&lt;/em&gt; should be added. The authors try several different configurations, as seen in the figure above. Experimentally, the third (right-most) strategy depicted above yields the greatest performance of 35.5% AP.&lt;/p&gt;
+&lt;p&gt;To adapt the model for instance segmentation, the segmentation branch is inserted in parallel to the detection branch. The main question during development was &lt;em&gt;where&lt;/em&gt; to add the segmentation branch and &lt;em&gt;how many&lt;/em&gt; should be added. The authors try several different configurations, as seen in the figure above. Experimentally, the third (right-most) strategy depicted above yields the greatest performance of 35.5% AP.&lt;/p&gt;
 &lt;h2 id=&#34;maskformer&#34;&gt;MaskFormer (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Cheng, Schwing, and Kirillov 2021&lt;/a&gt;)&lt;/h2&gt;
 &lt;h2 id=&#34;mask2former&#34;&gt;Mask2Former (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Cheng et al. 2022&lt;/a&gt;)&lt;/h2&gt;
 &lt;h2 id=&#34;mask-frozendetr&#34;&gt;Mask-FrozenDETR (&lt;a href=&#34;#citeproc_bib_item_7&#34;&gt;Liang and Yuan 2023&lt;/a&gt;)&lt;/h2&gt;
