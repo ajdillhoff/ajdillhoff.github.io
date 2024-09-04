@@ -29,7 +29,17 @@
   
     
   
-  <meta name="description" content="Table of Contents Radix Sort Optimizing Memory Access Efficiency Choosing a different Radix value Radix Sort For a background on Radix Sort, see these notes on Sorting in Linear Time.
+  <meta name="description" content="
+Table of Contents
+
+Radix Sort
+Optimizing Memory Access Efficiency
+Choosing a different Radix value
+
+
+
+Radix Sort
+For a background on Radix Sort, see these notes on Sorting in Linear Time.
 Radix sort relies on counting sort for each section, and each section must be processed before moving onto the next. The parallel solution will not attempt to address this sequential dependency. Instead, we will focus on the parallelization of the counting sort step.">
 
   
@@ -139,7 +149,17 @@ Radix sort relies on counting sort for each section, and each section must be pr
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/parallel_sorting_algorithms/">
   <meta property="og:title" content="Parallel Sorting Algorithms | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Radix Sort Optimizing Memory Access Efficiency Choosing a different Radix value Radix Sort For a background on Radix Sort, see these notes on Sorting in Linear Time.
+  <meta property="og:description" content="
+Table of Contents
+
+Radix Sort
+Optimizing Memory Access Efficiency
+Choosing a different Radix value
+
+
+
+Radix Sort
+For a background on Radix Sort, see these notes on Sorting in Linear Time.
 Radix sort relies on counting sort for each section, and each section must be processed before moving onto the next. The parallel solution will not attempt to address this sequential dependency. Instead, we will focus on the parallelization of the counting sort step."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
@@ -592,45 +612,45 @@ Index &amp; 0 &amp; 1 &amp; 2 &amp; 3 &amp; 4 &amp; 5 &amp; 6 &amp; 7 &amp; 8 &a
 \]</p>
 <p>The destination can be computed for each thread. The result is shown in the table below.</p>
 <table>
-<thead>
-<tr>
-<th>Thread</th>
-<th>0</th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Bit</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-<tr>
-<td>#1s Before</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>2</td>
-</tr>
-<tr>
-<td>#1s Total</td>
-<td>2</td>
-<td>2</td>
-<td>2</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Output Index</td>
-<td>2</td>
-<td>0</td>
-<td>3</td>
-<td>1</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th style="text-align: left">Thread</th>
+          <th style="text-align: left">0</th>
+          <th style="text-align: left">1</th>
+          <th style="text-align: left">2</th>
+          <th style="text-align: left">3</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">Bit</td>
+          <td style="text-align: left">1</td>
+          <td style="text-align: left">0</td>
+          <td style="text-align: left">1</td>
+          <td style="text-align: left">0</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">#1s Before</td>
+          <td style="text-align: left">0</td>
+          <td style="text-align: left">1</td>
+          <td style="text-align: left">1</td>
+          <td style="text-align: left">2</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">#1s Total</td>
+          <td style="text-align: left">2</td>
+          <td style="text-align: left">2</td>
+          <td style="text-align: left">2</td>
+          <td style="text-align: left">2</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Output Index</td>
+          <td style="text-align: left">2</td>
+          <td style="text-align: left">0</td>
+          <td style="text-align: left">3</td>
+          <td style="text-align: left">1</td>
+      </tr>
+  </tbody>
 </table>
 <h2 id="optimizing-memory-access-efficiency">Optimizing Memory Access Efficiency</h2>
 <p>Each thread write their keys to global memory in an uncoalesced manner. This can be optimized by having each block maintain local buckets in shared memory. The keys within each block will be coalesced when written to global memory.</p>

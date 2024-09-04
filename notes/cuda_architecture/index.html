@@ -29,7 +29,23 @@
   
     
   
-  <meta name="description" content="Table of Contents Architecture Block Scheduling Synchronization Warps Control Divergence Warp Scheduling Resource Partitioning Dynamic Launch Configurations The Takeaway Architecture A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores.">
+  <meta name="description" content="
+Table of Contents
+
+Architecture
+Block Scheduling
+Synchronization
+Warps
+Control Divergence
+Warp Scheduling
+Resource Partitioning
+Dynamic Launch Configurations
+The Takeaway
+
+
+
+Architecture
+A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores. Historically, CUDA has used DDR memory, but newer architectures use high-bandwidth memory (HBM). This is closely integrated with the GPU for faster data transfer.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/cuda_architecture/">
@@ -138,7 +154,23 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/cuda_architecture/">
   <meta property="og:title" content="CUDA Architecture | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Architecture Block Scheduling Synchronization Warps Control Divergence Warp Scheduling Resource Partitioning Dynamic Launch Configurations The Takeaway Architecture A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="
+Table of Contents
+
+Architecture
+Block Scheduling
+Synchronization
+Warps
+Control Divergence
+Warp Scheduling
+Resource Partitioning
+Dynamic Launch Configurations
+The Takeaway
+
+
+
+Architecture
+A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores. Historically, CUDA has used DDR memory, but newer architectures use high-bandwidth memory (HBM). This is closely integrated with the GPU for faster data transfer."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2024-01-08T20:49:00-06:00">
@@ -700,54 +732,54 @@ void kernel(int *a, int *b, int *c) {
 </span></span><span style="display:flex;"><span>cudaGetDeviceCount(<span style="color:#f92672">&amp;</span>deviceCount);
 </span></span></code></pre></div><p>Once the device count is known, the properties of each device can be acquired with <code>cudaGetDeviceProperties</code>. This function takes a pointer to a <code>cudaDeviceProp</code> struct. The struct contains several properties that can be used to configure the kernel launch. The most important properties are listed below. A full list can be found <a href="https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html" target="_blank" rel="noopener noreferrer">in the CUDA documentation.</a></p>
 <table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>name</code></td>
-<td>Name of the device</td>
-</tr>
-<tr>
-<td><code>totalGlobalMem</code></td>
-<td>Total amount of global memory available on the device in bytes</td>
-</tr>
-<tr>
-<td><code>sharedMemPerBlock</code></td>
-<td>Shared memory available per block in bytes</td>
-</tr>
-<tr>
-<td><code>regsPerBlock</code></td>
-<td>32-bit registers available per block</td>
-</tr>
-<tr>
-<td><code>warpSize</code></td>
-<td>Warp size in threads</td>
-</tr>
-<tr>
-<td><code>maxThreadsPerBlock</code></td>
-<td>Maximum number of threads per block</td>
-</tr>
-<tr>
-<td><code>maxThreadsDim</code></td>
-<td>Maximum size of each dimension of a block</td>
-</tr>
-<tr>
-<td><code>maxGridSize</code></td>
-<td>Maximum size of each dimension of a grid</td>
-</tr>
-<tr>
-<td><code>multiProcessorCount</code></td>
-<td>Number of SMs on the device</td>
-</tr>
-<tr>
-<td><code>maxThreadsPerMultiProcessor</code></td>
-<td>Maximum number of threads per SM</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th style="text-align: left">Property</th>
+          <th style="text-align: left">Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>name</code></td>
+          <td style="text-align: left">Name of the device</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>totalGlobalMem</code></td>
+          <td style="text-align: left">Total amount of global memory available on the device in bytes</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>sharedMemPerBlock</code></td>
+          <td style="text-align: left">Shared memory available per block in bytes</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>regsPerBlock</code></td>
+          <td style="text-align: left">32-bit registers available per block</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>warpSize</code></td>
+          <td style="text-align: left">Warp size in threads</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>maxThreadsPerBlock</code></td>
+          <td style="text-align: left">Maximum number of threads per block</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>maxThreadsDim</code></td>
+          <td style="text-align: left">Maximum size of each dimension of a block</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>maxGridSize</code></td>
+          <td style="text-align: left">Maximum size of each dimension of a grid</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>multiProcessorCount</code></td>
+          <td style="text-align: left">Number of SMs on the device</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>maxThreadsPerMultiProcessor</code></td>
+          <td style="text-align: left">Maximum number of threads per SM</td>
+      </tr>
+  </tbody>
 </table>
 <p>The following example iterates through all devices and queries their properties.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> deviceCount; i<span style="color:#f92672">++</span>) {

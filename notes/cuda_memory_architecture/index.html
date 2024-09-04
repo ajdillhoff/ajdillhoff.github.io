@@ -29,7 +29,23 @@
   
     
   
-  <meta name="description" content="Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications.">
+  <meta name="description" content="
+Table of Contents
+
+Introduction
+Memory Access
+Memory Types
+Tiling
+Example: Tiled Matrix Multiplication
+Boundary Checking
+Memory Use and Occupancy
+Dynamically Changing the Block Size
+The Takeaway
+
+
+
+Introduction
+So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/cuda_memory_architecture/">
@@ -138,7 +154,23 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/cuda_memory_architecture/">
   <meta property="og:title" content="CUDA Memory Architecture | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="
+Table of Contents
+
+Introduction
+Memory Access
+Memory Types
+Tiling
+Example: Tiled Matrix Multiplication
+Boundary Checking
+Memory Use and Occupancy
+Dynamically Changing the Block Size
+The Takeaway
+
+
+
+Introduction
+So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2024-01-11T15:07:00-06:00">
@@ -579,46 +611,46 @@ Resides on the chip. Each thread has its own registers. Very fast memory.</li>
 <p>Following the von Neumann architecture, memory that is closer to the chip is faster but more expensive. Data residing on registers is the most ideal for performance since the processor can work directly with the register values. This benefit comes in the form of energy consumption as well. Transferring data from global memory to the chip requires additional cycles resulting in more energy used.</p>
 <p>When a private variable is declared in a kernel, every single thread will have its own copy of that variable.</p>
 <table>
-<thead>
-<tr>
-<th>Variable declaration</th>
-<th>Memory</th>
-<th>Scope</th>
-<th>Lifetime</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Automatic variables (not arrays)</td>
-<td>Register</td>
-<td>Thread</td>
-<td>Grid</td>
-</tr>
-<tr>
-<td>Automatic array variables</td>
-<td>Local</td>
-<td>Thread</td>
-<td>Grid</td>
-</tr>
-<tr>
-<td><code>__device__ __shared__ int SharedVar;</code></td>
-<td>Shared</td>
-<td>Block</td>
-<td>Grid</td>
-</tr>
-<tr>
-<td><code>__device__ int GlobalVar;</code></td>
-<td>Global</td>
-<td>Grid</td>
-<td>Application</td>
-</tr>
-<tr>
-<td><code>__device__ __constant__ int ConstVar;</code></td>
-<td>Constant</td>
-<td>Grid</td>
-<td>Application</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th style="text-align: left">Variable declaration</th>
+          <th style="text-align: left">Memory</th>
+          <th style="text-align: left">Scope</th>
+          <th style="text-align: left">Lifetime</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">Automatic variables (not arrays)</td>
+          <td style="text-align: left">Register</td>
+          <td style="text-align: left">Thread</td>
+          <td style="text-align: left">Grid</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Automatic array variables</td>
+          <td style="text-align: left">Local</td>
+          <td style="text-align: left">Thread</td>
+          <td style="text-align: left">Grid</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>__device__ __shared__ int SharedVar;</code></td>
+          <td style="text-align: left">Shared</td>
+          <td style="text-align: left">Block</td>
+          <td style="text-align: left">Grid</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>__device__ int GlobalVar;</code></td>
+          <td style="text-align: left">Global</td>
+          <td style="text-align: left">Grid</td>
+          <td style="text-align: left">Application</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>__device__ __constant__ int ConstVar;</code></td>
+          <td style="text-align: left">Constant</td>
+          <td style="text-align: left">Grid</td>
+          <td style="text-align: left">Application</td>
+      </tr>
+  </tbody>
 </table>
 <p>Automatic array variables should seldom be used. It may have seemed convenient to use a static array for computing channel-specific values in an image processing kernel, but it is more efficient to use three separate variables. Each variable will be allocated to a register resulting in faster access times.</p>
 <p>Global variables are more commonly used to pass information to another kernel that is being launched.</p>

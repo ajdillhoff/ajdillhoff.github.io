@@ -29,7 +29,29 @@
   
     
   
-  <meta name="description" content="Table of Contents What is it? Naive Parallel Reduction Kogge-Stone Algorithm Brent-Kung Algorithm Adding Coarsening Segmented Parallel Scan Optimizing Memory Efficiency The Takeaway What is it? Parallelizes sequential problems. Works with computations that can be described in terms of a recursion. Used as a primitive operation for sorting, tree operations, and recurrences. Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach.">
+  <meta name="description" content="
+Table of Contents
+
+What is it?
+Naive Parallel Reduction
+Kogge-Stone Algorithm
+Brent-Kung Algorithm
+Adding Coarsening
+Segmented Parallel Scan
+Optimizing Memory Efficiency
+The Takeaway
+
+
+
+What is it?
+
+Parallelizes sequential problems.
+Works with computations that can be described in terms of a recursion.
+Used as a primitive operation for sorting, tree operations, and recurrences.
+Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach.
+
+Example: Inclusive Scan
+Given an array of numbers, the inclusive scan computes the sum of all elements up to a given index. For example, given the array [1, 2, 3, 4, 5], the inclusive scan would produce [1, 3, 6, 10, 15]. You could solve this recursively, but it would be horribly inefficient. A sequential solution is achievable with dynamic programming. However, a parallel solution is much more efficient.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/">
@@ -138,7 +160,29 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/gpu_pattern_parallel_scan/">
   <meta property="og:title" content="GPU Pattern: Parallel Scan | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents What is it? Naive Parallel Reduction Kogge-Stone Algorithm Brent-Kung Algorithm Adding Coarsening Segmented Parallel Scan Optimizing Memory Efficiency The Takeaway What is it? Parallelizes sequential problems. Works with computations that can be described in terms of a recursion. Used as a primitive operation for sorting, tree operations, and recurrences. Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="
+Table of Contents
+
+What is it?
+Naive Parallel Reduction
+Kogge-Stone Algorithm
+Brent-Kung Algorithm
+Adding Coarsening
+Segmented Parallel Scan
+Optimizing Memory Efficiency
+The Takeaway
+
+
+
+What is it?
+
+Parallelizes sequential problems.
+Works with computations that can be described in terms of a recursion.
+Used as a primitive operation for sorting, tree operations, and recurrences.
+Studying this will also reveal how parallelization can increase the complexity beyond that of a traditional sequential approach.
+
+Example: Inclusive Scan
+Given an array of numbers, the inclusive scan computes the sum of all elements up to a given index. For example, given the array [1, 2, 3, 4, 5], the inclusive scan would produce [1, 3, 6, 10, 15]. You could solve this recursively, but it would be horribly inefficient. A sequential solution is achievable with dynamic programming. However, a parallel solution is much more efficient."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2024-02-14T20:09:00-06:00">
@@ -665,54 +709,54 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 
 <p>The figure above shows the state of the algorithm before the reverse direction begins. The second half is better seen as a table of values. The row labeled <code>Initial</code> contains the state of the array after the first half of the algorithm is completed. For the values that already have their correct value, no update is needed. The two rows following <code>Initial</code> show the state of the array after the first and second iterations of the reverse direction.</p>
 <table>
-<thead>
-<tr>
-<th></th>
-<th>0</th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-<th>4</th>
-<th>5</th>
-<th>6</th>
-<th>7</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Initial</td>
-<td>0</td>
-<td>0&hellip;1</td>
-<td>2</td>
-<td>0&hellip;3</td>
-<td>4</td>
-<td>4&hellip;5</td>
-<td>6</td>
-<td>0&hellip;7</td>
-</tr>
-<tr>
-<td>Iteration 1</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>0&hellip;5</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Iteration 2</td>
-<td></td>
-<td></td>
-<td>0&hellip;2</td>
-<td></td>
-<td>0&hellip;4</td>
-<td></td>
-<td>0&hellip;6</td>
-<td></td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th style="text-align: left"></th>
+          <th style="text-align: left">0</th>
+          <th style="text-align: left">1</th>
+          <th style="text-align: left">2</th>
+          <th style="text-align: left">3</th>
+          <th style="text-align: left">4</th>
+          <th style="text-align: left">5</th>
+          <th style="text-align: left">6</th>
+          <th style="text-align: left">7</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">Initial</td>
+          <td style="text-align: left">0</td>
+          <td style="text-align: left">0&hellip;1</td>
+          <td style="text-align: left">2</td>
+          <td style="text-align: left">0&hellip;3</td>
+          <td style="text-align: left">4</td>
+          <td style="text-align: left">4&hellip;5</td>
+          <td style="text-align: left">6</td>
+          <td style="text-align: left">0&hellip;7</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Iteration 1</td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left">0&hellip;5</td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Iteration 2</td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left">0&hellip;2</td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left">0&hellip;4</td>
+          <td style="text-align: left"></td>
+          <td style="text-align: left">0&hellip;6</td>
+          <td style="text-align: left"></td>
+      </tr>
+  </tbody>
 </table>
 <h3 id="implementing-the-forward-half">Implementing the Forward Half</h3>
 <p>The relevant reduction tree phase of Brent-Kung is implemented in CUDA C++ below.</p>

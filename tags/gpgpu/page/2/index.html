@@ -391,8 +391,9 @@
     <h2><a href="/notes/gpu_performance_basics/">GPU Performance Basics</a></h2>
     <div class="article-style">
       
-      Table of Contents Memory Coalescing Hiding Memory Latency Thread Coarsening Optimization Checklist Identifying Bottlenecks The Takeaway These notes are on &ldquo;Chapter 6: Performance Considerations&rdquo; from the book Programming Massively Parallel Processors (Hwu, Kirk, and El Hajj 2022).
-Memory Coalescing Global memory accesses are one of the largest bottlenecks in GPU applications. DRAM has high latency based on its design. Each cell has a transistor and a capacitor. If the capacitor is charged, it represents a 1.
+       Table of Contents Memory Coalescing Hiding Memory Latency Thread Coarsening Optimization Checklist Identifying Bottlenecks The Takeaway These notes are on &ldquo;Chapter 6: Performance Considerations&rdquo; from the book Programming Massively Parallel Processors (Hwu, Kirk, and El Hajj 2022).
+Memory Coalescing Global memory accesses are one of the largest bottlenecks in GPU applications. DRAM has high latency based on its design. Each cell has a transistor and a capacitor. If the capacitor is charged, it represents a 1. The process to detect the charges in these cells is on the order of 10s of nanoseconds. DRAM can read consecutive groups of cells via bursts. This means that if the data we wish to access is stored consecutively, it can be accessed within the same burst. Contrast that was random access, in which the DRAM will have to make multiple bursts to read the required data. Memory coalescing refers to optimizing our global memory accesses to take advantage of DRAM bursts.
+
       
     </div>
   </div>
@@ -401,7 +402,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/cuda_memory_architecture/">CUDA Memory Architecture</a></h2>
     <div class="article-style">
       
-      Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications.
+       Table of Contents Introduction Memory Access Memory Types Tiling Example: Tiled Matrix Multiplication Boundary Checking Memory Use and Occupancy Dynamically Changing the Block Size The Takeaway Introduction So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively.
+
       
     </div>
   </div>
@@ -410,7 +412,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/cuda_architecture/">CUDA Architecture</a></h2>
     <div class="article-style">
       
-      Table of Contents Architecture Block Scheduling Synchronization Warps Control Divergence Warp Scheduling Resource Partitioning Dynamic Launch Configurations The Takeaway Architecture A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores.
+       Table of Contents Architecture Block Scheduling Synchronization Warps Control Divergence Warp Scheduling Resource Partitioning Dynamic Launch Configurations The Takeaway Architecture A GPU consists of chip that is composed of several streaming multiprocessors (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores. Historically, CUDA has used DDR memory, but newer architectures use high-bandwidth memory (HBM). This is closely integrated with the GPU for faster data transfer.
+
       
     </div>
   </div>
@@ -419,7 +422,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/multidimensional_grids_and_data/">Multidimensional Grids and Data</a></h2>
     <div class="article-style">
       
-      Table of Contents Summary Multidimensional Grid Organization Example: Color to Grayscale No longer embarrassing: overlapping data Matrix Multiplication What&rsquo;s Next? Summary The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector.
+       Table of Contents Summary Multidimensional Grid Organization Example: Color to Grayscale No longer embarrassing: overlapping data Matrix Multiplication What&rsquo;s Next? Summary The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector. When performing computations on multidimensional data like matrices, we can match the dimensions of our launch configuration to the dimensions of our data.
+
       
     </div>
   </div>
@@ -428,7 +432,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/heterogeneous_data_parallel_computing/">Heterogeneous Data Parallel Computing</a></h2>
     <div class="article-style">
       
-      Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads.
+       Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads. Memory must be allocated on the GPU device before transferring the data from the host machine (CPU). Upon completion of the kernel, the results need to be transferred back to the host.
+
       
     </div>
   </div>
@@ -437,7 +442,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/introduction_to_gpgpu_programming/">Introduction to GPGPU Programming</a></h2>
     <div class="article-style">
       
-      Table of Contents Structure of the Course Heterogeneous Parallel Computing Measuring Speedup GPU Programming History Applications What to expect from this course Structure of the Course The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are embarrassingly parallel and then move on to more complex problems that require synchronization.
+       Table of Contents Structure of the Course Heterogeneous Parallel Computing Measuring Speedup GPU Programming History Applications What to expect from this course Structure of the Course The primary of this goal is of course to learn how to program GPUs. A key skill that will be developed is the ability to think in parallel. We will start with simple problems that are embarrassingly parallel and then move on to more complex problems that require synchronization. One of the biggest challenges will be in converting processes that are simple to reason about in serial to parallel processes.
+
       
     </div>
   </div>
@@ -446,7 +452,8 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/segmentation_via_clustering-2/">Segmentation via Clustering</a></h2>
     <div class="article-style">
       
-      Table of Contents Introduction Agglomerative Clustering K-Means Clustering Simple Linear Iterative Clustering (SLIC) Superpixels in Recent Work Introduction The goal of segmentation is fairly broad: group visual elements together. For any given task, the question is how are elements grouped? At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity. Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.
+       Table of Contents Introduction Agglomerative Clustering K-Means Clustering Simple Linear Iterative Clustering (SLIC) Superpixels in Recent Work Introduction The goal of segmentation is fairly broad: group visual elements together. For any given task, the question is how are elements grouped? At the smallest level of an image, pixels can be grouped by color, intensity, or spatial proximity. Without a model of higher level objects, the pixel-based approach will break down at a large enough scale.
+
       
     </div>
   </div>
@@ -455,11 +462,11 @@ Memory Coalescing Global memory accesses are one of the largest bottlenecks in G
     <h2><a href="/notes/active_contours/">Active Contours</a></h2>
     <div class="article-style">
       
-      Table of Contents Resources Introduction Parametric Representation Motivation of the Fundamental Snake Equation External Force Energy Minimization Iterative Solution Applications Resources http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf
+       Table of Contents Resources Introduction Parametric Representation Motivation of the Fundamental Snake Equation External Force Energy Minimization Iterative Solution Applications Resources http://www.cs.ait.ac.th/~mdailey/cvreadings/Kass-Snakes.pdf
 https://www.spiedigitallibrary.org/conference-proceedings-of-spie/4322/0000/Statistical-models-of-appearance-for-medical-image-analysis-and-computer/10.1117/12.431093.pdf
 https://web.mat.upc.edu/toni.susin/files/SnakesAivru86c.pdf
 Introduction Snakes, as named by Kass et al., is a spline curve that is minimized such that it moves towards distinct image features such as edges. The closed curve, or snake, can be thought of as a rubber band.
-Figure 1: Example of snake snapping to object.
+
       
     </div>
   </div>

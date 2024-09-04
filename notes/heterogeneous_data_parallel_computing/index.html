@@ -29,7 +29,31 @@
   
     
   
-  <meta name="description" content="Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads.">
+  <meta name="description" content="
+Table of Contents
+
+Key Concepts
+Summary
+CUDA C Programs
+Example: Vector Addition
+Error Checking
+
+
+
+Key Concepts
+
+Task Parallelism vs. Data Parallelism
+kernels
+threads
+grids
+blocks
+global memory
+data transfer
+error checking
+compilation of CUDA programs
+
+Summary
+This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads. Memory must be allocated on the GPU device before transferring the data from the host machine (CPU). Upon completion of the kernel, the results need to be transferred back to the host.">
 
   
   <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/">
@@ -138,7 +162,31 @@
   <meta property="og:site_name" content="Alex Dillhoff">
   <meta property="og:url" content="https://ajdillhoff.github.io/notes/heterogeneous_data_parallel_computing/">
   <meta property="og:title" content="Heterogeneous Data Parallel Computing | Alex Dillhoff">
-  <meta property="og:description" content="Table of Contents Key Concepts Summary CUDA C Programs Example: Vector Addition Error Checking Key Concepts Task Parallelism vs. Data Parallelism kernels threads grids blocks global memory data transfer error checking compilation of CUDA programs Summary This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="og:description" content="
+Table of Contents
+
+Key Concepts
+Summary
+CUDA C Programs
+Example: Vector Addition
+Error Checking
+
+
+
+Key Concepts
+
+Task Parallelism vs. Data Parallelism
+kernels
+threads
+grids
+blocks
+global memory
+data transfer
+error checking
+compilation of CUDA programs
+
+Summary
+This topic introduces the basics of data parallelism and CUDA programming. The most important concept is that data parallelism is achieved through independent computations on each sample or groups of samples. The basic structure of a CUDA C program consists of writing a kernel that is executed independently on many threads. Memory must be allocated on the GPU device before transferring the data from the host machine (CPU). Upon completion of the kernel, the results need to be transferred back to the host."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
   <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2023-12-30T14:41:00-06:00">
@@ -597,26 +645,26 @@ void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
 </code></pre><p>This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.</p>
 <p>The <code>__global__</code> keyword placed before the function definition indicates that the function can be called from both the host and the device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.</p>
 <table>
-<thead>
-<tr>
-<th>Keyword</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>__global__</code></td>
-<td>Executed on the device, callable from the host and device</td>
-</tr>
-<tr>
-<td><code>__device__</code></td>
-<td>Executed on the device, callable from the device only</td>
-</tr>
-<tr>
-<td><code>__host__</code></td>
-<td>Executed on the host, callable from the host only</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th style="text-align: left">Keyword</th>
+          <th style="text-align: left">Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>__global__</code></td>
+          <td style="text-align: left">Executed on the device, callable from the host and device</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>__device__</code></td>
+          <td style="text-align: left">Executed on the device, callable from the device only</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>__host__</code></td>
+          <td style="text-align: left">Executed on the host, callable from the host only</td>
+      </tr>
+  </tbody>
 </table>
 <p>Unless otherwise specified, functions that you define will be executed on the host. That is, it is not necessary to specify the <code>__host__</code> keyword. If you want the compiler to generate both host and device code, you can use the <code>__host__ __device__</code> keyword combination.</p>
 <p>The kernel is executed on the host machine using the following code.</p>
