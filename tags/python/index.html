@@ -430,6 +430,7 @@ Copies and Views When operating and manipulating arrays, their data is sometimes
        # `NumPy` Quickstart This notebook is a quick introduction to NumPy. It is an interactive version of the NumPy Quickstart Tutorial.
 All credits go to the original authors of the tutorial © Copyright 2008-2023, NumPy Developers.
 Shape Manipulation Changing the shape of an array An array has a shape given by the number of elements along each axis:
+import numpy as np a = np.floor(10 * np.random.random((3,4))) print(&#34;a = \n{}&#34;.format(a)) print(&#34;a.shape = {}&#34;.format(a.shape)) a = [[6. 7. 2. 1.] [5. 9. 4. 9.] [3. 5. 3. 2.]] a.shape = (3, 4) The shape of an array can be changed with various commands. Note that the following three commands all return a modified array, but do not change the original array:
 
       
     </div>
@@ -440,6 +441,8 @@ Shape Manipulation Changing the shape of an array An array has a shape given by 
     <div class="article-style">
       
        Loading Data for ML Applications In this notebook, we will implement code to load data for ML applications. Following the approach used by PyTorch, we will implement a Dataset class and a DataLoader class. The Dataset class will be used to load the data and the DataLoader class will be used to iterate over the data in batches.
+We will test it on a simple image dataset.
+The Dataset Class First, we need some way of representing how each individual item will be pre-processed as the dataloader iterates over the data. We will do this by creating a Dataset class. Since this class represents multiple items in our dataset, we will need to define the following special methods:
 
       
     </div>
@@ -450,7 +453,8 @@ Shape Manipulation Changing the shape of an array An array has a shape given by 
     <div class="article-style">
       
        Classes When a class is defined, a namespace is created for it. All assignments to local variables are part of this namespace. The code below defines a class, creates an instance of the class, and calls a method on the instance.
-class Shape(): &#34;&#34;&#34;Represents any shape.&#34;&#34;&#34; def __init__(self, color): self.color = color self.orientation = 0.0 def rotate(self, angle): self.orientation += angle s = Shape(&#34;red&#34;) s.rotate(45.0) print(s.orientation) 
+class Shape(): &#34;&#34;&#34;Represents any shape.&#34;&#34;&#34; def __init__(self, color): self.color = color self.orientation = 0.0 def rotate(self, angle): self.orientation += angle s = Shape(&#34;red&#34;) s.rotate(45.0) print(s.orientation) 45.0 Class and Instance Variables The class above has two instance variables, color and orientation. These variables are accessed using the self keyword. The self keyword is used to access instance variables and methods.
+
       
     </div>
   </div>
@@ -483,7 +487,8 @@ In this notebook, we will look at a few important built-in functions in Python a
       
        Lists and List Comprehensions List comprehensions provide a concise way to create lists, and are often faster than using a for-loop. They are inspired by set-builder notation in mathematics.
 This notebook demonstrates common list functions as well as the syntax and basic usage of list comprehensions.
-names = [&#34;Naomi&#34;, &#34;James&#34;, &#34;Amos&#34;, &#34;Bobbie&#34;] # Append &#34;Miller&#34; to the end of the list names.append(&#34;Miller&#34;) # This can also be accomplished using the + operator or the extend() method # These are similar, where `+=` is shorthand for `extend` names.extend([&#34;Chrisjen&#34;]) names += [&#34;Alex&#34;] # `extend()` works on any iterable names.extend([&#34;Fred&#34;, &#34;Dawes&#34;, &#34;Ashford&#34;]) # This can also be done using slicing # names[len(names):] = [&#34;Fred&#34;, &#34;Dawes&#34;, &#34;Ashford&#34;] # Insert &#34;Holden&#34; at the beginning of the list names.insert(0, &#34;Holden&#34;) # We can easily remove items names.remove(&#34;Alex&#34;) # We can also remove items by value names.remove(&#34;Ashford&#34;) # We can also remove items by index. This will return the removed item eros_passenger = names.pop(5) print(eros_passenger + &#34; is on his way to Venus&#34;) # If your list has duplicates, you can count the number of times a value appears print(&#34;Naomi&#34; + &#34; appears &#34; + str(names.count(&#34;Naomi&#34;)) + &#34; time(s)&#34;) # Reversing a list is easy names.reverse() # We can also create a shallow copy of a list names_copy = names.copy() 
+names = [&#34;Naomi&#34;, &#34;James&#34;, &#34;Amos&#34;, &#34;Bobbie&#34;] # Append &#34;Miller&#34; to the end of the list names.append(&#34;Miller&#34;) # This can also be accomplished using the + operator or the extend() method # These are similar, where `+=` is shorthand for `extend` names.extend([&#34;Chrisjen&#34;]) names += [&#34;Alex&#34;] # `extend()` works on any iterable names.extend([&#34;Fred&#34;, &#34;Dawes&#34;, &#34;Ashford&#34;]) # This can also be done using slicing # names[len(names):] = [&#34;Fred&#34;, &#34;Dawes&#34;, &#34;Ashford&#34;] # Insert &#34;Holden&#34; at the beginning of the list names.insert(0, &#34;Holden&#34;) # We can easily remove items names.remove(&#34;Alex&#34;) # We can also remove items by value names.remove(&#34;Ashford&#34;) # We can also remove items by index. This will return the removed item eros_passenger = names.pop(5) print(eros_passenger + &#34; is on his way to Venus&#34;) # If your list has duplicates, you can count the number of times a value appears print(&#34;Naomi&#34; + &#34; appears &#34; + str(names.count(&#34;Naomi&#34;)) + &#34; time(s)&#34;) # Reversing a list is easy names.reverse() # We can also create a shallow copy of a list names_copy = names.copy() Miller is on his way to Venus Naomi appears 1 time(s) Sorting A list can be sorted by calling the sort function. The list is sorted in-place, meaning that the original list is modified. Since a list can contain any type of object, the objects must be comparable to each other. For example, a list of strings can be sorted alphabetically, but a list of strings and integers cannot be sorted.
+
       
     </div>
   </div>
@@ -494,6 +499,7 @@ names = [&#34;Naomi&#34;, &#34;James&#34;, &#34;Amos&#34;, &#34;Bobbie&#34;] # A
       
        Control Flow Control flow allows us to build programs that react to some pre-determined condition. For example, what happens when a user logs in with the correct credentials? What if they don&rsquo;t give valid credentials?
 This notebook covers the basic tools to writing conditional statements in Python. It follows Chapter 3 in Python for Everyone by Charles Severance along with my own examples.
+Boolean Expressions A boolean expression evaluates to either True or False. This type of expression would be used to check status codes or to check if a user has entered the correct password, for example.
 
       
     </div>
