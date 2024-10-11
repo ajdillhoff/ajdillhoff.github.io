@@ -7,10 +7,265 @@
     <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
     <copyright>Copyright &amp;copy; {year}</copyright>
-    <lastBuildDate>Sat, 22 Jun 2024 00:00:00 -0500</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2024 00:00:00 -0500</lastBuildDate>
     
 	    <atom:link href="https://ajdillhoff.github.io/authors/alex-dillhoff/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Using RAG to Talk to Your Data</title>
+      <link>https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/</link>
+      <pubDate>Thu, 10 Oct 2024 00:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#foundations-of-nlp&#34;&gt;Foundations of NLP&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#architecture-of-language-models&#34;&gt;Architecture of Language Models&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#advanced-concepts-in-llms&#34;&gt;Advanced Concepts in LLMs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#retrieval-augmented-generation&#34;&gt;Retrieval Augmented Generation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;p&gt;Large Language Models (LLMs) are a powerful tool for generating text. They are used to help us study, code, come up with new recipes, and more. However, they are prone to hallucinations; they can generate text that is not factual or relevant to the prompt. Retrieval Augmented Generation (RAG) is a technique that can address this issue by retrieving factual information from external databases. In this article, I will review the main concepts of LLMs and introduce RAG as a way to generate responses based on your own private data.&lt;/p&gt;
+&lt;h2 id=&#34;foundations-of-nlp&#34;&gt;Foundations of NLP&lt;/h2&gt;
+&lt;p&gt;How do machines &lt;em&gt;understand&lt;/em&gt; text? They surely do not understand language in the same way that we do, but they seem to do a pretty convincing job at generating useful output. Focusing on this question will be the theme of this brief overview of Natural Language Processing (NLP), specifically related to Large Language Models.&lt;/p&gt;
+&lt;h3 id=&#34;tokenization&#34;&gt;Tokenization&lt;/h3&gt;
+&lt;p&gt;Tokenization is the process of transforming input text into smaller chunks called &lt;strong&gt;tokens&lt;/strong&gt;. These tokens can be characters, words, phrases, or even whole sentences. The tokens themselves are then represented as numbers in a dictionary. This allows models to move back and forth between the actual text and the tokens they read and generate.&lt;/p&gt;
+&lt;h4 id=&#34;types-of-tokens&#34;&gt;Types of Tokens&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Word Tokenization:&lt;/strong&gt; Divides text into individual words. It is commonly used for tasks like text classification or sentiment analysis.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sentence Tokenization:&lt;/strong&gt; Splits text into sentences, useful for analyzing document structure.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Subword Tokenization:&lt;/strong&gt; Breaks words into smaller units like prefixes or suffixes, which is helpful for handling out-of-vocabulary words.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Character Tokenization:&lt;/strong&gt; Segments text into individual characters, beneficial for languages without clear word boundaries.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-10-10_16-07-49_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;An example of tokenization using the tokenizer used in gpt-4o.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An example of tokenization using the tokenizer used in gpt-4o.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;Tokenizers are trained on a large corpus of data. Frequent subwords or character pairs are identified and merged to create unique tokens. The result is a vocabulary that is tailored for that specific corpus of data, implying that the selection of input documents for training is crucial. For example, a tokenizer trained on legal documents may not be the most efficient choice for a model that works primarily with medical documents.&lt;/p&gt;
+&lt;p&gt;The choice of tokenizer is dependent on more than just the task. There are also language considerations. For a live demonstration of tokenization, check out &lt;a href=&#34;https://tiktokenizer.vercel.app/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;tiktokenizer&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;embeddings&#34;&gt;Embeddings&lt;/h3&gt;
+&lt;p&gt;With a tokenizer at hand, the next step is to analyze the tokens and learn from them. Specifically, relationships between the tokens are learned through &lt;strong&gt;embeddings&lt;/strong&gt;. Embeddings are numerical representations of tokens that capture the semantic meaning of the text. They are essential for training models to understand and generate text.&lt;/p&gt;
+&lt;p&gt;Embeddings are learned during the training process of a model, where the model aims to capture the semantic relationships and contextual nuances of tokens. For those familiar with gradient descent, embeddings are optimized to minimize the loss function of the model. This loss function effectively drives the model to learn the best possible embeddings for the task at hand.&lt;/p&gt;
+&lt;p&gt;Once the embeddings are learned, the embedding layer can then be used to transform our input into a high-dimensional vector space in which the model can operate. This further allows the model to make predictions based on the relationships between the tokens.&lt;/p&gt;
+&lt;h2 id=&#34;architecture-of-language-models&#34;&gt;Architecture of Language Models&lt;/h2&gt;
+&lt;h3 id=&#34;encoders-and-decoders&#34;&gt;Encoders and Decoders&lt;/h3&gt;
+&lt;p&gt;Language models consist of an encoder, a decoder, or sometimes both. The exact architecture is dependent on the task. Understand the roles that each one plays makes it easier to determine which model is best suited for a given task.&lt;/p&gt;
+&lt;p&gt;An &lt;strong&gt;encoder&lt;/strong&gt; takes a sequence of input vectors based on the tokens and transforms them into fixed-length representations. Their primary goal is to extract relevant information from the input text. This information is then used in some downstream task such as classification or translation.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-10-10_17-10-09_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 2: &amp;lt;/span&amp;gt;A transformer-based encoder (&amp;lt;a href=&amp;#34;#citeproc_bib_item_5&amp;#34;&amp;gt;Vaswani et al. 2017&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A transformer-based encoder (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Vaswani et al. 2017&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;A &lt;strong&gt;decoder&lt;/strong&gt; takes the fixed length representation and generates an output sequence. Decoders are commonly used in tasks like machine translation or text generation. They take the information extracted by the encoder and use it to generate the desired output.&lt;/p&gt;
+&lt;p&gt;The table below summarizes the roles of encoders and decoders in different tasks:&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;Task&lt;/th&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;Encoder Role&lt;/th&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;Decoder Role&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Text Classification&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Extracts relevant information from the input text.&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;N/A&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Machine Translation&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Transforms the input text into a fixed-length representation.&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Generates the output sequence based on the fixed-length representation.&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Text Generation&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;N/A&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Generates the output sequence based on the input text.&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;transformers&#34;&gt;Transformers&lt;/h3&gt;
+&lt;p&gt;Transformers are a type of neural network architecture that has revolutionized NLP tasks. They are based on the concept of attention mechanisms, which allow the model to focus on different parts of the input text when making predictions. This attention mechanism is what enables transformers to capture long-range dependencies in text, making them particularly effective for tasks like machine translation and text generation (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Vaswani et al. 2017&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Attention mechanisms produce relationships between sequences. When we look at an image of a dog running in a field with the intent of figuring out what the dog is doing in the picture, we pay greater attention to the dog and look at contextual cues in the image that might inform us of their task. This is an automatic process which allows us to efficiently process information.&lt;/p&gt;
+&lt;p&gt;Attention mechanisms follow the same concept. Consider a machine translation task in which a sentence in English is translated to French. Certain words between the input and output will have stronger correlations than others (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Bahdanau, Cho, and Bengio 2016&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;training-large-language-models&#34;&gt;Training Large Language Models&lt;/h3&gt;
+&lt;p&gt;Since the main focus of this workshop is on Retrieval Augmented Generation, we will focus specifically on decoder-only LLMs like ChatGPT and Claude. These models are trained using a self-supervised learning approach, where the model learns to predict the next token in a sequence based on the previous tokens. This process is repeated over a large corpus of text data, allowing the model to learn the underlying patterns and relationships in the data (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Radford et al. 2018&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Training in this way allows the model to train on a virtually unlimited amount of data; the supervisory signals do not require human annotation. The more data the model is trained on, the better it can learn the underlying patterns in the data. This is why LLMs are typically trained on massive datasets like the Common Crawl or Wikipedia.&lt;/p&gt;
+&lt;h2 id=&#34;advanced-concepts-in-llms&#34;&gt;Advanced Concepts in LLMs&lt;/h2&gt;
+&lt;p&gt;After an LLM is trained, it can be used for many downstream tasks including chat, translation, summarization, and more. However, to make the most of these models, it is essential to understand some advanced concepts in LLMs.&lt;/p&gt;
+&lt;h3 id=&#34;context-length&#34;&gt;Context Length&lt;/h3&gt;
+&lt;p&gt;The context length of a model refers to the number of tokens that the model can consider when making predictions. This is an important factor in determining the performance of the model on different tasks. A model with a longer context length can capture more information about the input text, allowing it to make more accurate predictions. However, longer context lengths also require more computational resources, making them slower and more expensive to train.&lt;/p&gt;
+&lt;h3 id=&#34;fine-tuning&#34;&gt;Fine-tuning&lt;/h3&gt;
+&lt;p&gt;Fine-tuning is the process of taking a pre-trained model and training it on a smaller dataset for a specific task. This allows the model to adapt to the specific patterns in the data and improve its performance on the task. Fine-tuning is essential for achieving state-of-the-art performance on many NLP tasks. Consider a law firm that has a large corpus of legal documents. These documents will surely contain legal jargon and specific patterns that are not present in the general text data used to train the model. Fine-tuning the pre-trained model results in a model that is better suited for the legal domain while still benefiting from the general knowledge learned during pre-training.&lt;/p&gt;
+&lt;p&gt;This is not always a direct upgrade from the original model. Depending on the quality of the dataset, the resulting model may perform worse than it did originally. There are also risks related to data privacy. If the dataset contains confidential information, the LLM may inadvertently memorize this information during fine-tuning.&lt;/p&gt;
+&lt;p&gt;While fine-tuning may increase the performance on general tasks related to the new domain, it still does not solve the issue of context-specific data. This is where retrieval augmented generation comes into play.&lt;/p&gt;
+&lt;h3 id=&#34;chat-models&#34;&gt;Chat Models&lt;/h3&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-10-11_14-06-35_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 3: &amp;lt;/span&amp;gt;From Andrej Karpathy&amp;#39;s [State of GPT](&amp;lt;https://www.youtube.com/watch?v=bZQun8Y4L2A&amp;gt;) keynote.&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From Andrej Karpathy&amp;rsquo;s &lt;a href=&#34;https://www.youtube.com/watch?v=bZQun8Y4L2A&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;State of GPT&lt;/a&gt; keynote.
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;To create a chat model, a pre-trained LLM must be meticulously fine-tuned to behave as a chatbot. This involes three additional steps on top of the original model. This is summarized in the figure above.&lt;/p&gt;
+&lt;h4 id=&#34;supervised-fine-tuning&#34;&gt;Supervised Fine-tuning&lt;/h4&gt;
+&lt;p&gt;The first step is supervised fine-tuning. This involves created a specialized dataset that demonstrates the desired behavior of the chatbot. These samples must be vetted by human annotators to ensure quality. This process is not necessarily training the model to give the most accurate responses, but rather to give the most human-like responses.&lt;/p&gt;
+&lt;h4 id=&#34;reward-modeling&#34;&gt;Reward Modeling&lt;/h4&gt;
+&lt;p&gt;To optimize the quality of the model&amp;rsquo;s reponses, we need some way to tell the model what a quality response looks like. In this step, another specialized dataset is created based on a prompt and a number of different responses. A human annotator then assigns a ranking to these responses. This ranking is used as a reward signal for the model to optimize.&lt;/p&gt;
+&lt;p&gt;The reward model itself is then trained to predict the ranking of the responses based on the human annotations. Once trained, the reward model is used to provide feedback to the chat model during training.&lt;/p&gt;
+&lt;h4 id=&#34;reinforcement-learning&#34;&gt;Reinforcement Learning&lt;/h4&gt;
+&lt;p&gt;With a trained reward model, the final stage of training is performed. Given an SFT model and the reward model, reinforcement learning is used to optimize the chat model. A prompt is given to the SFT model, which generates a response. This response is then ranked by the reward model, and the chat model is updated based on the reward signal.&lt;/p&gt;
+&lt;h3 id=&#34;emergent-capabilities&#34;&gt;Emergent Capabilities&lt;/h3&gt;
+&lt;p&gt;As it turns out, a model that was pre-trained on a large corpus of text data can be used for more than just generating text. It can also perform downstream tasks like question-answering without explicitly being trained on that task. This is known as &lt;strong&gt;zero-shot&lt;/strong&gt;, or &lt;strong&gt;few-shot&lt;/strong&gt;, learning (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Brown et al. 2020&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Given an input prompt, a pre-trained LLM will generate text that is relevant to the text contained within the prompt itself. If the prompt contains specialized context for a specific task, the generated text will also be relevant to that task. For example, provided an example of the task within the context before adding a novel prompt, the model will generate text that is relevant to the task.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Brown et al. 2020&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-nil&#34; data-lang=&#34;nil&#34;&gt;Alice was friends with Bob. Alice went to visit her friend ______. -&amp;gt; Bob
+George bought some baseball equipment, a ball, a glove, and a _____. -&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;retrieval-augmented-generation&#34;&gt;Retrieval Augmented Generation&lt;/h2&gt;
+&lt;p&gt;If you have used an LLM such as ChatGPT, Claude, or Gemini, you will have noticed that the responses are not always accurate. This is because the model is generating responses based on the input prompt alone. It does not have access to external information that could help it generate more accurate responses. Recent iterations of these popular models are now incorporating retrieval mechanisms to address this issue.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Retrieval Augmented Generation&lt;/strong&gt; (RAG) is a technique that retrieves relevent document chunks from external databases that are relevant to the original prompt. These chunks are compared to the context of the prompt primarily through semantic similarity, but other methods can be used as well. The model then generates a response based on the retrieved information. The benefit to this approach is that the model can generate responses that are not only factual, but based on your own private data without requiring any fine-tuning processes.&lt;/p&gt;
+
+
+
+
+
+
+&lt;figure&gt;
+
+&lt;img src=&#34;https://ajdillhoff.github.io/ox-hugo/2024-10-11_14-40-07_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 4: &amp;lt;/span&amp;gt;Overview of RAG (&amp;lt;a href=&amp;#34;#citeproc_bib_item_3&amp;#34;&amp;gt;Gao et al. 2024&amp;lt;/a&amp;gt;).&#34; &gt;
+
+
+
+&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
+  
+  &lt;p&gt;
+    &lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Overview of RAG (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Gao et al. 2024&lt;/a&gt;).
+    
+    
+    
+  &lt;/p&gt; 
+&lt;/figcaption&gt;
+
+&lt;/figure&gt;
+
+&lt;p&gt;The basic process is conceptually simple:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Given a prompt, relevant document chunks are &lt;strong&gt;retrieved&lt;/strong&gt; from a database.&lt;/li&gt;
+&lt;li&gt;The retrieved context is used to &lt;strong&gt;augment&lt;/strong&gt; the original prompt.&lt;/li&gt;
+&lt;li&gt;The model &lt;strong&gt;generates&lt;/strong&gt; a response based on the augmented prompt.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;RAG is an open research area with many potential applications. It is particularly useful in situations where the model needs to generate responses based on specific information that is not present in the training data. For example, a legal chatbot could use RAG to retrieve relevant legal documents to generate responses to legal questions. It can certainly be tricky to implement, but the benefits are clear.&lt;/p&gt;
+&lt;p&gt;The rest of this article will take a more hands-on approach. See the &lt;a href=&#34;https://github.com/ajdillhoff/langchain-llama3.2-rag&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;accompanying repository&lt;/a&gt; for a practical demonstration of how to use RAG to talk to your data.&lt;/p&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2016. “Neural Machine Translation by Jointly Learning to Align and Translate.” &lt;i&gt;Arxiv:1409.0473 [Cs, Stat]&lt;/i&gt;, May. &lt;a href=&#34;http://arxiv.org/abs/1409.0473&#34;&gt;http://arxiv.org/abs/1409.0473&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_2&#34;&gt;&lt;/a&gt;Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, et al. 2020. “Language Models Are Few-Shot Learners.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.2005.14165&#34;&gt;https://doi.org/10.48550/arXiv.2005.14165&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_3&#34;&gt;&lt;/a&gt;Gao, Yunfan, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang. 2024. “Retrieval-Augmented Generation for Large Language Models: A Survey.” arXiv. &lt;a href=&#34;http://arxiv.org/abs/2312.10997&#34;&gt;http://arxiv.org/abs/2312.10997&lt;/a&gt;.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_4&#34;&gt;&lt;/a&gt;Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2018. “Improving Language Understanding by Generative Pre-Training,” 12.&lt;/div&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_5&#34;&gt;&lt;/a&gt;Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Automatic Differentiation</title>
+      <link>https://ajdillhoff.github.io/notes/automatic_differentiation/</link>
+      <pubDate>Mon, 23 Sep 2024 18:00:00 -0500</pubDate>
+      
+      <guid>https://ajdillhoff.github.io/notes/automatic_differentiation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
+&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#types-of-differentiation&#34;&gt;Types of Differentiation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#forward-mode-ad&#34;&gt;Forward Mode AD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#reverse-mode-ad&#34;&gt;Reverse Mode AD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#basic-implementation-in-python&#34;&gt;Basic Implementation in Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#matrix-implementation&#34;&gt;Matrix Implementation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#comparison-with-pytorch&#34;&gt;Comparison with PyTorch&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;!--endtoc--&gt;
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;These notes largely follow the survey presented by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Baydin et al. 2018&lt;/a&gt;). I have added a few examples to clarify the matrix algebra as well as a lead in to a practical implemenation.&lt;/p&gt;
+&lt;p&gt;Automatic differentiation is a method for computing the derivatives of functions in a modular way using the chain rule of calculus. It is used in many deep learning frameworks such as PyTorch and Tensorflow. Consider a complex series of functions that together work to yield some useful input, such as that of a deep learning model. Traditionally, the parameters of such a model would be optimized through gradient descent. This requires that the derivatives with respect to the parameters are implemented for every function used in the model.&lt;/p&gt;
+&lt;p&gt;Without autograd, one would have to write implementations for each function derivative required for the model. This is not only cumbersome, but can be error-prone and hard to debug. Automatic differentiation instead breaks down any forward computation into a series of elementary operations whose derivatives are well known.&lt;/p&gt;
+&lt;h2 id=&#34;types-of-differentiation&#34;&gt;Types of Differentiation&lt;/h2&gt;
+&lt;h3 id=&#34;numerical-differentiation&#34;&gt;Numerical Differentiation&lt;/h3&gt;
+&lt;h3 id=&#34;symbolic-differentiation&#34;&gt;Symbolic Differentiation&lt;/h3&gt;
+&lt;h2 id=&#34;forward-mode-ad&#34;&gt;Forward Mode AD&lt;/h2&gt;
+&lt;h3 id=&#34;computing-the-jacobian&#34;&gt;Computing the Jacobian&lt;/h3&gt;
+&lt;p&gt;The example above computed the derivative of a function \(f : \mathbb{R}^2 \to \mathbb{R}\). To compute the derivative of the function with respect to all input variables, we would need to run forward mode AD for each input variable. In the context of a neural network, this would mean running forward mode AD for each input feature. This is not efficient, as the number of input features can be very large. What about hidden layers? They typically have multiple outputs as well. Luckily, the number of outputs is not a bottleneck as this approach can compute \(\dot{y}_j\) for all \(j\) in a single pass by setting \(\dot{\mathbf{x}} = \mathbf{e}_i\) where \(\mathbf{e}_i\) is the $i$th standard basis vector.&lt;/p&gt;
+&lt;p&gt;If we combine these columns representing the derivatives of the output with respect to the input, we get the &lt;strong&gt;Jacobian matrix&lt;/strong&gt;. This matrix is the derivative of the function with respect to all input variables. This is a very useful matrix in optimization problems, as it tells us how the output of the function changes with respect to the input.&lt;/p&gt;
+&lt;h2 id=&#34;reverse-mode-ad&#34;&gt;Reverse Mode AD&lt;/h2&gt;
+&lt;h2 id=&#34;basic-implementation-in-python&#34;&gt;Basic Implementation in Python&lt;/h2&gt;
+&lt;h2 id=&#34;matrix-implementation&#34;&gt;Matrix Implementation&lt;/h2&gt;
+&lt;h2 id=&#34;comparison-with-pytorch&#34;&gt;Comparison with PyTorch&lt;/h2&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
+  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Baydin, Atilim Gunes, Barak A. Pearlmutter, Alexey Andreyevich Radul, and Jeffrey Mark Siskind. 2018. “Automatic Differentiation in Machine Learning: A Survey.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.1502.05767&#34;&gt;https://doi.org/10.48550/arXiv.1502.05767&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Debugging in C</title>

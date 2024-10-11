@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academia 4.3.1">
+  <meta name="theme-name" content="academia-hugo"/>
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Alex Dillhoff">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="How can LLMs provide results that are not only factual, but based on your own private data? This article accompanies a workshop given at HackUTA 6 on October 12, 2024.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#fc6f5c">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="anonymous">
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Open+Sans|Roboto+Mono&display=swap">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academia.min.b246554d075350d61b44c126dfbcbe05.css">
+
+  
+    
+    
+    
+    
+      
+    
+    
+    
+    <link rel="stylesheet" href="/css/academia.a75a9b8a9a725a2157c0c5b929a3d18b.css">
+  
+
+  
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-123456-78', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Alex Dillhoff">
+  <meta property="og:url" content="https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/">
+  <meta property="og:title" content="Using RAG to Talk to Your Data | Alex Dillhoff">
+  <meta property="og:description" content="How can LLMs provide results that are not only factual, but based on your own private data? This article accompanies a workshop given at HackUTA 6 on October 12, 2024."><meta property="og:image" content="https://ajdillhoff.github.io/img/icon-192.png">
+  <meta property="twitter:image" content="https://ajdillhoff.github.io/img/icon-192.png"><meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2024-10-10T00:00:00-05:00">
+  
+  <meta property="article:modified_time" content="2024-10-10T00:00:00-05:00">
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Using RAG to Talk to Your Data | Alex Dillhoff</title>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Alex Dillhoff</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"><span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+      
+      
+      <ul class="navbar-nav ml-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/notes/"><span>Brain Dump</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/courses/"><span>Courses</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article py-5" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    <div class="article-container py-3">
+      <h1 itemprop="name">Using RAG to Talk to Your Data</h1>
+
+      
+
+      
+      
+
+
+
+<meta content="2024-10-10 00:00:00 -0500 CDT" itemprop="datePublished">
+<meta content="2024-10-10 00:00:00 -0500 CDT" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+
+
+  <span itemprop="author name" itemtype="http://schema.org/Person"><a href="/authors/alex-dillhoff/">Alex Dillhoff</a></span>
+
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Oct 10, 2024</time>
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/&amp;text=Using%20RAG%20to%20Talk%20to%20Your%20Data" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/&amp;t=Using%20RAG%20to%20Talk%20to%20Your%20Data" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Using%20RAG%20to%20Talk%20to%20Your%20Data&amp;body=https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/&amp;title=Using%20RAG%20to%20Talk%20to%20Your%20Data" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://web.whatsapp.com/send?text=Using%20RAG%20to%20Talk%20to%20Your%20Data%20https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ajdillhoff.github.io/articles/using-rag-to-talk-to-your-data/&amp;title=Using%20RAG%20to%20Talk%20to%20Your%20Data" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+    </div>
+  </div>
+</div>
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#foundations-of-nlp">Foundations of NLP</a></li>
+<li><a href="#architecture-of-language-models">Architecture of Language Models</a></li>
+<li><a href="#advanced-concepts-in-llms">Advanced Concepts in LLMs</a></li>
+<li><a href="#retrieval-augmented-generation">Retrieval Augmented Generation</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>Large Language Models (LLMs) are a powerful tool for generating text. They are used to help us study, code, come up with new recipes, and more. However, they are prone to hallucinations; they can generate text that is not factual or relevant to the prompt. Retrieval Augmented Generation (RAG) is a technique that can address this issue by retrieving factual information from external databases. In this article, I will review the main concepts of LLMs and introduce RAG as a way to generate responses based on your own private data.</p>
+<h2 id="foundations-of-nlp">Foundations of NLP</h2>
+<p>How do machines <em>understand</em> text? They surely do not understand language in the same way that we do, but they seem to do a pretty convincing job at generating useful output. Focusing on this question will be the theme of this brief overview of Natural Language Processing (NLP), specifically related to Large Language Models.</p>
+<h3 id="tokenization">Tokenization</h3>
+<p>Tokenization is the process of transforming input text into smaller chunks called <strong>tokens</strong>. These tokens can be characters, words, phrases, or even whole sentences. The tokens themselves are then represented as numbers in a dictionary. This allows models to move back and forth between the actual text and the tokens they read and generate.</p>
+<h4 id="types-of-tokens">Types of Tokens</h4>
+<ul>
+<li><strong>Word Tokenization:</strong> Divides text into individual words. It is commonly used for tasks like text classification or sentiment analysis.</li>
+<li><strong>Sentence Tokenization:</strong> Splits text into sentences, useful for analyzing document structure.</li>
+<li><strong>Subword Tokenization:</strong> Breaks words into smaller units like prefixes or suffixes, which is helpful for handling out-of-vocabulary words.</li>
+<li><strong>Character Tokenization:</strong> Segments text into individual characters, beneficial for languages without clear word boundaries.</li>
+</ul>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-10-10_16-07-49_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;An example of tokenization using the tokenizer used in gpt-4o." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>An example of tokenization using the tokenizer used in gpt-4o.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>Tokenizers are trained on a large corpus of data. Frequent subwords or character pairs are identified and merged to create unique tokens. The result is a vocabulary that is tailored for that specific corpus of data, implying that the selection of input documents for training is crucial. For example, a tokenizer trained on legal documents may not be the most efficient choice for a model that works primarily with medical documents.</p>
+<p>The choice of tokenizer is dependent on more than just the task. There are also language considerations. For a live demonstration of tokenization, check out <a href="https://tiktokenizer.vercel.app/" target="_blank" rel="noopener noreferrer">tiktokenizer</a>.</p>
+<h3 id="embeddings">Embeddings</h3>
+<p>With a tokenizer at hand, the next step is to analyze the tokens and learn from them. Specifically, relationships between the tokens are learned through <strong>embeddings</strong>. Embeddings are numerical representations of tokens that capture the semantic meaning of the text. They are essential for training models to understand and generate text.</p>
+<p>Embeddings are learned during the training process of a model, where the model aims to capture the semantic relationships and contextual nuances of tokens. For those familiar with gradient descent, embeddings are optimized to minimize the loss function of the model. This loss function effectively drives the model to learn the best possible embeddings for the task at hand.</p>
+<p>Once the embeddings are learned, the embedding layer can then be used to transform our input into a high-dimensional vector space in which the model can operate. This further allows the model to make predictions based on the relationships between the tokens.</p>
+<h2 id="architecture-of-language-models">Architecture of Language Models</h2>
+<h3 id="encoders-and-decoders">Encoders and Decoders</h3>
+<p>Language models consist of an encoder, a decoder, or sometimes both. The exact architecture is dependent on the task. Understand the roles that each one plays makes it easier to determine which model is best suited for a given task.</p>
+<p>An <strong>encoder</strong> takes a sequence of input vectors based on the tokens and transforms them into fixed-length representations. Their primary goal is to extract relevant information from the input text. This information is then used in some downstream task such as classification or translation.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-10-10_17-10-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;A transformer-based encoder (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Vaswani et al. 2017&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>A transformer-based encoder (<a href="#citeproc_bib_item_5">Vaswani et al. 2017</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>A <strong>decoder</strong> takes the fixed length representation and generates an output sequence. Decoders are commonly used in tasks like machine translation or text generation. They take the information extracted by the encoder and use it to generate the desired output.</p>
+<p>The table below summarizes the roles of encoders and decoders in different tasks:</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Task</th>
+          <th style="text-align: left">Encoder Role</th>
+          <th style="text-align: left">Decoder Role</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">Text Classification</td>
+          <td style="text-align: left">Extracts relevant information from the input text.</td>
+          <td style="text-align: left">N/A</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Machine Translation</td>
+          <td style="text-align: left">Transforms the input text into a fixed-length representation.</td>
+          <td style="text-align: left">Generates the output sequence based on the fixed-length representation.</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Text Generation</td>
+          <td style="text-align: left">N/A</td>
+          <td style="text-align: left">Generates the output sequence based on the input text.</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="transformers">Transformers</h3>
+<p>Transformers are a type of neural network architecture that has revolutionized NLP tasks. They are based on the concept of attention mechanisms, which allow the model to focus on different parts of the input text when making predictions. This attention mechanism is what enables transformers to capture long-range dependencies in text, making them particularly effective for tasks like machine translation and text generation (<a href="#citeproc_bib_item_5">Vaswani et al. 2017</a>).</p>
+<p>Attention mechanisms produce relationships between sequences. When we look at an image of a dog running in a field with the intent of figuring out what the dog is doing in the picture, we pay greater attention to the dog and look at contextual cues in the image that might inform us of their task. This is an automatic process which allows us to efficiently process information.</p>
+<p>Attention mechanisms follow the same concept. Consider a machine translation task in which a sentence in English is translated to French. Certain words between the input and output will have stronger correlations than others (<a href="#citeproc_bib_item_1">Bahdanau, Cho, and Bengio 2016</a>).</p>
+<h3 id="training-large-language-models">Training Large Language Models</h3>
+<p>Since the main focus of this workshop is on Retrieval Augmented Generation, we will focus specifically on decoder-only LLMs like ChatGPT and Claude. These models are trained using a self-supervised learning approach, where the model learns to predict the next token in a sequence based on the previous tokens. This process is repeated over a large corpus of text data, allowing the model to learn the underlying patterns and relationships in the data (<a href="#citeproc_bib_item_4">Radford et al. 2018</a>).</p>
+<p>Training in this way allows the model to train on a virtually unlimited amount of data; the supervisory signals do not require human annotation. The more data the model is trained on, the better it can learn the underlying patterns in the data. This is why LLMs are typically trained on massive datasets like the Common Crawl or Wikipedia.</p>
+<h2 id="advanced-concepts-in-llms">Advanced Concepts in LLMs</h2>
+<p>After an LLM is trained, it can be used for many downstream tasks including chat, translation, summarization, and more. However, to make the most of these models, it is essential to understand some advanced concepts in LLMs.</p>
+<h3 id="context-length">Context Length</h3>
+<p>The context length of a model refers to the number of tokens that the model can consider when making predictions. This is an important factor in determining the performance of the model on different tasks. A model with a longer context length can capture more information about the input text, allowing it to make more accurate predictions. However, longer context lengths also require more computational resources, making them slower and more expensive to train.</p>
+<h3 id="fine-tuning">Fine-tuning</h3>
+<p>Fine-tuning is the process of taking a pre-trained model and training it on a smaller dataset for a specific task. This allows the model to adapt to the specific patterns in the data and improve its performance on the task. Fine-tuning is essential for achieving state-of-the-art performance on many NLP tasks. Consider a law firm that has a large corpus of legal documents. These documents will surely contain legal jargon and specific patterns that are not present in the general text data used to train the model. Fine-tuning the pre-trained model results in a model that is better suited for the legal domain while still benefiting from the general knowledge learned during pre-training.</p>
+<p>This is not always a direct upgrade from the original model. Depending on the quality of the dataset, the resulting model may perform worse than it did originally. There are also risks related to data privacy. If the dataset contains confidential information, the LLM may inadvertently memorize this information during fine-tuning.</p>
+<p>While fine-tuning may increase the performance on general tasks related to the new domain, it still does not solve the issue of context-specific data. This is where retrieval augmented generation comes into play.</p>
+<h3 id="chat-models">Chat Models</h3>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-10-11_14-06-35_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;From Andrej Karpathy&#39;s [State of GPT](&lt;https://www.youtube.com/watch?v=bZQun8Y4L2A&gt;) keynote." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>From Andrej Karpathy&rsquo;s <a href="https://www.youtube.com/watch?v=bZQun8Y4L2A" target="_blank" rel="noopener noreferrer">State of GPT</a> keynote.
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>To create a chat model, a pre-trained LLM must be meticulously fine-tuned to behave as a chatbot. This involes three additional steps on top of the original model. This is summarized in the figure above.</p>
+<h4 id="supervised-fine-tuning">Supervised Fine-tuning</h4>
+<p>The first step is supervised fine-tuning. This involves created a specialized dataset that demonstrates the desired behavior of the chatbot. These samples must be vetted by human annotators to ensure quality. This process is not necessarily training the model to give the most accurate responses, but rather to give the most human-like responses.</p>
+<h4 id="reward-modeling">Reward Modeling</h4>
+<p>To optimize the quality of the model&rsquo;s reponses, we need some way to tell the model what a quality response looks like. In this step, another specialized dataset is created based on a prompt and a number of different responses. A human annotator then assigns a ranking to these responses. This ranking is used as a reward signal for the model to optimize.</p>
+<p>The reward model itself is then trained to predict the ranking of the responses based on the human annotations. Once trained, the reward model is used to provide feedback to the chat model during training.</p>
+<h4 id="reinforcement-learning">Reinforcement Learning</h4>
+<p>With a trained reward model, the final stage of training is performed. Given an SFT model and the reward model, reinforcement learning is used to optimize the chat model. A prompt is given to the SFT model, which generates a response. This response is then ranked by the reward model, and the chat model is updated based on the reward signal.</p>
+<h3 id="emergent-capabilities">Emergent Capabilities</h3>
+<p>As it turns out, a model that was pre-trained on a large corpus of text data can be used for more than just generating text. It can also perform downstream tasks like question-answering without explicitly being trained on that task. This is known as <strong>zero-shot</strong>, or <strong>few-shot</strong>, learning (<a href="#citeproc_bib_item_2">Brown et al. 2020</a>).</p>
+<p>Given an input prompt, a pre-trained LLM will generate text that is relevant to the text contained within the prompt itself. If the prompt contains specialized context for a specific task, the generated text will also be relevant to that task. For example, provided an example of the task within the context before adding a novel prompt, the model will generate text that is relevant to the task.</p>
+<p><strong>Example from (<a href="#citeproc_bib_item_2">Brown et al. 2020</a>)</strong></p>
+<pre tabindex="0"><code class="language-nil" data-lang="nil">Alice was friends with Bob. Alice went to visit her friend ______. -&gt; Bob
+George bought some baseball equipment, a ball, a glove, and a _____. -&gt;
+</code></pre><h2 id="retrieval-augmented-generation">Retrieval Augmented Generation</h2>
+<p>If you have used an LLM such as ChatGPT, Claude, or Gemini, you will have noticed that the responses are not always accurate. This is because the model is generating responses based on the input prompt alone. It does not have access to external information that could help it generate more accurate responses. Recent iterations of these popular models are now incorporating retrieval mechanisms to address this issue.</p>
+<p><strong>Retrieval Augmented Generation</strong> (RAG) is a technique that retrieves relevent document chunks from external databases that are relevant to the original prompt. These chunks are compared to the context of the prompt primarily through semantic similarity, but other methods can be used as well. The model then generates a response based on the retrieved information. The benefit to this approach is that the model can generate responses that are not only factual, but based on your own private data without requiring any fine-tuning processes.</p>
+
+
+
+
+
+
+<figure>
+
+<img src="/ox-hugo/2024-10-11_14-40-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Overview of RAG (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Gao et al. 2024&lt;/a&gt;)." >
+
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Overview of RAG (<a href="#citeproc_bib_item_3">Gao et al. 2024</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+
+<p>The basic process is conceptually simple:</p>
+<ol>
+<li>Given a prompt, relevant document chunks are <strong>retrieved</strong> from a database.</li>
+<li>The retrieved context is used to <strong>augment</strong> the original prompt.</li>
+<li>The model <strong>generates</strong> a response based on the augmented prompt.</li>
+</ol>
+<p>RAG is an open research area with many potential applications. It is particularly useful in situations where the model needs to generate responses based on specific information that is not present in the training data. For example, a legal chatbot could use RAG to retrieve relevant legal documents to generate responses to legal questions. It can certainly be tricky to implement, but the benefits are clear.</p>
+<p>The rest of this article will take a more hands-on approach. See the <a href="https://github.com/ajdillhoff/langchain-llama3.2-rag" target="_blank" rel="noopener noreferrer">accompanying repository</a> for a practical demonstration of how to use RAG to talk to your data.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2016. “Neural Machine Translation by Jointly Learning to Align and Translate.” <i>Arxiv:1409.0473 [Cs, Stat]</i>, May. <a href="http://arxiv.org/abs/1409.0473">http://arxiv.org/abs/1409.0473</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, et al. 2020. “Language Models Are Few-Shot Learners.” arXiv. <a href="https://doi.org/10.48550/arXiv.2005.14165">https://doi.org/10.48550/arXiv.2005.14165</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Gao, Yunfan, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang. 2024. “Retrieval-Augmented Generation for Large Language Models: A Survey.” arXiv. <a href="http://arxiv.org/abs/2312.10997">http://arxiv.org/abs/2312.10997</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2018. “Improving Language Understanding by Generative Pre-Training,” 12.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.</div>
+</div>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/article/">article</a>
+  
+  <a class="badge badge-light" href="/tags/llms/">llms</a>
+  
+  <a class="badge badge-light" href="/tags/rag/">rag</a>
+  
+  <a class="badge badge-light" href="/tags/machine-learning/">machine learning</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="https://ajdillhoff.github.io/">Alex Dillhoff</a></h5>
+      <h6 class="card-subtitle">Senior Lecturer</h6>
+      <p class="card-text" itemprop="description">&quot;If we understood the world, we would realize that there is a logic of harmony underlying its manifold apparent dissonances.&quot; - Jean Sibelius</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.co.uk/citations?user=UlLhCtkAAAAJ" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://github.com/ajdillhoff" target="_blank" rel="noopener">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+      <div class="article-widget">
+        <div class="hr-light"></div>
+        <h3>Related</h3>
+        <ul>
+          
+          <li><a href="/articles/the-language-of-llms/">The Language of LLMs</a></li>
+          
+          <li><a href="/notes/automatic_differentiation/">Automatic Differentiation</a></li>
+          
+          <li><a href="/notes/low_rank_adaptation/">Low Rank Adaptation</a></li>
+          
+          <li><a href="/notes/bag_of_visual_words/">Bag of Visual Words</a></li>
+          
+          <li><a href="/notes/pretraining_large_language_models/">Pretraining Large Language Models</a></li>
+          
+        </ul>
+      </div>
+      
+    
+
+    
+
+    
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script src="/js/academia.min.6c2ba2801d406881b3c2277043cedd76.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        
+        <p class="mb-0">
+          Copyright © 2024 &middot; 
+          Powered by
+          <a href="https://gethugothemes.com" target="_blank" rel="noopener">Gethugothemes</a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-inline network-icon text-right mb-0">
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/ajdillhoff" target="_blank" rel="noopener" title="My GitHub"><i class="ai ai-google-scholar" aria-hidden="true"></i></a>
+          </li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
