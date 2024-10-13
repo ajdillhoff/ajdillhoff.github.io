@@ -12621,6 +12621,21 @@ E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
 &lt;blockquote&gt;
 &lt;p&gt;For any two functions \(f(n)\) and \(g(n)\), we have \(f(n) = \Theta(g(n))\) if and only if \(f(n) = O(g(n))\) and \(f(n) = \Omega(g(n))\).&lt;/p&gt;
 &lt;/blockquote&gt;
+&lt;h3 id=&#34;o-notation&#34;&gt;$o$-notation&lt;/h3&gt;
+&lt;p&gt;There are two less commonly used notations that are worth mentioning. The first is $o$-notation, which is used to describe an upper bound that is &lt;em&gt;not&lt;/em&gt; asymptotically tight. It is defined as \(o(g(n)) = \{f(n) : \forall c &amp;gt; 0, \exists n_0 &amp;gt; 0 \text{ such that } 0 \leq f(n) &amp;lt; cg(n) \text{ for all } n \geq n_0\}\).&lt;/p&gt;
+&lt;p&gt;As an example, the bound on \(an^3 = O(n^3)\) is asymptotically tight, but the bound on \(an^3 = o(n^4)\) is not. Using the definition of $o$-notation, we can see that \(an^3 = o(n^4)\), but \(an^3 \neq o(n^3)\).&lt;/p&gt;
+&lt;h3 id=&#34;and-omega-notation&#34;&gt;$ω$-notation&lt;/h3&gt;
+&lt;p&gt;Analogous to $Ω$-notation, $ω$-notation is used to describe a lower bound that is &lt;em&gt;not&lt;/em&gt; asymptotically tight. It is defined as \(\omega(g(n)) = \{f(n) : \forall c &amp;gt; 0, \exists n_0 &amp;gt; 0 \text{ such that } 0 \leq cg(n) &amp;lt; f(n) \text{ for all } n \geq n_0\}\).&lt;/p&gt;
+&lt;p&gt;It is true that \(an^3 = \Omega(n^3)\), but \(an^3 \neq \omega(n^3)\).&lt;/p&gt;
+&lt;h3 id=&#34;summary-of-notation&#34;&gt;Summary of Notation&lt;/h3&gt;
+&lt;p&gt;An easy way to remember each notation is to think of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$O$-notation: &amp;ldquo;less than or equal to&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;$Ω$-notation: &amp;ldquo;greater than or equal to&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;$Θ$-notation: &amp;ldquo;equal to&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;$o$-notation: &amp;ldquo;strictly less than&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;$ω$-notation: &amp;ldquo;strictly greater than&amp;rdquo;&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h3 id=&#34;function-properties&#34;&gt;Function Properties&lt;/h3&gt;
 &lt;p&gt;The following properties are useful when analyzing the asymptotic behavior of functions.&lt;/p&gt;
 &lt;h4 id=&#34;transitivity&#34;&gt;Transitivity&lt;/h4&gt;
@@ -12684,6 +12699,7 @@ E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
 &lt;li&gt;&lt;a href=&#34;#introduction-to-algorithms&#34;&gt;Introduction to Algorithms&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#insertion-sort&#34;&gt;Insertion Sort&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#example-sorting-numbers&#34;&gt;Example: Sorting Numbers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#correctness&#34;&gt;Correctness&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#worst-case-analysis&#34;&gt;Worst-Case Analysis&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#best-case-analysis&#34;&gt;Best-Case Analysis&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#rate-of-growth&#34;&gt;Rate of Growth&lt;/a&gt;&lt;/li&gt;
@@ -12694,6 +12710,8 @@ E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
 &lt;h2 id=&#34;introduction-to-algorithms&#34;&gt;Introduction to Algorithms&lt;/h2&gt;
 &lt;p&gt;One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time.&lt;/p&gt;
 &lt;p&gt;There are of course other considerations besides runtime. How much memory does the solution require? Does it require a lot of data to be stored on disk? What about distributed solutions that can be run on multiple machines? Some solutions can be so complex, that we must also consider their environmental impact. For example, Meta&amp;rsquo;s Llama 2 large language models required 3,311,616 combined GPU hours to train. They report that their total carbon emissions from training were 539 tons of CO2 equivalent (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Touvron et al. 2023&lt;/a&gt;).&lt;/p&gt;
+&lt;h3 id=&#34;what-is-an-algorithm&#34;&gt;What is an algorithm?&lt;/h3&gt;
+&lt;p&gt;Generally speaking, an &lt;strong&gt;algorithm&lt;/strong&gt; is a sequence of steps describing some computational process. It is more abstract that a single function, and an algorithm will typically call many functions to accomplish its task. Algorithms give us a way of translating complex processes from human language into a form that can be executed by a computer.&lt;/p&gt;
 &lt;p&gt;We begin our algorithmic journey by studying a simple sorting algorithm, insertion sort. First, we need to formally define the problem of sorting. Given a sequence of \(n\) objects \(A = \langle a_1, a_2, \ldots, a_n \rangle\), we want to rearrange the elements such that \(a_1&amp;rsquo; \leq a_2&amp;rsquo; \leq \ldots \leq a_n&amp;rsquo;\). We will assume that the elements are comparable, meaning that we can use the operators \(&amp;lt;\) and \(&amp;gt;\) to compare them. Some sets, such as the set of all real numbers, have a natural ordering. A useful programming language would provide the required comparison operators. For other types of elements, such as strings, this may not be the case. For example, how would you compare the strings &amp;ldquo;apple&amp;rdquo; and &amp;ldquo;banana&amp;rdquo;? In these cases, we will need to define our own comparison operators. Either way, we will assume that the comparison operators are available to us.&lt;/p&gt;
 &lt;p&gt;This example follows the one given in Chapter 2 of Cormen et al. (2009).&lt;/p&gt;
 &lt;h2 id=&#34;insertion-sort&#34;&gt;Insertion Sort&lt;/h2&gt;
@@ -12707,7 +12725,36 @@ E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;example-sorting-numbers&#34;&gt;Example: Sorting Numbers&lt;/h2&gt;
-&lt;p&gt;TODO: Add a step-by-step example of sorting a list of numbers.&lt;/p&gt;
+&lt;p&gt;Using the algorithm above, sort the following set of numbers. Show the output of the set each time an element is swapped.&lt;/p&gt;
+&lt;p&gt;\[
+S = \{10, 4, 7, 0, 2\}
+\]&lt;/p&gt;
+&lt;p&gt;\begin{align*}
+\{10, 4, 7, 0, 2\}\\
+\{4, 10, 7, 0, 2\}\\
+\{4, 7, 10, 0, 2\}\\
+\{4, 7, 0, 10, 2\}\\
+\{4, 0, 7, 10, 2\}\\
+\{0, 4, 7, 10, 2\}\\
+\{0, 4, 7, 2, 10\}\\
+\{0, 4, 2, 7, 10\}\\
+\{0, 2, 4, 7, 10\}\\
+\end{align*}&lt;/p&gt;
+&lt;h2 id=&#34;correctness&#34;&gt;Correctness&lt;/h2&gt;
+&lt;p&gt;When coming up with novel algorithms, we may find that it works with a specific use-case, but not in general. It is important to verify that the algorithm works for all possible inputs. Proving the &lt;strong&gt;correctness&lt;/strong&gt; of an algorithm may be tricky in some cases, but we can utilize a few techniques to make it easier. The first such technique is called a &lt;strong&gt;loop invariant&lt;/strong&gt;. A loop invariant is a statement that is true before and after each iteration of a loop.&lt;/p&gt;
+&lt;p&gt;The loop invariant for insertion sort is that the subarray \(A[0 : i - 1]\) is sorted. This is chosen based on the task. In some cases, the loop invariant is clear from the problem statement. In others, it may require some thought. It is also possible that more than one loop invariant exists for a given algorithm. To determine if a loop invariant is correct, we must verify three things:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Initialization&lt;/strong&gt;: The loop invariant is true before the first iteration of the loop.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Maintenance&lt;/strong&gt;: If the loop invariant is true before an iteration of the loop, it remains true after the iteration.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Termination&lt;/strong&gt;: When the loop terminates, the loop invariant is true.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;As long as we can show that the properties above hold, we can be confident that the algorithm is correct. Let&amp;rsquo;s verify the loop invariant for insertion sort.&lt;/p&gt;
+&lt;h3 id=&#34;initialization&#34;&gt;Initialization&lt;/h3&gt;
+&lt;p&gt;Before the first iteration of the loop, \(i = 1\). The subarray \(A[0 : i - 1] = A[0 : 0] = \langle A[0] \rangle\). Since a single element is always sorted, the loop invariant is true before the first iteration.&lt;/p&gt;
+&lt;h3 id=&#34;maintenance&#34;&gt;Maintenance&lt;/h3&gt;
+&lt;p&gt;Assume that the loop invariant is true before the $i$th iteration of the loop. That is, \(A[0 : i - 1]\) is sorted. We need to show that the loop invariant remains true after the $i + 1$th iteration. The $i + 1$th iteration of the loop will swap elements in the subarray \(A[0 : i]\). The loop invariant is maintained if the subarray \(A[0 : i]\) is sorted after the $i + 1$th iteration. This is true because the $i + 1$th iteration will swap elements in the subarray \(A[0 : i]\) until the element at index \(i\) is in the correct position. Therefore, the loop invariant is maintained.&lt;/p&gt;
+&lt;h3 id=&#34;termination&#34;&gt;Termination&lt;/h3&gt;
+&lt;p&gt;The loop terminates when \(i = n\). At this point, the subarray \(A[0 : n - 1]\) is sorted. Since the loop invariant is true after the last iteration, the algorithm is correct.&lt;/p&gt;
 &lt;h2 id=&#34;worst-case-analysis&#34;&gt;Worst-Case Analysis&lt;/h2&gt;
 &lt;p&gt;Given the definition from above, we can compute \(T(n)\), the running time of the algorithm on an input of size \(n\). To do this, we need to sum the products of the cost of each statement and the number of times each statement is executed.&lt;/p&gt;
 &lt;p&gt;At first glance, the first statement &lt;code&gt;for i in range(1, len(A))&lt;/code&gt; appears to execute \(n-1\) times since it starts at 1 and only goes up to, but not including, \(n\). Remember that the &lt;code&gt;for&lt;/code&gt; statement must be checked to see if it should exit, so the test is executed one more time than the number of iterations. Therefore, the first statement is executed \(n\) times. If we say that the cost to execute each check is \(c_1\), then the total cost of the first statement is \(c_1 n\).&lt;/p&gt;
@@ -12721,7 +12768,7 @@ E_{\pi} &amp;amp;= \{(v.\pi, v) : v \in V_{\pi} - \{s\}\}.
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; j &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A[j &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; key &lt;span style=&#34;color:#75715e&#34;&gt;# c_7 n&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For the &lt;code&gt;while&lt;/code&gt; loop, we can denote the number of times it runs by \(t_i\), where \(i\) is the iteration of the &lt;code&gt;for&lt;/code&gt; loop. If the &lt;code&gt;while&lt;/code&gt; condition check costs \(c_4\) and is executed \(t_i\) times for each &lt;code&gt;for&lt;/code&gt; loop iteration, the total cost is given as \(c_4 \sum_{i=1}^{n-1} t_i\).&lt;/p&gt;
-&lt;p&gt;The statement inside the &lt;code&gt;while&lt;/code&gt; loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the &lt;code&gt;while&lt;/code&gt; loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the &lt;code&gt;while&lt;/code&gt; loop is updated in the code below.&lt;/p&gt;
+&lt;p&gt;The statements inside the &lt;code&gt;while&lt;/code&gt; loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the &lt;code&gt;while&lt;/code&gt; loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the &lt;code&gt;while&lt;/code&gt; loop is updated in the code below.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;insertion_sort&lt;/span&gt;(A):
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; range(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, len(A)): &lt;span style=&#34;color:#75715e&#34;&gt;# c_1 * n&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        key &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A[i] &lt;span style=&#34;color:#75715e&#34;&gt;# c_2 * (n-1)&lt;/span&gt;

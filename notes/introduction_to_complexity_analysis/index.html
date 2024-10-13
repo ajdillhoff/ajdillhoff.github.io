@@ -35,6 +35,7 @@ Table of Contents
 Introduction to Algorithms
 Insertion Sort
 Example: Sorting Numbers
+Correctness
 Worst-Case Analysis
 Best-Case Analysis
 Rate of Growth
@@ -158,6 +159,7 @@ Table of Contents
 Introduction to Algorithms
 Insertion Sort
 Example: Sorting Numbers
+Correctness
 Worst-Case Analysis
 Best-Case Analysis
 Rate of Growth
@@ -171,7 +173,7 @@ One of the major goals of computer science is to solve important problems. In or
   
   <meta property="article:published_time" content="2023-09-19T00:00:00-05:00">
   
-  <meta property="article:modified_time" content="2023-09-19T00:00:00-05:00">
+  <meta property="article:modified_time" content="2024-10-12T00:00:00&#43;00:00">
   
 
   
@@ -409,7 +411,7 @@ One of the major goals of computer science is to solve important problems. In or
 
 
 <meta content="2023-09-19 00:00:00 -0500 CDT" itemprop="datePublished">
-<meta content="2023-09-19 00:00:00 -0500 CDT" itemprop="dateModified">
+<meta content="2024-10-12 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -433,8 +435,10 @@ One of the major goals of computer science is to solve important problems. In or
     
     
       
+          Last updated on
+      
     
-    <time>Sep 19, 2023</time>
+    <time>Oct 12, 2024</time>
   </span>
   
 
@@ -443,7 +447,7 @@ One of the major goals of computer science is to solve important problems. In or
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    8 min read
+    11 min read
   </span>
   
 
@@ -571,6 +575,7 @@ One of the major goals of computer science is to solve important problems. In or
 <li><a href="#introduction-to-algorithms">Introduction to Algorithms</a></li>
 <li><a href="#insertion-sort">Insertion Sort</a></li>
 <li><a href="#example-sorting-numbers">Example: Sorting Numbers</a></li>
+<li><a href="#correctness">Correctness</a></li>
 <li><a href="#worst-case-analysis">Worst-Case Analysis</a></li>
 <li><a href="#best-case-analysis">Best-Case Analysis</a></li>
 <li><a href="#rate-of-growth">Rate of Growth</a></li>
@@ -581,6 +586,8 @@ One of the major goals of computer science is to solve important problems. In or
 <h2 id="introduction-to-algorithms">Introduction to Algorithms</h2>
 <p>One of the major goals of computer science is to solve important problems. In order to do that, we must be able to express those solutions both mathematically and in a way that can be executed by a computer. Further, those solutions need to be aware of the resources that are available to them. It does us no good to come up with a solution that could never be run by current hardware or executed in a reasonable amount of time.</p>
 <p>There are of course other considerations besides runtime. How much memory does the solution require? Does it require a lot of data to be stored on disk? What about distributed solutions that can be run on multiple machines? Some solutions can be so complex, that we must also consider their environmental impact. For example, Meta&rsquo;s Llama 2 large language models required 3,311,616 combined GPU hours to train. They report that their total carbon emissions from training were 539 tons of CO2 equivalent (<a href="#citeproc_bib_item_1">Touvron et al. 2023</a>).</p>
+<h3 id="what-is-an-algorithm">What is an algorithm?</h3>
+<p>Generally speaking, an <strong>algorithm</strong> is a sequence of steps describing some computational process. It is more abstract that a single function, and an algorithm will typically call many functions to accomplish its task. Algorithms give us a way of translating complex processes from human language into a form that can be executed by a computer.</p>
 <p>We begin our algorithmic journey by studying a simple sorting algorithm, insertion sort. First, we need to formally define the problem of sorting. Given a sequence of \(n\) objects \(A = \langle a_1, a_2, \ldots, a_n \rangle\), we want to rearrange the elements such that \(a_1&rsquo; \leq a_2&rsquo; \leq \ldots \leq a_n&rsquo;\). We will assume that the elements are comparable, meaning that we can use the operators \(&lt;\) and \(&gt;\) to compare them. Some sets, such as the set of all real numbers, have a natural ordering. A useful programming language would provide the required comparison operators. For other types of elements, such as strings, this may not be the case. For example, how would you compare the strings &ldquo;apple&rdquo; and &ldquo;banana&rdquo;? In these cases, we will need to define our own comparison operators. Either way, we will assume that the comparison operators are available to us.</p>
 <p>This example follows the one given in Chapter 2 of Cormen et al. (2009).</p>
 <h2 id="insertion-sort">Insertion Sort</h2>
@@ -594,7 +601,36 @@ One of the major goals of computer science is to solve important problems. In or
 </span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> j <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>        A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> key
 </span></span></code></pre></div><h2 id="example-sorting-numbers">Example: Sorting Numbers</h2>
-<p>TODO: Add a step-by-step example of sorting a list of numbers.</p>
+<p>Using the algorithm above, sort the following set of numbers. Show the output of the set each time an element is swapped.</p>
+<p>\[
+S = \{10, 4, 7, 0, 2\}
+\]</p>
+<p>\begin{align*}
+\{10, 4, 7, 0, 2\}\\
+\{4, 10, 7, 0, 2\}\\
+\{4, 7, 10, 0, 2\}\\
+\{4, 7, 0, 10, 2\}\\
+\{4, 0, 7, 10, 2\}\\
+\{0, 4, 7, 10, 2\}\\
+\{0, 4, 7, 2, 10\}\\
+\{0, 4, 2, 7, 10\}\\
+\{0, 2, 4, 7, 10\}\\
+\end{align*}</p>
+<h2 id="correctness">Correctness</h2>
+<p>When coming up with novel algorithms, we may find that it works with a specific use-case, but not in general. It is important to verify that the algorithm works for all possible inputs. Proving the <strong>correctness</strong> of an algorithm may be tricky in some cases, but we can utilize a few techniques to make it easier. The first such technique is called a <strong>loop invariant</strong>. A loop invariant is a statement that is true before and after each iteration of a loop.</p>
+<p>The loop invariant for insertion sort is that the subarray \(A[0 : i - 1]\) is sorted. This is chosen based on the task. In some cases, the loop invariant is clear from the problem statement. In others, it may require some thought. It is also possible that more than one loop invariant exists for a given algorithm. To determine if a loop invariant is correct, we must verify three things:</p>
+<ol>
+<li><strong>Initialization</strong>: The loop invariant is true before the first iteration of the loop.</li>
+<li><strong>Maintenance</strong>: If the loop invariant is true before an iteration of the loop, it remains true after the iteration.</li>
+<li><strong>Termination</strong>: When the loop terminates, the loop invariant is true.</li>
+</ol>
+<p>As long as we can show that the properties above hold, we can be confident that the algorithm is correct. Let&rsquo;s verify the loop invariant for insertion sort.</p>
+<h3 id="initialization">Initialization</h3>
+<p>Before the first iteration of the loop, \(i = 1\). The subarray \(A[0 : i - 1] = A[0 : 0] = \langle A[0] \rangle\). Since a single element is always sorted, the loop invariant is true before the first iteration.</p>
+<h3 id="maintenance">Maintenance</h3>
+<p>Assume that the loop invariant is true before the $i$th iteration of the loop. That is, \(A[0 : i - 1]\) is sorted. We need to show that the loop invariant remains true after the $i + 1$th iteration. The $i + 1$th iteration of the loop will swap elements in the subarray \(A[0 : i]\). The loop invariant is maintained if the subarray \(A[0 : i]\) is sorted after the $i + 1$th iteration. This is true because the $i + 1$th iteration will swap elements in the subarray \(A[0 : i]\) until the element at index \(i\) is in the correct position. Therefore, the loop invariant is maintained.</p>
+<h3 id="termination">Termination</h3>
+<p>The loop terminates when \(i = n\). At this point, the subarray \(A[0 : n - 1]\) is sorted. Since the loop invariant is true after the last iteration, the algorithm is correct.</p>
 <h2 id="worst-case-analysis">Worst-Case Analysis</h2>
 <p>Given the definition from above, we can compute \(T(n)\), the running time of the algorithm on an input of size \(n\). To do this, we need to sum the products of the cost of each statement and the number of times each statement is executed.</p>
 <p>At first glance, the first statement <code>for i in range(1, len(A))</code> appears to execute \(n-1\) times since it starts at 1 and only goes up to, but not including, \(n\). Remember that the <code>for</code> statement must be checked to see if it should exit, so the test is executed one more time than the number of iterations. Therefore, the first statement is executed \(n\) times. If we say that the cost to execute each check is \(c_1\), then the total cost of the first statement is \(c_1 n\).</p>
@@ -608,7 +644,7 @@ One of the major goals of computer science is to solve important problems. In or
 </span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> j <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>        A[j <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> key <span style="color:#75715e"># c_7 n</span>
 </span></span></code></pre></div><p>For the <code>while</code> loop, we can denote the number of times it runs by \(t_i\), where \(i\) is the iteration of the <code>for</code> loop. If the <code>while</code> condition check costs \(c_4\) and is executed \(t_i\) times for each <code>for</code> loop iteration, the total cost is given as \(c_4 \sum_{i=1}^{n-1} t_i\).</p>
-<p>The statement inside the <code>while</code> loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the <code>while</code> loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the <code>while</code> loop is updated in the code below.</p>
+<p>The statements inside the <code>while</code> loop are executed 1 fewer times than the number of times the condition check is executed. Therefore, the total cost of the statements inside the <code>while</code> loop is \(c_5 \sum_{i=1}^{n-1} (t_i - 1) + c_5 \sum_{i=1}^{n-1} (t_i - 1)\). The cost of the <code>while</code> loop is updated in the code below.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insertion_sort</span>(A):
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, len(A)): <span style="color:#75715e"># c_1 * n</span>
 </span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> A[i] <span style="color:#75715e"># c_2 * (n-1)</span>
