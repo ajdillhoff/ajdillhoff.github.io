@@ -163,7 +163,7 @@ Quicksort is a popular sorting algorithm implemented in many language libraries 
   
   <meta property="article:published_time" content="2024-02-25T17:24:00-06:00">
   
-  <meta property="article:modified_time" content="2024-02-25T17:24:00-06:00">
+  <meta property="article:modified_time" content="2024-10-27T00:00:00&#43;00:00">
   
 
   
@@ -401,7 +401,7 @@ Quicksort is a popular sorting algorithm implemented in many language libraries 
 
 
 <meta content="2024-02-25 17:24:00 -0600 CST" itemprop="datePublished">
-<meta content="2024-02-25 17:24:00 -0600 CST" itemprop="dateModified">
+<meta content="2024-10-27 00:00:00 &#43;0000 UTC" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -425,8 +425,10 @@ Quicksort is a popular sorting algorithm implemented in many language libraries 
     
     
       
+          Last updated on
+      
     
-    <time>Feb 25, 2024</time>
+    <time>Oct 27, 2024</time>
   </span>
   
 
@@ -435,7 +437,7 @@ Quicksort is a popular sorting algorithm implemented in many language libraries 
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    9 min read
+    10 min read
   </span>
   
 
@@ -568,7 +570,6 @@ Quicksort is a popular sorting algorithm implemented in many language libraries 
 </div>
 <!--endtoc-->
 <p>Quicksort is a popular sorting algorithm implemented in many language libraries that has a worst-case running time of \(\Theta(n^2)\). <strong>Why would anyone choose this as the default sorting algorithm if one like mergesort has better worst-case performance?</strong> As you will see, the devil is in the details. Quicksort is often faster in practice. It also has a small memory footprint and is easy to implement.</p>
-<p><strong>TODO: Discuss distinct values and the impact on quicksort</strong></p>
 <h2 id="basic-quicksort">Basic Quicksort</h2>
 <p>Quicksort follows a divide-and-conquer approach to sorting. Given an input array of \(n\) elements, it selects a pivot element and partitions the array into two sub-arrays: one with elements less than the pivot and one with elements greater than the pivot. It then recursively sorts the sub-arrays. Since the subarrays are recursively sorted, there is no need for a merge step as in mergesort.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">quicksort</span>(arr, p, r):
@@ -716,7 +717,7 @@ L(n) &amp;= 2U(n/2) + \Theta(n) \\
 &amp;= \Theta(n \log n)
 \end{align*}</p>
 <h2 id="randomized-quicksort">Randomized Quicksort</h2>
-<p>The intuition of the crude analysis above is that we would have to be extremely unlucky to get a quadratic running time if the input is randomly ordered. Randomized quicksort builds on this intuition by selection a random pivot on each iteration. This is done by swapping the pivot with a random element before partitioning.</p>
+<p>The intuition of the crude analysis above is that we would have to be extremely unlucky to get a quadratic running time if the input is randomly ordered. Randomized quicksort builds on this intuition by selecting a random pivot on each iteration. This is done by swapping the pivot with a random element before partitioning.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> random
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">randomized_partition</span>(arr, p, r):
@@ -743,7 +744,7 @@ E[X] &amp;= E\left[\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} X_{ij}\right] \\
 &amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} E[X_{ij}] \\
 &amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} P(X_{ij} = 1).
 \end{align*}</p>
-<p><strong>What is P(X<sub>ij</sub> = 1)?</strong> Let \(z_i, \dots, z_j\) be the indices of elements in a sorted version of the array. Under this assumption, \(z_i\) is compared to \(z_j\) only if \(z_i\) or \(z_j\) is the first pivot chosen from the subarray \(A[i \dots j]\). In a set of distinct elements, the probability of picking any pivot from the array from \(i\) to \(j\) is \(\frac{1}{j - i + 1}\). This means that the probability of comparing \(z_i\) and \(z_j\) is \(\frac{2}{j - i + 1}\). We can now finish the calculation.</p>
+<p><strong>What is \(P(X_{ij} = 1)\)?</strong> Let \(z_i, \dots, z_j\) be the indices of elements in a sorted version of the array. Under this assumption, \(z_i\) is compared to \(z_j\) only if \(z_i\) or \(z_j\) is the first pivot chosen from the subarray \(A[i \dots j]\). In a set of distinct elements, the probability of picking any pivot from the array from \(i\) to \(j\) is \(\frac{1}{j - i + 1}\). This means that the probability of comparing \(z_i\) and \(z_j\) is \(\frac{2}{j - i + 1}\). We can now finish the calculation.</p>
 <p>\begin{align*}
 E[X] &amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \frac{2}{j - i + 1} \\
 &amp;= \sum_{i=1}^{n-1} \sum_{k=1}^{n-i} \frac{2}{k + 1} \\
@@ -756,7 +757,21 @@ E[X] &amp;= \sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \frac{2}{j - i + 1} \\
 <ol>
 <li>Choose a random pivot.</li>
 <li>Partition the array.</li>
+<li>Verify that the left and right subarrays are less than or equal to \(\frac{3}{4}\) of the original array.
+<ol>
+<li>If not, repeat the partitioning.</li>
 </ol>
+</li>
+<li>Recursively sort the subarrays.</li>
+</ol>
+<h3 id="analysis">Analysis</h3>
+<p>Most of the analysis of Paranoid Quicksort follows that of randomized quicksort. The focus is on the expected number of calls times <code>partition</code> is called until no side of the split is greater than \(\frac{3}{4}\) of the input.</p>
+<p>Consider a sorted array of \(n\) <em>distinct</em> elements. The first and last \(\frac{n}{4}\) elements would produce a bad split. That means there are \(n/2\) values that provide a good split, implying that \(p(\text{good split}) = \frac{1}{2}\). Knowing the probability of this event means we can calculated the expected number of times we should call <code>partition</code> before getting a <em>good</em> split, <a href="https://math.stackexchange.com/questions/1196452/expected-value-of-the-number-of-flips-until-the-first-head" target="_blank" rel="noopener noreferrer">which is 2.</a></p>
+<p>Continuing on with this analysis, we need to state the recurrence:</p>
+<p>\[
+T(n) \leq 2cn + T(\lfloor 3n/4) \rfloor) + T(\lceil n/4 \rceil) + O(1)
+\]</p>
+<p>The addition of \(2cn\) is not enough to change our analysis from above. Thus, the expected running time of Quicksort is \(O(n \log n)\).</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
