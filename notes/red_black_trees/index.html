@@ -660,7 +660,7 @@ For each node, all simple paths from the node to descendant leaves contain the s
 <p>Property 5 implies that the <em>black-height</em> of a tree is an important property. This property is used to prove that the height of a red-black tree with \(n\) internal nodes is at most \(2 \log(n + 1)\).</p>
 <h2 id="operations">Operations</h2>
 <h3 id="rotate">Rotate</h3>
-<p>If a <Binary Search Tree> is balanced, then searching for a node takes \(O(\log n)\) time. However, if the tree is unbalanced, then searching can take \(O(n)\) time. When items are inserted or deleted from a tree, it can become unbalanced. Without any way to correct for this, a BST is less desirable unless the data will not change.</p>
+<p>If a <a href="/notes/binary_search_trees/">binary search tree</a> is balanced, then searching for a node takes \(O(\log n)\) time. However, if the tree is unbalanced, then searching can take \(O(n)\) time. When items are inserted or deleted from a tree, it can become unbalanced. Without any way to correct for this, a BST is less desirable unless the data will not change.</p>
 <p>When nodes are inserted or deleted into a red-black tree, the <strong><strong>rotation</strong></strong> operation is used in functions that maintain the red-black properties. This ensures that the tree remains balanced and that operations like search, insert, and delete run in \(O(\log n)\) time. The figure below shows the two types of rotations that can be performed on a red-black tree.</p>
 
 
@@ -795,7 +795,8 @@ For each node, all simple paths from the node to descendant leaves contain the s
 </span></span><span style="display:flex;"><span>                z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> RED
 </span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>left_rotate(z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>p)
 </span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>root<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
-</span></span></code></pre></div><h4 id="case-1">Case 1</h4>
+</span></span></code></pre></div><p>The main logic of this is that the loop will continue to make corrections up the tree until it reaches the root, which must be a black node.</p>
+<h4 id="case-1">Case 1</h4>
 <p>Inside the <code>while</code> loop, the first and second conditions are symmetric. One considers the case where <code>z</code>&rsquo;s parent is a left child, and the other considers the case where <code>z</code>&rsquo;s parent is a right child. Further, if <code>z</code>&rsquo;s parent is a left child, then we start by setting <code>y</code> to <code>z</code>&rsquo;s <em>aunt</em>. Let&rsquo;s investigate the first <code>if</code> statement, where <code>y</code> is <code>RED</code>. In this case, both <code>z</code>&rsquo;s parent and aunt are <code>RED</code>. We can fix this by setting both to <code>BLACK</code> and setting <code>z</code>&rsquo;s grandparent to <code>RED</code>. This may violate property 2, so we set <code>z</code> to its grandparent and repeat the loop.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> y<span style="color:#f92672">.</span>color <span style="color:#f92672">==</span> RED:
 </span></span><span style="display:flex;"><span>    z<span style="color:#f92672">.</span>p<span style="color:#f92672">.</span>color <span style="color:#f92672">=</span> BLACK
