@@ -1,124 +1,26 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Optimization on Alex Dillhoff</title>
-    <link>http://localhost:1313/tags/optimization/</link>
+    <link>https://ajdillhoff.github.io/tags/optimization/</link>
     <description>Recent content in Optimization on Alex Dillhoff</description>
-    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
-    <language>en-us</language>
-    <copyright>Copyright &amp;copy; {year}</copyright>
+    <generator>Hugo</generator>
+    <language>en</language>
     <lastBuildDate>Mon, 23 Sep 2024 18:00:00 -0500</lastBuildDate>
-    
-	    <atom:link href="http://localhost:1313/tags/optimization/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <atom:link href="https://ajdillhoff.github.io/tags/optimization/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Automatic Differentiation</title>
-      <link>http://localhost:1313/notes/automatic_differentiation/</link>
+      <link>https://ajdillhoff.github.io/notes/automatic_differentiation/</link>
       <pubDate>Mon, 23 Sep 2024 18:00:00 -0500</pubDate>
-      
-      <guid>http://localhost:1313/notes/automatic_differentiation/</guid>
-      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
-&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#types-of-differentiation&#34;&gt;Types of Differentiation&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#forward-mode-ad&#34;&gt;Forward Mode AD&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#reverse-mode-ad&#34;&gt;Reverse Mode AD&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#basic-implementation-in-python&#34;&gt;Basic Implementation in Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#matrix-implementation&#34;&gt;Matrix Implementation&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#comparison-with-pytorch&#34;&gt;Comparison with PyTorch&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;!--endtoc--&gt;
-&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;These notes largely follow the survey presented by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Baydin et al. 2018&lt;/a&gt;). I have added a few examples to clarify the matrix algebra as well as a lead in to a practical implemenation.&lt;/p&gt;
-&lt;p&gt;Automatic differentiation is a method for computing the derivatives of functions in a modular way using the chain rule of calculus. It is used in many deep learning frameworks such as PyTorch and Tensorflow. Consider a complex series of functions that together work to yield some useful input, such as that of a deep learning model. Traditionally, the parameters of such a model would be optimized through gradient descent. This requires that the derivatives with respect to the parameters are implemented for every function used in the model.&lt;/p&gt;
-&lt;p&gt;Without autograd, one would have to write implementations for each function derivative required for the model. This is not only cumbersome, but can be error-prone and hard to debug. Automatic differentiation instead breaks down any forward computation into a series of elementary operations whose derivatives are well known.&lt;/p&gt;
-&lt;h2 id=&#34;types-of-differentiation&#34;&gt;Types of Differentiation&lt;/h2&gt;
-&lt;h3 id=&#34;numerical-differentiation&#34;&gt;Numerical Differentiation&lt;/h3&gt;
-&lt;h3 id=&#34;symbolic-differentiation&#34;&gt;Symbolic Differentiation&lt;/h3&gt;
-&lt;h2 id=&#34;forward-mode-ad&#34;&gt;Forward Mode AD&lt;/h2&gt;
-&lt;h3 id=&#34;computing-the-jacobian&#34;&gt;Computing the Jacobian&lt;/h3&gt;
-&lt;p&gt;The example above computed the derivative of a function \(f : \mathbb{R}^2 \to \mathbb{R}\). To compute the derivative of the function with respect to all input variables, we would need to run forward mode AD for each input variable. In the context of a neural network, this would mean running forward mode AD for each input feature. This is not efficient, as the number of input features can be very large. What about hidden layers? They typically have multiple outputs as well. Luckily, the number of outputs is not a bottleneck as this approach can compute \(\dot{y}_j\) for all \(j\) in a single pass by setting \(\dot{\mathbf{x}} = \mathbf{e}_i\) where \(\mathbf{e}_i\) is the $i$th standard basis vector.&lt;/p&gt;
-&lt;p&gt;If we combine these columns representing the derivatives of the output with respect to the input, we get the &lt;strong&gt;Jacobian matrix&lt;/strong&gt;. This matrix is the derivative of the function with respect to all input variables. This is a very useful matrix in optimization problems, as it tells us how the output of the function changes with respect to the input.&lt;/p&gt;
-&lt;h2 id=&#34;reverse-mode-ad&#34;&gt;Reverse Mode AD&lt;/h2&gt;
-&lt;h2 id=&#34;basic-implementation-in-python&#34;&gt;Basic Implementation in Python&lt;/h2&gt;
-&lt;h2 id=&#34;matrix-implementation&#34;&gt;Matrix Implementation&lt;/h2&gt;
-&lt;h2 id=&#34;comparison-with-pytorch&#34;&gt;Comparison with PyTorch&lt;/h2&gt;
-&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
-&lt;style&gt;.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}&lt;/style&gt;&lt;div class=&#34;csl-bib-body&#34;&gt;
-  &lt;div class=&#34;csl-entry&#34;&gt;&lt;a id=&#34;citeproc_bib_item_1&#34;&gt;&lt;/a&gt;Baydin, Atilim Gunes, Barak A. Pearlmutter, Alexey Andreyevich Radul, and Jeffrey Mark Siskind. 2018. “Automatic Differentiation in Machine Learning: A Survey.” arXiv. &lt;a href=&#34;https://doi.org/10.48550/arXiv.1502.05767&#34;&gt;https://doi.org/10.48550/arXiv.1502.05767&lt;/a&gt;.&lt;/div&gt;
-&lt;/div&gt;
-</description>
+      <guid>https://ajdillhoff.github.io/notes/automatic_differentiation/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;&#xA;&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#introduction&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Introduction&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#types-of-differentiation&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Types of Differentiation&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#forward-mode-ad&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Forward Mode AD&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#reverse-mode-ad&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Reverse Mode AD&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#basic-implementation-in-python&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Basic Implementation in Python&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#matrix-implementation&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Matrix Implementation&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#comparison-with-pytorch&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Comparison with PyTorch&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/div&gt;&#xA;&lt;!--endtoc--&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;p&gt;These notes largely follow the survey presented by (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Baydin et al. 2018&lt;/a&gt;). I have added a few examples to clarify the matrix algebra as well as a lead in to a practical implemenation.&lt;/p&gt;</description>
     </item>
-    
     <item>
       <title>Lagrangian Multipliers</title>
-      <link>http://localhost:1313/notes/lagrangian_multipliers/</link>
+      <link>https://ajdillhoff.github.io/notes/lagrangian_multipliers/</link>
       <pubDate>Sat, 05 Feb 2022 00:00:00 -0600</pubDate>
-      
-      <guid>http://localhost:1313/notes/lagrangian_multipliers/</guid>
-      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;Let&amp;rsquo;s take a simple constrained problem (from Nocedal and Wright).&lt;/p&gt;
-&lt;p&gt;\begin{align*}
-\min \quad &amp;amp; x_1 + x_2\\
-\textrm{s.t.} \quad &amp;amp; x_1^2 + x_2^2 - 2 = 0
-\end{align*}&lt;/p&gt;
-&lt;p&gt;The set of possible solutions to this problem lie on the boundary of the circle defined by the constraint:&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;http://localhost:1313/ox-hugo/2021-12-01_18-06-50_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Source: Nocedal and Wright&#34; &gt;
-
-
-
-&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
-  
-  &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: Nocedal and Wright
-    
-    
-    
-  &lt;/p&gt; 
-&lt;/figcaption&gt;
-
-&lt;/figure&gt;
-
-&lt;p&gt;If we let \(g(\mathbf{x}) = x_1^2 + x_2^2 - 2\), then the gradient vector is \((2x_1, 2x_2)\)&lt;/p&gt;
-&lt;p&gt;Our original function \(f(\mathbf{x}) = x_1 + x_2\) has a gradient vector of \((1, 1)\).&lt;/p&gt;
-&lt;p&gt;The figure above visualizes these vectors at different points on the constraint boundary.&lt;/p&gt;
-&lt;p&gt;Notice that the optimal solution \(\mathbf{x}^* = (-1, -1)\) is at a point where \(\nabla g(\mathbf{x}^*)\) is parallel to \(\nabla f(\mathbf{x}^*)\). However, the gradients of the vectors are not equal. So there must be some scalar \(\lambda\) such that \(\nabla f(\mathbf{x}^*) = \lambda \nabla g(\mathbf{x}^*)\).&lt;/p&gt;
-&lt;p&gt;This scalar \(\lambda\) is called a Lagrangian multiplier. We use this and introduce the Lagrangian function:&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) - \lambda g(\mathbf{x})
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;This yields a form for which we can analytically calculate the stationary points. That is,&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\nabla_{\mathbf{x}} \mathcal{L}(\mathbf{x}^*, \lambda^*) = 0.
-\end{equation*}&lt;/p&gt;
-&lt;h2 id=&#34;lagrangian-duality&#34;&gt;Lagrangian Duality&lt;/h2&gt;
-&lt;p&gt;In general, the primal optimization problem is formulated as&lt;/p&gt;
-&lt;p&gt;\begin{align*}
-\min_{w} \quad &amp;amp; f(w)\\
-\textrm{s.t.} \quad &amp;amp; g_i(w) \leq 0, \quad i = 1, \dots, k\\
-&amp;amp; h_i(w) = 0, \quad i = 1, \dots, l.
-\end{align*}&lt;/p&gt;
-&lt;p&gt;The Lagrangian function is then&lt;/p&gt;
-&lt;p&gt;\[
-L(w, \alpha, \beta) = f(w) + \sum_{i=1}^k\alpha_i g_i(w) + \sum_{i=1}^l \beta_i h_i(w).
-\]&lt;/p&gt;
-&lt;h2 id=&#34;additional-resources&#34;&gt;Additional Resources&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;https://cs229.stanford.edu/notes2021fall/cs229-notes3.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <guid>https://ajdillhoff.github.io/notes/lagrangian_multipliers/</guid>
+      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Let&amp;rsquo;s take a simple constrained problem (from Nocedal and Wright).&lt;/p&gt;</description>
     </item>
-    
   </channel>
 </rss>

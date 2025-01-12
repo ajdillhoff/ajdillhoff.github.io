@@ -1,158 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Dimensionality Reduction on Alex Dillhoff</title>
-    <link>http://localhost:1313/tags/dimensionality-reduction/</link>
+    <link>https://ajdillhoff.github.io/tags/dimensionality-reduction/</link>
     <description>Recent content in Dimensionality Reduction on Alex Dillhoff</description>
-    <generator>Source Themes academia (https://sourcethemes.com/academic/)</generator>
-    <language>en-us</language>
-    <copyright>Copyright &amp;copy; {year}</copyright>
+    <generator>Hugo</generator>
+    <language>en</language>
     <lastBuildDate>Sat, 22 Jan 2022 00:00:00 -0600</lastBuildDate>
-    
-	    <atom:link href="http://localhost:1313/tags/dimensionality-reduction/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <atom:link href="https://ajdillhoff.github.io/tags/dimensionality-reduction/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Principal Component Analysis</title>
-      <link>http://localhost:1313/notes/principal_component_analysis/</link>
+      <link>https://ajdillhoff.github.io/notes/principal_component_analysis/</link>
       <pubDate>Sat, 22 Jan 2022 00:00:00 -0600</pubDate>
-      
-      <guid>http://localhost:1313/notes/principal_component_analysis/</guid>
-      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;
-&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#summary&#34;&gt;Summary&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#maximum-variance-formulation&#34;&gt;Maximum Variance Formulation&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#motivating-example&#34;&gt;Motivating Example&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#noise-and-redundancy&#34;&gt;Noise and Redundancy&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;#covariance-matrix&#34;&gt;Covariance Matrix&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;!--endtoc--&gt;
-&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
-&lt;p&gt;If we have some measurements of data, but do not know the underlying dynamics, PCA can resolve this by producing a change of basis such that the dynamics are reflected upon the eigenvectors.&lt;/p&gt;
-&lt;h2 id=&#34;maximum-variance-formulation&#34;&gt;Maximum Variance Formulation&lt;/h2&gt;
-&lt;p&gt;Although there are several derivations of PCA. I really like the approach of projecting the data onto a lower dimensional space in order to maximize the variance of the projected data.&lt;/p&gt;
-&lt;p&gt;Let \(\mathbf{X}\) be a dataset of \(N\) samples, each with \(D\) features. The goal of PCA is to project this data onto an $M$-dimensional space such that \(M &amp;lt; D\).&lt;/p&gt;
-&lt;p&gt;Remember that the goal here is to maximize the variance of the &lt;strong&gt;projected data&lt;/strong&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;How do we project the data?&lt;/strong&gt;
-Let&amp;rsquo;s say that we want to go from $D$-dimensional space to $M$-dimensional space where \(M = 1\). Let the vector \(\mathbf{u}\) define this 1D space. If \(\mathbf{u}\) is a unit vector, then the scalar projection of a data point \(\mathbf{x}\) onto \(\mathbf{u}\) is simply \(\mathbf{u} \cdot \mathbf{x}\).&lt;/p&gt;
-&lt;p&gt;Since we are maximizing variance, we need to subtract the mean sample from our data&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathbf{\bar{x}} = \frac{1}{N}\sum_{n=1}^{N}\mathbf{x}_n
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;Then, the mean of the projected data is \(\mathbf{u} \cdot \mathbf{\bar{x}}\).&lt;/p&gt;
-&lt;p&gt;With the mean of the projected data, we can calculate the variance:&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\frac{1}{N}\sum_{n=1}^{N}\{\mathbf{u}^T\mathbf{x}_n - \mathbf{u}^T\mathbf{\bar{x}}\}^2 = \mathbf{u}^T\mathbf{S}\mathbf{u}
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;where&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathbf{S} = \frac{1}{N}\sum_{n=1}^{N}(\mathbf{x}_n - \mathbf{\bar{x}})(\mathbf{x}_n - \mathbf{\bar{x}})^T
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;Thus, if we are maximizing the variance of the projected data, then we are maximizing \(\mathbf{u}^T\mathbf{S}\mathbf{u}\)!&lt;/p&gt;
-&lt;p&gt;So this is an optimization problem, but there is one minor issue to deal with: if \(\mathbf{u}\) is not constrained, then we scale it to infinity while maximizing the function.&lt;/p&gt;
-&lt;p&gt;Before, we stated that \(\mathbf{u}\) is a unit vector. Thus, the constraint is that \(\mathbf{u} \cdot \mathbf{u} = 1\).&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;After reviewing Lagrangian multipliers&amp;hellip;&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;To enforce this constraint, we can use a lagrangian multiplier:&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathcal{L}(\mathbf{u}, \lambda) = \mathbf{u}^T\mathbf{S}\mathbf{u} + \lambda(1 - \mathbf{u}^T\mathbf{u}).
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;Let&amp;rsquo;s see what happens when we compute the stationary points (critical points) of the given Lagrangian function.&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\nabla_{\mathbf{u}}\mathcal{L}(\mathbf{u}, \lambda) = \mathbf{S}\mathbf{u} - \lambda \mathbf{u} = 0
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;This implies that&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathbf{S}\mathbf{u} = \lambda \mathbf{u}
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;That particular equation means that \(\mathbf{u}\) is an eigenvector of \(\mathbf{S}\) with \(\lambda\) being the corresponding eigenvalue. Since \(\mathbf{u}\) is a unit vector, we can conveniently left-multiply both sides of that equation by \(\mathbf{u}^T\), resulting in:&lt;/p&gt;
-&lt;p&gt;\begin{equation*}
-\mathbf{u}^T\mathbf{S}\mathbf{u} = \lambda
-\end{equation*}&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;What does this mean?&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;That means that the variance is maximized when \(\mathbf{u}\) is the eigenvector corresponding to the largest eigenvalue \(\lambda\).&lt;/p&gt;
-&lt;p&gt;We can repeat this process to find the direction (eigenvector) corresponding to the second largest variance by considering eigenvectors that are orthogonal to the first one. This is where an orthonormal eigenbasis comes in handy.&lt;/p&gt;
-&lt;h2 id=&#34;motivating-example&#34;&gt;Motivating Example&lt;/h2&gt;
-&lt;p&gt;Consider a frictionless, massless spring that produces dynamics in a single direction.&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;http://localhost:1313/ox-hugo/2021-11-24_12-23-28_screenshot.png&#34; alt=&#34;&amp;lt;span class=&amp;#34;figure-number&amp;#34;&amp;gt;Figure 1: &amp;lt;/span&amp;gt;Toy model of spring with ball observed from 3 perspectives.&#34; &gt;
-
-
-
-&lt;figcaption data-pre=&#34;Figure &#34; data-post=&#34;:&#34; &gt;
-  
-  &lt;p&gt;
-    &lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Toy model of spring with ball observed from 3 perspectives.
-    
-    
-    
-  &lt;/p&gt; 
-&lt;/figcaption&gt;
-
-&lt;/figure&gt;
-
-&lt;p&gt;We can clearly understand that the spring will only move in a single direction. That movement reflects the underlying dynamics of this data. To understand how PCA can be useful in this situation, let&amp;rsquo;s pretend that we do not know the underlying dynamics. Instead, we observe that the data seems to go back and forth along a single axis. We observe the data over time from 3 different perspectives given by the cameras in the above figure.&lt;/p&gt;
-&lt;p&gt;From the perspective of the observer, we are recording some observations in an effort to understand which dimensions are the most salient at representing the underlying mechanics. From the above figure, we know that the most important dimension in this system is that of the labeled x-axis.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;How would we figure this out if we did not already know that?&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;Each camera has its own coordinate system (basis). If each camera gives us a 2D location of the ball relative to that camera&amp;rsquo;s basis, then each sample in time gives us a 6D vector of locations.&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Equivalently, every time sample is a vector that lies in an $m$-dimensional vector space spanned by an orthonormal basis.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;&lt;strong&gt;Is it possible to find another basis that best expresses the data?&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;Mathemtically, is there some matrix \(P\) that changes our original data \(X\) into a new representation \(Y\)?&lt;/p&gt;
-&lt;p&gt;\(PX = Y\)&lt;/p&gt;
-&lt;h2 id=&#34;noise-and-redundancy&#34;&gt;Noise and Redundancy&lt;/h2&gt;
-&lt;p&gt;When observing real data, we will have to account for noisy measurements. Noise can come from a wide variety of sources. Being able to reduce it or filter it out is vital to understanding the underlying system.&lt;/p&gt;
-&lt;p&gt;Noise is an arbitrary measurement and means nothing without some measurement of a signal. Thus, we typically measure the amount of noise in our system using a Signal-to-Noise Ratio (SNR). This assumes we have some idea of what our signal is. This is usually given based on the nature of whatever problem we are investigating. &lt;strong&gt;In the toy example, we know that the spring largely moves in a single dimension. That is the signal we expect to observe.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;For arguments sake, imagine we that the recordings over time from a single camera plot the following data:&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;http://localhost:1313/ox-hugo/2021-11-24_14-56-35_screenshot.png&#34; &gt;
-
-
-&lt;/figure&gt;
-
-&lt;p&gt;From our advantageous position of knowing the true nature of the problem, we understand there really should be no noise. However, let&amp;rsquo;s say that our camera has some noise in interpreting the precise location of the ball at any given time. In this case, our SNR is quite high, which is good! Ideally, it would be a straight line.&lt;/p&gt;
-&lt;p&gt;There is a second factor to consider: the fact that we are taking measurements from multiple sensors means that there may be some redundancy among the data collected from them. If we were to discover features that have high redundancy, we could be confident in concluding that they are highly correlated.&lt;/p&gt;
-
-
-
-
-
-
-&lt;figure&gt;
-
-&lt;img src=&#34;http://localhost:1313/ox-hugo/2021-11-24_15-01-05_screenshot.png&#34; &gt;
-
-
-&lt;/figure&gt;
-
-&lt;h2 id=&#34;covariance-matrix&#34;&gt;Covariance Matrix&lt;/h2&gt;
-&lt;p&gt;Let \(X\) be a an \(m \times n\) matrix of \(n\) observations with \(m\) features per observation.&lt;/p&gt;
-&lt;p&gt;We can produce a covariance matrix of the features via \(S_{X} = \frac{1}{n-1}XX^{T}\).&lt;/p&gt;
-&lt;p&gt;This gives us a measurement of the correlations between all pairs of measurements.&lt;/p&gt;
-&lt;p&gt;If we want to reduce redunancy between separate measurements (those in the off-diagonal of the matrix), we would then want to diagonalize this matrix. In terms of the equation \(PX=Y\), this has the effective of finding a new covariance matrix \(S_{Y}\) that is diagonal. This means that each value in the off-diagonal of \(S_{Y}\) is 0.&lt;/p&gt;
-&lt;p&gt;PCA has a convenient assumption: the change of basis matrix \(P\) is orthonormal.
-&lt;strong&gt;Why is this convenient?&lt;/strong&gt;
-PCA can then select the normalized direction in the feature space for which the variance in the data is maximized. This is called the first &lt;em&gt;principal component&lt;/em&gt;. Because we assume \(P\) is orthonormal, the subsequent principal components must be orthogonal to the previously discovered components.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;One more thing&lt;/strong&gt;
-If \(P\) is not orthonormal, then we can simply scale our eigenvectors to maximize variance.&lt;/p&gt;
-</description>
+      <guid>https://ajdillhoff.github.io/notes/principal_component_analysis/</guid>
+      <description>&lt;div class=&#34;ox-hugo-toc toc&#34;&gt;&#xA;&lt;div class=&#34;heading&#34;&gt;Table of Contents&lt;/div&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#summary&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Summary&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#maximum-variance-formulation&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Maximum Variance Formulation&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#motivating-example&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Motivating Example&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#noise-and-redundancy&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Noise and Redundancy&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#covariance-matrix&#34;&#xA;&#xA;&#xA;&#xA; &#xA;&#xA;&#xA;&gt;Covariance Matrix&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/div&gt;&#xA;&lt;!--endtoc--&gt;&#xA;&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;&#xA;&lt;p&gt;If we have some measurements of data, but do not know the underlying dynamics, PCA can resolve this by producing a change of basis such that the dynamics are reflected upon the eigenvectors.&lt;/p&gt;</description>
     </item>
-    
   </channel>
 </rss>
