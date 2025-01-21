@@ -288,7 +288,7 @@
 
 
 
-<link rel="stylesheet" href="/css/style.bb6df8908edd994bde97a48df879a4f97876d33ae4abbcb0cd2098de500fb29f.css" />
+<link rel="stylesheet" href="/css/style.885cbe85fc7a7d1b9f9e7e4cbd04a7eea6fcefa8464071c8d8499b824a0ed071.css" />
 
 
 
@@ -316,7 +316,7 @@
 
 <aside id="sidebarContent" class="position-fixed hidden d-lg-block top-0 w-100 vh-100">
   <nav id="navbar" class="navigation d-flex flex-column justify-content-between h-100">
-    <ul class="navbar-nav mb-5">
+    <ul class="navbar-nav mb-2">
       
       
       <li class="nav-item d-block">
@@ -338,6 +338,292 @@
     </ul>
 
     
+
+<div class="section-nav mb-3" id="section-nav">
+  <script>
+    class SectionNav {
+      constructor() {
+        this.initializeEventListeners();
+        this.restoreState();
+      }
+
+      initializeEventListeners() {
+        
+        document.querySelectorAll('#section-nav .note-link').forEach(link => {
+          link.onclick = (e) => {
+            e.preventDefault();
+            console.log('Link clicked:', link.href);  
+            this.loadContent(link.href);
+            return false;
+          };
+        });
+
+        
+        window.onpopstate = (event) => {
+          if (event.state?.url) {
+            this.loadContent(event.state.url, false);
+          }
+        };
+
+        
+        document.querySelectorAll('#section-nav .section-header').forEach(header => {
+          header.onclick = (e) => {
+            const sectionName = header.dataset.section;
+            this.toggleSection(header, sectionName);
+          };
+        });
+      }
+
+      async loadContent(url, pushState = true) {
+        console.log('Loading content for URL:', url);  
+        
+        try {
+          
+          const currentArticle = document.querySelector('.main-content');
+          currentArticle.classList.add('fade-out');
+
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+          
+          const response = await fetch(url);
+          console.log('Fetch response:', response.ok);  
+          
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const html = await response.text();
+          console.log('Received HTML length:', html.length);  
+
+          
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const newArticle = doc.querySelector('.main-content');
+          
+          if (!newArticle) {
+            console.error('No article found in fetched content');  
+            throw new Error('No article found in fetched content');
+          }
+
+          
+          currentArticle.innerHTML = newArticle.innerHTML;
+          
+          
+          if (pushState) {
+            history.pushState({ url }, '', url);
+          }
+
+          
+          this.updateActiveState(url);
+
+          
+          currentArticle.classList.remove('fade-out');
+
+          
+          this.runScripts(currentArticle);
+
+          
+          if (window.MathJax) {
+            if (window.MathJax.typesetPromise) {
+              
+              await window.MathJax.typesetPromise([currentArticle]);
+            } else if (window.MathJax.Hub) {
+              
+              window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, currentArticle]);
+            }
+          }
+
+          
+          if (window.AOS) {
+            window.AOS.init();
+          }
+
+          
+          window.scrollTo(0, 0);
+          
+        } catch (error) {
+          console.error('Error loading content:', error);  
+          
+          window.location.href = url;
+        }
+      }
+
+      updateActiveState(currentUrl) {
+        document.querySelectorAll('#section-nav .note-link').forEach(link => {
+          
+          link.classList.remove('active');
+          
+          
+          const linkPath = link.getAttribute('href').replace(/\/$/, '');
+          const currentPath = currentUrl.replace(/\/$/, '');
+          
+          if (linkPath === currentPath) {
+            link.classList.add('active');
+            
+            const parentSection = link.closest('.section-group');
+            if (parentSection) {
+              const header = parentSection.querySelector('.section-header');
+              const content = parentSection.querySelector('.section-content');
+              header.classList.add('expanded');
+              content.classList.add('expanded');
+            }
+          }
+        });
+      }
+
+      runScripts(container) {
+        container.querySelectorAll('script').forEach(oldScript => {
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+          newScript.textContent = oldScript.textContent;
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      }
+
+      toggleSection(header, sectionName) {
+        const content = header.nextElementSibling;
+        const isExpanded = header.classList.toggle('expanded');
+        content.classList.toggle('expanded');
+        localStorage.setItem(`nav-section-${sectionName}`, isExpanded);
+      }
+
+      restoreState() {
+        document.querySelectorAll('#section-nav .section-group').forEach(section => {
+          const header = section.querySelector('.section-header');
+          const content = section.querySelector('.section-content');
+          const sectionName = header.dataset.section;
+          
+          
+          if (localStorage.getItem(`nav-section-${sectionName}`) === 'true') {
+            header.classList.add('expanded');
+            content.classList.add('expanded');
+          }
+
+          
+          if (section.querySelector('.note-link.active')) {
+            header.classList.add('expanded');
+            content.classList.add('expanded');
+            localStorage.setItem(`nav-section-${sectionName}`, 'true');
+          }
+        });
+      }
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Initializing SectionNav');  
+      window.sectionNav = new SectionNav();
+    });
+  </script>
+
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="computer vision">
+        computer vision
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/active_contours/" 
+             class="note-link">
+            Active Contours
+          </a>
+        
+          <a href="/notes/color/" 
+             class="note-link active">
+            Color
+          </a>
+        
+          <a href="/notes/edge_detection/" 
+             class="note-link">
+            Edge Detection
+          </a>
+        
+          <a href="/notes/image_features/" 
+             class="note-link">
+            Image Features
+          </a>
+        
+          <a href="/notes/patch_extraction/" 
+             class="note-link">
+            Patch Extraction
+          </a>
+        
+          <a href="/notes/sampling/" 
+             class="note-link">
+            Sampling and Aliasing
+          </a>
+        
+      </div>
+    </div>
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="gpu programming">
+        gpu programming
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/heterogeneous_data_parallel_computing/" 
+             class="note-link">
+            Heterogeneous Data Parallel Computing
+          </a>
+        
+          <a href="/notes/introduction_to_gpgpu_programming/" 
+             class="note-link">
+            Introduction to GPGPU Programming
+          </a>
+        
+          <a href="/notes/multidimensional_grids_and_data/" 
+             class="note-link">
+            Multidimensional Grids and Data
+          </a>
+        
+      </div>
+    </div>
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="machine learning">
+        machine learning
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/convolutional_neural_networks/" 
+             class="note-link">
+            Convolutional Neural Networks
+          </a>
+        
+          <a href="/notes/linear_discriminant_analysis/" 
+             class="note-link">
+            Linear Discriminant Analysis
+          </a>
+        
+          <a href="/notes/linear_regression/" 
+             class="note-link">
+            Linear Regression
+          </a>
+        
+          <a href="/notes/logistic_regression/" 
+             class="note-link">
+            Logistic Regression
+          </a>
+        
+          <a href="/notes/probability_theory/" 
+             class="note-link">
+            Probability Theory
+          </a>
+        
+          <a href="/notes/regularization/" 
+             class="note-link">
+            Regularization
+          </a>
+        
+      </div>
+    </div>
+  
+</div>
 
     
     
@@ -383,7 +669,8 @@
 
   <main class="px-2 px-lg-0 px-xl-4 overflow-hidden">
     <div >
-      
+        <div class="main-content">
+            
 
 <section class="section bg-shape">
   <div class="container">
@@ -418,14 +705,22 @@
             <div class="ox-hugo-toc toc">
 <div class="heading">Table of Contents</div>
 <ul>
-<li><a href="#topics"
+<li><a href="#agenda"
 
 
 
  
 
 
->Topics</a></li>
+>Agenda</a></li>
+<li><a href="#light-and-color"
+
+
+
+ 
+
+
+>Light and Color</a></li>
 <li><a href="#the-human-eye"
 
 
@@ -469,13 +764,44 @@
 </ul>
 </div>
 <!--endtoc-->
-<h2 id="topics">Topics</h2>
+<h2 id="agenda">Agenda</h2>
 <ul>
 <li>What is color?</li>
 <li>How do we process color?</li>
+<li>How is color modeled?</li>
 <li>What information does color contain?</li>
 <li>What can we infer from color?</li>
 </ul>
+<h2 id="light-and-color">Light and Color</h2>
+<p>Light is electromagnetic radiation. It is generally described as waves in an electromagnetic field, but it also considered as photons. Electromagnetic radiation is typically measured based on its wavelength and intensity. Intensity refers to the amount of power that is carried by the photons.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2024-06-05_14-33-11_screenshot.png" data-caption="Figure 1: Electromagnetic spectrum (Wikipedia)." class="glightbox">
+
+<img src="/ox-hugo/2024-06-05_14-33-11_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Electromagnetic spectrum (Wikipedia)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Electromagnetic spectrum (Wikipedia).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<p>The <strong>visible spectrum</strong> consists of waves between 380nm and 800nm. The range of what we can see depends on several factors such as the levels of illumination. We generally associate light with color. After all, without light there is no color. However, light has no color! Light of a particular wavelength can appear as different colors depending on a myriad of factors (surroundings, shade, luminosity, etc.).</p>
 <h2 id="the-human-eye">The Human Eye</h2>
 <p>The eye acts as a camera, including a lens which focuses light onto a receptive surface. The <strong>cornea</strong> covers the <strong>lens</strong> which combine to make a compound lens. The lens itself is flexible to allow the eye to focus on objects of variable distance. The lens is attached to <strong>ciliary muscles</strong> which contract or expand to change the shape of the lens. This allows us to focus on near or far objects. As we age, the lens itself becomes hardened and does not transform back to a spherical shape when the ciliary muscles contract, resulting in farsightedness.</p>
 <p>The <strong>pupil</strong> is a diaphragm that adjusts the amount of light that enters the eye in response to varying intensities. However, this isn&rsquo;t the only mechanism available for this task. Our perception of the amount of light, <em>luminance adaptation</em>, occurs also in the retina and brain over a longer time period (usually several minutes).</p>
@@ -488,16 +814,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-02_20-23-37_screenshot.png" data-caption="Figure 1: Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-02_20-23-37_screenshot.png" data-caption="Figure 2: Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-02_20-23-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-02_20-23-37_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 1: </span>Source: Wikipedia
+    <span class="figure-number">Figure 2: </span>Source: Wikipedia
     
     
     
@@ -516,16 +842,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-04_10-00-18_screenshot.png" data-caption="Figure 2: Source: https://en.wikipedia.org/wiki/Eye" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-04_10-00-18_screenshot.png" data-caption="Figure 3: Source: https://en.wikipedia.org/wiki/Eye" class="glightbox">
 
-<img src="/ox-hugo/2022-01-04_10-00-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Source: &lt;https://en.wikipedia.org/wiki/Eye&gt;" >
+<img src="/ox-hugo/2022-01-04_10-00-18_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Source: &lt;https://en.wikipedia.org/wiki/Eye&gt;" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 2: </span>Source: <a href="https://en.wikipedia.org/wiki/Eye"
+    <span class="figure-number">Figure 3: </span>Source: <a href="https://en.wikipedia.org/wiki/Eye"
 
 
 
@@ -556,16 +882,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-23_21-19-58_screenshot.png" data-caption="Figure 3: Distribution of rods and cones. Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-23_21-19-58_screenshot.png" data-caption="Figure 4: Distribution of rods and cones. Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-23_21-19-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Distribution of rods and cones. Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-23_21-19-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Distribution of rods and cones. Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 3: </span>Distribution of rods and cones. Source: Wikipedia
+    <span class="figure-number">Figure 4: </span>Distribution of rods and cones. Source: Wikipedia
     
     
     
@@ -584,16 +910,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2021-12-31_13-24-45_screenshot.png" data-caption="Figure 4: Source: https://handprint.com/HP/WCL/color1.html#3cones" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2021-12-31_13-24-45_screenshot.png" data-caption="Figure 5: Source: https://handprint.com/HP/WCL/color1.html#3cones" class="glightbox">
 
-<img src="/ox-hugo/2021-12-31_13-24-45_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Source: &lt;https://handprint.com/HP/WCL/color1.html#3cones&gt;" >
+<img src="/ox-hugo/2021-12-31_13-24-45_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Source: &lt;https://handprint.com/HP/WCL/color1.html#3cones&gt;" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 4: </span>Source: <a href="https://handprint.com/HP/WCL/color1.html#3cones"
+    <span class="figure-number">Figure 5: </span>Source: <a href="https://handprint.com/HP/WCL/color1.html#3cones"
 
 
 
@@ -623,16 +949,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-02_20-47-55_screenshot.png" data-caption="Figure 5: Photopigment Molecules. Source: https://handprint.com/HP/WCL/color1.html" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-02_20-47-55_screenshot.png" data-caption="Figure 6: Photopigment Molecules. Source: https://handprint.com/HP/WCL/color1.html" class="glightbox">
 
-<img src="/ox-hugo/2022-01-02_20-47-55_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Photopigment Molecules. Source: &lt;https://handprint.com/HP/WCL/color1.html&gt;" >
+<img src="/ox-hugo/2022-01-02_20-47-55_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Photopigment Molecules. Source: &lt;https://handprint.com/HP/WCL/color1.html&gt;" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 5: </span>Photopigment Molecules. Source: <a href="https://handprint.com/HP/WCL/color1.html"
+    <span class="figure-number">Figure 6: </span>Photopigment Molecules. Source: <a href="https://handprint.com/HP/WCL/color1.html"
 
 
 
@@ -722,16 +1048,16 @@ Source: <a href="https://en.wikipedia.org/wiki/CIE_1931_color_space"
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-03_13-34-15_screenshot.png" data-caption="Figure 6: Fewer blue cones results in blue light appearing more blurry." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-03_13-34-15_screenshot.png" data-caption="Figure 7: Fewer blue cones results in blue light appearing more blurry." class="glightbox">
 
-<img src="/ox-hugo/2022-01-03_13-34-15_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Fewer blue cones results in blue light appearing more blurry." >
+<img src="/ox-hugo/2022-01-03_13-34-15_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Fewer blue cones results in blue light appearing more blurry." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 6: </span>Fewer blue cones results in blue light appearing more blurry.
+    <span class="figure-number">Figure 7: </span>Fewer blue cones results in blue light appearing more blurry.
     
     
     
@@ -746,8 +1072,8 @@ Source: <a href="https://en.wikipedia.org/wiki/CIE_1931_color_space"
 <p>Why does the sun appear yellow and the sky appear blue? Longer wavelengths can travel farther before being scattered. This means that a ray of light travelling from the sun to the earth will scatter blue light before the other rays. Taking the blue light out of a ray of white light will leave a yellowish color. When the scattered blue light eventually hits the atmosphere of Earth, it is scattered once again and see as incident light to an observer. This gives the apperance of a blue sky.</p>
 <p>The perceived color of an object can be computed by multiplying the incident illumination with the reflectance of the object.</p>
 <h3 id="color-temperature">Color Temperature</h3>
-<p>One quantity that is commonly used to describe a light source is temperature (measured in Kelvins). This is derived from the concept of the <strong>black body</strong>. That is, a body that does not reflect light. A heated black body emits radiation and the spectral power distribution of this radiation depends only on the temperature. The color temperature is the surface temperature of an ideal black body.</p>
-<p>At lower temperature, the color is a red. As it increases, the color becomes whiter until reaching a light blue. See the table below:</p>
+<p>Color temperature is a measure of the color characteristics of light. It is measured in degrees Kelving (K) and is based on the color of light emitted by an idealized black body radiator at a given temperature. A <strong>black body</strong> absorbs all incident electromagnetic radiation and emits the maximum possible amount of radiation at every wavelength for a given temperature.</p>
+<p>As a black body is heated, it emits light that changes color depending on its temperature. At lower temperatures, the color is a red. As it increases, the color becomes whiter until reaching a light blue. See the table below:</p>
 
 
 
@@ -757,16 +1083,16 @@ Source: <a href="https://en.wikipedia.org/wiki/CIE_1931_color_space"
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_11-49-50_screenshot.png" data-caption="Figure 7: Colors corresponding to different temperatures. Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_11-49-50_screenshot.png" data-caption="Figure 8: Colors corresponding to different temperatures. Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_11-49-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Colors corresponding to different temperatures. Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-25_11-49-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Colors corresponding to different temperatures. Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 7: </span>Colors corresponding to different temperatures. Source: Wikipedia
+    <span class="figure-number">Figure 8: </span>Colors corresponding to different temperatures. Source: Wikipedia
     
     
     
@@ -799,16 +1125,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-03_17-51-15_screenshot.png" data-caption="Figure 8: Comparison of several common color spaces. Source: https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-03_17-51-15_screenshot.png" data-caption="Figure 9: Comparison of several common color spaces. Source: https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space" class="glightbox">
 
-<img src="/ox-hugo/2022-01-03_17-51-15_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Comparison of several common color spaces. Source: &lt;https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space&gt;" >
+<img src="/ox-hugo/2022-01-03_17-51-15_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Comparison of several common color spaces. Source: &lt;https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space&gt;" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 8: </span>Comparison of several common color spaces. Source: <a href="https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space"
+    <span class="figure-number">Figure 9: </span>Comparison of several common color spaces. Source: <a href="https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space"
 
 
 
@@ -837,16 +1163,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-03_17-30-28_screenshot.png" data-caption="Figure 9: CIE xy color space." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-03_17-30-28_screenshot.png" data-caption="Figure 10: CIE xy color space." class="glightbox">
 
-<img src="/ox-hugo/2022-01-03_17-30-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;CIE xy color space." >
+<img src="/ox-hugo/2022-01-03_17-30-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;CIE xy color space." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 9: </span>CIE xy color space.
+    <span class="figure-number">Figure 10: </span>CIE xy color space.
     
     
     
@@ -871,16 +1197,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-24_20-49-50_screenshot.png" data-caption="Figure 10: CIE RGB gamut on the CIE xy color space." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-24_20-49-50_screenshot.png" data-caption="Figure 11: CIE RGB gamut on the CIE xy color space." class="glightbox">
 
-<img src="/ox-hugo/2022-01-24_20-49-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;CIE RGB gamut on the CIE xy color space." >
+<img src="/ox-hugo/2022-01-24_20-49-50_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;CIE RGB gamut on the CIE xy color space." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 10: </span>CIE RGB gamut on the CIE xy color space.
+    <span class="figure-number">Figure 11: </span>CIE RGB gamut on the CIE xy color space.
     
     
     
@@ -899,16 +1225,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-24_20-54-20_screenshot.png" data-caption="Figure 11: Cube representation of an RGB color space." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-24_20-54-20_screenshot.png" data-caption="Figure 12: Cube representation of an RGB color space." class="glightbox">
 
-<img src="/ox-hugo/2022-01-24_20-54-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Cube representation of an RGB color space." >
+<img src="/ox-hugo/2022-01-24_20-54-20_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Cube representation of an RGB color space." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 11: </span>Cube representation of an RGB color space.
+    <span class="figure-number">Figure 12: </span>Cube representation of an RGB color space.
     
     
     
@@ -928,16 +1254,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-24_21-05-11_screenshot.png" data-caption="Figure 12: Hue values when saturation and value are fixed. Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-24_21-05-11_screenshot.png" data-caption="Figure 13: Hue values when saturation and value are fixed. Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-24_21-05-11_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Hue values when saturation and value are fixed. Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-24_21-05-11_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Hue values when saturation and value are fixed. Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 12: </span>Hue values when saturation and value are fixed. Source: Wikipedia
+    <span class="figure-number">Figure 13: </span>Hue values when saturation and value are fixed. Source: Wikipedia
     
     
     
@@ -956,16 +1282,16 @@ Interesting podcast on Color.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-24_21-10-29_screenshot.png" data-caption="Figure 13: HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-24_21-10-29_screenshot.png" data-caption="Figure 14: HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-24_21-10-29_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-24_21-10-29_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 13: </span>HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia
+    <span class="figure-number">Figure 14: </span>HSV cylinder exemplifies the concepts of hue, saturation, and value. Source: Wikipedia
     
     
     
@@ -1017,16 +1343,16 @@ C = V - \min(R,G,B).
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-29-28_screenshot.png" data-caption="Figure 14: Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-29-28_screenshot.png" data-caption="Figure 15: Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_10-29-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia" >
+<img src="/ox-hugo/2022-01-25_10-29-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 14: </span>Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia
+    <span class="figure-number">Figure 15: </span>Hue is the angle of the projected point with respect to the hexagon. 0 degrees is marked by the red edge. Source: Wikipedia
     
     
     
@@ -1089,16 +1415,16 @@ m = V - C
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-53-17_screenshot.png" data-caption="Figure 15: Original image. Credit: The Expanse" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-53-17_screenshot.png" data-caption="Figure 16: Original image. Credit: The Expanse" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_10-53-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Original image. Credit: The Expanse" >
+<img src="/ox-hugo/2022-01-25_10-53-17_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Original image. Credit: The Expanse" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 15: </span>Original image. Credit: The Expanse
+    <span class="figure-number">Figure 16: </span>Original image. Credit: The Expanse
     
     
     
@@ -1117,16 +1443,16 @@ m = V - C
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-55-52_screenshot.png" data-caption="Figure 16: Image with Hue subtracted by 20 degrees. Credit: The Expanse" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-55-52_screenshot.png" data-caption="Figure 17: Image with Hue subtracted by 20 degrees. Credit: The Expanse" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_10-55-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Image with Hue subtracted by 20 degrees. Credit: The Expanse" >
+<img src="/ox-hugo/2022-01-25_10-55-52_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Image with Hue subtracted by 20 degrees. Credit: The Expanse" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 16: </span>Image with Hue subtracted by 20 degrees. Credit: The Expanse
+    <span class="figure-number">Figure 17: </span>Image with Hue subtracted by 20 degrees. Credit: The Expanse
     
     
     
@@ -1146,16 +1472,16 @@ m = V - C
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-59-02_screenshot.png" data-caption="Figure 17: Image with Saturation increased by 0.3. Credit: The Expanse" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_10-59-02_screenshot.png" data-caption="Figure 18: Image with Saturation increased by 0.3. Credit: The Expanse" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_10-59-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Image with Saturation increased by 0.3. Credit: The Expanse" >
+<img src="/ox-hugo/2022-01-25_10-59-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 18: &lt;/span&gt;Image with Saturation increased by 0.3. Credit: The Expanse" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 17: </span>Image with Saturation increased by 0.3. Credit: The Expanse
+    <span class="figure-number">Figure 18: </span>Image with Saturation increased by 0.3. Credit: The Expanse
     
     
     
@@ -1175,16 +1501,16 @@ m = V - C
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-01-25_11-03-01_screenshot.png" data-caption="Figure 18: Image with Values increased by 0.2. Credit: The Expanse" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-01-25_11-03-01_screenshot.png" data-caption="Figure 19: Image with Values increased by 0.2. Credit: The Expanse" class="glightbox">
 
-<img src="/ox-hugo/2022-01-25_11-03-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 18: &lt;/span&gt;Image with Values increased by 0.2. Credit: The Expanse" >
+<img src="/ox-hugo/2022-01-25_11-03-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 19: &lt;/span&gt;Image with Values increased by 0.2. Credit: The Expanse" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 18: </span>Image with Values increased by 0.2. Credit: The Expanse
+    <span class="figure-number">Figure 19: </span>Image with Values increased by 0.2. Credit: The Expanse
     
     
     
@@ -1203,6 +1529,7 @@ m = V - C
 </section>
 
 
+        </div>
     </div>
     
 

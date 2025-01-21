@@ -288,7 +288,7 @@
 
 
 
-<link rel="stylesheet" href="/css/style.bb6df8908edd994bde97a48df879a4f97876d33ae4abbcb0cd2098de500fb29f.css" />
+<link rel="stylesheet" href="/css/style.885cbe85fc7a7d1b9f9e7e4cbd04a7eea6fcefa8464071c8d8499b824a0ed071.css" />
 
 
 
@@ -316,7 +316,7 @@
 
 <aside id="sidebarContent" class="position-fixed hidden d-lg-block top-0 w-100 vh-100">
   <nav id="navbar" class="navigation d-flex flex-column justify-content-between h-100">
-    <ul class="navbar-nav mb-5">
+    <ul class="navbar-nav mb-2">
       
       
       <li class="nav-item d-block">
@@ -338,6 +338,292 @@
     </ul>
 
     
+
+<div class="section-nav mb-3" id="section-nav">
+  <script>
+    class SectionNav {
+      constructor() {
+        this.initializeEventListeners();
+        this.restoreState();
+      }
+
+      initializeEventListeners() {
+        
+        document.querySelectorAll('#section-nav .note-link').forEach(link => {
+          link.onclick = (e) => {
+            e.preventDefault();
+            console.log('Link clicked:', link.href);  
+            this.loadContent(link.href);
+            return false;
+          };
+        });
+
+        
+        window.onpopstate = (event) => {
+          if (event.state?.url) {
+            this.loadContent(event.state.url, false);
+          }
+        };
+
+        
+        document.querySelectorAll('#section-nav .section-header').forEach(header => {
+          header.onclick = (e) => {
+            const sectionName = header.dataset.section;
+            this.toggleSection(header, sectionName);
+          };
+        });
+      }
+
+      async loadContent(url, pushState = true) {
+        console.log('Loading content for URL:', url);  
+        
+        try {
+          
+          const currentArticle = document.querySelector('.main-content');
+          currentArticle.classList.add('fade-out');
+
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+          
+          const response = await fetch(url);
+          console.log('Fetch response:', response.ok);  
+          
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const html = await response.text();
+          console.log('Received HTML length:', html.length);  
+
+          
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const newArticle = doc.querySelector('.main-content');
+          
+          if (!newArticle) {
+            console.error('No article found in fetched content');  
+            throw new Error('No article found in fetched content');
+          }
+
+          
+          currentArticle.innerHTML = newArticle.innerHTML;
+          
+          
+          if (pushState) {
+            history.pushState({ url }, '', url);
+          }
+
+          
+          this.updateActiveState(url);
+
+          
+          currentArticle.classList.remove('fade-out');
+
+          
+          this.runScripts(currentArticle);
+
+          
+          if (window.MathJax) {
+            if (window.MathJax.typesetPromise) {
+              
+              await window.MathJax.typesetPromise([currentArticle]);
+            } else if (window.MathJax.Hub) {
+              
+              window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub, currentArticle]);
+            }
+          }
+
+          
+          if (window.AOS) {
+            window.AOS.init();
+          }
+
+          
+          window.scrollTo(0, 0);
+          
+        } catch (error) {
+          console.error('Error loading content:', error);  
+          
+          window.location.href = url;
+        }
+      }
+
+      updateActiveState(currentUrl) {
+        document.querySelectorAll('#section-nav .note-link').forEach(link => {
+          
+          link.classList.remove('active');
+          
+          
+          const linkPath = link.getAttribute('href').replace(/\/$/, '');
+          const currentPath = currentUrl.replace(/\/$/, '');
+          
+          if (linkPath === currentPath) {
+            link.classList.add('active');
+            
+            const parentSection = link.closest('.section-group');
+            if (parentSection) {
+              const header = parentSection.querySelector('.section-header');
+              const content = parentSection.querySelector('.section-content');
+              header.classList.add('expanded');
+              content.classList.add('expanded');
+            }
+          }
+        });
+      }
+
+      runScripts(container) {
+        container.querySelectorAll('script').forEach(oldScript => {
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+          newScript.textContent = oldScript.textContent;
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      }
+
+      toggleSection(header, sectionName) {
+        const content = header.nextElementSibling;
+        const isExpanded = header.classList.toggle('expanded');
+        content.classList.toggle('expanded');
+        localStorage.setItem(`nav-section-${sectionName}`, isExpanded);
+      }
+
+      restoreState() {
+        document.querySelectorAll('#section-nav .section-group').forEach(section => {
+          const header = section.querySelector('.section-header');
+          const content = section.querySelector('.section-content');
+          const sectionName = header.dataset.section;
+          
+          
+          if (localStorage.getItem(`nav-section-${sectionName}`) === 'true') {
+            header.classList.add('expanded');
+            content.classList.add('expanded');
+          }
+
+          
+          if (section.querySelector('.note-link.active')) {
+            header.classList.add('expanded');
+            content.classList.add('expanded');
+            localStorage.setItem(`nav-section-${sectionName}`, 'true');
+          }
+        });
+      }
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Initializing SectionNav');  
+      window.sectionNav = new SectionNav();
+    });
+  </script>
+
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="computer vision">
+        computer vision
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/active_contours/" 
+             class="note-link">
+            Active Contours
+          </a>
+        
+          <a href="/notes/color/" 
+             class="note-link">
+            Color
+          </a>
+        
+          <a href="/notes/edge_detection/" 
+             class="note-link">
+            Edge Detection
+          </a>
+        
+          <a href="/notes/image_features/" 
+             class="note-link">
+            Image Features
+          </a>
+        
+          <a href="/notes/patch_extraction/" 
+             class="note-link">
+            Patch Extraction
+          </a>
+        
+          <a href="/notes/sampling/" 
+             class="note-link">
+            Sampling and Aliasing
+          </a>
+        
+      </div>
+    </div>
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="gpu programming">
+        gpu programming
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/heterogeneous_data_parallel_computing/" 
+             class="note-link">
+            Heterogeneous Data Parallel Computing
+          </a>
+        
+          <a href="/notes/introduction_to_gpgpu_programming/" 
+             class="note-link">
+            Introduction to GPGPU Programming
+          </a>
+        
+          <a href="/notes/multidimensional_grids_and_data/" 
+             class="note-link">
+            Multidimensional Grids and Data
+          </a>
+        
+      </div>
+    </div>
+  
+    <div class="section-group">
+      <div class="section-header" 
+           data-section="machine learning">
+        machine learning
+      </div>
+      <div class="section-content">
+        
+          <a href="/notes/convolutional_neural_networks/" 
+             class="note-link active">
+            Convolutional Neural Networks
+          </a>
+        
+          <a href="/notes/linear_discriminant_analysis/" 
+             class="note-link">
+            Linear Discriminant Analysis
+          </a>
+        
+          <a href="/notes/linear_regression/" 
+             class="note-link">
+            Linear Regression
+          </a>
+        
+          <a href="/notes/logistic_regression/" 
+             class="note-link">
+            Logistic Regression
+          </a>
+        
+          <a href="/notes/probability_theory/" 
+             class="note-link">
+            Probability Theory
+          </a>
+        
+          <a href="/notes/regularization/" 
+             class="note-link">
+            Regularization
+          </a>
+        
+      </div>
+    </div>
+  
+</div>
 
     
     
@@ -383,7 +669,8 @@
 
   <main class="px-2 px-lg-0 px-xl-4 overflow-hidden">
     <div >
-      
+        <div class="main-content">
+            
 
 <section class="section bg-shape">
   <div class="container">
@@ -1299,6 +1586,7 @@ It additionally was adapted to other challenges and won first place on ImageNet 
 </section>
 
 
+        </div>
     </div>
     
 
