@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu4740111237636008969.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu4740111237636008969.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu11050858682635159233.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu4740111237636008969.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu5253733546650048209.png">
+<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
 
 
 
@@ -849,24 +849,24 @@
 <p>Given the layout just described, we will write a kernel that converts a color image to grayscale. This is an <em>embarrassingly parallel</em> problem since each pixel can be converted independently of the others. We will use the following formula to convert each pixel:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>gray <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.299f</span> <span style="color:#f92672">*</span> red <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.587f</span> <span style="color:#f92672">*</span> green <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.114f</span> <span style="color:#f92672">*</span> blue
 </span></span></code></pre></div><p>A CPU implementation would require a <code>for</code> loop over the exact number of pixels. The CUDA kernel for this is straightforward since it only depends on the current pixel. The only real challenge is to compute the correct indices for each thread.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
-void colorToGrayscale(unsigned char *rgbImage,
-                      unsigned char *grayImage,
-                      int numRows, int numCols)
-{
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    if (x &gt;= numCols || y &gt;= numRows) return;
-
-    int index = y * numCols + x;
-    int rgbOffset = index * 3;
-    unsigned char r = rgbImage[rgbOffset];
-    unsigned char g = rgbImage[rgbOffset + 1];
-    unsigned char b = rgbImage[rgbOffset + 2];
-    float channelSum = 0.299f * r + 0.587f * g + 0.114f * b;
-    grayImage[index] = channelSum;
-}
-</code></pre><p>In this example, we assume an RGB image where each pixel is represented by three unsigned characters. It is standard convention in C to pass a pointer to the first element of the array. This implies that we cannot use the <code>[]</code> operator to access the elements in a multidimensional way. Instead, we must compute the index ourselves. If you are not currently familiar with flat indexing, you certainly will be by the end of this course.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">colorToGrayscale</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>rgbImage,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>grayImage,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">int</span> numRows, <span style="color:#66d9ef">int</span> numCols)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> y <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (x <span style="color:#f92672">&gt;=</span> numCols <span style="color:#f92672">||</span> y <span style="color:#f92672">&gt;=</span> numRows) <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> y <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> rgbOffset <span style="color:#f92672">=</span> index <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> r <span style="color:#f92672">=</span> rgbImage[rgbOffset];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> g <span style="color:#f92672">=</span> rgbImage[rgbOffset <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> b <span style="color:#f92672">=</span> rgbImage[rgbOffset <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> channelSum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.299f</span> <span style="color:#f92672">*</span> r <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.587f</span> <span style="color:#f92672">*</span> g <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.114f</span> <span style="color:#f92672">*</span> b;
+</span></span><span style="display:flex;"><span>    grayImage[index] <span style="color:#f92672">=</span> channelSum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>In this example, we assume an RGB image where each pixel is represented by three unsigned characters. It is standard convention in C to pass a pointer to the first element of the array. This implies that we cannot use the <code>[]</code> operator to access the elements in a multidimensional way. Instead, we must compute the index ourselves. If you are not currently familiar with flat indexing, you certainly will be by the end of this course.</p>
 <p>In C, multi-dimensional arrays are stored in row-major order. To compute the index of row <code>j</code> and column <code>i</code> in a 2D array, we need to skip over <code>j</code> rows and <code>i</code> columns. The total number of columns is the width of the array. The total number of rows is the height of the array. The index is computed as follows:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> j <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> i;
 </span></span></code></pre></div><p>This is represented in the following figure.</p>
@@ -1002,19 +1002,19 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
 </figure>
 </div>
 <p>The output matrix is separated into blocks based on our block size. When writing the kernel, it is necessary to make sure that the index is not out of bounds.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
-void matrixMultiplyGPU(float *A, float *B, float *C, int m, int n, int p) {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-    if (row &gt;= m || col &gt;= p) return;
-
-    float sum = 0.0f;
-    for (int k = 0; k &lt; n; k++) {
-        sum += A[row * n + k] * B[k * p + col];
-    }
-    C[row * p + col] = sum;
-}
-</code></pre><h3 id="launch-configuration">Launch Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">matrixMultiplyGPU</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> p) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&gt;=</span> m <span style="color:#f92672">||</span> col <span style="color:#f92672">&gt;=</span> p) <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; k <span style="color:#f92672">&lt;</span> n; k<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        sum <span style="color:#f92672">+=</span> A[row <span style="color:#f92672">*</span> n <span style="color:#f92672">+</span> k] <span style="color:#f92672">*</span> B[k <span style="color:#f92672">*</span> p <span style="color:#f92672">+</span> col];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    C[row <span style="color:#f92672">*</span> p <span style="color:#f92672">+</span> col] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="launch-configuration">Launch Configuration</h3>
 <p>The launch configuration is similar to the previous examples. We will launch a 2D grid of blocks, each with a 2D arrangement of threads. The block size will be \(16 \times 16\) and the grid size will be \(m / 16 \times p / 16\). The kernel is launched as follows:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">gridSize</span>((p <span style="color:#f92672">+</span> blockSize.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize.x,
