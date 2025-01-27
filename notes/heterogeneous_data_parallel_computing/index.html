@@ -540,6 +540,11 @@
             Edge Detection
           </a>
         
+          <a href="/notes/histogram_of_oriented_gradients/" 
+             class="note-link">
+            Histogram of Oriented Gradients
+          </a>
+        
           <a href="/notes/image_features/" 
              class="note-link">
             Image Features
@@ -560,6 +565,11 @@
             Sampling and Aliasing
           </a>
         
+          <a href="/notes/scale_invariant_feature_transforms/" 
+             class="note-link">
+            Scale Invariant Feature Transforms
+          </a>
+        
       </div>
     </div>
   
@@ -569,6 +579,11 @@
         gpu programming
       </div>
       <div class="section-content">
+        
+          <a href="/notes/cuda_architecture/" 
+             class="note-link">
+            CUDA Architecture
+          </a>
         
           <a href="/notes/heterogeneous_data_parallel_computing/" 
              class="note-link active">
@@ -595,9 +610,29 @@
       </div>
       <div class="section-content">
         
+          <a href="/notes/boosting/" 
+             class="note-link">
+            Boosting
+          </a>
+        
           <a href="/notes/convolutional_neural_networks/" 
              class="note-link">
             Convolutional Neural Networks
+          </a>
+        
+          <a href="/notes/decision_trees/" 
+             class="note-link">
+            Decision Trees
+          </a>
+        
+          <a href="/notes/gradient_boosting/" 
+             class="note-link">
+            Gradient Boosting
+          </a>
+        
+          <a href="/notes/kernels/" 
+             class="note-link">
+            Kernels
           </a>
         
           <a href="/notes/linear_discriminant_analysis/" 
@@ -620,6 +655,16 @@
             Naive Bayes
           </a>
         
+          <a href="/notes/neural_networks/" 
+             class="note-link">
+            Neural Networks
+          </a>
+        
+          <a href="/notes/perceptron/" 
+             class="note-link">
+            Perceptron
+          </a>
+        
           <a href="/notes/probability_theory/" 
              class="note-link">
             Probability Theory
@@ -628,6 +673,16 @@
           <a href="/notes/regularization/" 
              class="note-link">
             Regularization
+          </a>
+        
+          <a href="/notes/sequential_minimal_optimization/" 
+             class="note-link">
+            Sequential Minimal Optimization
+          </a>
+        
+          <a href="/notes/support_vector_machine/" 
+             class="note-link">
+            Support Vector Machine
           </a>
         
       </div>
@@ -710,7 +765,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Jan 14, 2025</span>
+            <span>Last updated on Jan 26, 2025</span>
           </div>
 
           
@@ -816,14 +871,14 @@
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>One small note about the variable names: it is common to use the suffix `_h` to denote a variable that is allocated on the host (CPU) and `_d` to denote a variable that is allocated on the device (GPU). In this case, the vector addition operation is performed on the host machine.</p>
 <p>An equivalent implementation in CUDA C is shown below.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__
-void vecAdd(float *x_d, float *y_d, float *z_d, int n) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i &lt; n) {
-        z_d[i] = x_d[i] + y_d[i];
-    }
-}
-</code></pre><p>This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">vecAdd</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x_d, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y_d, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>z_d, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        z_d[i] <span style="color:#f92672">=</span> x_d[i] <span style="color:#f92672">+</span> y_d[i];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This kernel executes on a single thread. The thread index is computed using built-in variables `blockIdx.x`, `blockDim.x`, and `threadIdx.x`. The details of how these variables are defined are not important right now. The main point is that each kernel is executed on a single thread. For a GPU with thousands of individual threads, this kernel will be executed thousands of times in parallel.</p>
 <p>The <code>__global__</code> keyword placed before the function definition indicates that the function can be called from both the host and the device, but it is only executed on the device. The table below shows the different keywords used to define functions in CUDA C.</p>
 <table>
   <thead>
