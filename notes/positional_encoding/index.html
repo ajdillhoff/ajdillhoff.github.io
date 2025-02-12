@@ -812,6 +812,14 @@
 
 
 >Sinusoidal Positional Encoding</a></li>
+<li><a href="#translation-and-rotation"
+
+
+
+ 
+
+
+>Translation and Rotation</a></li>
 <li><a href="#rotary-position-embedding--rope"
 
 
@@ -845,16 +853,104 @@
 <h4 id="generalization-to-out-of-training-sequence-lengths">Generalization to out of training sequence lengths</h4>
 <p>The positional encoding should generalize to sequences of different lengths than those seen during training. This is important because the model should be able to handle sequences of different lengths during inference.</p>
 <h2 id="sinusoidal-positional-encoding">Sinusoidal Positional Encoding</h2>
-<p>The positional encoding used in the original Transformer architecture is called <strong>sinusoidal positional encoding</strong> (<a href="#citeproc_bib_item_2">Vaswani et al. 2017</a>). Given the position \(pos\) and dimension \(i\) of the input, the encoding is given by</p>
+<p>The positional encoding used in the original Transformer architecture is called <strong>sinusoidal positional encoding</strong> (<a href="#citeproc_bib_item_3">Vaswani et al. 2017</a>). Given the position \(pos\) and dimension \(i\) of the input, the encoding is given by</p>
 <p>\begin{align*}
 PE_{pos, 2i} &amp;= \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)\\
 PE_{pos, 2i+1} &amp;= \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
 \end{align*}</p>
+<p><strong>Why do we use \(\sin\) and \(\cos\) here?</strong> To understand this, we need to return to trigonometry. I also like to go through the following derivation when discussing geometric linear transformations in my linear algebra class. The second property stated above was that the positions between two elements should be linear. For this, let&rsquo;s ignore the frequency term and only consider the position term.</p>
+<p>\begin{align*}
+PE_{pos} &amp;= \sin(p)\\
+PE_{pos+1} &amp;= \cos(p)\\
+\end{align*}</p>
+<p>Adding some offset of \(k\) to the position \(p\) gives</p>
+<p>\begin{align*}
+PE_{pos+k} &amp;= \sin(p+k)\\
+PE_{pos+1+k} &amp;= \cos(p+k)\\
+\end{align*}</p>
+<p>Using the trigonometric identity \(\sin(a+b) = \sin(a)\cos(b) + \cos(a)\sin(b)\), we can rewrite the above as</p>
+<p>\begin{align*}
+PE_{pos+k} &amp;= \sin(p)\cos(k) + \cos(p)\sin(k)\\
+PE_{pos+1+k} &amp;= \cos(p)\cos(k) - \sin(p)\sin(k)\\
+\end{align*}</p>
+<p>A transformation that can be represented as a matrix multiplication is a linear transformation. So we are looking for a matrix \(M\) such that</p>
+<p>\begin{align*}
+\begin{bmatrix}
+m_{11} &amp; m_{12}\\
+m_{21} &amp; m_{22}
+\end{bmatrix}
+\begin{bmatrix}
+\sin(p)\\
+\cos(p)
+\end{bmatrix} &amp;= \begin{bmatrix}
+\sin(p)\cos(k) + \cos(p)\sin(k)\\
+\cos(p)\cos(k) - \sin(p)\sin(k)
+\end{bmatrix}
+\end{align*}</p>
+<p>If you know how to multiply matrices, you can see that the matrix</p>
+<p>\begin{align*}
+\begin{bmatrix}
+\cos(k) &amp; \sin(k)\\
+-\sin(k) &amp; \cos(k)
+\end{bmatrix}
+\end{align*}</p>
+<p>does the trick. This is a rotation matrix, and it is a linear transformation.</p>
+<h2 id="translation-and-rotation">Translation and Rotation</h2>
+<p>An embedded token is special. The combination of values across the embedding dimensions define what the token represents semantically. If we add to those values, we are fundamentally changing the semantic meaning of the token. The sinusoidal positional encoding does exactly that.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-02-12_14-54-34_screenshot.png" data-caption="Figure 1: Positional encoding is added to the embedding (Vaswani et al. 2017)." class="glightbox">
+
+<img src="/ox-hugo/2025-02-12_14-54-34_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Positional encoding is added to the embedding (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Vaswani et al. 2017&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 1: </span>Positional encoding is added to the embedding (<a href="#citeproc_bib_item_3">Vaswani et al. 2017</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<p>As an alternative, we could rotate the query and key vectors in the self-attention mechanism. This would preserve the <em>magnitude</em> of the token&rsquo;s representation while only changing the relative angle between them. This is the approach taken by the <strong>Rotary Position Embedding</strong> (<a href="#citeproc_bib_item_2">Su et al. 2023</a>).</p>
 <h2 id="rotary-position-embedding--rope">Rotary Position Embedding (RoPE)</h2>
+<p>RoPE proposes that the <em>relative</em> positional information be encoded in the product of the query and key vectors of the self-attention mechanism. This is expressed by equation (11) in the original paper (<a href="#citeproc_bib_item_2">Su et al. 2023</a>).</p>
+<p>\[
+\langle f_q(\mathbf{x}_m, m), f_k(\mathbf{x}_n, n)\rangle = g(\mathbf{x}_m, \mathbf{x}_n, m - n)
+\]</p>
+<p>The derivation of their solution is a bit involved, but key idea is to rotate the transformed embeddings by an angle that is a multiple of the position index:</p>
+<p>\begin{equation*}
+f_{\{q, k\}}(\mathbf{x}_m, m) =
+\begin{bmatrix}
+\cos(m\theta) &amp; -\sin(m\theta)\\
+\sin(m\theta) &amp; \cos(m\theta)
+\end{bmatrix}
+\begin{bmatrix}
+W_{\{q, k\}}^{(11)} &amp; W_{\{q, k\}}^{(12)}\\
+W_{\{q, k\}}^{(21)} &amp; W_{\{q, k\}}^{(22)}
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{x}_m^{(1)}\\
+\mathbf{x}_m^{(2)}
+\end{bmatrix}
+\end{equation*}</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Gehring, Jonas, Michael Auli, David Grangier, Denis Yarats, and Yann N. Dauphin. 2017. “Convolutional Sequence to Sequence Learning.” arXiv. <a href="https://doi.org/10.48550/arXiv.1705.03122">https://doi.org/10.48550/arXiv.1705.03122</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Su, Jianlin, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo Wen, and Yunfeng Liu. 2023. “RoFormer: Enhanced Transformer with Rotary Position Embedding.” arXiv. <a href="https://doi.org/10.48550/arXiv.2104.09864">https://doi.org/10.48550/arXiv.2104.09864</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.</div>
 </div>
 
           </div>
