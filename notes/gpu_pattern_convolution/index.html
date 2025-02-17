@@ -523,6 +523,11 @@
             Active Contours
           </a>
         
+          <a href="/notes/clustering/" 
+             class="note-link">
+            Clustering
+          </a>
+        
           <a href="/notes/color/" 
              class="note-link">
             Color
@@ -546,6 +551,11 @@
           <a href="/notes/image_features/" 
              class="note-link">
             Image Features
+          </a>
+        
+          <a href="/notes/image_segmentation/" 
+             class="note-link">
+            Image Segmentation
           </a>
         
           <a href="/notes/linear_filters/" 
@@ -573,6 +583,11 @@
             Scale Invariant Feature Transforms
           </a>
         
+          <a href="/notes/segmentation_via_clustering/" 
+             class="note-link">
+            Segmentation via Clustering
+          </a>
+        
       </div>
     </div>
   
@@ -591,6 +606,11 @@
           <a href="/notes/cuda_memory_architecture/" 
              class="note-link">
             CUDA Memory Architecture
+          </a>
+        
+          <a href="/notes/gpu_pattern_convolution/" 
+             class="note-link active">
+            GPU Pattern: Convolution
           </a>
         
           <a href="/notes/heterogeneous_data_parallel_computing/" 
@@ -778,7 +798,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Jan 15, 2024</span>
+            <span>Last updated on Feb 16, 2025</span>
           </div>
 
           
@@ -1047,48 +1067,48 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 <li>The height of the output image</li>
 </ul>
 <p>A more robust implementation would consider things like padding, stride, dilation, and whether or not a valid or full convolution is desired. For now, we will focus on the simplest case: a valid convolution with a stride of 1 and no padding or dilation. First, let&rsquo;s review the initial naive solution from <em>Programming Massively Parallel Processors</em> (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>).</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *filter, float *output,
-                       int r, int width, int height) {
-    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
-    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
-
-    float sum = 0.0f;
-    for (int row = 0; row &lt; 2*r+1; row++) {
-        for (int col = 0; col &lt; 2*r+1; col++) {
-            int inRow = outRow + row - r;
-            int inCol = outCol + col - r;
-            if (inRow &gt;= 0 &amp;&amp; inRow &lt; height &amp;&amp; inCol &gt;= 0 &amp;&amp; inCol &lt; width) {
-                sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
-            }
-        }
-    }
-    output[outRow * width + outCol] = sum;
-}
-</code></pre><p>With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a <em>valid</em> convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; row <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; row<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; col <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; col<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inRow <span style="color:#f92672">=</span> outRow <span style="color:#f92672">+</span> row <span style="color:#f92672">-</span> r;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inCol <span style="color:#f92672">=</span> outCol <span style="color:#f92672">+</span> col <span style="color:#f92672">-</span> r;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (inRow <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> inRow <span style="color:#f92672">&lt;</span> height <span style="color:#f92672">&amp;&amp;</span> inCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> inCol <span style="color:#f92672">&lt;</span> width) {
+</span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> input[inRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> inCol] <span style="color:#f92672">*</span> filter[row <span style="color:#f92672">*</span> (<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span> col];
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    output[outRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> outCol] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a <em>valid</em> convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.</p>
 <p>It is also a waste of resources in terms of memory used for the output. If we already know that we want to perform a valid convolution, we can allocate the output image to be the appropriate size before calling it. A slightly modified version is shown below.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *filter, float *output,
-                       int r, int width, int height) {
-    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
-    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
-
-    float sum = 0.0f;
-    for (int row = 0; row &lt; 2*r+1; row++) {
-        for (int col = 0; col &lt; 2*r+1; col++) {
-            int inRow = outRow + row;
-            int inCol = outCol + col;
-            sum += input[inRow * width + inCol] * filter[row * (2*r+1) + col];
-        }
-    }
-    output[outRow * width + outCol] = sum;
-}
-</code></pre><h2 id="constant-memory-and-caching">Constant Memory and Caching</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; row <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; row<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; col <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; col<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inRow <span style="color:#f92672">=</span> outRow <span style="color:#f92672">+</span> row;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inCol <span style="color:#f92672">=</span> outCol <span style="color:#f92672">+</span> col;
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">+=</span> input[inRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> inCol] <span style="color:#f92672">*</span> filter[row <span style="color:#f92672">*</span> (<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span> col];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    output[outRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> outCol] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="constant-memory-and-caching">Constant Memory and Caching</h2>
 <p>There is a much larger issue present in both versions of this kernel in terms of memory bandwidth. Similar to the matrix multiplication kernel, this kernel can benefit from tiling. However, there is a new problem that arises specifically with convolution. The same filter is accessed by every single thread. This filter does not change for the entire duration of the kernel. This means that we are wasting memory bandwidth by having every thread access the same filter.</p>
 <p>Given its relatively small size, this kernel is a perfect candidate for constant memory. This is a special type of memory that is cached on the GPU. It is read-only and has a limited size, but it is much faster than global memory. We can write to the devices constant memory from the host code.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define FILTER_RADIUS 1
-__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
-</code></pre><p>This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">cudaMemcpyToSymbol(kFilter_d, filter_h, (2*FILTER_RADIUS+1)*(2*FILTER_RADIUS+1)*sizeof(float));
-</code></pre><p>The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, <a href="https://google.github.io/styleguide/cppguide.html#Constant_Names"
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
+</span></span></code></pre></div><p>This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>cudaMemcpyToSymbol(kFilter_d, filter_h, (<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span><span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">float</span>));
+</span></span></code></pre></div><p>The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, <a href="https://google.github.io/styleguide/cppguide.html#Constant_Names"
 
 
 
@@ -1099,22 +1119,22 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 
 >Google&rsquo;s C++</a> style guide recommends naming constant variables with a <code>k</code> prefix. I have adopted this convention here.</p>
 <p>At this point, <code>kFilter_d</code> is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2D(float *input, float *output,
-                       int r, int width, int height) {
-    int outCol = blockIdx.x * blockDim.x + threadIdx.x;
-    int outRow = blockIdx.y * blockDim.y + threadIdx.y;
-
-    float sum = 0.0f;
-    for (int row = 0; row &lt; 2*r+1; row++) {
-        for (int col = 0; col &lt; 2*r+1; col++) {
-            int inRow = outRow + row;
-            int inCol = outCol + col;
-            sum += input[inRow * width + inCol] * F_d[row][col];
-        }
-    }
-    output[outRow * width + outCol] = sum;
-}
-</code></pre><p>If you organize your files such that the kernel is in a separate file from the host code, you will need to declare the constant variable in the kernel file as well.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; row <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; row<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; col <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; col<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inRow <span style="color:#f92672">=</span> outRow <span style="color:#f92672">+</span> row;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> inCol <span style="color:#f92672">=</span> outCol <span style="color:#f92672">+</span> col;
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">+=</span> input[inRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> inCol] <span style="color:#f92672">*</span> F_d[row][col];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    output[outRow <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> outCol] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>If you organize your files such that the kernel is in a separate file from the host code, you will need to declare the constant variable in the kernel file as well.</p>
 <p>Constant memory variables are stored in DRAM with global memory. The CUDA runtime will cache them since it knows they will not be modified. Processors use caches to reduce the latency of memory accesses by keeping frequently used data in a small, fast memory that is often located directly on the chip. This type of <em>constant cache</em> is preferable to one that would support high-throughput writes in terms of chip design. It would require specialized hardware to support both which would increase the cost of the chip.</p>
 <h2 id="tiled-convolutions">Tiled Convolutions</h2>
 <p>Even with caching, the convolutional kernel still makes many accesses to DRAM. Similar to matrix multiplication, we can tile the input image to reduce the number of accesses. Similar to that example, we will use a \(4 \times 4\) tile size. If the input is a \(16 \times 16\) image and we apply a kernel with radius \(r=2\), the output image under a valid convolution will be \(12 \times 12\). This is visualized in the figure below.</p>
@@ -1147,42 +1167,42 @@ __constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
 </div>
 <p>The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key difference in this case is that the input tile size will be larger than the output tile size. This size difference would further be complicated if we left the kernel size as a parameter.</p>
 <p>Following the design presented by (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">#define FILTER_RADIUS 1
-#define IN_TILE_DIM 4
-#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
-__constant__ float kFilter_d[2*FILTER_RADIUS+1][2*FILTER_RADIUS+1];
-__global__ void conv2DTiledConstKernel(float *input, float *output,
-                                       int width, int height) {
-    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
-    // Input tile coordinates
-    int col = blockIdx.x * OUT_TILE_DIM + threadIdx.x;
-    int row = blockIdx.y * OUT_TILE_DIM + threadIdx.y;
-    if (row &lt; height &amp;&amp; col &lt; width) {
-        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
-    } else {
-        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
-    }
-    __syncthreads();
-
-    // Output tile coordinates
-    int tileCol = threadIdx.x - FILTER_RADIUS;
-    int tileRow = threadIdx.y - FILTER_RADIUS;
-
-    // In a valid convolution, the output is smaller than the input
-    row -= FILTER_RADIUS;
-    col -= FILTER_RADIUS;
-
-    if (tileCol &gt;= 0 &amp;&amp; tileCol &lt; OUT_TILE_DIM &amp;&amp; tileRow &gt;= 0 &amp;&amp; tileRow &lt; OUT_TILE_DIM) {
-        float sum = 0.0f;
-        for (int fRow = 0; fRow &lt; 2*FILTER_RADIUS+1; fRow++) {
-            for (int fCol = 0; fCol &lt; 2*FILTER_RADIUS+1; fCol++) {
-                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
-            }
-        }
-        output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
-    }
-}
-</code></pre><p>There are a few things to consider here. The first phase of this kernel collaboratively loads data into a shared memory space, similar to what we have seen before. This kernel assumes a convenient indexing scheme where the row and column will always be &gt;= 0. We could adopt a scheme that centers the convolution on the center point of the kernel by allowing for negative indices. In this case, it would be necessary to check if the row and column are less than 0. This implementation only needs to verify that the row and column are within the given image size.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define IN_TILE_DIM 4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2DTiledConstKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                                       <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> inputTile[IN_TILE_DIM][IN_TILE_DIM];
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Input tile coordinates
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> height <span style="color:#f92672">&amp;&amp;</span> col <span style="color:#f92672">&lt;</span> width) {
+</span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> input[row <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> col];
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    __syncthreads();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Output tile coordinates
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> tileCol <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">-</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileRow <span style="color:#f92672">=</span> threadIdx.y <span style="color:#f92672">-</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// In a valid convolution, the output is smaller than the input
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>    col <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (tileCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> tileCol <span style="color:#f92672">&lt;</span> OUT_TILE_DIM <span style="color:#f92672">&amp;&amp;</span> tileRow <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> tileRow <span style="color:#f92672">&lt;</span> OUT_TILE_DIM) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fRow <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fRow <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; fRow<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fCol <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fCol <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>; fCol<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> inputTile[tileRow <span style="color:#f92672">+</span> fRow][tileCol <span style="color:#f92672">+</span> fCol] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        output[row <span style="color:#f92672">*</span> (width <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS) <span style="color:#f92672">+</span> col] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>There are a few things to consider here. The first phase of this kernel collaboratively loads data into a shared memory space, similar to what we have seen before. This kernel assumes a convenient indexing scheme where the row and column will always be &gt;= 0. We could adopt a scheme that centers the convolution on the center point of the kernel by allowing for negative indices. In this case, it would be necessary to check if the row and column are less than 0. This implementation only needs to verify that the row and column are within the given image size.</p>
 <p>When it comes to computing the output, not every thread will contribute. This is depicted by the lightly shaded areas in the figure below. You should also note which threads are active for output computation per block. In this simple example, a \(3 \times 3\) filter is used. The input tile dimension is \(4 \times 4\) which means the output tile will be \(2 \times 2\). Only the threads corresponding to the darker blue on the left contribute to the output calculation. Since this one block computes 4 output values, the next block should start 2 units to the right of this one.</p>
 
 
@@ -1224,46 +1244,46 @@ __global__ void conv2DTiledConstKernel(float *input, float *output,
 <h2 id="caching-the-halo-cells">Caching the Halo Cells</h2>
 <p>In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as <em>halo cells</em>.</p>
 <p>This implementation is going to take advantage of the caching behavior in the chip itself. <strong>Values that have been recently used are more likely to already be in L2 cache.</strong> This is a safe assumption since the neighboring blocks will have loaded these values into shared memory. This means that the input and output tile sizes can be the same; there is no need to waste any threads in the block. The full kernel is given below.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void conv2DTiledCachedConstKernel(float *input, float *output,
-                                             int width, int height) {
-    __shared__ float inputTile[IN_TILE_DIM][IN_TILE_DIM];
-    // Input tile coordinates
-    int col = blockIdx.x * IN_TILE_DIM + threadIdx.x;
-    int row = blockIdx.y * IN_TILE_DIM + threadIdx.y;
-    if (row &lt; height &amp;&amp; col &lt; width) {
-        inputTile[threadIdx.y][threadIdx.x] = input[row * width + col];
-    } else {
-        inputTile[threadIdx.y][threadIdx.x] = 0.0f;
-    }
-    __syncthreads();
-
-    if (row &lt; FILTER_RADIUS || col &lt; FILTER_RADIUS || col &gt;= (width - FILTER_RADIUS) || row &gt;= (height - FILTER_RADIUS)) return;
-
-    // Output tile coordinates
-    row -= FILTER_RADIUS;
-    col -= FILTER_RADIUS;
-    int tileCol = threadIdx.x - FILTER_RADIUS;
-    int tileRow = threadIdx.y - FILTER_RADIUS;
-
-    float sum = 0.0f;
-    for (int fRow = 0; fRow &lt; 2 * FILTER_RADIUS + 1; fRow++) {
-        for (int fCol = 0; fCol &lt; 2 * FILTER_RADIUS + 1; fCol++) {
-            // If this value is in shared memory, access it there
-            if (tileCol + fCol &gt;= 0 &amp;&amp;
-                tileCol + fCol &lt; IN_TILE_DIM &amp;&amp;
-                tileRow + fRow &gt;= 0 &amp;&amp;
-                tileRow + fRow &lt; IN_TILE_DIM) {
-                sum += inputTile[tileRow + fRow][tileCol + fCol] * kFilter_d[fRow][fCol];
-            } else {
-                // Otherwise, access it from global memory
-                sum += input[(row + fRow) * width + (col + fCol)] * kFilter_d[fRow][fCol];
-            }
-        }
-    }
-
-    output[row * (width - 2 * FILTER_RADIUS) + col] = sum;
-}
-</code></pre><h2 id="references">References</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2DTiledCachedConstKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                                             <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> inputTile[IN_TILE_DIM][IN_TILE_DIM];
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Input tile coordinates
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> IN_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> IN_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> height <span style="color:#f92672">&amp;&amp;</span> col <span style="color:#f92672">&lt;</span> width) {
+</span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> input[row <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> col];
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    __syncthreads();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> FILTER_RADIUS <span style="color:#f92672">||</span> col <span style="color:#f92672">&lt;</span> FILTER_RADIUS <span style="color:#f92672">||</span> col <span style="color:#f92672">&gt;=</span> (width <span style="color:#f92672">-</span> FILTER_RADIUS) <span style="color:#f92672">||</span> row <span style="color:#f92672">&gt;=</span> (height <span style="color:#f92672">-</span> FILTER_RADIUS)) <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Output tile coordinates
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>    col <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileCol <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">-</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileRow <span style="color:#f92672">=</span> threadIdx.y <span style="color:#f92672">-</span> FILTER_RADIUS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fRow <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fRow <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; fRow<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fCol <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fCol <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; fCol<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// If this value is in shared memory, access it there
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> (tileCol <span style="color:#f92672">+</span> fCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>                tileCol <span style="color:#f92672">+</span> fCol <span style="color:#f92672">&lt;</span> IN_TILE_DIM <span style="color:#f92672">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>                tileRow <span style="color:#f92672">+</span> fRow <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>                tileRow <span style="color:#f92672">+</span> fRow <span style="color:#f92672">&lt;</span> IN_TILE_DIM) {
+</span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> inputTile[tileRow <span style="color:#f92672">+</span> fRow][tileCol <span style="color:#f92672">+</span> fCol] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Otherwise, access it from global memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                sum <span style="color:#f92672">+=</span> input[(row <span style="color:#f92672">+</span> fRow) <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> (col <span style="color:#f92672">+</span> fCol)] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    output[row <span style="color:#f92672">*</span> (width <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS) <span style="color:#f92672">+</span> col] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Dumoulin, Vincent, and Francesco Visin. 2018. “A Guide to Convolution Arithmetic for Deep Learning.” <i>Arxiv:1603.07285 [Cs, Stat]</i>, January. <a href="http://arxiv.org/abs/1603.07285">http://arxiv.org/abs/1603.07285</a>.</div>
   <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>

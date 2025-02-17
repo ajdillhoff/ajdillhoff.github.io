@@ -4,7 +4,7 @@
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   
   <meta charset="utf-8" />
-<title>Decision Trees</title>
+<title>Clustering</title>
 
 
 <meta
@@ -80,7 +80,7 @@
   
 
 
-<title>Decision Trees</title>
+<title>Clustering</title>
 
 
 
@@ -180,13 +180,13 @@
 
 
 
-<meta property="og:title" content="Decision Trees" />
+<meta property="og:title" content="Clustering" />
 <meta property="og:description" content="A collection of thoughts, notes, and projects related to Computer Science and Machine Learning." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://localhost:1313/notes/decision_trees/" />
+<meta property="og:url" content="http://localhost:1313/notes/clustering/" />
 
 
-<meta name="twitter:title" content="Decision Trees" />
+<meta name="twitter:title" content="Clustering" />
 <meta name="twitter:description" content="A collection of thoughts, notes, and projects related to Computer Science and Machine Learning." />
 
 
@@ -524,7 +524,7 @@
           </a>
         
           <a href="/notes/clustering/" 
-             class="note-link">
+             class="note-link active">
             Clustering
           </a>
         
@@ -649,7 +649,7 @@
           </a>
         
           <a href="/notes/decision_trees/" 
-             class="note-link active">
+             class="note-link">
             Decision Trees
           </a>
         
@@ -776,11 +776,11 @@
       <div class="col-xxl-10 mx-auto" data-aos="fade-up" data-aos-delay="100">
         <article>
           <button class="text-primary mb-5 border-0 bg-transparent" onclick="history.back()"><i class="fa-solid fa-backward me-2"></i>Back</button>
-          <h1 class="text-capitalize h3 mb-4">Decision Trees</h1>
+          <h1 class="text-capitalize h3 mb-4">Clustering</h1>
           <div class="post-meta d-flex flex-wrap flex-lg-nowrap align-items-center mb-4">
             <ul class="list-inline me-5">
               <li class="list-inline-item">
-                <i class="fa-solid fa-calendar-days me-2"></i>18 Mar 2022
+                <i class="fa-solid fa-calendar-days me-2"></i>16 Feb 2025
               </li>
               
               <li class="list-inline-item">
@@ -788,13 +788,13 @@
                 
                 
                   
-                  <a href="http://localhost:1313/categories/machine-learning" class="meta-link">Machine Learning</a>
+                  <a href="http://localhost:1313/categories/computer-vision" class="meta-link">Computer Vision</a>
                   
                 
               </li>
                 
             </ul>
-            <span>Last updated on Feb 22, 2024</span>
+            <span>Last updated on Feb 16, 2025</span>
           </div>
 
           
@@ -803,316 +803,96 @@
             <div class="ox-hugo-toc toc">
 <div class="heading">Table of Contents</div>
 <ul>
-<li><a href="#resources"
+<li><a href="#k-means-clustering"
 
 
 
  
 
 
->Resources</a></li>
-<li><a href="#introduction"
+>K-Means Clustering</a></li>
+<li><a href="#k-medoids-clustering"
 
 
 
  
 
 
->Introduction</a></li>
-<li><a href="#example-iris-dataset"
+>K-Medoids Clustering</a></li>
+<li><a href="#mixtures-of-gaussians"
 
 
 
  
 
 
->Example: Iris Dataset</a></li>
-<li><a href="#growing-a-tree"
-
-
-
- 
-
-
->Growing a Tree</a></li>
-<li><a href="#examining-the-iris-classification-tree"
-
-
-
- 
-
-
->Examining the Iris Classification Tree</a></li>
-<li><a href="#pruning-a-tree"
-
-
-
- 
-
-
->Pruning a Tree</a></li>
-<li><a href="#the-algorithm"
-
-
-
- 
-
-
->The Algorithm</a></li>
+>Mixtures of Gaussians</a></li>
 </ul>
 </div>
 <!--endtoc-->
-<h2 id="resources">Resources</h2>
-<ul>
-<li><a href="https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset"
+<p>In machine learning, the three most common forms of learning are</p>
+<ol>
+<li>supervised learning,</li>
+<li>unsupervised learning,</li>
+<li>and reinforcement learning.</li>
+</ol>
+<p>Supervised learning involves training a model on a set of inputs with matching ground truth signals. Regression and classification models are most commonly trained via supervised learning, but it is possible to train without labeled samples. <a href="/notes/reinforcement_learning/"
 
 
 
-
- target="_blank"
  
 
 
->https://www.kaggle.com/dmilla/introduction-to-decision-trees-titanic-dataset</a></li>
-</ul>
-<h2 id="introduction">Introduction</h2>
-<p>A <strong>decision tree</strong>, or Classification and Regression Trees (CART), is a model that recursively partitions the input space based on a collection of features.
-The partitions are split based on very simple binary choices.
-If yes, branch to the left; if no, branch to the right.</p>
-
-
-
-
-
-
-<div class="outer-figure">
-<figure class="custom-figure">
-
-  <a data-fancybox="" href="/ox-hugo/2024-02-22_11-11-58_screenshot.png" data-caption="Figure 1: Regression tree (left) and its piecewise constant surface (right) (Source: Machine Learning: A Probabilistic Perspective by Kevin P. Murphy)." class="glightbox">
-
-<img src="/ox-hugo/2024-02-22_11-11-58_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Regression tree (left) and its piecewise constant surface (right) (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)." >
-</a>
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 1: </span>Regression tree (left) and its piecewise constant surface (right) (Source: <em>Machine Learning: A Probabilistic Perspective</em> by Kevin P. Murphy).
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-</div>
-<p>To compute the response, we represent each individual decision as a function \(\phi\) and sum the responses:</p>
+>Reinforcement Learning</a> optimizes an agent&rsquo;s behavior based on a reward signal. The goal of <strong><strong>unsupervised learning</strong></strong> is to extract some structure from the data itself. Models that are trained via unsupervised learning can also be used for regression and classification. If you fully understand the data generating distribution, surely you could answer any other question about that data.</p>
+<p><strong>Clustering</strong> is a common approach to unsupervised learning. Instead of predicting a target value, clustering algorithms group similar data points together based on a similarity metric. The choice of metric depends on the data and the problem. For example, clustering for images may consider spatial proximity as well as pixel values.</p>
+<h2 id="k-means-clustering">K-Means Clustering</h2>
+<p>Imagine you are given a database of houses with features like square footage, number of bedrooms, number of bathrooms, and, of course, the price itself. Knowing that the price of the house varies greatly depending on these factors and others such as location, you decide to group the data depending on the cost of the house. This way, your customers can browse houses in their price range.</p>
+<p>To keep things simple, you choose to group the houses into three different tiers: low cost, medium cost, and high cost. Given the larger number of samples, this would be a perfect application of K-Means. First, the cluster centers are initialized randomly. The algorithm assigns each data point to a cluster center based on the Euclidean distance. The centers are then updated based on the samples that were assigned to them.</p>
+<ol>
+<li>For each sample, calculate the Euclidean distance to each cluster center.
+\[
+z_n^* = \arg\min_{z_n} \sum_{k=1}^K ||x_n - \mu_k||^2
+\]</li>
+<li>Update the cluster centers.
+\[
+\mu_k = \frac{1}{N_k} \sum_{n:z_n=k} x_n
+\]</li>
+<li>Repeat steps 1 and 2 until convergence.</li>
+</ol>
+<p>That&rsquo;s it! K-Means is a simple algorithm that can be implemented in a few lines of code. It runs in \(O(NKT)\) time, where \(T\) is the number of iterations. In practice, you can affect the number of iterations by monitoring the <strong>distortion</strong> from one iteration to the next.</p>
 <p>\[
-f(\mathbf{x}) = \mathbb{E}[y | \mathbf{x}] = \sum_{m=1}^M w_m \mathbb{1} (\mathbf{x} \in R_m) = \sum_{m=1}^M w_m \phi(\mathbf{x};\mathbf{v}_m),
+J = \sum_{n=1}^N ||x_n - \mu_{z_n}||^2
 \]</p>
-<p>where \(R_m\) is the \(m^{\text{th}}\) region, \(w_m\) is the mean response, and \(\mathbf{v}_m\) is the choice of variable to split on along with its threshold value. Note that this is <strong>not</strong> a differentiable function due to the indicator function.</p>
-<h2 id="example-iris-dataset">Example: Iris Dataset</h2>
-<p>To see this on real data, consider the Iris flower dataset.
-For example, we will look at a decision tree model that classifies each flower into either <strong>setosa</strong>, <strong>versicolor</strong>, or <strong>virginica</strong>.</p>
-
-
-
-
-
-
-<div class="outer-figure">
-<figure class="custom-figure">
-
-  <a data-fancybox="" href="/ox-hugo/2022-03-20_21-04-19_screenshot.png" data-caption="Figure 2: Our initial Iris classifier." class="glightbox">
-
-<img src="/ox-hugo/2022-03-20_21-04-19_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Our initial Iris classifier." >
-</a>
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 2: </span>Our initial Iris classifier.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-</div>
-<p>We are given data about a new iris and want to classify it using this tree.
-Our sample has a sepal length of 6.1cm, a sepal width of 2.8cm, a petal length of 4.7cm, and a petal width of 1.2cm.
-The first decision considers the petal width.
-Our sample has a width of 1.2, so it continues down the right branch.</p>
-<p>The second decision consideres petal width again.
-Since our sample does not have a width greater than 1.75, we continue down the left branch.</p>
-<p>At this point, the model was optimized to now consider the petal length.
-Our length comes in at 4.7, just shy of going down the right path.</p>
-<p>We now arrive at the last decision.
-Since our petal length is not greater than 1.65, the model classifies this sample as <strong>versicolor</strong>.</p>
-<h2 id="growing-a-tree">Growing a Tree</h2>
-<p>To grow a tree, a decision needs to be made as to whether or not the current set of data can be split based on some feature.
-As such, there should be a reliable way of determining if a feature provided a good split.
-This is evaluated using a cost function and selecting the feature and value corresponding to the minimum cost:</p>
+<p>This measure is evaluating points against the cluster they are assigned to. You should be able to convince yourself that, as the number of clusters increases, the distortion decreases. When decided when to converge, you can monitor the change in distortion from one iteration to the next. If the change is less than some threshold, the loop will stop.</p>
+<h3 id="inference">Inference</h3>
+<p>Once the algorithm converges, you can assign new samples to the cluster centers. This is done by calculating the Euclidean distance to each cluster center and assigning the sample to the closest one. The cluster centers themselves can be used as a summary of the data. In our case, each cluster center represents the average house price in that range.</p>
+<p>Inference is much cheaper than training, you only need to consider the distance to each cluster center.</p>
+<h2 id="k-medoids-clustering">K-Medoids Clustering</h2>
+<p>As long as our samples can be compared via Euclidean distance, K-Means is a great choice. However, if the data is not continuous, or if each sample has a varying number of features, K-Medoids is the way to go. In this variant, the cluster center is chosen from the sample whose average dissimilarity to the other samples is the smallest.</p>
+<p>For each sample, find the closest cluster center.</p>
 <p>\[
-(j^*, t^*) = \text{arg} \min_{j\in\{1, \dots, D\}} \min_{t \in \mathcal{T}_j} \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} \leq t\}) + \text{cost}(\{\mathbf{x}_i, y_i : x_{ij} &gt; t\}).
+z_n = \arg\min_{z_n} d(x_n, m_k)\quad \forall n
 \]</p>
-<p>In words, this function finds a value \(t\) such that groups the data with the lowest cost.
-For a regression task, the cost function is typically defined as</p>
+<p>For each cluster, find the sample whose total distance to all other samples in the cluster is the smallest.</p>
 <p>\[
-\text{cost}(\mathcal{D}) = \sum_{i \in \mathcal{D}}(y_i - \bar{y})^2,
+m_k = \arg\min_{n:z_n = k} \sum_{n&rsquo;:z_{n&rsquo;}=k} d(x_n, x_{n&rsquo;})\quad \forall k
 \]</p>
-<p>where</p>
+<p>This would be a great choice for clustering text data, where the distance between two samples is not as straightforward as Euclidean distance.</p>
+<h2 id="mixtures-of-gaussians">Mixtures of Gaussians</h2>
+<p>Let&rsquo;s go back to our housing example. Suppose we have a K-Means model that groups houses into three clusters. If we come across a new sample, we can assign it to the closest cluster center. However, this sample may not be a perfect fit for any of the clusters. The only way we can measure the fitness of a new sample is by calculating the Euclidean distance to each cluster center. How do we decide if the cluster belongs or not? A naive solution is to set a predetermined threshold. If the distance is less than the threshold, the sample belongs to the cluster. If we want something that is more robust, we can use a probabilistic model.</p>
+<p>A Gaussian mixture model is defined as a weighted sum of Gaussian distributions.</p>
 <p>\[
-\bar{y} = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} y_i.
+p(x) = \sum_{k=1}^K \pi_k \mathcal{N}(x|\mu_k, \Sigma_k)
 \]</p>
-<p>Splits that result in clusters with high variance may still see a higher cost, even though they are the minimum.</p>
-<p>As their alternative name implies, decision trees can also be used for classification.
-The splits are still based on features and threshold values at each branch.
-When a split is considered, a class-conditional probability is estimated for that data.</p>
-<h3 id="splitting-the-data">Splitting the Data</h3>
-<p>Given a set of data that makes it to node \(i\), denoted \(\mathcal{D}_i\), a fitting procedure must select the feature and threshold value that minimizes the cost. If the feature is continuous, the range of search values is selected by sorting a list of unique values from the subset of data. For each unique value, the cost is computed by splitting the data into two groups based on the threshold value. The threshold value that minimizes the cost is selected.</p>
-<p>In the case of categorical data, we would intuitively split the data into a set of data that contains the category and a set that does not. The cost is then computed for each category. The category that minimizes the cost is selected.</p>
-<p>Given data satisfying \(X_j &lt; t\), the class-conditional probability is</p>
+<p>If we know the parameters of each Gaussian, we can answer the question of which Gaussian best explains a given data sample:</p>
 <p>\[
-\hat{\pi}_c = \frac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}} \mathbb{1}(y_i = c).
+p(k|x) = \frac{\pi_k \mathcal{N}(x|\mu_k, \Sigma_k)}{\sum_{k&rsquo;=1}^K \pi_{k&rsquo;} \mathcal{N}(x|\mu_{k&rsquo;}, \Sigma_{k&rsquo;})}
 \]</p>
-<h3 id="error-functions">Error Functions</h3>
-<p>The common error functions used for classification are <strong>misclassification rate</strong>, <strong>entropy</strong>, and <strong>Gini index</strong>.
-Misclassification rate is computed by summing the number of misclassifications:</p>
+<p>To make an assignment, compute the probability of each cluster given the sample and assign it to the cluster with the highest probability. This can be done in a more computationally efficient manner by only considering the log of the numerator.</p>
 <p>\[
-\frac{1}{|\mathcal{D}|} \sum_{i \in \mathcal{D}} \mathbb{1}(y_i \neq \hat{y}) = 1 - \hat{\pi}_{\hat{y}}.
-\]</p>
-<p>Entropy is computed as</p>
-<p>\[
-\mathbb{H}(\mathbb{\hat{\pi}}) = -\sum_{c=1}^C \hat{\pi}_c \log \hat{\pi}_c.
-\]</p>
-<p><strong>Gini index</strong> computes the expected error rate.</p>
-<p>\[
-G = \sum_{c=1}^C \hat{\pi}_c (1 - \hat{\pi}_c) = 1 - \sum_{c=1}^C \hat{\pi}_c^2
+z_n = \arg\max_{k} \log \pi_k + \log \mathcal{N}(x_n|\mu_k, \Sigma_k)
 \]</p>
 
-
-
-
-
-
-<div class="outer-figure">
-<figure class="custom-figure">
-
-  <a data-fancybox="" href="/ox-hugo/2022-03-19_17-32-01_screenshot.png" data-caption="Figure 3: Impurity measured for binary classification (Source: Machine Learning: A Probabilistic Perspective by Kevin P. Murphy)" class="glightbox">
-
-<img src="/ox-hugo/2022-03-19_17-32-01_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Impurity measured for binary classification (Source: _Machine Learning: A Probabilistic Perspective_ by Kevin P. Murphy)" >
-</a>
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 3: </span>Impurity measured for binary classification (Source: <em>Machine Learning: A Probabilistic Perspective</em> by Kevin P. Murphy)
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-</div>
-<p>Like entropy, it promotes an equal number of observations across all classes in a node.
-For small values of \(\hat{\pi}\), the error is smaller than that of entropy.
-If the dataset is imbalanced, entropy is typically favored as it penalizes imbalanced datasets more than Gini will.
-Both will favor splits that result in one node being pure.</p>
-<h3 id="stopping-growth">Stopping Growth</h3>
-<p>If left unchecked, the algorithm to grow a tree will continue until the data can no longer be split.
-In the trivial case, this will be when every data point represents a leaf node.
-In order to prevent overfitting, there are several criteria that are considered.</p>
-<h4 id="does-the-split-reduce-the-cost-enough">Does the split reduce the cost enough?</h4>
-<p>It may be ideal to only split the data if the cost is reduced by some acceptable value.
-The reduction can be computed by</p>
-<p>\[
-\Delta = \text{cost}(\mathcal{D}) - \bigg(\frac{|\mathcal{D}_L|}{|\mathcal{D}|}\text{cost}(\mathcal{D}_L) + \frac{|\mathcal{D}_R|}{|\mathcal{D}|} \text{cost}(\mathcal{D}_R)\bigg).
-\]</p>
-<h4 id="has-the-tree-reached-some-maximum-depth">Has the tree reached some maximum depth?</h4>
-<p>The depth of a tree is set as a hyperparameter.
-Later, when we look at an example, we will use cross validation to select the best depth parameter for our model.</p>
-<h4 id="is-the-distribution-of-the-split-pure">Is the distribution of the split <strong>pure</strong>?</h4>
-<p>If either of the splits is fully made up of data with the same label, there is no need to split it any further.</p>
-<h4 id="is-the-split-too-small">Is the split too small?</h4>
-<p>A split that is too small may lead to overfitting.</p>
-<h2 id="examining-the-iris-classification-tree">Examining the Iris Classification Tree</h2>
-<p>How exactly does the earlier example model make its decision at each node?
-The full tree is shown below.</p>
-
-
-
-
-
-
-<div class="outer-figure">
-<figure class="custom-figure">
-
-  <a data-fancybox="" href="/ox-hugo/2022-03-20_21-11-02_screenshot.png" data-caption="Figure 4: A detailed view of our Iris classifier." class="glightbox">
-
-<img src="/ox-hugo/2022-03-20_21-11-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;A detailed view of our Iris classifier." >
-</a>
-
-
-<figcaption data-pre="Figure " data-post=":" >
-  
-  <p>
-    <span class="figure-number">Figure 4: </span>A detailed view of our Iris classifier.
-    
-    
-    
-  </p> 
-</figcaption>
-
-</figure>
-</div>
-<p>The first split is visually very simple to intuit.
-Using petal width can perfectly split all setosa samples into a single leaf node.</p>
-<h2 id="pruning-a-tree">Pruning a Tree</h2>
-<p>Depending on the data, stopping growth based on measuring the relative decrease in error may not result in a model that performs well.
-Image a dataset that requires multiple features to provide a sufficient classification.
-If only one of the features is considered in isolation, it may provide no decrease in error.
-A practical example of this is the XOR problem.
-Splitting on \(x_1\) or \(x_2\) in isolation does not provide any indication about the true output.
-It is only when \(x_1 \neq x_2\) does the output equal to 1.</p>
-<p>To rectify this, a tree can be grown until it is completely full before <strong>pruning</strong> the branches
-that result in the smallest increase in error.</p>
-<h2 id="the-algorithm">The Algorithm</h2>
-<p>The general algorithm is shown in MATLAB below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-matlab" data-lang="matlab"><span style="display:flex;"><span><span style="color:#75715e">% node = fitTree(node, D, depth)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">% Recursive function to learn a decision tree</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">% Returns the index of the current node.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">%</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">%   node  - The node index in obj.Nodes.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">%   D     - Indices to the current data.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">%   depth - Current depth of the tree.</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">function</span> node = <span style="color:#a6e22e">fitTree</span>(obj, node, D, depth)
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">% Determine best split for the data and return the split</span>
-</span></span><span style="display:flex;"><span>    [j, t, dSplit, classDist] = obj.split(D, obj.Nodes(node).features);
-</span></span><span style="display:flex;"><span>    obj.Nodes(node).prediction = classDist;
-</span></span><span style="display:flex;"><span>    disp(classDist);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">% Use heuristic to determine if node is worth splitting</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> obj.splitNode(depth, classDist) <span style="color:#f92672">==</span> true
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">% set the node test, the function that determines the branch</span>
-</span></span><span style="display:flex;"><span>        obj.Nodes(node .test = {j, t};
-</span></span><span style="display:flex;"><span>        newFeatures = obj.Nodes(node).features(obj.Nodes(node).features <span style="color:#f92672">~=</span> j);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">% set the child nodes to the left and right splits</span>
-</span></span><span style="display:flex;"><span>        obj.Nodes(node).children = zeros(size(dSplit, <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>        numNewNodes = size(dSplit, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i = <span style="color:#ae81ff">1</span> : numNewNodes
-</span></span><span style="display:flex;"><span>            obj.Nodes(<span style="color:#66d9ef">end</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) = struct(<span style="color:#e6db74">&#39;prediction&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;test&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#75715e">...</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#39;features&#39;</span>, newFeatures, <span style="color:#e6db74">&#39;children&#39;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;parent&#39;</span>, node);
-</span></span><span style="display:flex;"><span>            obj.Nodes(node).children(i)  = obj.fitTree(length(obj.Nodes), dSplit{i}, depth <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">end</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">end</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span>
-</span></span></code></pre></div>
           </div>
         </article>
       </div>
