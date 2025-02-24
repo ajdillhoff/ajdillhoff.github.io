@@ -595,6 +595,11 @@
             Segmentation via Clustering
           </a>
         
+          <a href="/notes/transfomers_for_computer_vision/" 
+             class="note-link">
+            Transformers for Computer Vision
+          </a>
+        
       </div>
     </div>
   
@@ -705,6 +710,11 @@
             Perceptron
           </a>
         
+          <a href="/notes/policy_gradient_methods/" 
+             class="note-link active">
+            Policy Gradient Methods
+          </a>
+        
           <a href="/notes/positional_encoding/" 
              class="note-link">
             Positional Encoding
@@ -797,7 +807,7 @@
           <div class="post-meta d-flex flex-wrap flex-lg-nowrap align-items-center mb-4">
             <ul class="list-inline me-5">
               <li class="list-inline-item">
-                <i class="fa-solid fa-calendar-days me-2"></i>12 Nov 2023
+                <i class="fa-solid fa-calendar-days me-2"></i>18 Feb 2025
               </li>
               
               <li class="list-inline-item">
@@ -811,13 +821,27 @@
               </li>
                 
             </ul>
-            <span>Last updated on Nov 12, 2023</span>
+            <span>Last updated on Feb 18, 2025</span>
           </div>
 
           
 
           <div class="content">
-            <p>When we had full knowledge of the states, we could use <a href="/notes/markov_decision_processes/"
+            <div class="ox-hugo-toc toc">
+<div class="heading">Table of Contents</div>
+<ul>
+<li><a href="#policy-gradients"
+
+
+
+ 
+
+
+>Policy Gradients</a></li>
+</ul>
+</div>
+<!--endtoc-->
+<p>When we had full knowledge of the states, we could use <a href="/notes/markov_decision_processes/"
 
 
 
@@ -826,6 +850,30 @@
 
 >Markov Decision Processes</a> to find the optimal policy. When this assumption breaks down, we need to come up with our best approximation. This is not a far stretch from how we might handle new scenarios in our own lives. When we begin a new task, we are certainly not experts. We may learn from a teacher or set off to explore on our own. As we practice and churn out the seemingly endless variations of our endeavour, we begin to develop a sense of what works and what doesn&rsquo;t. We may not be able to articulate the exact rules that we follow, but we can certainly tell when we are doing well or poorly.</p>
 <p>In lieu of a conscious agent with human intelligence, we can approximate the policy using a gradient-based approach. We will use the gradient of the expected reward with respect to the policy parameters to update the policy. Methods that use this approach are called <strong><strong>policy gradient methods</strong></strong>.</p>
+<h2 id="policy-gradients">Policy Gradients</h2>
+<p>Q-Learning is an <em>off-policy</em> learning algorithm that directly estimates optimal action values in order to find optimal policies. That is, it does not update a policy table or function. Instead, it chooses the best action given the computed estimates of the action values. Given a state-action space that is too complex to be efficiently represented as a table, the function must be approximated. This can be done by taking the derivative of the cost fnction with respect to its objective function.</p>
+<p>Whereas value function methods like Q-Learning approximate a value function, <strong>policy gradient methods</strong> approximate the policy function. Given this estimate, the gradient is updated to maximize the expected reward.</p>
+<p>\[
+\theta_{t+1} = \theta_t + \alpha \nabla J(\theta)
+\]</p>
+<h3 id="episodic-case">Episodic Case</h3>
+<p>For episodic problems, we can use the <strong>average state value</strong></p>
+<p>\[
+\bar{v}_{\pi} = \sum_{s} d_{\pi}(s) v_{\pi}(s) = \sum_{s} d_{\pi}(s) \sum_{a} \pi_{\theta}(a|s) q_{\pi}(s, a),
+\]</p>
+<p>where \(d_{\pi}(s)\) is the stationary distribution of states under the policy \(\pi\) and \(q_{\pi}(s, a)\) is the action-value function. The fact that \(d_{\pi}(s)\) is stationary is very important when computing the gradients.</p>
+<h4 id="what-is-a-stationary-distribution">What is a Stationary Distribution?</h4>
+<p>If \(\pi\) is a stationary distribution and \(P\) is the transition matrix over a Markov chain, then \(\pi\) satisfies the equation \(\pi = \pi P\). This means that the distribution of states under the policy \(\pi\) does not change over time.</p>
+<h4 id="significance-of-the-stationary-distribution">Significance of the Stationary Distribution</h4>
+<p>The stationary distribution simplifies the computation of the gradient. It allows us to avoid computing how the state distributions change with respect to the policy parameters. That is because the particular trajectory our agent takes does not affect the probability of being in any given state.</p>
+<h4 id="gradient-of-the-episodic-case">Gradient of the Episodic Case</h4>
+<p>The gradient of the average state value is</p>
+<p>\[
+\nabla_{\theta} J(\theta) = \mathbb{E}_{\pi} \left[ \nabla_{\theta} \log \pi_{\theta}(a|s) q_{\pi}(s, a) \right].
+\]</p>
+<p>An important note here is that this a stochastic gradient. We surely do not have complete knowledge of the environment, so computing the true gradient is out of the question. This also means that our stochastic gradients may exhibity high variance due to the randomness of the environment and policy.</p>
+<h3 id="continuous-case">Continuous Case</h3>
+<p>Using the average value in this case would not directly align with this goal because the value function represents the expected rewards starting from a specific state. In continuing problems, we are interested in global performance across <em>all</em> states under the policy.</p>
 
           </div>
         </article>
