@@ -640,6 +640,11 @@
             Multidimensional Grids and Data
           </a>
         
+          <a href="/notes/profiling_cuda_applications/" 
+             class="note-link">
+            Profiling CUDA Applications
+          </a>
+        
       </div>
     </div>
   
@@ -718,6 +723,11 @@
           <a href="/notes/positional_encoding/" 
              class="note-link">
             Positional Encoding
+          </a>
+        
+          <a href="/notes/pretraining_large_language_models/" 
+             class="note-link active">
+            Pretraining Large Language Models
           </a>
         
           <a href="/notes/probability_theory/" 
@@ -825,7 +835,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Nov 16, 2023</span>
+            <span>Last updated on Feb 26, 2025</span>
           </div>
 
           
@@ -850,12 +860,36 @@
 
 
 >From GPT to GPT2</a></li>
+<li><a href="#bert"
+
+
+
+ 
+
+
+>BERT</a></li>
+<li><a href="#bart"
+
+
+
+ 
+
+
+>BART</a></li>
+<li><a href="#gpt3"
+
+
+
+ 
+
+
+>GPT3</a></li>
 </ul>
 </div>
 <!--endtoc-->
 <p>These notes provide an overview of pre-training large language models like GPT and Llama.</p>
 <h2 id="unsupervised-pre-training">Unsupervised Pre-training</h2>
-<p>Let&rsquo;s start by reviewing the pre-training procedure detailed in the GPT paper (<a href="#citeproc_bib_item_1">Radford et al. 2020</a>). The <em>Generative</em> in Generative Pre-Training reveals much about how the network can be trained without direct supervision. It is analogous to how you might have studied definitions as a kid: create some flash cards with the term on the front and the definition on the back. Given the context of the word, you try and recite the definition. For a pre-training language model, it is given a series of tokens and is tasked with generating the next token in the sequence. Since we have access to the original documents, we can easily determine if it was correct.</p>
+<p>Let&rsquo;s start by reviewing the pre-training procedure detailed in the GPT paper (<a href="#citeproc_bib_item_4">Radford et al. 2018</a>). The <em>Generative</em> in Generative Pre-Training reveals much about how the network can be trained without direct supervision. It is analogous to how you might have studied definitions as a kid: create some flash cards with the term on the front and the definition on the back. Given the context of the word, you try and recite the definition. For a pre-training language model, it is given a series of tokens and is tasked with generating the next token in the sequence. Since we have access to the original documents, we can easily determine if it was correct.</p>
 <p>Given a sequence of tokens \(\mathcal{X} = \{x_1, x_2, \ldots, x_n\}\), the model is trained to predict the next token \(x_{n+1}\) in the sequence. The model is trained to maximize the log-likelihood of the next token:</p>
 <p>\[\mathcal{L}(\mathcal{X}) = \sum_{i=1}^{n} \log p(x_{i+1} \mid x_{i-k}, \ldots, x_i)\]</p>
 <p>where \(k\) is the size of the context window.</p>
@@ -878,14 +912,14 @@
 
   <a data-fancybox="" href="/ox-hugo/2023-11-16_15-56-14_screenshot.png" data-caption="Figure 1: Decoder-only diagram from (Vaswani et al. 2017)." class="glightbox">
 
-<img src="/ox-hugo/2023-11-16_15-56-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decoder-only diagram from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Vaswani et al. 2017&lt;/a&gt;)." >
+<img src="/ox-hugo/2023-11-16_15-56-14_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 1: &lt;/span&gt;Decoder-only diagram from (&lt;a href=&#34;#citeproc_bib_item_5&#34;&gt;Vaswani et al. 2017&lt;/a&gt;)." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 1: </span>Decoder-only diagram from (<a href="#citeproc_bib_item_2">Vaswani et al. 2017</a>).
+    <span class="figure-number">Figure 1: </span>Decoder-only diagram from (<a href="#citeproc_bib_item_5">Vaswani et al. 2017</a>).
     
     
     
@@ -896,12 +930,119 @@
 </div>
 <p>The entire input pipeline for GPT can be expressed rather simply. First, the tokenized input is passed through an embedding layer \(W_{e}\). Embedding layers map the tokenized input into a lower-dimensional vector representation. A positional embedding matrix of the same size as \(\mathcal{X} W_{e}\) is added in order to preserve the order of the tokens.</p>
 <p>The embedded data \(h_0\) is then passed through \(n\) transformer blocks. The output of this is passed through the softmax function in order to produce an output distribution over target tokens.</p>
+<h3 id="supervised-fine-tuning">Supervised fine-tuning</h3>
+<p>Given a model pre-trained using the above method, it is then fine-tuned for different tasks. The input and loss functions used are task-specific. In general, the text was formatted in a way that matches the task. The figure below shows the different tasks used.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-02-26_14-25-23_screenshot.png" data-caption="Figure 2: Figure 1 from (Radford et al. 2018)." class="glightbox">
+
+<img src="/ox-hugo/2025-02-26_14-25-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 2: &lt;/span&gt;Figure 1 from (&lt;a href=&#34;#citeproc_bib_item_4&#34;&gt;Radford et al. 2018&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 2: </span>Figure 1 from (<a href="#citeproc_bib_item_4">Radford et al. 2018</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<h4 id="story-cloze-test">Story Cloze Test</h4>
+<p>This test evaluates commonsense reasoning by asking models to choose the correct ending for a story from two options. This is evaluated using a standard accuracy metric.</p>
+<h4 id="general-language-understanding-evaluation--glue">General Language Understanding Evaluation (GLUE)</h4>
+<p>GLUE is a multi-task benchmark that evaluates models on a variety of natural language understanding tasks, including sentiment analysis, textual entailment, and question answering. Textual entailment involves determining the relationship between two sentences: a premise and a hypothesis.</p>
+<h4 id="race--reading-comprehension">RACE (Reading Comprehension)</h4>
+<p>A datset of multiple-choice reading comprehension questions. The model is tasked with selecting the correct answer from four options.</p>
+<h4 id="semantic-similarity-tasks">Semantic Similarity Tasks</h4>
+<p>Datasets like Microsoft Research Paraphrase Corpus (MRPC) were used to determine whether two sentences are paraphrases. Another dataset, Quora Question Pairs (QQP) tasks the model with identifying duplicate questions. Finally, the Semantic Textual Similarity Benchmark (STS-B) measures sentence similarity on a continuous scale.</p>
+<h3 id="zero-shot-behaviors">Zero-shot Behaviors</h3>
+<p>The authors show that the model exhibits some reasonable performance on tasks even before the fine-tuning process. They show that the relative performance on these tasks increases with the amount of pre-training. This is known as zero-shot learning.</p>
 <h2 id="from-gpt-to-gpt2">From GPT to GPT2</h2>
 <p>GPT2 is a larger version of GPT, with an increased context size of 1024 tokens and a vocabulary of 50,257 vocabulary. In this paper, they posit that a system should be able to perform many tasks on the same input. For example, we may want our models to summarize complex texts as well as provide answers to specific questions we have about the content. Instead of training multiple separate models to perform these tasks individually, the model should be able to adapt to these tasks based on the context. In short, it should model \(p(output \mid input, task)\) instead of \(p(output \mid input)\).</p>
+<p>The model itself is not explicitly trained to perform any of these tasks. The authors show that it can still perform better on a specific task by adding the context into the prompt. This is known as zero-shot learning. For example, if you want to generate a summary for a document or other textual context, you can append &ldquo;TL; DR&rdquo; to the prompt.</p>
+<h2 id="bert">BERT</h2>
+<p>BERT is a bidirectional transformer model that is trained using a masked language model objective (<a href="#citeproc_bib_item_2">Devlin et al. 2019</a>). The model is trained to predict masked words in a sentence. This is in contrast to GPT, which is trained to predict the next word in a sentence.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-02-26_14-48-44_screenshot.png" data-caption="Figure 3: BERT model architecture from (Devlin et al. 2019)." class="glightbox">
+
+<img src="/ox-hugo/2025-02-26_14-48-44_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;BERT model architecture from (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Devlin et al. 2019&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>BERT model architecture from (<a href="#citeproc_bib_item_2">Devlin et al. 2019</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<h3 id="pre-training">Pre-training</h3>
+<p>Two separate tasks are used to pre-train BERT: Masked LM (MLM) and Next Sentence Prediction. In MLM, some percentage of the input is masked at random. The model must predict the masked words. In the Next Sentence Prediction task, the model is given two sentences and must predict whether the second sentence follows the first. This is framed as a binary classification task. The authors shows that this second task was especially helpful to both QA and NLI tasks.</p>
+<h2 id="bart">BART</h2>
+<p>Models like BERT are encoder models for predictive modeling tasks whereas decoder architectures like GPT are used for generative tasks. BART takes an encoder-decoder approach to pre-training (<a href="#citeproc_bib_item_3">Lewis et al. 2019</a>).</p>
+<h3 id="pre-training">Pre-training</h3>
+<p>The pre-training task in BART is to add arbitrary noise to the input and have the model reconstruct the original text. The figure below shows a comparison between BERT, GPT, and BART.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-02-26_15-04-38_screenshot.png" data-caption="Figure 4: Comparison of BERT, GPT, and BART from (Lewis et al. 2019)." class="glightbox">
+
+<img src="/ox-hugo/2025-02-26_15-04-38_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Comparison of BERT, GPT, and BART from (&lt;a href=&#34;#citeproc_bib_item_3&#34;&gt;Lewis et al. 2019&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 4: </span>Comparison of BERT, GPT, and BART from (<a href="#citeproc_bib_item_3">Lewis et al. 2019</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<h2 id="gpt3">GPT3</h2>
+<p>The approach to GPT3 was to take GPT2 as a starting point and scale up (<a href="#citeproc_bib_item_1">Brown et al. 2020</a>). The number of parameters are increased from 1.5 billion to 175 billion. The dataset preparation, training details, and evaluations are mostly the same.</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
-  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2020. “Improving Language Understanding by Generative Pre-Training,” 12.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, et al. 2020. “Language Models Are Few-Shot Learners.” arXiv. <a href="https://doi.org/10.48550/arXiv.2005.14165">https://doi.org/10.48550/arXiv.2005.14165</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. “BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.” arXiv. <a href="https://doi.org/10.48550/arXiv.1810.04805">https://doi.org/10.48550/arXiv.1810.04805</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Lewis, Mike, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mohamed, Omer Levy, Ves Stoyanov, and Luke Zettlemoyer. 2019. “BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension.” arXiv. <a href="https://doi.org/10.48550/arXiv.1910.13461">https://doi.org/10.48550/arXiv.1910.13461</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Radford, Alec, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. 2018. “Improving Language Understanding by Generative Pre-Training,” 12.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. “Attention Is All You Need,” 11.</div>
 </div>
 
           </div>
