@@ -635,6 +635,11 @@
             GPU Pattern: Parallel Scan
           </a>
         
+          <a href="/notes/gpu_pattern_reduction/" 
+             class="note-link active">
+            GPU Pattern: Reduction
+          </a>
+        
           <a href="/notes/gpu_pattern_stencils/" 
              class="note-link">
             GPU Pattern: Stencils
@@ -851,7 +856,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Feb 5, 2024</span>
+            <span>Last updated on Mar 23, 2025</span>
           </div>
 
           
@@ -927,7 +932,7 @@
 </ul>
 </div>
 <!--endtoc-->
-<p>The following notes follow Chapter 10 of <em>Programming Massively Parallel Processors</em> (Hwu, Kirk, and El Hajj 2022).</p>
+<p>The following notes follow Chapter 10 of <em>Programming Massively Parallel Processors</em> (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).</p>
 <h2 id="introduction">Introduction</h2>
 <p>Given a set of values, a <strong>reduction</strong> produces a single output. It is an important part of many parallel algorithms including <a href="/notes/mapreduce/"
 
@@ -982,22 +987,22 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 <p>Reduction trees reveal the logarithmic nature of parallel reductions. Just like divide and conquer algorithms, the number of threads is halved at each level of the tree. The number of levels in the tree is \(\log_2(n)\), where \(n\) is the number of input values. Given an input size of \(n = 1024\), the number of threads required is \(\log_2(1024) = 10\). This is a significant reduction from the original input size. The sequential version of this reduction would require 1023 operations.</p>
 <h2 id="a-simple-kernel">A Simple Kernel</h2>
 <p>As mentioned above, reduction requires communication between threads. Since only the threads within a single block can communicate, we will focus on a block-level reduction. For now, each block can work with a total of 2048 input values based on the limitation of 1024 threads per block.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceKernel(float *input, float *output) {
-    unsigned int i = 2 * threadIdx.x;
-
-        for (unsigned int stride = 1; stride &lt;= blockDim.x; stride *= 2) {
-            // Only threads in even positions participate
-            if (threadIdx.x % stride == 0) {
-                input[i] += input[i + stride];
-            }
-            __syncthreads();
-        }
-
-        if (threadIdx.x == 0) {
-            *output = input[0];
-        }
-}
-</code></pre><p>Each thread is assigned to a single write location <code>2 * threadIdx.x</code>. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sumReduceKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> stride <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">&lt;=</span> blockDim.x; stride <span style="color:#f92672">*=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Only threads in even positions participate
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">%</span> stride <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>                input[i] <span style="color:#f92672">+=</span> input[i <span style="color:#f92672">+</span> stride];
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">__syncthreads</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">*</span>output <span style="color:#f92672">=</span> input[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Each thread is assigned to a single write location <code>2 * threadIdx.x</code>. The stride is doubled after each iteration of the loop, effectively halving the number of active threads. The stride also determines the second value that is added to the first. By the last iteration, only one thread is active to perform that last reduction.</p>
 
 
 
@@ -1028,7 +1033,7 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 <p>You can see that the kernel is simple, but it is also inefficient. There is a great deal of control divergence that will be addressed in the next section.</p>
 <h2 id="minimizing-control-divergence">Minimizing Control Divergence</h2>
 <p>As we just saw, the key to optimizing a reduction kernel is to minimize control divergence and make sure as many threads stay active as possible. A warp of 32 threads would consume the execution resources even if half of them are inactive. As each stage of the reduction tree is completed, the amount of wasted resources increases. Depending on the input size, entire warps could be launched and then immediately become inactive.</p>
-<p>The number of execution resources consumes is proportional to the number of active warps across all iterations. We can compute the number of resources consumed as follows:</p>
+<p>The number of execution resources consumed is proportional to the number of active warps across all iterations. We can compute the number of resources consumed as follows:</p>
 <p>\[
 (\frac{5N}{64} + \frac{N}{128} + \frac{N}{256} + \cdots + 1) * 32
 \]</p>
@@ -1063,21 +1068,21 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 
 </figure>
 </div>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceKernel(float *input, float *output) {
-    unsigned int i = threadIdx.x;
-
-    for (unsigned int stride = blockDim.x; stride &gt;= 1; stride /= 2) {
-        if (i &lt; stride) {
-            input[i] += input[i + stride];
-        }
-        __syncthreads();
-    }
-
-    if (threadIdx.x == 0) {
-        *output = input[0];
-    }
-}
-</code></pre><p>The kernel itself is effectively the same, but the rearrangement of the threads ensures that each warp has less control divergence. Additionally, warps that drop off after each iteration are no longer consuming execution resources. For an input of 256, the first 4 warps are fully utilized (barring the last thread of the last warp). After the first iteration, the number of active warps is halved. Warps 3 and 4 are now fully inactive, leaving warps 1 and 2 to perform the reduction operation on all threads. We can compute the number of resources consumed under this new arrangement as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sumReduceKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> stride <span style="color:#f92672">=</span> blockDim.x; stride <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> stride) {
+</span></span><span style="display:flex;"><span>            input[i] <span style="color:#f92672">+=</span> input[i <span style="color:#f92672">+</span> stride];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">__syncthreads</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">*</span>output <span style="color:#f92672">=</span> input[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The kernel itself is effectively the same, but the rearrangement of the threads ensures that each warp has less control divergence. Additionally, warps that drop off after each iteration are no longer consuming execution resources. For an input of 256, the first 4 warps are fully utilized (barring the last thread of the last warp). After the first iteration, the number of active warps is halved. Warps 3 and 4 are now fully inactive, leaving warps 1 and 2 to perform the reduction operation on all threads. We can compute the number of resources consumed under this new arrangement as follows:</p>
 <p>\[
 (\frac{N}{64} + \frac{N}{128} + \frac{N}{256} + \cdots + 1 + 5) * 32
 \]</p>
@@ -1095,45 +1100,45 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 
 
 >GPU Performance Basics</a>, we can reduce the number of global memory requests by using shared memory. Threads write their results to global memory, which is read again in the next iteration. By keeping the intermediate results in shared memory, we can reduce the number of global memory requests. If implemented correctly, only the original input values will need to be read from global memory.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceSharedKernel(float *input, float *output) {
-    __shared__ float input_s[BLOCK_DIM];
-    unsigned int i = threadIdx.x;
-    input_s[i] = input[i] + input[i + BLOCK_DIM];
-
-    for (unsigned int stride = blockDim.x / 2; stride &gt;= 1; stride /= 2) {
-        __syncthreads();
-        if (i &lt; stride) {
-            input_s[i] += input_s[i + stride];
-        }
-    }
-
-    if (i == 0) {
-        *output = input_s[0];
-    }
-}
-</code></pre><p>At the very top of this kernel, the necessary input is loaded from global memory, added, and written to shared memory. This is the only time global memory is accessed, with the exception of the final write to the output. The call to <code>syncthreads()</code> moves to the top so that the shared memory is guaranteed before the next update.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sumReduceSharedKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> input_s[BLOCK_DIM];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    input_s[i] <span style="color:#f92672">=</span> input[i] <span style="color:#f92672">+</span> input[i <span style="color:#f92672">+</span> BLOCK_DIM];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> stride <span style="color:#f92672">=</span> blockDim.x <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>; stride <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">__syncthreads</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> stride) {
+</span></span><span style="display:flex;"><span>            input_s[i] <span style="color:#f92672">+=</span> input_s[i <span style="color:#f92672">+</span> stride];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">*</span>output <span style="color:#f92672">=</span> input_s[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>At the very top of this kernel, the necessary input is loaded from global memory, added, and written to shared memory. This is the only time global memory is accessed, with the exception of the final write to the output. The call to <code>syncthreads()</code> moves to the top so that the shared memory is guaranteed before the next update.</p>
 <p>This approach not only requires fewer global memory requests, but the original input is left unmodified.</p>
 <h2 id="hierarchical-reduction">Hierarchical Reduction</h2>
 <p>One major assumption that has been made in each of these kernels is that they are running on a single block. Thread synchronization is critical to the success of the reduction. If we want to reduce a larger number of input across multiple blocks, the kernel should allow for independent execution. This is achieved by segmenting the input and performing a reduction on each segment. The final reduction is then performed on the results of the segment reductions.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void sumReduceHierarchicalKernel(float *input, float *output) {
-    __shared__ float input_s[BLOCK_DIM];
-    unsigned int segment = 2 * blockDim.x * blockIdx.x;
-    unsigned int i = segment + threadIdx.x;
-    unsigned int t = threadIdx.x;
-    input_s[t] = input[i] + input[i + BLOCK_DIM];
-
-    for (unsigned int stride = blockDim.x / 2; stride &gt;= 1; stride /= 2) {
-        __syncthreads();
-        if (t &lt; stride) {
-            input_s[t] += input_s[t + stride];
-        }
-    }
-
-    if (t == 0) {
-        atomicAdd(output, input_s[0]);
-    }
-}
-</code></pre><p>Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sumReduceHierarchicalKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> input_s[BLOCK_DIM];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> segment <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">*</span> blockIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> segment <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> t <span style="color:#f92672">=</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    input_s[t] <span style="color:#f92672">=</span> input[i] <span style="color:#f92672">+</span> input[i <span style="color:#f92672">+</span> BLOCK_DIM];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> stride <span style="color:#f92672">=</span> blockDim.x <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>; stride <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">__syncthreads</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">&lt;</span> stride) {
+</span></span><span style="display:flex;"><span>            input_s[t] <span style="color:#f92672">+=</span> input_s[t <span style="color:#f92672">+</span> stride];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">atomicAdd</span>(output, input_s[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Each block has its own shared memory and can independently perform the reduction. Depending on the completion order, an atomic operation to add the local result is necessary.</p>
 <h2 id="thread-coarsening-back-again">Thread Coarsening - Back Again</h2>
 <p>Thread coarsening was first analyzed in the context of matrix multiplication in <a href="/notes/gpu_performance_basics/"
 
@@ -1144,30 +1149,34 @@ v = \phi(v, x_i)\ \text{for}\ i = 1, 2, \ldots, n,
 
 >GPU Performance Basics</a>. Whenever the device does not have enough resources to execute the number of threads requested, it is forced to serialize the execution. In this case, we can serialize the work done by each thread so that no extra overhead is incurred. Another benefit to thread coarsening is improved data locality.</p>
 <p>Successive iterations increase the amount of inactive warps. For reduction, thread coarsening can be applied by increasing the number of elements that each one processes. If the time to perform the arithmetic is much faster than the time to load the data, then thread coarsening can be beneficial. We could further analyze our program to determine the optimal coarsening factor.</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ coarsenedSumReductionKernel(float *input, float *output) {
-    __shared__ float input_s[BLOCK_DIM];
-    uint segment = COARSE_FACTOR * 2 * blockDim.x * blockIdx.x;
-    uint i = segment + threadIdx.x;
-    uint t = threadIdx.x;
-
-    float sum = input[i];
-    for (uint tile = 1; tile &lt; COARSE_FACTOR * 2; tile++) {
-        sum += input[i + tile * BLOCK_DIM];
-    }
-
-    input_s[t] = sum;
-
-    for (uint stride = blockDim.x / 2; stride &gt;= 1; stride /= 2) {
-        __syncthreads();
-        if (t &lt; stride) {
-            input_s[t] += input_s[t + stride];
-        }
-    }
-    if (t == 0) {
-        atomicAdd(output, input_s[0]);
-    }
-}
-</code></pre><p>In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#a6e22e">coarsenedSumReductionKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> input_s[BLOCK_DIM];
+</span></span><span style="display:flex;"><span>    uint segment <span style="color:#f92672">=</span> COARSE_FACTOR <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">*</span> blockIdx.x;
+</span></span><span style="display:flex;"><span>    uint i <span style="color:#f92672">=</span> segment <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    uint t <span style="color:#f92672">=</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> input[i];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (uint tile <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; tile <span style="color:#f92672">&lt;</span> COARSE_FACTOR <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>; tile<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        sum <span style="color:#f92672">+=</span> input[i <span style="color:#f92672">+</span> tile <span style="color:#f92672">*</span> BLOCK_DIM];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    input_s[t] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> blockDim.x <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>; stride <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">__syncthreads</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">&lt;</span> stride) {
+</span></span><span style="display:flex;"><span>            input_s[t] <span style="color:#f92672">+=</span> input_s[t <span style="color:#f92672">+</span> stride];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">atomicAdd</span>(output, input_s[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>In the coarsened version, less thread communication is required since the first several steps are computed in a single thread.</p>
+<h2 id="references">References</h2>
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Hwu, Wen-mei W., David B. Kirk, and Izzat El Hajj. 2022. <i>Programming Massively Parallel Processors: A Hands-on Approach</i>. Fourth. Morgan Kaufmann.</div>
+</div>
 
           </div>
         </article>
