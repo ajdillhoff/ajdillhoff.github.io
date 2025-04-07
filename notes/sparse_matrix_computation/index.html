@@ -600,6 +600,11 @@
             Segmentation via Clustering
           </a>
         
+          <a href="/notes/stereo_vision/" 
+             class="note-link">
+            Stereo Vision
+          </a>
+        
           <a href="/notes/transfomers_for_computer_vision/" 
              class="note-link">
             Transformers for Computer Vision
@@ -665,9 +670,19 @@
             Multidimensional Grids and Data
           </a>
         
+          <a href="/notes/parallel_sorting_algorithms/" 
+             class="note-link">
+            Parallel Sorting Algorithms
+          </a>
+        
           <a href="/notes/profiling_cuda_applications/" 
              class="note-link">
             Profiling CUDA Applications
+          </a>
+        
+          <a href="/notes/sparse_matrix_computation/" 
+             class="note-link active">
+            Sparse Matrix Computation
           </a>
         
       </div>
@@ -861,7 +876,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Mar 30, 2024</span>
+            <span>Last updated on Apr 6, 2025</span>
           </div>
 
           
@@ -962,16 +977,16 @@
 </figure>
 </div>
 <h3 id="kernel-implementation">Kernel Implementation</h3>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_coo_kernel(COOMatrix cooMatrix, float *x, float *y) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i &lt; cooMatrix.numNonzeros) {
-        int row = cooMatrix.rowIdx[i];
-        int col = cooMatrix.colIdx[i];
-        float val = cooMatrix.values[i];
-        atomicAdd(&amp;y[row], val * x[col]);
-    }
-}
-</code></pre><h3 id="evaluation">Evaluation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">spmv_coo_kernel</span>(COOMatrix cooMatrix, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> cooMatrix.numNonzeros) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> cooMatrix.rowIdx[i];
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> cooMatrix.colIdx[i];
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> val <span style="color:#f92672">=</span> cooMatrix.values[i];
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>y[row], val <span style="color:#f92672">*</span> x[col]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="evaluation">Evaluation</h3>
 <ol>
 <li><strong>Compaction</strong>: Compared to representing the matrices in dense format, the COO format is very compact. However, it is not as compact as some other sparse matrix formats. It requires an additional over head of 2N elements to store the row and column indices.</li>
 <li><strong>Flexibility:</strong> Indices and values can be easily modified in this format. This is good for applications that require frequent modifications.</li>
@@ -1010,17 +1025,17 @@
 </figure>
 </div>
 <h3 id="kernel-implementation">Kernel Implementation</h3>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_csr_kernel(CSRMatrix csrMatrix, float *x, float *y) {
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-    if (row &lt; csrMatrix.numRows) {
-        float sum = 0.0f;
-        for (int j = csrMatrix.rowPtr[row]; j &lt; csrMatrix.rowPtr[row + 1]; j++) {
-            sum += csrMatrix.values[j] * x[csrMatrix.colIdx[j]];
-        }
-        y[i] = sum;
-    }
-}
-</code></pre><p>The rows are mapped to a single pointer index, so it only needs \(m\) entries to store them. The columns are not required to be in order. If the columns <em>are</em> in order, the data is represented in row-major order without the zero elements.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">spmv_csr_kernel</span>(CSRMatrix csrMatrix, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> csrMatrix.numRows) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> csrMatrix.rowPtr[row]; j <span style="color:#f92672">&lt;</span> csrMatrix.rowPtr[row <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]; j<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">+=</span> csrMatrix.values[j] <span style="color:#f92672">*</span> x[csrMatrix.colIdx[j]];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        y[i] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The rows are mapped to a single pointer index, so it only needs \(m\) entries to store them. The columns are not required to be in order. If the columns <em>are</em> in order, the data is represented in row-major order without the zero elements.</p>
 <h3 id="evaluation">Evaluation</h3>
 <ol>
 <li><strong>Compaction</strong>: The CSR format is more compact than the COO format since it only requires \(m\) entries to store the row pointers.</li>
@@ -1064,18 +1079,18 @@
 </figure>
 </div>
 <h3 id="kernel-implementation">Kernel Implementation</h3>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void spmv_ell_kernel(ELLMatrix ellMatrix, float *x, float *y) {
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-    if (row &lt; ellMatrix.numRows) {
-        float sum = 0.0f;
-        for (int j = 0; j &lt; ellMatrix.nnzPerRow[row]; j++) {
-            int col = ellMatrix.colIdx[j * ellMatrix.numRows + row];
-            sum += ellMatrix.values[j * ellMatrix.numRows + row] * x[col];
-        }
-        y[row] = sum;
-    }
-}
-</code></pre><h3 id="evaluation">Evaluation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">spmv_ell_kernel</span>(ELLMatrix ellMatrix, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> ellMatrix.numRows) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> ellMatrix.nnzPerRow[row]; j<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> ellMatrix.colIdx[j <span style="color:#f92672">*</span> ellMatrix.numRows <span style="color:#f92672">+</span> row];
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">+=</span> ellMatrix.values[j <span style="color:#f92672">*</span> ellMatrix.numRows <span style="color:#f92672">+</span> row] <span style="color:#f92672">*</span> x[col];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        y[row] <span style="color:#f92672">=</span> sum;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="evaluation">Evaluation</h3>
 <ol>
 <li><strong>Compaction:</strong> Padding the rows means this is less space efficient than CSR.</li>
 <li><strong>Flexibility:</strong> More flexible than CSR; adding nonzeros in CSR requires a shift of values. This format can replaced a padded element if necessary.</li>

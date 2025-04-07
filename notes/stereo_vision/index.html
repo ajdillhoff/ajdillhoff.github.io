@@ -600,6 +600,11 @@
             Segmentation via Clustering
           </a>
         
+          <a href="/notes/stereo_vision/" 
+             class="note-link active">
+            Stereo Vision
+          </a>
+        
           <a href="/notes/transfomers_for_computer_vision/" 
              class="note-link">
             Transformers for Computer Vision
@@ -665,9 +670,19 @@
             Multidimensional Grids and Data
           </a>
         
+          <a href="/notes/parallel_sorting_algorithms/" 
+             class="note-link">
+            Parallel Sorting Algorithms
+          </a>
+        
           <a href="/notes/profiling_cuda_applications/" 
              class="note-link">
             Profiling CUDA Applications
+          </a>
+        
+          <a href="/notes/sparse_matrix_computation/" 
+             class="note-link">
+            Sparse Matrix Computation
           </a>
         
       </div>
@@ -865,7 +880,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Jul 10, 2024</span>
+            <span>Last updated on Apr 6, 2025</span>
           </div>
 
           
@@ -1012,11 +1027,20 @@ d_1 \hat{\mathbf{x}}_1 = R(d_0 \hat{\mathbf{x}}_0) + \mathbf{t},
 \]</p>
 <p>where \(R\) is a rotation matrix and \(\mathbf{t}\) is an offset vector.
 These are the parameters that are solved from stereo calibration.</p>
+<h3 id="essential-matrix">Essential Matrix</h3>
+<p>Given the definitions and constraints above, we can now discuss the <strong>essential matrix</strong>, which contains the rotation and translation parameters that map the point in camera 1 with the corresponding point in camera 2. The epipolar constraint is simplified in this case:</p>
+<p>\[
+\hat{\mathbf{x}}_0 \cdot (\mathbf{t} \times \hat{\mathbf{x}}_0) = 0.
+\]</p>
+<p>With this constraint, we can set up the equation to solve for the rotation and translation parameters. Ultimately, we are attempting to solve the following equation:</p>
+<p>\[
+\hat{\mathbf{x}}_1 = R \hat{\mathbf{x}}_0 + \mathbf{t}.
+\]</p>
 <p>Since the vectors \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\) are coplanar, the plane can be represented by a normal vector.
 That is, the vector that is orthogonal to all points in the plane.
 Such a vector can be calculated by taking the cross product of both sides of the above equation with \(\mathbf{t}\):</p>
 <p>\[
-d_1 [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0,
+[\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0 + [\mathbf{t}]_{\times} \mathbf{t},
 \]</p>
 <p>where</p>
 <p>\[
@@ -1028,7 +1052,7 @@ t_z &amp; 0 &amp; -t_x\\
 \]</p>
 <p>It is true that, since the normal vector is orthogonal to \(\hat{\mathbf{x}}_0\), \(\hat{\mathbf{x}}_1\), and \(\mathbf{t}\), taking the dot product of any of these vectors and the normal vector yields 0:</p>
 <p>\[
-d_1 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = d_0 \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0 = 0.
+\hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} \hat{\mathbf{x}}_1 = \hat{\mathbf{x}}_1^T [\mathbf{t}]_{\times} R \hat{\mathbf{x}}_0 = 0.
 \]</p>
 <p>We have now established the epipolar constraint in terms of the rotation matrix \(R\) and translation \(\mathbf{t}\).
 These are the parameters that relate the points between both cameras.
@@ -1038,10 +1062,11 @@ This constraint is more compactly written as</p>
 \]</p>
 <p>where</p>
 <p>\[
-E = [\mathbf{t}_{\times}]R.
+E = [\mathbf{t}]_{\times}R.
 \]</p>
 <p>\(E\) is called the <strong>essential matrix</strong> which relates the projected points between the two cameras.
-Once we have the essential matrix, we can compute \(\mathbf{t}\) and \(R\).</p>
+Once we have the essential matrix, we can compute \([\mathbf{t}]_{\times}\) and \(R\).</p>
+<p>The decomposition of \(E\) into \([\mathbf{t}]_{\times}\) and \(R\) can be found using singular value decomposition (SVD). See Hartley and Zisserman (9.6.1) for more details.</p>
 <h2 id="calibration-with-known-intrinsic-parameters-and-world-points">Calibration with Known Intrinsic Parameters and World Points</h2>
 <p>We first look at the simplest case of stereo calibration.
 The intrinsic parameters of both cameras have been computed using a standard calibration technique.

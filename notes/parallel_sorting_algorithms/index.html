@@ -600,6 +600,11 @@
             Segmentation via Clustering
           </a>
         
+          <a href="/notes/stereo_vision/" 
+             class="note-link">
+            Stereo Vision
+          </a>
+        
           <a href="/notes/transfomers_for_computer_vision/" 
              class="note-link">
             Transformers for Computer Vision
@@ -665,9 +670,19 @@
             Multidimensional Grids and Data
           </a>
         
+          <a href="/notes/parallel_sorting_algorithms/" 
+             class="note-link active">
+            Parallel Sorting Algorithms
+          </a>
+        
           <a href="/notes/profiling_cuda_applications/" 
              class="note-link">
             Profiling CUDA Applications
+          </a>
+        
+          <a href="/notes/sparse_matrix_computation/" 
+             class="note-link">
+            Sparse Matrix Computation
           </a>
         
       </div>
@@ -861,7 +876,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Mar 31, 2024</span>
+            <span>Last updated on Apr 6, 2025</span>
           </div>
 
           
@@ -920,28 +935,28 @@ Index &amp; 0 &amp; 1 &amp; 2 &amp; 3 &amp; 4 &amp; 5 &amp; 6 &amp; 7 &amp; 8 &a
 <p>\[
 \text{output index} = \text{input size} - \text{number of ones total} + \text{number of 1s that come before it}
 \]</p>
-<pre tabindex="0"><code class="language-cuda" data-lang="cuda">__global__ void radix_sort_iter(unsigned int *input, unsigned int *output,
-                                unsigned int *bits, unsigned int N, unsigned int iter) {
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned int key, bit;
-
-    if (idx &lt; N) {
-        key = input[i];
-        bit = (key &gt;&gt; iter) &amp; 1;
-        bits[i] = bit;
-    }
-
-    exclusiveScan(bits, N);
-
-    if (idx &lt; N) {
-        unsigned int numOnesBefore = bits[idx];
-        unsigned int numOnesTotal = bits[N];
-        unsigned int dst = (bit == 0) ? idx - numOnesBefore
-                                      : N - numOnesTotal + numOnesBefore;
-        output[dst] = key;
-    }
-}
-</code></pre><h3 id="example">Example</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">radix_sort_iter</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>output,
+</span></span><span style="display:flex;"><span>                                <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>bits, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> iter) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> idx <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> key, bit;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (idx <span style="color:#f92672">&lt;</span> N) {
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> input[i];
+</span></span><span style="display:flex;"><span>        bit <span style="color:#f92672">=</span> (key <span style="color:#f92672">&gt;&gt;</span> iter) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        bits[i] <span style="color:#f92672">=</span> bit;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exclusiveScan</span>(bits, N);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (idx <span style="color:#f92672">&lt;</span> N) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> numOnesBefore <span style="color:#f92672">=</span> bits[idx];
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> numOnesTotal <span style="color:#f92672">=</span> bits[N];
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> dst <span style="color:#f92672">=</span> (bit <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#f92672">?</span> idx <span style="color:#f92672">-</span> numOnesBefore
+</span></span><span style="display:flex;"><span>                                      : N <span style="color:#f92672">-</span> numOnesTotal <span style="color:#f92672">+</span> numOnesBefore;
+</span></span><span style="display:flex;"><span>        output[dst] <span style="color:#f92672">=</span> key;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="example">Example</h3>
 <p>Consider the fourth thread with <code>idx = 3</code> using the array from above. This thread index is certainly less than the array size, so the <code>key</code> is read from <code>input</code> before extracting the least significant bit. <strong>Note that there is a call to thread synchronization inside <code>exclusiveScan</code>.</strong> The result of <code>exclusiveScan</code> is an array that indicates, for each index, the number of ones that came before it. For our array, this is:</p>
 <p>\[
 [0, 1, 1, 2]
@@ -994,7 +1009,7 @@ Index &amp; 0 &amp; 1 &amp; 2 &amp; 3 &amp; 4 &amp; 5 &amp; 6 &amp; 7 &amp; 8 &a
 <p>In order to make this work, each thread needs to calculate where in the output array the values from its bucket should be placed. For 0 bits, the block&rsquo;s 0 bucket will come after the 0 buckets from all previous blocks. These positions can be computed by performing an exclusive scan on the block&rsquo;s local bucket sizes.</p>
 <p>TODO: Show visualization similar to 13.6</p>
 <h2 id="choosing-a-different-radix-value">Choosing a different Radix value</h2>
-<p>Picking a larger radix value will reduce the number of iterations required to sort the array.</p>
+<p>Picking a larger radix value will reduce the number of iterations required to sort the array. In the previous example with 4-bit keys, we can split them up with a radix value of 2 bits. This will require 2 iterations to sort the array. Instead of 2 buckets for 0 or 1, we will have 4 buckets for 00, 01, 10, and 11. All keys with 00 will come before 01, and so on.</p>
 
           </div>
         </article>
