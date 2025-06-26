@@ -891,7 +891,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Feb 13, 2025</span>
+            <span>Last updated on Jun 24, 2025</span>
           </div>
 
           
@@ -924,6 +924,14 @@
 
 
 >K-Means Clustering</a></li>
+<li><a href="#mean-shift-clustering"
+
+
+
+ 
+
+
+>Mean-Shift Clustering</a></li>
 <li><a href="#simple-linear-iterative-clustering--slic"
 
 
@@ -1040,7 +1048,7 @@ As seen in <a href="#figure--fig1"
  
 
 
->Figure 1</a>, Zhao et al. propose a part segmentation model for 3D objects which only utilizes 1-5% of the training part labels (<a href="#citeproc_bib_item_4">Zhao et al. 2019</a>).</p>
+>Figure 1</a>, Zhao et al. propose a part segmentation model for 3D objects which only utilizes 1-5% of the training part labels (<a href="#citeproc_bib_item_5">Zhao et al. 2019</a>).</p>
 <p>For example, if we divised an algorithm that would segment an image by color values, it might be able to segment the hand wearing a solid color glove relatively easily.
 If we wanted to segment the hand into its individual joints, we would have to introduce a visual prior such as asking the subject to wear a multicolored glove.
 We could also add prior information about the hand shape and joint configuration into the model itself.</p>
@@ -1183,9 +1191,145 @@ The standard algorithm is as follows:</p>
 
 </figure>
 </div>
+<h2 id="mean-shift-clustering">Mean-Shift Clustering</h2>
+<p>K-Means requires us to define the number of clusters. That could be fine in applications where we need to balance our approach based on the requirements, but it leaves the method feeling less automated than we would hope for unsupervised learning.</p>
+<p>Mean-shift clustering obviates the choice of clusters by treating every individual data point as a cluster center. As the algorithm progresses, the cluster copies are shifted towards regions of high density in the feature space. Points that end up at the same point are assigned to the same cluster.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-06-24_10-19-02_screenshot.png" data-caption="Figure 6: Mean-Shift in action (Source)" class="glightbox">
+
+<img src="/ox-hugo/2025-06-24_10-19-02_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;Mean-Shift in action ([Source](https://ailephant.com/how-to-program-mean-shift/))" >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 6: </span>Mean-Shift in action (<a href="https://ailephant.com/how-to-program-mean-shift/"
+
+
+
+
+ target="_blank"
+ 
+
+
+>Source</a>)
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<h3 id="algorithm">Algorithm</h3>
+<ol>
+<li><strong>Initialize clusters</strong> - Start with each point as a cluster center.</li>
+<li><strong>Shift clusters</strong> - For each cluster center, compute the mean of all points within a certain radius \(r\).
+\[\mathbf{m}_i = \frac{1}{|C_i|}\sum_{\mathbf{z} \in C_i}\mathbf{z}, \quad i = 1, \dots, k\]
+where \(C_i\) is the set of points within radius \(r\) of cluster center \(\mathbf{m}_i\).</li>
+<li><strong>Translate window</strong> - Move the cluster center to the computed mean.</li>
+<li><strong>Test for convergence</strong> - If the cluster centers do not change significantly, stop. Otherwise, return to step 2.</li>
+</ol>
+<h3 id="application-image-segmentation">Application: Image Segmentation</h3>
+<p>Mean-shift clustering can be used for image segmentation by treating each pixel as a point in the feature space. The kernel used for the mean-shift algorithm can be based on color and spatial proximity, allowing for the segmentation of regions in the image that share similar colors and are spatially close.</p>
+<p>\[
+K_{h_s,h_r}(\mathbf{x}) = \frac{C}{h_s^2 h_r^2}k\left(\left\|\frac{\mathbf{x}^s}{h_s}\right\|^2\right)k\left(\left\|\frac{\mathbf{x}^r}{h_r}\right\|^2\right)
+\]</p>
+<p>where \(h_s\) is the spatial bandwidth, \(h_r\) is the color bandwidth, and \(k\) is a kernel function (e.g., Gaussian). A qualitative comparison of varying \(h_s\) and \(h_r\) is shown below.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-06-26_10-10-41_screenshot.png" data-caption="Figure 7: Result of varying the spatial and color bandwidth (Comaniciu and Meer 2002)." class="glightbox">
+
+<img src="/ox-hugo/2025-06-26_10-10-41_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Result of varying the spatial and color bandwidth (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Comaniciu and Meer 2002&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 7: </span>Result of varying the spatial and color bandwidth (<a href="#citeproc_bib_item_2">Comaniciu and Meer 2002</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-06-26_10-03-23_screenshot.png" data-caption="Figure 8: First two dimensions of LUV space (left) and the result of mean-shift (right) (Comaniciu and Meer 2002)." class="glightbox">
+
+<img src="/ox-hugo/2025-06-26_10-03-23_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;First two dimensions of LUV space (left) and the result of mean-shift (right) (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Comaniciu and Meer 2002&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 8: </span>First two dimensions of LUV space (left) and the result of mean-shift (right) (<a href="#citeproc_bib_item_2">Comaniciu and Meer 2002</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
+<p>Once an image has been processed via Mean-shift clustering, the region boundaries can be drawn arond each segment.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2025-06-26_10-13-51_screenshot.png" data-caption="Figure 9: After running mean-shift, the regions can be segmented (Comaniciu and Meer 2002)." class="glightbox">
+
+<img src="/ox-hugo/2025-06-26_10-13-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;After running mean-shift, the regions can be segmented (&lt;a href=&#34;#citeproc_bib_item_2&#34;&gt;Comaniciu and Meer 2002&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 9: </span>After running mean-shift, the regions can be segmented (<a href="#citeproc_bib_item_2">Comaniciu and Meer 2002</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
 <h2 id="simple-linear-iterative-clustering--slic">Simple Linear Iterative Clustering (SLIC)</h2>
 <p>Simple Linear Iterative Clustering (SLIC) is widely used algorithm based on K-Means clustering for image segmentation (<a href="#citeproc_bib_item_1">Achanta et al. 2012</a>).</p>
-<p>As discussed in the original paper, the authors state that SLIC h   as two main advantages over traditional K-Means:</p>
+<p>As discussed in the original paper, the authors state that SLIC has two main advantages over traditional K-Means:</p>
 <ol>
 <li>The search space for assigning points is reduced, leading to an increase in performance.</li>
 <li>By weighting the distance measure, color and spatial proximity are both considered when forming clusters.</li>
@@ -1200,16 +1344,16 @@ The standard algorithm is as follows:</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-01_23-39-33_screenshot.png" data-caption="Figure 6: SLIC Algorithm (Achanta et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-01_23-39-33_screenshot.png" data-caption="Figure 10: SLIC Algorithm (Achanta et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-01_23-39-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 6: &lt;/span&gt;SLIC Algorithm (Achanta et al.)" >
+<img src="/ox-hugo/2022-03-01_23-39-33_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;SLIC Algorithm (Achanta et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 6: </span>SLIC Algorithm (Achanta et al.)
+    <span class="figure-number">Figure 10: </span>SLIC Algorithm (Achanta et al.)
     
     
     
@@ -1265,16 +1409,16 @@ D = \sqrt{d_c^2 + \Big(\frac{d_s}{S}\Big)^2 m^2}
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-24-07_screenshot.png" data-caption="Figure 7: Comparison of SLIC against other superpixel methods (Achanta et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-24-07_screenshot.png" data-caption="Figure 11: Comparison of SLIC against other superpixel methods (Achanta et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_20-24-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 7: &lt;/span&gt;Comparison of SLIC against other superpixel methods (Achanta et al.)" >
+<img src="/ox-hugo/2022-03-03_20-24-07_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Comparison of SLIC against other superpixel methods (Achanta et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 7: </span>Comparison of SLIC against other superpixel methods (Achanta et al.)
+    <span class="figure-number">Figure 11: </span>Comparison of SLIC against other superpixel methods (Achanta et al.)
     
     
     
@@ -1292,16 +1436,16 @@ D = \sqrt{d_c^2 + \Big(\frac{d_s}{S}\Big)^2 m^2}
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-26-00_screenshot.png" data-caption="Figure 8: Images segmented using a varying number of clusters (Achanta et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-26-00_screenshot.png" data-caption="Figure 12: Images segmented using a varying number of clusters (Achanta et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_20-26-00_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 8: &lt;/span&gt;Images segmented using a varying number of clusters (Achanta et al.)" >
+<img src="/ox-hugo/2022-03-03_20-26-00_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Images segmented using a varying number of clusters (Achanta et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 8: </span>Images segmented using a varying number of clusters (Achanta et al.)
+    <span class="figure-number">Figure 12: </span>Images segmented using a varying number of clusters (Achanta et al.)
     
     
     
@@ -1326,16 +1470,16 @@ This requires that the functions used in a deep network be differentiable.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-47-51_screenshot.png" data-caption="Figure 9: Superpixels optimized for semantic segmentation (Jampani et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_20-47-51_screenshot.png" data-caption="Figure 13: Superpixels optimized for semantic segmentation (Jampani et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_20-47-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 9: &lt;/span&gt;Superpixels optimized for semantic segmentation (Jampani et al.)" >
+<img src="/ox-hugo/2022-03-03_20-47-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Superpixels optimized for semantic segmentation (Jampani et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 9: </span>Superpixels optimized for semantic segmentation (Jampani et al.)
+    <span class="figure-number">Figure 13: </span>Superpixels optimized for semantic segmentation (Jampani et al.)
     
     
     
@@ -1344,7 +1488,7 @@ This requires that the functions used in a deep network be differentiable.</p>
 
 </figure>
 </div>
-<p>Superpixel Sampling Networks, proposed by Jampani et al., introduce the first attempt at integrating superpixel extraction methods with deep learning models (<a href="#citeproc_bib_item_2">Jampani et al. 2018</a>).
+<p>Superpixel Sampling Networks, proposed by Jampani et al., introduce the first attempt at integrating superpixel extraction methods with deep learning models (<a href="#citeproc_bib_item_3">Jampani et al. 2018</a>).
 In this work, they adapt SLIC as a differentiable layer in a deep network which result in superpixels that are fine-tuned for specific tasks.</p>
 
 
@@ -1355,16 +1499,16 @@ In this work, they adapt SLIC as a differentiable layer in a deep network which 
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_21-45-09_screenshot.png" data-caption="Figure 10: Model diagram for SSN (Jampani et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_21-45-09_screenshot.png" data-caption="Figure 14: Model diagram for SSN (Jampani et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_21-45-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 10: &lt;/span&gt;Model diagram for SSN (Jampani et al.)" >
+<img src="/ox-hugo/2022-03-03_21-45-09_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 14: &lt;/span&gt;Model diagram for SSN (Jampani et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 10: </span>Model diagram for SSN (Jampani et al.)
+    <span class="figure-number">Figure 14: </span>Model diagram for SSN (Jampani et al.)
     
     
     
@@ -1383,16 +1527,16 @@ In this work, they adapt SLIC as a differentiable layer in a deep network which 
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_21-51-28_screenshot.png" data-caption="Figure 11: Results on semantic segmentation (Jampani et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_21-51-28_screenshot.png" data-caption="Figure 15: Results on semantic segmentation (Jampani et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_21-51-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 11: &lt;/span&gt;Results on semantic segmentation (Jampani et al.)" >
+<img src="/ox-hugo/2022-03-03_21-51-28_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 15: &lt;/span&gt;Results on semantic segmentation (Jampani et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 11: </span>Results on semantic segmentation (Jampani et al.)
+    <span class="figure-number">Figure 15: </span>Results on semantic segmentation (Jampani et al.)
     
     
     
@@ -1401,7 +1545,7 @@ In this work, they adapt SLIC as a differentiable layer in a deep network which 
 
 </figure>
 </div>
-<p>In a more recent work, Yang et al. propose a deep network that directly produces the superpixels as opposed to using a soft K-Means layer (<a href="#citeproc_bib_item_3">Yang et al. 2020</a>).</p>
+<p>In a more recent work, Yang et al. propose a deep network that directly produces the superpixels as opposed to using a soft K-Means layer (<a href="#citeproc_bib_item_4">Yang et al. 2020</a>).</p>
 
 
 
@@ -1411,16 +1555,16 @@ In this work, they adapt SLIC as a differentiable layer in a deep network which 
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_22-05-40_screenshot.png" data-caption="Figure 12: Model comparison between Jampani et al. and Yang et al. (Yang et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_22-05-40_screenshot.png" data-caption="Figure 16: Model comparison between Jampani et al. and Yang et al. (Yang et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_22-05-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 12: &lt;/span&gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)" >
+<img src="/ox-hugo/2022-03-03_22-05-40_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 16: &lt;/span&gt;Model comparison between Jampani et al. and Yang et al. (Yang et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 12: </span>Model comparison between Jampani et al. and Yang et al. (Yang et al.)
+    <span class="figure-number">Figure 16: </span>Model comparison between Jampani et al. and Yang et al. (Yang et al.)
     
     
     
@@ -1442,16 +1586,16 @@ Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.</p>
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2022-03-03_22-14-22_screenshot.png" data-caption="Figure 13: Comparison of results on competing methods (Yang et al.)" class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2022-03-03_22-14-22_screenshot.png" data-caption="Figure 17: Comparison of results on competing methods (Yang et al.)" class="glightbox">
 
-<img src="/ox-hugo/2022-03-03_22-14-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 13: &lt;/span&gt;Comparison of results on competing methods (Yang et al.)" >
+<img src="/ox-hugo/2022-03-03_22-14-22_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 17: &lt;/span&gt;Comparison of results on competing methods (Yang et al.)" >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 13: </span>Comparison of results on competing methods (Yang et al.)
+    <span class="figure-number">Figure 17: </span>Comparison of results on competing methods (Yang et al.)
     
     
     
@@ -1463,9 +1607,10 @@ Additionally, their model runs at 50 fps using 4 NVIDIA Titan Xp GPUs.</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared to State-of-the-Art Superpixel Methods.” <i>Ieee Transactions on Pattern Analysis and Machine Intelligence</i> 34 (11): 2274–82. <a href="https://doi.org/10.1109/TPAMI.2012.120">https://doi.org/10.1109/TPAMI.2012.120</a>.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Jampani, Varun, Deqing Sun, Ming-Yu Liu, Ming-Hsuan Yang, and Kautz Jan. 2018. “Superpixel Sampling Networks.” <i>Cvf European Conference on Computer Vision</i>, 17.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Yang, Fengting, Qian Sun, Hailin Jin, and Zihan Zhou. 2020. “Superpixel Segmentation With Fully Convolutional Networks.” <i>Computer Vision and Pattern Recognition (Cvpr)</i>, 10.</div>
-  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Zhao, Yongheng, Tolga Birdal, Haowen Deng, and Federico Tombari. 2019. “3D Point Capsule Networks.” In <i>2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</i>, 1009–18. Long Beach, CA, USA: IEEE. <a href="https://doi.org/10.1109/CVPR.2019.00110">https://doi.org/10.1109/CVPR.2019.00110</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Comaniciu, D., and P. Meer. 2002. “Mean Shift: A Robust Approach toward Feature Space Analysis.” <i>Ieee Transactions on Pattern Analysis and Machine Intelligence</i> 24 (5): 603–19. <a href="https://doi.org/10.1109/34.1000236">https://doi.org/10.1109/34.1000236</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Jampani, Varun, Deqing Sun, Ming-Yu Liu, Ming-Hsuan Yang, and Kautz Jan. 2018. “Superpixel Sampling Networks.” <i>Cvf European Conference on Computer Vision</i>, 17.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Yang, Fengting, Qian Sun, Hailin Jin, and Zihan Zhou. 2020. “Superpixel Segmentation With Fully Convolutional Networks.” <i>Computer Vision and Pattern Recognition (Cvpr)</i>, 10.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Zhao, Yongheng, Tolga Birdal, Haowen Deng, and Federico Tombari. 2019. “3D Point Capsule Networks.” In <i>2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</i>, 1009–18. Long Beach, CA, USA: IEEE. <a href="https://doi.org/10.1109/CVPR.2019.00110">https://doi.org/10.1109/CVPR.2019.00110</a>.</div>
 </div>
 
           </div>
