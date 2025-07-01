@@ -615,6 +615,11 @@
             Stereo Vision
           </a>
         
+          <a href="/notes/tracking/" 
+             class="note-link active">
+            Tracking
+          </a>
+        
           <a href="/notes/transfomers_for_computer_vision/" 
              class="note-link">
             Transformers for Computer Vision
@@ -891,7 +896,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Mar 26, 2025</span>
+            <span>Last updated on Jul 1, 2025</span>
           </div>
 
           
@@ -1424,9 +1429,9 @@ We can model the observations and state using normal distributions.</p>
 \]</p>
 <p>The measurements themselves can be modeled as</p>
 <p>\[
-\mathbf{y}_k \sim \mathcal{N}(\mathcal{B}_k \mathbf{x}_k, \Sigma_k),
+\mathbf{y}_i \sim \mathcal{N}(\mathcal{B}_i \mathbf{x}_i, \Sigma_i),
 \]</p>
-<p>where \(k\) is the current step.</p>
+<p>where \(i\) is the current step.</p>
 <p>In other words, our model does not know the true position and velocity of objects at all times. If this were the case, tracking would be a trivial pursuit. This uncertainty is captured using Gaussian distributions. This is a reasonable assumption to make in many cases. It becomes more complex if we think about acceleration, but we could always model that as well.</p>
 <p>By the way, position and velocity are correlated. If the velocity of the current object is 0, you would probably bet that its position in the next frame will be the same. A covariance matrix tracks this correlation between the variables. The problem is starting to take shape. We have input and observation variables as well as a covariance matrix that defines the relationship between our position and velocity.</p>
 <p>For the future, the model will be represented as</p>
@@ -1447,22 +1452,22 @@ That is the 2D position and velocity of the object being tracked.
 The corresponding covariance matrix is \(\mathbf{x}\mathbf{x}^T\).</p>
 <p><strong>How do we predict the position and velocity of the next time step?</strong></p>
 <p>\begin{align*}
-\mathbf{p}_k &amp;= \mathbf{p}_{k-1} + \Delta t \mathbf{v}_{k-1}\\
-\mathbf{v}_k &amp;= \mathbf{v}_{k-1}
+\mathbf{p}_i &amp;= \mathbf{p}_{i-1} + \Delta t \mathbf{v}_{i-1}\\
+\mathbf{v}_i &amp;= \mathbf{v}_{i-1}
 \end{align*}</p>
 <p>This is making a simple, yet surprisingly effective, assumption that the velocity is constant.
 We can write this as a matrix vector product:</p>
 <p>\[
-\mathbf{x}_k = \begin{bmatrix}
+\mathbf{x}_i = \begin{bmatrix}
 1 &amp; 0 &amp; \Delta t &amp; 0\\
 0 &amp; 1 &amp; 0 &amp; \Delta t\\
 0 &amp; 0 &amp; 1 &amp; 0\\
 0 &amp; 0 &amp; 0 &amp; 1
 \end{bmatrix}
-\mathbf{x}_{k-1}
+\mathbf{x}_{i-1}
 \]</p>
-<p>Compactly, the prediction for step \(t\) is \(\bar{\mathbf{x}}_k^- = \mathcal{D}_i \bar{\mathbf{x}}_{k-1}^+\).</p>
-<p>Since we updated every point \(\mathbf{x}_{k-1}\), we also need to make a prediction about the covariance matrix.
+<p>Compactly, the prediction for step \(t\) is \(\bar{\mathbf{x}}_i^- = \mathcal{D}_i \bar{\mathbf{x}}_{i-1}^+\).</p>
+<p>Since we updated every point \(\mathbf{x}_{i-1}\), we also need to make a prediction about the covariance matrix.
 This is also achieved by multiplying every point by \(\mathcal{D}_i\)</p>
 <p>\[
 \Sigma_{i}^- = \mathcal{D}_i\Sigma_{i-1}^+\mathcal{D}_i^T
@@ -1476,7 +1481,7 @@ This is also achieved by multiplying every point by \(\mathcal{D}_i\)</p>
 <p>We can simplify this and assume constant acceleration, then \(\mathbf{a}_i = \mathbf{a}_{i-1}\).
 The resulting update equation for \(\mathbf{x}_k\) becomes</p>
 <p>\[
-\mathbf{x}_k = \begin{bmatrix}
+\mathbf{x}_i = \begin{bmatrix}
 1 &amp; 0 &amp; \Delta t &amp; 0 &amp; \frac{1}{2}\Delta t^2 \mathbf{a} &amp; 0\\
 0 &amp; 1 &amp; 0 &amp; \Delta t &amp; 0 &amp; \frac{1}{2}\Delta t^2 \mathbf{a}\\
 0 &amp; 0 &amp; 1 &amp; 0 &amp; \Delta t &amp; 0\\
@@ -1484,26 +1489,26 @@ The resulting update equation for \(\mathbf{x}_k\) becomes</p>
 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0\\
 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1\\
 \end{bmatrix}
-\mathbf{x}_{k-1}
+\mathbf{x}_{i-1}
 \]</p>
 <p>However, if something like acceleration is a known <strong>control</strong> factor in our system, then it does not need to be part of the state.
 In this case, we could separate the update vector into</p>
 <p>\[
-\mathbf{x}_k = \mathcal{D}_i\mathbf{x}_{k-1} + B_k \mathbf{u}_{k},
+\mathbf{x}_i = \mathcal{D}_i\mathbf{x}_{i-1} + B_i \mathbf{u}_{i},
 \]</p>
-<p>where \(B_k\) is the <strong>control matrix</strong> and \(\mathbf{u}_k\) is the <strong>control vector</strong>.</p>
+<p>where \(B_i\) is the <strong>control matrix</strong> and \(\mathbf{u}_i\) is the <strong>control vector</strong>.</p>
 <p>One last consideration is that of uncertainty due to factors outside of our system.
 This can also be modeled using a Gaussian with zero mean and covariance \(\Sigma_d\):</p>
 <p>\[
-\xi_k \sim \mathcal{N}(\mathbf{0}, \Sigma_d).
+\xi_i \sim \mathcal{N}(\mathbf{0}, \Sigma_{d_i}).
 \]</p>
 <p>With this added noise, the prediction step becomes</p>
 <p>\begin{align*}
-\bar{\mathbf{x}}_k^- &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
-\Sigma_k^- &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k.
+\bar{\mathbf{x}}_i^- &amp;= \mathcal{D}_i\bar{\mathbf{x}}_{i-1}^+ + B_i \mathbf{u}_i\\
+\Sigma_i^- &amp;= \mathcal{D}_i \Sigma_{i-1}^+\mathcal{D}_i^T + \xi_i.
 \end{align*}</p>
-<p>In words, \(\bar{\mathbf{x}}_k^-\) is the prediction of our current state based on the previous best estimate with an added correction term based on known factors (acceleration).
-\(\Sigma_k^-\) is the updated uncertainty based on the old uncertainty with added Gaussian noise to reflect unknown factors.</p>
+<p>In words, \(\bar{\mathbf{x}}_i^-\) is the prediction of our current state based on the previous best estimate with an added correction term based on known factors (acceleration).
+\(\Sigma_i^-\) is the updated uncertainty based on the old uncertainty with added Gaussian noise to reflect unknown factors.</p>
 <h3 id="making-corrections">Making Corrections</h3>
 <p>As we are tracking an object, we may have some way of getting measurements.
 This could be through an object detector or other physical sensor.
@@ -1546,29 +1551,29 @@ This is achieved by multiplying the Gaussians together.</p>
 \]</p>
 <p>Solving for \(\bar{\mathbf{x}}_i^+\) and \(\Sigma_i^+\) yields</p>
 <p>\begin{align*}
-\bar{\mathbf{x}}_i^+ &amp;= \bar{\mathbf{x}}_i^- + \mathcal{K}_i(\mathbf{y}_i - \bar{\mathbf{x}}_i^-)\\
-\Sigma_i^+ &amp;= \Sigma_i^- - \mathcal{K}_i \Sigma_i^-,
+\bar{\mathbf{x}}_i^+ &amp;= \bar{\mathbf{x}}_i^- + \mathcal{K}_i(\mathbf{y}_i - \mathcal{M}_i \bar{\mathbf{x}}_i^-)\\
+\Sigma_i^+ &amp;= \Sigma_i^- - \mathcal{K}_i \mathcal{M}_i \Sigma_i^-,
 \end{align*}</p>
 <p>where</p>
 <p>\[
-\mathcal{K}_i = \Sigma_i^-(\Sigma_i^- + \Sigma_{m_i})^{-1}.
+\mathcal{K}_i = \Sigma_i^- \mathcal{M}_i^T(\mathcal{M}_i \Sigma_i^- \mathcal{M}_i^T + \Sigma_{m_i})^{-1}.
 \]</p>
 <p>\(\mathcal{K}_i\) is called the <strong>Kalman gain</strong>.</p>
-<p><strong>Let&rsquo;s combine the prediction and correction steps</strong></p>
+<p><strong>Let&rsquo;s summarize the prediction and correction steps</strong></p>
 <p>We have a state distribution with mean and variance</p>
 <p>\begin{align*}
-\bar{\mathbf{x}}_k^- &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + B_k \mathbf{u}_k\\
-\Sigma_k^- &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \xi_k
+\bar{\mathbf{x}}_i^- &amp;= \mathcal{D}_i\bar{\mathbf{x}}_{i-1}^+ + B_i \mathbf{u}_i\\
+\Sigma_i^- &amp;= \mathcal{D}_i \Sigma_{i-1}^+\mathcal{D}_i^T + \xi_i
 \end{align*}</p>
-<p>as well as an observation distribution with mean and variance \(\mathbf{y}_k\) and \(\Sigma_{m_k}\).</p>
-<p>Plugging these into the update equations yield</p>
+<p>as well as an observation distribution with mean and variance \(\mathbf{y}_i\) and \(\Sigma_{m_i}\).</p>
+<p>The predictions are then refined by the observations via the following equations.</p>
 <p>\begin{align*}
-\bar{\mathbf{x}}_i^+ &amp;= \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+ + \mathcal{K}_i(\mathbf{y}_i - \mathcal{D}_k\bar{\mathbf{x}}_{k-1}^+)\\
-\Sigma_i^+ &amp;= \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T - \mathcal{K}_i \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T,
+\bar{\mathbf{x}}_i^+ &amp;= \bar{\mathbf{x}}_i^- + \mathcal{K}_i(\mathbf{y}_i - \mathcal{M}_i \bar{\mathbf{x}}_i^-)\\
+\Sigma_i^+ &amp;= \Sigma_i^- - \mathcal{K}_i \mathcal{M}_i \Sigma_i^-,
 \end{align*}</p>
 <p>where</p>
 <p>\[
-\mathcal{K}_i = \mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T(\mathcal{D}_k \Sigma_{k-1}^+\mathcal{D}_k^T + \Sigma_{m_i})^{-1}.
+\mathcal{K}_i = \Sigma_i^- \mathcal{M}_i^T(\mathcal{M}_i \Sigma_i^- \mathcal{M}_i^T + \Sigma_{m_i})^{-1}.
 \]</p>
 
           </div>
