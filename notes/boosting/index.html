@@ -896,7 +896,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Feb 25, 2024</span>
+            <span>Last updated on Sep 3, 2025</span>
           </div>
 
           
@@ -936,6 +936,27 @@ At each step of the algorithm, a simple classifier, called a <strong>weak learne
 The weights for each sample are adjusted based on the individual classifier&rsquo;s performance.
 If the sample was misclassified, the relative weight for that sample is increased.
 After all classifiers have been fit, they are combined to form an ensemble model.</p>
+<h3 id="exponential-loss">Exponential Loss</h3>
+<p>Gradient boosting is applied to binary classification using an exponential loss. In its original derivation, a target of \(y \in \{-1, +1\}\) is used. As in <a href="/notes/logistic_regression/"
+
+
+
+ 
+
+
+>Logistic Regression</a>, the likelihood of a Bernoulli distribution is used. That original criterion is</p>
+<p>\[
+\mathbb{E}[\exp(-yF(x))] = P(y=1 \vert x)\exp(-F(x)) + P(y=-1|x)\exp(F(x)).
+\]</p>
+<p>The primary motivation for this loss function is that it serves as a differentiable upper bound to misclassification error (Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert, 2000).</p>
+<p>This expectation is minimized at</p>
+<p>\[
+F(x) = \frac{1}{2} \log \frac{P(y=1 \vert x)}{P(y=-1 \vert x)}.
+\]</p>
+<p>Therefore,</p>
+<p>\[
+P(y=1 \vert x) = \frac{\exp(F(x))}{\exp(-F(x)) + \exp(F(x))}.
+\]</p>
 <h3 id="the-algorithm">The Algorithm</h3>
 <ol>
 <li>
@@ -1101,7 +1122,7 @@ The weight of each example is updated by multiplying each correctly classifed sa
 <p>\[
 w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i)\}.
 \]</p>
-<p><strong>NOTE:</strong> You will notice that the equation above is different from the actual update rule that was applied to the weights in this example. In the original publication <strong>(TODO: reference Fruend)</strong>, the weights are renormalized at the end of the loop. In this example, the normalization is combined with the update. In either case, the updated weights are shown below.</p>
+<p><strong>NOTE:</strong> You will notice that the equation above is different from the actual update rule that was applied to the weights in this example. In the original publication, the weights are renormalized at the end of the loop (Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert, 2000). In this example, the normalization is combined with the update. In either case, the updated weights are shown below.</p>
 <table>
   <thead>
       <tr>
@@ -1343,6 +1364,8 @@ w_i^{j+1} = w_i^{j} \exp\{\alpha_j \mathbb{1}(f_j(\mathbf{x}_i \neq \mathbf{y}_i
 </table>
 <p><strong>Final Classifier</strong></p>
 <p>The final classifier is a weighted vote of the three weak learners, with the weights being the classifier weights we calculated (0.2027, 0.5493, and -0.3473). The negative weight means that the third learner&rsquo;s predictions are reversed.</p>
+<h2 id="references">References</h2>
+<p>Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert (2000). <em>Additive Logistic Regression: A Statistical View of Boosting ({{With}} Discussion and a Rejoinder by the Authors)</em>, Institute of Mathematical Statistics.</p>
 
           </div>
         </article>
