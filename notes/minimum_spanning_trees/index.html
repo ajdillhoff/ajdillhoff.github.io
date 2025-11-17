@@ -908,7 +908,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Oct 21, 2023</span>
+            <span>Last updated on Nov 17, 2025</span>
           </div>
 
           
@@ -952,6 +952,14 @@
 </ul>
 </div>
 <!--endtoc-->
+<p>The slides accompanying these lectures notes can be found <a href="/teaching/cse5311/lectures/minimum_spanning_trees.pdf"
+
+
+
+ 
+
+
+>here</a>.</p>
 <p>Minimum spanning trees are undirected graphs that connect all of the vertices such that there are no redundant edges and the total weight is minimized. They are useful for finding the shortest path between two points in a graph. Useful application of MSTs include</p>
 <ul>
 <li><strong>network design</strong>: it is useful to know the least expensive path with respect to either latency or resource cost for telecommunications networks, transportation networks, or electrical grids.</li>
@@ -1017,6 +1025,13 @@
 </figure>
 </div>
 <p>As described in <em>Introduction to Algorithms</em> there are two greedy algorithms for finding the minimum spanning tree of a graph (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>). These notes will review both of these, but first let&rsquo;s look at a general algorithm for finding the minimum spanning tree of a graph.</p>
+<h3 id="properties">Properties</h3>
+<p>A minimum spanning tree must satisfy the following properties.</p>
+<ol>
+<li>It has \(|V| - 1\) edges.</li>
+<li>It has no cycles.</li>
+<li>It might not be unique.</li>
+</ol>
 <h2 id="finding-the-minimum-spanning-tree">Finding the Minimum Spanning Tree</h2>
 <p>The general algorithm for finding the minimum spanning tree of a graph grows a set of edges \(T\) from an empty set. At each step, the algorithm adds the edge with the smallest weight that does not create a cycle. The algorithm terminates when \(T\) is a complete tree.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>T = {}
@@ -1024,6 +1039,33 @@
 </span></span><span style="display:flex;"><span>    find the edge e with the smallest weight that does not create a cycle
 </span></span><span style="display:flex;"><span>    T = T union {e}
 </span></span></code></pre></div><p>Each edge \(e\) that is added must result in a tree that is a subset of the minimum spanning tree. The challenge of this algorithm is actually finding such an edge. How would we know such an edge if we saw it? We first need to define a few properties which will shine light on this.</p>
+
+
+
+
+
+
+<div class="outer-figure">
+<figure class="custom-figure">
+
+  <a data-fancybox="" href="/ox-hugo/2024-04-22_00-00-57_screenshot.png" data-caption="Figure 3: A cut of a graph (Cormen et al. 2022)." class="glightbox">
+
+<img src="/ox-hugo/2024-04-22_00-00-57_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;A cut of a graph (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+</a>
+
+
+<figcaption data-pre="Figure " data-post=":" >
+  
+  <p>
+    <span class="figure-number">Figure 3: </span>A cut of a graph (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    
+    
+    
+  </p> 
+</figcaption>
+
+</figure>
+</div>
 <p>A <strong>cut</strong> of a graph \(G\) is a partition of the vertices \(V\) into two disjoint sets \(S\) and \(V - S\). An edge \(e\) <strong>crosses</strong> the cut if one of its endpoints is in \(S\) and the other is in \(V - S\). If no edge in a given set \(E\) crosses the cut, then that cut <strong>respects</strong> \(E\). An edge that is the minimum weight edge that crosses a cut is called a <strong>light edge</strong>. With these definitions, we can now formally define how to find a <strong>safe edge</strong>, which is an edge that can be added to the current set of edges \(T\) without creating a cycle.</p>
 <p><strong><strong>Theorem 21.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>)</strong></strong></p>
 <p>Let \(G = (V, E)\) be a connected, undirected graph with a real-valued weight function \(w\) defined on \(E\). Let \(A\) be a subset of \(E\) that is included in some minimum spanning tree for \(G\), let \((S, V - S)\) be any cut of \(G\) that respects \(A\), and let \(e\) be a light edge crossing \((S, V - S)\). Then, edge \(e\) is safe for \(A\).</p>
@@ -1036,16 +1078,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2023-10-22_13-10-51_screenshot.png" data-caption="Figure 3: Visual proof of Theorem 21.1 (Cormen et al. 2022)." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2023-10-22_13-10-51_screenshot.png" data-caption="Figure 4: Visual proof of Theorem 21.1 (Cormen et al. 2022)." class="glightbox">
 
-<img src="/ox-hugo/2023-10-22_13-10-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 3: &lt;/span&gt;Visual proof of Theorem 21.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
+<img src="/ox-hugo/2023-10-22_13-10-51_screenshot.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Visual proof of Theorem 21.1 (&lt;a href=&#34;#citeproc_bib_item_1&#34;&gt;Cormen et al. 2022&lt;/a&gt;)." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 3: </span>Visual proof of Theorem 21.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
+    <span class="figure-number">Figure 4: </span>Visual proof of Theorem 21.1 (<a href="#citeproc_bib_item_1">Cormen et al. 2022</a>).
     
     
     
@@ -1070,16 +1112,16 @@
 <div class="outer-figure">
 <figure class="custom-figure">
 
-  <a data-fancybox="" href="/ox-hugo/2023-10-22_15-39-37_connected_components.png" data-caption="Figure 4: Two connected components from a graph (left). Adding a safe edge (right)." class="glightbox">
+  <a data-fancybox="" href="/ox-hugo/2023-10-22_15-39-37_connected_components.png" data-caption="Figure 5: Two connected components from a graph (left). Adding a safe edge (right)." class="glightbox">
 
-<img src="/ox-hugo/2023-10-22_15-39-37_connected_components.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 4: &lt;/span&gt;Two connected components from a graph (left). Adding a safe edge (right)." >
+<img src="/ox-hugo/2023-10-22_15-39-37_connected_components.png" alt="&lt;span class=&#34;figure-number&#34;&gt;Figure 5: &lt;/span&gt;Two connected components from a graph (left). Adding a safe edge (right)." >
 </a>
 
 
 <figcaption data-pre="Figure " data-post=":" >
   
   <p>
-    <span class="figure-number">Figure 4: </span>Two connected components from a graph (left). Adding a safe edge (right).
+    <span class="figure-number">Figure 5: </span>Two connected components from a graph (left). Adding a safe edge (right).
     
     
     
@@ -1153,7 +1195,7 @@
 >min-heap</a>, which has a worst-case running time of \(O(\log V)\) for both <code>EXTRACT-MIN</code> and <code>DECREASE-KEY</code>. The algorithm calls <code>EXTRACT-MIN</code> once for each vertex, which is \(O(V \log V)\). The algorithm calls <code>DECREASE-KEY</code> once for each edge, which is \(O(E \log V)\). The total running time is \(O(V \log V + E \log V) = O(E \log V)\).</p>
 <h2 id="references">References</h2>
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
-  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press. <a href="http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/">http://mitpress.mit.edu/9780262046305/introduction-to-algorithms/</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. 2022. <i>Introduction to Algorithms</i>. 4th ed. MIT Press.</div>
 </div>
 
           </div>
