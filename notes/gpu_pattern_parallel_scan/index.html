@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_55888805aeba933d.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_55888805aeba933d.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_c05711a7398dab3e.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_55888805aeba933d.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_a85e3fcbbe39bf07.png">
 
 
 
@@ -288,7 +288,7 @@
 
 
 
-<link rel="stylesheet" href="/css/style.65cb3edecc31c1d7cb7d9d6d149960952e5c4d69159c1d4f0fe532b5fc7cfc2c.css" />
+<link rel="stylesheet" href="/css/style.f11a836e38a8e50e7d97aa5953783bf2857197ee99cbeb7ebdcac1c2950f2e3e.css" />
 
 
 
@@ -1330,15 +1330,15 @@ Another kernel launches after this is done to consolidate the results by adding 
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__shared__ <span style="color:#66d9ef">float</span> previous_sum;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Wait for previous flag
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid], <span style="color:#ae81ff">0</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid], <span style="color:#ae81ff">0</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>);
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Read previous partial sum
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    previous_sum <span style="color:#f92672">=</span> scan_value[bid];
+</span></span></span><span style="display:flex;"><span>    previous_sum <span style="color:#f92672">=</span> scan_value[bid];
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Propagate partial sum
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    scan_value[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> previous_sum <span style="color:#f92672">+</span> local_sum;
+</span></span></span><span style="display:flex;"><span>    scan_value[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> previous_sum <span style="color:#f92672">+</span> local_sum;
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Memory fence
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">__threadfence</span>();
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__threadfence</span>();
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Update flag
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>], <span style="color:#ae81ff">1</span>);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>], <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">__syncthreads</span>();
 </span></span></code></pre></div><p>The section ensures that only the first element of each block will perform this update. The <code>flags</code> array is a global array that is used to store the lock values. Once the flag is set to 1, the value from the global array <code>scan_value</code> is read and used to update the local sum. We haven&rsquo;t used <code>__threadfence()</code> before, but it is used to ensure that the update to <code>scan_value[bid + 1]</code> is written before the call to <code>atomicAdd</code> is made.</p>
