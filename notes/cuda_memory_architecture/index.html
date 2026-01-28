@@ -900,7 +900,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Feb 2, 2025</span>
+            <span>Last updated on Jan 28, 2026</span>
           </div>
 
           
@@ -984,6 +984,14 @@
 </ul>
 </div>
 <!--endtoc-->
+<p>The slides accompanying these lecture notes can be found <a href="/teaching/cse5373/lectures/memory_architecture.pdf"
+
+
+
+ 
+
+
+>here.</a></p>
 <h2 id="introduction">Introduction</h2>
 <p>So far, the kernels we have used assume everything is on global memory. Even though there are thousands of cores that can effectively hide the latency of transferring data to and from global memory, we will see this delay will become a bottleneck in many applications. These notes explore the different types of memory available on the GPU and how to use them effectively.</p>
 <h2 id="memory-access">Memory Access</h2>
@@ -994,7 +1002,7 @@
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>This line consists of a floating-point multiplication, floating-point addition, and two memory accesses. Note that we are not storing the result yet, so there is no access to the C matrix. The operation effiency can be described in terms of floating-point operations per second (FLOP/s) and the accesses can be measured in the number of bytes transferred. In this case, we have 2 FLOPs and 8 bytes transferred. This means that the ratio of FLOPs to bytes transferred is 0.25 FLOP/B. This is described as <em>computational intensity</em>.</p>
 <p>With this definition, we get a clearer picture on how to improve the performance of our code. If our kernel relies on too many memory accesses, then the computational intensity will be low. This means that the GPU will be spending more time waiting for data to be transferred than actually performing computations. The goal is to increase the computational intensity as much as possible.</p>
-<p>To put this in perspective, the H100 SXM5 has 3TB/s of memory bandwidth. This global memory bandwidth limits the kernel to 3000 * 0.25 = 750 GFLOP/s. The peak performance of the H100 is 66.9 TFLOPS. If the specialized Tensor cores are utilized, the peak performance is 494.7 TFLOPS. That means that are kernel is only using 0.15% of the peak performance of the GPU. This program is certainly <strong>memory bound</strong>. Our theoretical limit to computational intensity is the peak performance of the GPU. Programs that achieve this peak are called <strong>compute bound</strong>.</p>
+<p>To put this in perspective, the H100 SXM5 has 3TB/s of memory bandwidth. This global memory bandwidth limits the kernel to 3000 * 0.25 = 750 GFLOP/s. The peak performance of the H100 is 66.9 TFLOPS. If the specialized Tensor cores are utilized, the peak performance is 494.7 TFLOPS. That means that our kernel is only using 0.15% of the peak performance of the GPU. This program is certainly <strong>memory bound</strong>. Our theoretical limit to computational intensity is the peak performance of the GPU. Programs that achieve this peak are called <strong>compute bound</strong>.</p>
 <p>Based on the tools we have discussed so far, it is not clear how we can optimize this kernel. The only way to improve the computational intensity is to reduce the number of memory accesses. Modern GPUs have more than just global memory. The next section will explore the different types of memory available on the GPU.</p>
 <h2 id="memory-types">Memory Types</h2>
 <ul>
@@ -1111,7 +1119,7 @@ Resides on the chip. Each thread has its own registers. Very fast memory.</li>
 
 </figure>
 </div>
-<p>The tool itself is quite simple in concept, but the challenge will be identifying when the tool can be properly applied. Consider matrix multiplication. The naive kernel we explored previously uses each thread to compute one value of the output matrix. This kernel uses a global memory access pattern, and we can identify that many of the computations require the same input. They key to introducing tiling for matrix multiplication will be identifying which data use reused.</p>
+<p>The tool itself is quite simple in concept, but the challenge will be identifying when the tool can be properly applied. Consider matrix multiplication. The naive kernel we explored previously uses each thread to compute one value of the output matrix. This kernel uses a global memory access pattern, and we can identify that many of the computations require the same input. They key to introducing tiling for matrix multiplication will be identifying which data are reused.</p>
 
 
 
