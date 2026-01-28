@@ -900,7 +900,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Jan 26, 2025</span>
+            <span>Last updated on Jan 27, 2026</span>
           </div>
 
           
@@ -984,6 +984,14 @@
 </ul>
 </div>
 <!--endtoc-->
+<p>The slides accompanying these lecture notes can be found <a href="/teaching/cse5373/lectures/cuda_architecture.pdf"
+
+
+
+ 
+
+
+>here.</a></p>
 <h2 id="architecture">Architecture</h2>
 <p>A GPU consists of chip that is composed of several <strong>streaming multiprocessors</strong> (SMs). Each SM has a number of cores that execute instructions in parallel. The H100, seen below, has 144 SMs (you can actually count them by eye). Each SM has 128 FP32 cores for a total of 18,432 cores. Historically, CUDA has used DDR memory, but newer architectures use high-bandwidth memory (HBM). This is closely integrated with the GPU for faster data transfer.</p>
 <p>In the image below, you can see 6 HBM3 memory modules surrounding the GPU, 3 on either side of the die. HBM3 is capable of 3 TB/s of bandwidth. The platform shown only uses 5 of these modules. The full version will utilize all 6.</p>
@@ -1152,7 +1160,7 @@
 
 </figure>
 </div>
-<p>The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (Hwu, Kirk, and El Hajj 2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.</p>
+<p>The H100 architecture shares the same limitations in compute capability as the A100, so this example will follow the book closely (NO_ITEM_DATA:hwu_programming_2022). The H100 supports 32 threads per warp, 64 warps per SM, 32 blocks per SM, and 2048 threads per SM. Depending on the block size chosen, the number of blocks per SM will differ. For example, a block size of 256 threads means that there are 2048 / 256 = 8 blocks per SM. This block size would maximize occupancy since the architecture supports more than 8 blocks per SM. Also, the number of threads per block is less than the limit of 1024.</p>
 <p>What if we chose 32 threads per block? Then there would be 2048 / 32 = 64 blocks per SM. However, the device only supports 32 blocks per SM. With only 32 blocks allocated with 32 threads per block, a total of 1024 threads would be utilized. The occupancy in this case is 1024 / 2048 = 50%.</p>
 <p>Historically, NVIDIA provided an excel spreadsheet to compute occupancy. It has since been deprecated in favor of Nsight Compute, a tool that provides more information about the performance of your program. We will cover this tool in a later section.</p>
 <h3 id="including-registers">Including Registers</h3>
