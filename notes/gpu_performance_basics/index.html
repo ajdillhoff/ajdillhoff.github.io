@@ -900,7 +900,7 @@
               </li>
                 
             </ul>
-            <span>Last updated on Jan 14, 2024</span>
+            <span>Last updated on Feb 11, 2026</span>
           </div>
 
           
@@ -960,6 +960,14 @@
 </ul>
 </div>
 <!--endtoc-->
+<p><a href="/teaching/cse5373/lectures/gpu_performance_basics.pdf"
+
+
+
+ 
+
+
+>Click here</a> for slides accompanying these lecture notes.</p>
 <p>These notes are on &ldquo;Chapter 6: Performance Considerations&rdquo; from the book <em>Programming Massively Parallel Processors</em> (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>).</p>
 <h2 id="memory-coalescing">Memory Coalescing</h2>
 <p>Global memory accesses are one of the largest bottlenecks in GPU applications.
@@ -1053,6 +1061,16 @@ DRAM has high latency based on its design. Each cell has a transistor and a capa
 </figure>
 </div>
 <p>It is possible that the controller will initiate a request to a bank that is already busy. This is called a <em>bank conflict</em>. The controller will have to wait for the bank to finish its current request before it can service the new request. The more banks that are available, the less likely it is that a bank conflict will occur.</p>
+<p>In CUDA, memory is coalesced at the warp level as 32-byte memory transactions. The warp controller can see the addresses requested by the warp and maps them into the 32-byte transaction (<a href="https://developer.nvidia.com/blog/unlock-gpu-performance-global-memory-access-in-cuda/"
+
+
+
+
+ target="_blank"
+ 
+
+
+>NVIDIA Blog</a>).</p>
 <h3 id="example-matrix-multiplication">Example: Matrix Multiplication</h3>
 <p>Consider DRAM with 4 channels and 2 banks per channel. The burst size of this DRAM is 8 bytes, or 2 elements. When data is written to DRAM in the first place, it is distributed in an interleaved fashion across the different channels and banks. The first figure below shows the input matrix \(M\) and output matrix \(P\). The second input matrix is omitted for brevity. The indices of \(M\) are linearized in row-major order to show how they are distributed across the DRAM banks. \(P\) is split into 4 blocks of size \(2 \times 2\).</p>
 
