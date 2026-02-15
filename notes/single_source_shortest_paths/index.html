@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -994,13 +994,13 @@ w(p) = \sum_{e \in p} w(e).
 <p>As we build a shortest path, we need to keep track of which vertices lead us from the source to the destination. Some algorithms maintain this by keeping a <strong>predecessor</strong> attribute for each vertex in the path. Solutions such as the Viterbi algorithm keep an array of indices that correspond to the vertices in the path. In any case, we will need to keep track of the vertices in the path as we build it.</p>
 <h3 id="relaxation">Relaxation</h3>
 <p>There is one more important property to define before discussing specific algorithms: <strong>relaxation</strong>. Relaxing an edge \((u, v)\) is to test whether going through vertex \(u\) improves the shortest path to \(v\). If so, we update the shortest-path estimate and predecessor of \(v\) to reflect the new shortest path. Relaxation requires that we maintain the shortest-path estimate and processor for each vertex. This is initialized as follows.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">initialize_single_source</span>(G, s):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">initialize_single_source</span>(G, s):
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>V:
 </span></span><span style="display:flex;"><span>        v<span style="color:#f92672">.</span>d <span style="color:#f92672">=</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
 </span></span><span style="display:flex;"><span>        v<span style="color:#f92672">.</span>pi <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
 </span></span><span style="display:flex;"><span>    s<span style="color:#f92672">.</span>d <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span></code></pre></div><p>When the values are changed, we say that the vertex has been <strong>relaxed</strong>. Relaxing an edge \((u, v)\) is done as follows.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">relax</span>(u, v, w):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">relax</span>(u, v, w):
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v<span style="color:#f92672">.</span>d <span style="color:#f92672">&gt;</span> u<span style="color:#f92672">.</span>d <span style="color:#f92672">+</span> w(u, v):
 </span></span><span style="display:flex;"><span>        v<span style="color:#f92672">.</span>d <span style="color:#f92672">=</span> u<span style="color:#f92672">.</span>d <span style="color:#f92672">+</span> w(u, v)
 </span></span><span style="display:flex;"><span>        v<span style="color:#f92672">.</span>pi <span style="color:#f92672">=</span> u
@@ -1026,7 +1026,7 @@ w(p) = \sum_{e \in p} w(e).
 </ul>
 <h2 id="bellman-ford">Bellman-Ford</h2>
 <p>The Bellman-Ford algorithm is a dynamic programming algorithm that solves the single-source shortest-paths problem in the general case in which edge weights may be negative. If a negative-weight cycle is reachable from the source, then the algorithm will report its existence. Otherwise, it will report the shortest-path weights and predecessors. It works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bellman_ford</span>(G, w, s):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bellman_ford</span>(G, w, s):
 </span></span><span style="display:flex;"><span>    initialize_single_source(G, s)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, len(G<span style="color:#f92672">.</span>V)):
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (u, v) <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>E:
@@ -1077,7 +1077,7 @@ w(p) = \sum_{e \in p} w(e).
 <p>Bellman-Ford is guaranteed to converge after \(|V| - 1\) iterations, assuming no negative-weight cycles.</p>
 <h4 id="proof">Proof</h4>
 <p>The first iteration relaxes \((v_0, v_1)\). The second iteration relaxes \((v_1, v_2)\), and so on. The <strong>path-relaxation</strong> property from before implies that \(v.d = v_k.d = \delta(s, v_k) = \delta(s, v)\). If there is a negative-weight cycle, then the shortest path to \(v_k\) is not well-defined. This is verified in the final loop over the edges.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (u, v) <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>E:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (u, v) <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>E:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v<span style="color:#f92672">.</span>d <span style="color:#f92672">&gt;</span> u<span style="color:#f92672">.</span>d <span style="color:#f92672">+</span> w(u, v):
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
 </span></span></code></pre></div><p>If there exists a negative-weight cycle \(c = \langle v_0, v_1, \dots, v_k \rangle\), where \(v_0 = v_k\) that can be reached from \(s\), then</p>
@@ -1127,7 +1127,7 @@ w(p) = \sum_{e \in p} w(e).
 </div>
 <h2 id="shortest-paths-on-a-dag">Shortest Paths on a DAG</h2>
 <p>If we are given a directed acyclic graph (DAG), we can solve the single-source shortest path problem in \(O(V + E)\) time. By definition, the graph has no cycles and thus no negative-weight cycles.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dag_shortest_paths</span>(G, w, s):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dag_shortest_paths</span>(G, w, s):
 </span></span><span style="display:flex;"><span>    initialize_single_source(G, s)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> u <span style="color:#f92672">in</span> topological_sort(G):
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> G<span style="color:#f92672">.</span>adj[u]:
@@ -1165,7 +1165,7 @@ w(p) = \sum_{e \in p} w(e).
 <p>The runtime of <code>dag_shortest_paths</code> is \(O(V + E)\), where \(V\) is the number of vertices and \(E\) is the number of edges. The topological sort takes \(O(V + E)\) time. Initializing the vertices takes \(O(V)\) time. The first <code>for</code> loop makes on iteration per vertex, and the inner loop relaxes each edge only once.</p>
 <h2 id="dijkstra-s-algorithm">Dijkstra&rsquo;s Algorithm</h2>
 <p>Dijkstra&rsquo;s algorithm also solves the single-source shortest path problem on a weighted, directed graph \(G = (V,E)\) but requires nonnegative weights on all edges. It works in a breadth-first manner. A minimum priority queue is utilized to keep track of the vertices that have not been visited based on their current minimum shortest-path estimate. The algorithm works by relaxing edges, decreasing the shortest-path estimate on the weight of a shortest path from \(s\) to each vertex \(v\) until it reaches the shortest-path weight.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>(G, w, s):
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>(G, w, s):
 </span></span><span style="display:flex;"><span>    initialize_single_source(G, s)
 </span></span><span style="display:flex;"><span>    S <span style="color:#f92672">=</span> []
 </span></span><span style="display:flex;"><span>    Q <span style="color:#f92672">=</span> G<span style="color:#f92672">.</span>V
@@ -1299,7 +1299,7 @@ w(p) = \sum_{e \in p} w(e).
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1326,9 +1326,9 @@ w(p) = \sum_{e \in p} w(e).
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2801,7 +2801,7 @@ w(p) = \sum_{e \in p} w(e).
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2833,7 +2833,7 @@ w(p) = \sum_{e \in p} w(e).
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -2996,7 +2996,7 @@ w(p) = \sum_{e \in p} w(e).
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3235,7 +3235,7 @@ w(p) = \sum_{e \in p} w(e).
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3287,7 +3287,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3331,7 +3331,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3383,7 +3383,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3469,7 +3469,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3665,7 +3665,7 @@ w(p) = \sum_{e \in p} w(e).
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -3974,7 +3974,7 @@ w(p) = \sum_{e \in p} w(e).
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4080,7 +4080,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4097,7 +4097,7 @@ w(p) = \sum_{e \in p} w(e).
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4176,7 +4176,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4253,7 +4253,7 @@ w(p) = \sum_{e \in p} w(e).
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4520,7 +4520,7 @@ w(p) = \sum_{e \in p} w(e).
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

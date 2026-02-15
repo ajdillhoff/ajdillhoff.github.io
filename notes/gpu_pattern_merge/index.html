@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -1044,7 +1044,7 @@
 A[2] = 5 \leq B[1] = 5$ and $B[0] = 3 &lt; A[3] = 7.
 \]</p>
 <p>Code for the co-rank function is given below. Since the input arrays are already sorted, we can use a binary search to find the co-rank values.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">co_rank</span>(<span style="color:#66d9ef">int</span> k, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">co_rank</span>(<span style="color:#66d9ef">int</span> k, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> min(k, m);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> k <span style="color:#f92672">-</span> i;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i_low <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">0</span>, k<span style="color:#f92672">-</span>n);
@@ -1071,12 +1071,12 @@ A[2] = 5 \leq B[1] = 5$ and $B[0] = 3 &lt; A[3] = 7.
 </span></span></code></pre></div><p>Consider running a merge kernel across 3 threads where each thread takes 3 sequential output values. Use the co-rank function to compute the co-rank values for \(k=3\) and \(k=6\), simulating the tasks for the second and third threads. The values for \(k=3\) should be \(i=2\) and \(j=1\), for reference. All values below these indices would be used by the first thread.</p>
 <h3 id="parallel-kernel">Parallel Kernel</h3>
 <p>We can now implement a basic parallel merge kernel. Each thread is responsible for determining how many elements it will be responsible for merging. The range of input values is determined via two calls to <code>co_rank</code>, one for the starting and ending point.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">merge_basic_kernel</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>C) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">merge_basic_kernel</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>C) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tid <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> elementsPerThread <span style="color:#f92672">=</span> ceil((m <span style="color:#f92672">+</span> n) <span style="color:#f92672">/</span> (blockDim.x <span style="color:#f92672">*</span> gridDim.x));
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> k_curr <span style="color:#f92672">=</span> tid <span style="color:#f92672">*</span> elementsPerThread; <span style="color:#75715e">// start output index
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> k_next <span style="color:#f92672">=</span> min((tid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> elementsPerThread, m <span style="color:#f92672">+</span> n); <span style="color:#75715e">// end output index
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> i_curr <span style="color:#f92672">=</span> co_rank(k_curr, A, m, B, n);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> k_next <span style="color:#f92672">=</span> min((tid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> elementsPerThread, m <span style="color:#f92672">+</span> n); <span style="color:#75715e">// end output index
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i_curr <span style="color:#f92672">=</span> co_rank(k_curr, A, m, B, n);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i_next <span style="color:#f92672">=</span> co_rank(k_next, A, m, B, n);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j_curr <span style="color:#f92672">=</span> k_curr <span style="color:#f92672">-</span> i_curr;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j_next <span style="color:#f92672">=</span> k_next <span style="color:#f92672">-</span> i_next;
@@ -1420,7 +1420,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1447,9 +1447,9 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2922,7 +2922,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2954,7 +2954,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -3117,7 +3117,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3356,7 +3356,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3408,7 +3408,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3452,7 +3452,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3504,7 +3504,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3590,7 +3590,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3786,7 +3786,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -4095,7 +4095,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4201,7 +4201,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4218,7 +4218,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4297,7 +4297,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4374,7 +4374,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4641,7 +4641,7 @@ The <code>co_rank</code> and <code>merge_sequential</code> functions need to be 
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

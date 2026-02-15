@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -1169,7 +1169,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 <li>The height of the output image</li>
 </ul>
 <p>A more robust implementation would consider things like padding, stride, dilation, and whether or not a valid or full convolution is desired. For now, we will focus on the simplest case: a valid convolution with a stride of 1 and no padding or dilation. First, let&rsquo;s review the initial naive solution from <em>Programming Massively Parallel Processors</em> (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>).</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
 </span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
@@ -1188,7 +1188,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>With this kernel, the input and output sizes are assumed to be the same. There is a boundary check in the inner-most loop to account for pixels for which a convolution cannot be computed. Based on this check, we can see that this kernel is performing a <em>valid</em> convolution. The extra \(2r\) pixels on each side of the output are skipped. This presents a computational problem in the form of control divergence. Recall that all threads in a warp must execute the same instruction. If the boundary check fails for some threads, they will still execute the instructions in the loop, but will not contribute to the output. This is a waste of resources.</p>
 <p>It is also a waste of resources in terms of memory used for the output. If we already know that we want to perform a valid convolution, we can allocate the output image to be the appropriate size before calling it. A slightly modified version is shown below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>filter, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
 </span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
@@ -1206,10 +1206,10 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </span></span></code></pre></div><h2 id="constant-memory-and-caching">Constant Memory and Caching</h2>
 <p>There is a much larger issue present in both versions of this kernel in terms of memory bandwidth. Similar to the matrix multiplication kernel, this kernel can benefit from tiling. However, there is a new problem that arises specifically with convolution. The same filter is accessed by every single thread. This filter does not change for the entire duration of the kernel. This means that we are wasting memory bandwidth by having every thread access the same filter.</p>
 <p>Given its relatively small size, this kernel is a perfect candidate for constant memory. This is a special type of memory that is cached on the GPU. It is read-only and has a limited size, but it is much faster than global memory. We can write to the devices constant memory from the host code.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
+</span></span></span><span style="display:flex;"><span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
 </span></span></code></pre></div><p>This informs the compiler to allocate a 2D array of floats in constant memory. The size of the array is determined by the constant `FILTER_RADIUS`. We can then copy the filter to the device using the `cudaMemcpyToSymbol` function.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>cudaMemcpyToSymbol(kFilter_d, filter_h, (<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span><span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">float</span>));
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>cudaMemcpyToSymbol(kFilter_d, filter_h, (<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">*</span><span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">float</span>));
 </span></span></code></pre></div><p>The line above assumes there is some data on the host in the array `filter_h`. This array is copied to the device. A small note on naming convention, <a href="https://google.github.io/styleguide/cppguide.html#Constant_Names"
 
 
@@ -1221,7 +1221,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 
 >Google&rsquo;s C++</a> style guide recommends naming constant variables with a <code>k</code> prefix. I have adopted this convention here.</p>
 <p>At this point, <code>kFilter_d</code> is accessible from the kernel as a global variable. There is no need to pass it as an argument. The kernel can be modified to use this constant memory as follows.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2D</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
 </span></span><span style="display:flex;"><span>                       <span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outCol <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> outRow <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
@@ -1269,15 +1269,15 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </div>
 <p>The parallel solution to this problem will follow the tiled approach used for matrix multiplication. One key difference in this case is that the input tile size will be larger than the output tile size. This size difference would further be complicated if we left the kernel size as a parameter.</p>
 <p>Following the design presented by (<a href="#citeproc_bib_item_2">Hwu, Kirk, and El Hajj 2022</a>) in Chapter 7, there are two immediate approaches to this problem based on the tile size. The first is to choose a block size that matches the size of the input tiles. The benefit to this approach is that each thread can load a single input element into shared memory. The drawback is that some of the threads will be disabled when computing the output value since the output tile is smaller. This is a form of control divergence and will result in wasted resources.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#define FILTER_RADIUS 1
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define IN_TILE_DIM 4
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define OUT_TILE_DIM ((IN_TILE_DIM) - 2*(FILTER_RADIUS))
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
+</span></span></span><span style="display:flex;"><span>__constant__ <span style="color:#66d9ef">float</span> kFilter_d[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>FILTER_RADIUS<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>];
 </span></span><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2DTiledConstKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
 </span></span><span style="display:flex;"><span>                                       <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> inputTile[IN_TILE_DIM][IN_TILE_DIM];
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Input tile coordinates
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> height <span style="color:#f92672">&amp;&amp;</span> col <span style="color:#f92672">&lt;</span> width) {
 </span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> input[row <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> col];
@@ -1287,11 +1287,11 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </span></span><span style="display:flex;"><span>    __syncthreads();
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Output tile coordinates
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> tileCol <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">-</span> FILTER_RADIUS;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileCol <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">-</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileRow <span style="color:#f92672">=</span> threadIdx.y <span style="color:#f92672">-</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// In a valid convolution, the output is smaller than the input
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span></span><span style="display:flex;"><span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>    col <span style="color:#f92672">-=</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (tileCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> tileCol <span style="color:#f92672">&lt;</span> OUT_TILE_DIM <span style="color:#f92672">&amp;&amp;</span> tileRow <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> tileRow <span style="color:#f92672">&lt;</span> OUT_TILE_DIM) {
@@ -1346,11 +1346,11 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 <h2 id="caching-the-halo-cells">Caching the Halo Cells</h2>
 <p>In the previous example, the size of the input tile compared to the output tile means that there were some threads that did not contribute to the output computation. These are the threads managing the lightly shaded cells in the figure above. We will refer to these as <em>halo cells</em>.</p>
 <p>This implementation is going to take advantage of the caching behavior in the chip itself. <strong>Values that have been recently used are more likely to already be in L2 cache.</strong> This is a safe assumption since the neighboring blocks will have loaded these values into shared memory. This means that the input and output tile sizes can be the same; there is no need to waste any threads in the block. The full kernel is given below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2DTiledCachedConstKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conv2DTiledCachedConstKernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>input, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>output,
 </span></span><span style="display:flex;"><span>                                             <span style="color:#66d9ef">int</span> width, <span style="color:#66d9ef">int</span> height) {
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> inputTile[IN_TILE_DIM][IN_TILE_DIM];
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Input tile coordinates
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> IN_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> IN_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> IN_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> height <span style="color:#f92672">&amp;&amp;</span> col <span style="color:#f92672">&lt;</span> width) {
 </span></span><span style="display:flex;"><span>        inputTile[threadIdx.y][threadIdx.x] <span style="color:#f92672">=</span> input[row <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> col];
@@ -1362,7 +1362,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (row <span style="color:#f92672">&lt;</span> FILTER_RADIUS <span style="color:#f92672">||</span> col <span style="color:#f92672">&lt;</span> FILTER_RADIUS <span style="color:#f92672">||</span> col <span style="color:#f92672">&gt;=</span> (width <span style="color:#f92672">-</span> FILTER_RADIUS) <span style="color:#f92672">||</span> row <span style="color:#f92672">&gt;=</span> (height <span style="color:#f92672">-</span> FILTER_RADIUS)) <span style="color:#66d9ef">return</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Output tile coordinates
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
+</span></span></span><span style="display:flex;"><span>    row <span style="color:#f92672">-=</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>    col <span style="color:#f92672">-=</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileCol <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">-</span> FILTER_RADIUS;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tileRow <span style="color:#f92672">=</span> threadIdx.y <span style="color:#f92672">-</span> FILTER_RADIUS;
@@ -1371,14 +1371,14 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fRow <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fRow <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; fRow<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> fCol <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; fCol <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> FILTER_RADIUS <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; fCol<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// If this value is in shared memory, access it there
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> (tileCol <span style="color:#f92672">+</span> fCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span>
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (tileCol <span style="color:#f92672">+</span> fCol <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span>
 </span></span><span style="display:flex;"><span>                tileCol <span style="color:#f92672">+</span> fCol <span style="color:#f92672">&lt;</span> IN_TILE_DIM <span style="color:#f92672">&amp;&amp;</span>
 </span></span><span style="display:flex;"><span>                tileRow <span style="color:#f92672">+</span> fRow <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span>
 </span></span><span style="display:flex;"><span>                tileRow <span style="color:#f92672">+</span> fRow <span style="color:#f92672">&lt;</span> IN_TILE_DIM) {
 </span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> inputTile[tileRow <span style="color:#f92672">+</span> fRow][tileCol <span style="color:#f92672">+</span> fCol] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
 </span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Otherwise, access it from global memory
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                sum <span style="color:#f92672">+=</span> input[(row <span style="color:#f92672">+</span> fRow) <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> (col <span style="color:#f92672">+</span> fCol)] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
+</span></span></span><span style="display:flex;"><span>                sum <span style="color:#f92672">+=</span> input[(row <span style="color:#f92672">+</span> fRow) <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> (col <span style="color:#f92672">+</span> fCol)] <span style="color:#f92672">*</span> kFilter_d[fRow][fCol];
 </span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
@@ -1468,7 +1468,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1495,9 +1495,9 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2970,7 +2970,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -3002,7 +3002,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -3165,7 +3165,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3404,7 +3404,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3456,7 +3456,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3500,7 +3500,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3552,7 +3552,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3638,7 +3638,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3834,7 +3834,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -4143,7 +4143,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4249,7 +4249,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4266,7 +4266,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4345,7 +4345,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4422,7 +4422,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4689,7 +4689,7 @@ y_i = \sum_{k=0}^{2r} x_{i+k-r} w_{2r-k}.
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

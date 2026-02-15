@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -1005,14 +1005,14 @@
 <p>In document-based NOSQL systems, the data is <strong>self-describing</strong> as there is no need for a schema. These sytems store <strong>documents</strong> which are essentially JSON objects. The documents are stored in <strong>collections</strong> which are similar to tables in a relational database. The documents are retrieved using their document ID.</p>
 <h3 id="mongodb">MongoDB</h3>
 <p>MongoDB is a document-based NOSQL database that is flexibile, scalable, and high-performance. It stores data in a JSON-like format called BSON (Binary JSON). Inidividual <strong>documents</strong> are stored in a <strong>collection</strong>. No schema is needed to begin storing data. The python code below will create a new collection for our RPG <code>Users</code> with a simple command in <code>pymongo</code>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]
 </span></span></code></pre></div><p>This will create a new collection named <code>users</code> with the default settings. If you want to specify additional options, call the <code>create_collection</code> function. Common parameters include determining of a collection is capped by the storage size and maximum number of documents.</p>
 <h4 id="representing-data">Representing Data</h4>
 <p>Whenever a new item is inserted to a colletion, a unique <code>ObjectId</code> is created and indexed. If the ID of a document should match a user-defined protocol, it can be set manually. Since there is no schema to specify a relationship, document relationships can be created by including the <del>ObjectId</del>s of objects you wish to reference in your data.</p>
 <p>There are multiple ways to represent relationships between documents. Consider a <code>Character</code> that holds multiple items in an <code>Inventory</code>. The items could be referenced as an array of <code>Item</code> objects within the <code>Character</code> object itself. Alternatively, the <code>Character</code> could hold an array of <code>ObjectId~s that reference the ~Item</code> objects in the <code>Inventory</code> collection. A third approach would have each <code>Item</code> reference the <code>Character</code> that owns it. The best approach depends on the application and the type of queries that will be performed.</p>
 <h4 id="crud-operations">CRUD Operations</h4>
 <p>CRUD stands for Create, Read, Update, and Delete. Single or multiple documents can be implemented with the <code>insert</code> function. In <code>pymongo</code>, you can use either <code>Collections.insert_one</code> or <code>Collections.insert_many</code>. The <code>insert_one</code> function takes a single document as an argument and returns the <code>ObjectId</code> of the inserted document. The <code>insert_many</code> function takes a list of documents as an argument and returns a list of <del>ObjectId</del>s.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>insert_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">25</span>})
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>insert_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">25</span>})
 </span></span><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>insert_many([{<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">25</span>}, {<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;James&#39;</span>, <span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">30</span>}])
 </span></span></code></pre></div><p>Reading objects is done with the <code>find</code> function. There are several variants of this available in <code>pymongo</code>.</p>
 <ul>
@@ -1023,15 +1023,15 @@
 <li><code>find_one_and_update</code> returns a single document that matches the query and updates it with the specified document.</li>
 </ul>
 <!--listend-->
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>val <span style="color:#f92672">=</span> db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>find_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>val <span style="color:#f92672">=</span> db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>find_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the document</span>
 </span></span><span style="display:flex;"><span>print(val)
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the name</span>
 </span></span><span style="display:flex;"><span>print(val[<span style="color:#e6db74">&#39;name&#39;</span>])
 </span></span></code></pre></div><p>Updating documents is done with the <code>update</code> function. We saw an updated combined with <code>find</code> above, but <code>pymongo</code> also implements <code>update_one</code> and <code>update_many</code>. The <code>update_one</code> function takes a query and an update document as arguments. The <code>update_many</code> function takes a query and an update document as arguments. Both functions return a <code>UpdateResult</code> object that contains information about the operation.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>update_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>}, {<span style="color:#e6db74">&#39;$set&#39;</span>: {<span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">26</span>}})
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>update_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>}, {<span style="color:#e6db74">&#39;$set&#39;</span>: {<span style="color:#e6db74">&#39;age&#39;</span>: <span style="color:#ae81ff">26</span>}})
 </span></span></code></pre></div><p>Deleting documents is done with the <code>delete_one</code> and <code>delete_many</code> functions. Both functions take a query as an argument and return a <code>DeleteResult</code> object that contains information about the operation.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>delete_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>db[<span style="color:#e6db74">&#39;users&#39;</span>]<span style="color:#f92672">.</span>delete_one({<span style="color:#e6db74">&#39;name&#39;</span>: <span style="color:#e6db74">&#39;Naomi&#39;</span>})
 </span></span></code></pre></div><h4 id="characteristics">Characteristics</h4>
 <p>MongoDB uses a <strong>two-phase commit</strong> method to ensure transaction atomicity and consistency. In the first phase of the process, a coordinator sends a message to all nodes to prepare for the transaction. Each node then responds with an acknowledgement. If all nodes respond with an acknowledgement, the coordinator sends a commit message to all nodes. If any node fails to respond with an acknowledgement, the coordinator sends a message to roll back the transaction.</p>
 <p>For data replication, a variation on the <strong>primary-replica</strong> model is used. A primary node is chosen with at least one replica. More nodes can be added at the cost of increased time for writes. The total number of nodes for a replica set is at least 3, so if only a primary and one replica are used, an <strong>arbiter</strong> must be chosen to break ties. In fact, any replica set with an even number of nodes must have an arbiter.</p>
@@ -1180,7 +1180,7 @@
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1207,9 +1207,9 @@
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2682,7 +2682,7 @@
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2714,7 +2714,7 @@
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -2877,7 +2877,7 @@
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3116,7 +3116,7 @@
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3168,7 +3168,7 @@
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3212,7 +3212,7 @@
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3264,7 +3264,7 @@
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3350,7 +3350,7 @@
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3546,7 +3546,7 @@
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -3855,7 +3855,7 @@
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -3961,7 +3961,7 @@
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -3978,7 +3978,7 @@
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4057,7 +4057,7 @@
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4134,7 +4134,7 @@
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4401,7 +4401,7 @@
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

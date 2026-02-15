@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -997,7 +997,7 @@
 <h2 id="memory-access">Memory Access</h2>
 <p>Transferring memory is one of the biggest bottlenecks in GPU programming. Companies like NVIDIA devote a lot of resources to improving the bandwidth and latency of memory transfers. When training a deep learning model, the datasets used are far too large to fit on the GPU. This means that the data must be transferred to the GPU before the actual training code can execute on the device. Training large models can take days or weeks, so the time spent transferring data can be significant.</p>
 <p>The example provided in Chapter 5 of &ldquo;Programming Massively Parallel Processors&rdquo; is a great introduction to understanding memory access efficiency (<a href="#citeproc_bib_item_1">Hwu, Kirk, and El Hajj 2022</a>). In matrix multiplication, the data accesses are limited to a single line of code in the inner-most loop. This means that the memory access pattern is very regular and predictable. The example code is shown below:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i k <span style="color:#f92672">&lt;</span> numCols; k<span style="color:#f92672">++</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i k <span style="color:#f92672">&lt;</span> numCols; k<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>    Cvalue <span style="color:#f92672">+=</span> A[row <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> k] <span style="color:#f92672">*</span> B[k <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> col];
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>This line consists of a floating-point multiplication, floating-point addition, and two memory accesses. Note that we are not storing the result yet, so there is no access to the C matrix. The operation effiency can be described in terms of floating-point operations per second (FLOP/s) and the accesses can be measured in the number of bytes transferred. In this case, we have 2 FLOPs and 8 bytes transferred. This means that the ratio of FLOPs to bytes transferred is 0.25 FLOP/B. This is described as <em>computational intensity</em>.</p>
@@ -1276,26 +1276,26 @@ Resides on the chip. Each thread has its own registers. Very fast memory.</li>
 <li>Repeat steps 2 and 3 until all subsets have been computed.</li>
 </ol>
 <p>Step 1 is obvious. We need to establish the shared memory for this solution. Steps 2 and 3 are the same as described above, but we do need to remember to synchronize the threads. Without synchronization, the computation may continue before all the data is properly loaded. Step 4 implies that each thread will loop through the subsets until all values have been computed. The kernel is shown below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">MatMulKernel</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> M, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> N, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> P, <span style="color:#66d9ef">int</span> Width) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">MatMulKernel</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> M, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> N, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> P, <span style="color:#66d9ef">int</span> Width) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Block index
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> bx <span style="color:#f92672">=</span> blockIdx.x;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> bx <span style="color:#f92672">=</span> blockIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> by <span style="color:#f92672">=</span> blockIdx.y;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Thread index
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> tx <span style="color:#f92672">=</span> threadIdx.x;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tx <span style="color:#f92672">=</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> ty <span style="color:#f92672">=</span> threadIdx.y;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> Mds[TILE_WIDTH][TILE_WIDTH];
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> Nds[TILE_WIDTH][TILE_WIDTH];
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Identify the row and column of the P element to work on
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> Row <span style="color:#f92672">=</span> by <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> ty;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> Row <span style="color:#f92672">=</span> by <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> ty;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> Col <span style="color:#f92672">=</span> bx <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> Pvalue <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> ph <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; ph <span style="color:#f92672">&lt;</span> Width <span style="color:#f92672">/</span> TILE_WIDTH; <span style="color:#f92672">++</span>ph) {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Collaborative loading of M and N tiles into shared memory
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        Mds[ty][tx] <span style="color:#f92672">=</span> M[Row <span style="color:#f92672">*</span> Width <span style="color:#f92672">+</span> ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx];
+</span></span></span><span style="display:flex;"><span>        Mds[ty][tx] <span style="color:#f92672">=</span> M[Row <span style="color:#f92672">*</span> Width <span style="color:#f92672">+</span> ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx];
 </span></span><span style="display:flex;"><span>        Nds[ty][tx] <span style="color:#f92672">=</span> N[(ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> ty) <span style="color:#f92672">*</span> Width <span style="color:#f92672">+</span> Col];
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">__syncthreads</span>();
 </span></span><span style="display:flex;"><span>
@@ -1436,10 +1436,10 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
 </div>
 <p>Our implementation would follow the same process for the first subset of pattern. An issue arises when computing the second tile offset since the block exceeds the boundaries of our input and output. One solution would be to check the boundary condition on both the input, when transferring the data to shared memory, and the output, when reading the data from shared memory. This would require a conditional statement in the inner loop. This is not ideal since the conditional statement would be executed for every thread in the block.</p>
 <p>Another solution is to pad the input with zeros. If the index is outside our boundary, adding a 0 will not affect the result of the dot product. This allows for a simpler implementation while still being flexible enough to handle matrices of any size. The relevant portion of the kernel is shown below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> Pvalue <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> Pvalue <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> ph <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; ph <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">ceil</span>(Width<span style="color:#f92672">/</span>(<span style="color:#66d9ef">float</span>)TILE_WIDTH); ph<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Collaborative loading of M and N tiles into shared memory
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (Row <span style="color:#f92672">&lt;</span> Width <span style="color:#f92672">&amp;&amp;</span> ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx <span style="color:#f92672">&lt;</span> Width) {
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (Row <span style="color:#f92672">&lt;</span> Width <span style="color:#f92672">&amp;&amp;</span> ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx <span style="color:#f92672">&lt;</span> Width) {
 </span></span><span style="display:flex;"><span>        Mds[ty][tx] <span style="color:#f92672">=</span> M[Row <span style="color:#f92672">*</span> Width <span style="color:#f92672">+</span> ph <span style="color:#f92672">*</span> TILE_WIDTH <span style="color:#f92672">+</span> tx];
 </span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
 </span></span><span style="display:flex;"><span>        Mds[ty][tx] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0</span>;
@@ -1458,17 +1458,17 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
 <h2 id="dynamically-changing-the-block-size">Dynamically Changing the Block Size</h2>
 <p>The solution presented above uses a constant to determine the tile size. What if this tile size was not optimal for a given hardware configuration? We would surely want to adjust this dynamically to maximize performance. In CUDA, we can support this by using the <code>extern</code> keyword. First, we need to define our shared memory as one array: <code>extern __shared__ float Mds_Nds[];</code>. This is a 1D array that represents the shared memory for both input matrices.</p>
 <p>When launching this kernel, we need some way to inform it of the tile size. First, we would query the device properties and determine the optimal tile size based on the hardware. This size can be used as a third launch configuration input, as shown below. Additionally, the size of the shared memory for each input matrix is provided as two additional arguments to the kernel.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">size_t</span> size <span style="color:#f92672">=</span> <span style="color:#a6e22e">compute_optimal_size</span>(); <span style="color:#75715e">// Determine optimal tile size
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>MatMulKernel<span style="color:#f92672">&lt;&lt;&lt;</span>dimGrid, dimBlock, size<span style="color:#f92672">&gt;&gt;&gt;</span>(M_d, N_d, P_d, Width, size<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>, size<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">size_t</span> size <span style="color:#f92672">=</span> <span style="color:#a6e22e">compute_optimal_size</span>(); <span style="color:#75715e">// Determine optimal tile size
+</span></span></span><span style="display:flex;"><span>MatMulKernel<span style="color:#f92672">&lt;&lt;&lt;</span>dimGrid, dimBlock, size<span style="color:#f92672">&gt;&gt;&gt;</span>(M_d, N_d, P_d, Width, size<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>, size<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>);
 </span></span></code></pre></div><p>The kernel will need to be modified to use the new shared memory array. The first step is to determine the offset for each matrix. This is done by multiplying the tile size by the thread index. The second step is to use the offset to access the correct value in the shared memory array. The kernel is shown below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">MatMulKernel</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> M, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> N, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> P, <span style="color:#66d9ef">int</span> Width, <span style="color:#66d9ef">int</span> Mds_offset, <span style="color:#66d9ef">int</span> Nds_offset) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">MatMulKernel</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> M, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> N, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> P, <span style="color:#66d9ef">int</span> Width, <span style="color:#66d9ef">int</span> Mds_offset, <span style="color:#66d9ef">int</span> Nds_offset) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">extern</span> __shared__ <span style="color:#66d9ef">float</span> Mds_Nds[];
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Mds <span style="color:#f92672">=</span> (<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>)Mds_Nds;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Nds <span style="color:#f92672">=</span> (<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>)Mds_Nds <span style="color:#f92672">+</span> Mds_offset;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Rest of the kernel
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Completing this modification would require us to use linear indexing for <code>Mds</code> and <code>Nds</code>.</p>
 <h2 id="the-takeaway">The Takeaway</h2>
 <p>Tiling is a powerful tool that can be used to improve the performance of a kernel. It is important to understand the memory access pattern of your kernel and identify which data is reused. This will allow you to move that data to shared memory and reduce the number of global memory accesses. Tiling is the first of many <em>patterns</em> that we will explore. Just like not every tool is useful for every job, not every pattern will be useful for each problem we face. Increasing the number of tools, or patterns, that we have available will allow us to solve a wider range of problems efficiently.</p>
@@ -1554,7 +1554,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1581,9 +1581,9 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -3056,7 +3056,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -3088,7 +3088,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -3251,7 +3251,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3490,7 +3490,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3542,7 +3542,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3586,7 +3586,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3638,7 +3638,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3724,7 +3724,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3920,7 +3920,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -4229,7 +4229,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4335,7 +4335,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4352,7 +4352,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4431,7 +4431,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4508,7 +4508,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4775,7 +4775,7 @@ P_{1, 1} &amp;+= 1 \times 1 + 0 \times 0
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -981,7 +981,7 @@
 </ul>
 <h3 id="example-inclusive-scan">Example: Inclusive Scan</h3>
 <p>Given an array of numbers, the inclusive scan computes the sum of all elements up to a given index. For example, given the array [1, 2, 3, 4, 5], the inclusive scan would produce [1, 3, 6, 10, 15]. You could solve this recursively, but it would be horribly inefficient. A sequential solution is achievable with dynamic programming. However, a parallel solution is much more efficient.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sequential_scan</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y, uint N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sequential_scan</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>x, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>y, uint N) {
 </span></span><span style="display:flex;"><span>    y[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> x[<span style="color:#ae81ff">0</span>];
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (uint i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> N; i<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>        y[i] <span style="color:#f92672">=</span> y[i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">+</span> x[i];
@@ -1028,7 +1028,7 @@
 </figure>
 </div>
 <p>This is implemented in the following code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">Kogge_Stone_scan_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>X, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Y, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">Kogge_Stone_scan_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>X, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Y, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
 </span></span><span style="display:flex;"><span>        __shared__ <span style="color:#66d9ef">float</span> A[SECTION_SIZE];
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>
@@ -1150,7 +1150,7 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 </table>
 <h3 id="implementing-the-forward-half">Implementing the Forward Half</h3>
 <p>The relevant reduction tree phase of Brent-Kung is implemented in CUDA C++ below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">&lt;=</span> blockDim.x; stride <span style="color:#f92672">*=</span> <span style="color:#ae81ff">2</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">&lt;=</span> blockDim.x; stride <span style="color:#f92672">*=</span> <span style="color:#ae81ff">2</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__syncthreads</span>();
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ((threadIdx.x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%</span> (stride <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>        A[threadIdx.x] <span style="color:#f92672">+=</span> A[threadIdx.x <span style="color:#f92672">-</span> stride];
@@ -1158,7 +1158,7 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>From the perspective of <code>threadIdx.x = 7</code>, the first iteration would add the value from <code>threadIdx.x = 6</code> to its own value. On the next iteration, the stride offset would add <code>threadIdx.x = 5</code>. Thread 5 already has the sum from 4 and 5 before being added to 7, so 7 now has the sums from indices 4 through 7. On its last iteration, the value for stride is now 4, and 7 adds the value from 3 to its own value. This is the final result for the first half of the algorithm.</p>
 <p>There is a lot of control divergence present in this code. Since fewer threads stay active as the loop goes on, it is better to organize the threads such that they are contiguous. We can do that with slightly more complicated indexing, so that contiguous threads use data from the active portions of the array.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">&lt;=</span> blockDim.x; stride <span style="color:#f92672">*=</span> <span style="color:#ae81ff">2</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; stride <span style="color:#f92672">&lt;=</span> blockDim.x; stride <span style="color:#f92672">*=</span> <span style="color:#ae81ff">2</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__syncthreads</span>();
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (threadIdx.x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> stride <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (index <span style="color:#f92672">&lt;</span> blockDim.x) {
@@ -1168,7 +1168,7 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 </span></span></code></pre></div><p>Thread 0 maps to index, thread 1 maps to index 3, thread 2 to index 5, and so on. Only when the number of active threads drops below the warp size does control divergence become a problem.</p>
 <h3 id="implementing-the-reverse-half">Implementing the Reverse Half</h3>
 <p>The reverse half of the algorithm is implemented in CUDA C++ below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> blockDim.x <span style="color:#f92672">/</span> <span style="color:#ae81ff">4</span>; stride <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (uint stride <span style="color:#f92672">=</span> blockDim.x <span style="color:#f92672">/</span> <span style="color:#ae81ff">4</span>; stride <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>; stride <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__syncthreads</span>();
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (threadIdx.x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> stride <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (index <span style="color:#f92672">+</span> stride <span style="color:#f92672">&lt;</span> blockDim.x) {
@@ -1206,7 +1206,7 @@ Brent-Kung follows the same idea as Kogge-Stone, but with better work efficiency
 <h3 id="efficiency-analysis">Efficiency Analysis</h3>
 <p>The reduction tree of the first half of the algorithm require \(n - 1\) operations. For \(n\) elements, the reverse half requires \((2 - 1) + (4 - 1) + \dots + (n/2 - 1)\) operations for a total of \(N - 1 - \log_2 n\). This yields a work efficiency of \(O(n)\). Even though the theoretical work efficiency is better than Kogge-Stone, doesn&rsquo;t mean its performance will always be better in practice. The drop off in active threads for Brent-Kung is much more severe than Kogge-Stone. It also requires additional steps to perform the reverse half. In general, Kogge-Stone is a better choice when we have more execution units, owing to its better parallelism.</p>
 <p>The full code is given below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">Brent_Kung_scan_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>X, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Y, uint N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">Brent_Kung_scan_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>X, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>Y, uint N) {
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> A[SECTION_SIZE];
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>
@@ -1312,7 +1312,7 @@ Another kernel launches after this is done to consolidate the results by adding 
 <p>After each scan block has computed the scan for its partition, the last elements are then processed in the next step. However, these elements are all from different blocks, which means we must write them to a global space so they can all be accessed. Completing this step yields an array that has the final values of the scan corresponding to the indices from the original scan blocks (see the figure above). These values can then be used to update the preceding elements in each scan block to complete the scan.</p>
 <p><strong>Kernel 1: Section Scan</strong></p>
 <p>The first kernel essentially implements one of the previously discussed parallel scan kernels. The only difference is that the accumulation array is passed so that the blocks can write their output element values.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">__syncthreads</span>();
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">__syncthreads</span>();
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> blockDim.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) {
 </span></span><span style="display:flex;"><span>    accumulation[blockIdx.x] <span style="color:#f92672">=</span> A[threadIdx.x];
 </span></span><span style="display:flex;"><span>}
@@ -1320,25 +1320,25 @@ Another kernel launches after this is done to consolidate the results by adding 
 <p>For step 2, we need to run a parallel scan kernel like Kogge-Stone or Brent-Kung on the accumulation array.</p>
 <p><strong>Kernel 3: Update Elements</strong></p>
 <p>The final kernel takes the accumulated values and updates the original array so that all the elements have their correct scan value.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>output[i] <span style="color:#f92672">+=</span> accumulation[blockIdx.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>];
 </span></span></code></pre></div><h2 id="optimizing-memory-efficiency">Optimizing Memory Efficiency</h2>
 <p>The previous solution provides a way of working with large inputs, but it is not memory efficient because of the need to store the accumulation array. There have been several attempts at optimizing this flow of information in the form of a <em>stream-based</em> scan. To understand the general strategy behind this approach, consider the segmented scan from the previous section.</p>
 <p>The process starts by executing all the scan blocks in parallel. The first scan block has all the information it needs to compute the full scan for its partition. However, the second block needs the final output value from the first before it can update its own values. It will have to wait until block 0 has finished and written its value to global memory. It can then add that value to its own elements before sending its final value to the next block. This process continues until all the blocks have been processed.</p>
 <p>To be clear, the first phase runs completely in parallel, and the second phase is sequential. If the final values are passed quickly enough between each block, the overall scan will still be efficient. Once each block has that passed value, it can continue its work in parallel since it is no longer dependent on the previous block.</p>
 <p>For this to work, there needs to be a form of synchronization between blocks. The CUDA API does not provide grid-wide synchronization, so <strong>how can we accomplish this</strong>? One solution is to use a lock to effectively halt a thread until the value is ready to be read (<a href="#citeproc_bib_item_2">Yan, Long, and Zhang 2013</a>). The code below shows how this can be implemented.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__shared__ <span style="color:#66d9ef">float</span> previous_sum;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__shared__ <span style="color:#66d9ef">float</span> previous_sum;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Wait for previous flag
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid], <span style="color:#ae81ff">0</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid], <span style="color:#ae81ff">0</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>);
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Read previous partial sum
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    previous_sum <span style="color:#f92672">=</span> scan_value[bid];
+</span></span></span><span style="display:flex;"><span>    previous_sum <span style="color:#f92672">=</span> scan_value[bid];
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Propagate partial sum
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    scan_value[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> previous_sum <span style="color:#f92672">+</span> local_sum;
+</span></span></span><span style="display:flex;"><span>    scan_value[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> previous_sum <span style="color:#f92672">+</span> local_sum;
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Memory fence
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">__threadfence</span>();
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__threadfence</span>();
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Update flag
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>], <span style="color:#ae81ff">1</span>);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>flags[bid <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>], <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">__syncthreads</span>();
 </span></span></code></pre></div><p>The section ensures that only the first element of each block will perform this update. The <code>flags</code> array is a global array that is used to store the lock values. Once the flag is set to 1, the value from the global array <code>scan_value</code> is read and used to update the local sum. We haven&rsquo;t used <code>__threadfence()</code> before, but it is used to ensure that the update to <code>scan_value[bid + 1]</code> is written before the call to <code>atomicAdd</code> is made.</p>
@@ -1347,7 +1347,7 @@ Another kernel launches after this is done to consolidate the results by adding 
 <h3 id="preventing-deadlocks">Preventing Deadlocks</h3>
 <p>This issue isn&rsquo;t production ready just yet. Depending on how the blocks are scheduled, it is possible that a deadlock could occur. For example, the second block could be scheduled before the first block. If there aren&rsquo;t enough SMs on the device then the first block will never be able to write its value to the global array. One solution to this is <strong>dynamic block index assignment</strong>.</p>
 <p>In this approach, the block index assignment is not dependent on <code>blockIdx.x</code>. Instead it is assigned dynamically as blocks are processed.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__shared__ uint bid_s;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__shared__ uint bid_s;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (threadIdx.x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    bid_s <span style="color:#f92672">=</span> <span style="color:#a6e22e">atomicAdd</span>(<span style="color:#f92672">&amp;</span>block_index, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>}
@@ -1439,7 +1439,7 @@ Another kernel launches after this is done to consolidate the results by adding 
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1466,9 +1466,9 @@ Another kernel launches after this is done to consolidate the results by adding 
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2941,7 +2941,7 @@ Another kernel launches after this is done to consolidate the results by adding 
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2973,7 +2973,7 @@ Another kernel launches after this is done to consolidate the results by adding 
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -3136,7 +3136,7 @@ Another kernel launches after this is done to consolidate the results by adding 
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3375,7 +3375,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3427,7 +3427,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3471,7 +3471,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3523,7 +3523,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3609,7 +3609,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3805,7 +3805,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -4114,7 +4114,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4220,7 +4220,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4237,7 +4237,7 @@ Another kernel launches after this is done to consolidate the results by adding 
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4316,7 +4316,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4393,7 +4393,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4660,7 +4660,7 @@ Another kernel launches after this is done to consolidate the results by adding 
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

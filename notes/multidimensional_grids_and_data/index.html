@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -972,11 +972,11 @@
 <p>The CUDA Programming model allows us to organize our data in a multidimensional grid. The purpose of this is primarily for our own convenience, but it also allows us to take advantage of the GPU&rsquo;s memory hierarchy. In Lab 0, we only required a single dimension for our grid as well as each block since the input was a vector. When performing computations on multidimensional data like matrices, we can match the dimensions of our launch configuration to the dimensions of our data.</p>
 <h2 id="multidimensional-grid-organization">Multidimensional Grid Organization</h2>
 <p>All threads share a block index, <code>blockIdx</code>, and a thread index, <code>threadIdx</code>. These indices are three-dimensional vectors of type <code>dim3</code>. The <code>dim3</code> type is defined as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">dim3</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">dim3</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> x, y, z;
 </span></span><span style="display:flex;"><span>};
 </span></span></code></pre></div><p>Each grid is a 3D array of blocks, and every block a 3D array of threads. Consider the kernel execution for <code>vecAdd</code> from Lab 0:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blocksPerGrid</span>(<span style="color:#ae81ff">32</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blocksPerGrid</span>(<span style="color:#ae81ff">32</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">threadsPerBlock</span>(<span style="color:#ae81ff">128</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>vecAdd<span style="color:#f92672">&lt;&lt;&lt;</span>blocksPerGrid, threadsPerBlock<span style="color:#f92672">&gt;&gt;&gt;</span>(a_d, b_d, c_d, n);
 </span></span></code></pre></div><p>This will execute with \(32 \times 128 = 4096\) threads.</p>
@@ -1045,9 +1045,9 @@
 <p>Is it better to have fewer blocks that maximize the amount of threads per block? Or is it better to have more blocks with fewer threads per block? The current maximum number of threads per block is 1024. In practice, a maximum block dimension size of 128 or 256 is ideal. This has more to do with the specific problem and the amount of shared memory required. You will explore this question in Lab 1.</p>
 <h2 id="example-color-to-grayscale">Example: Color to Grayscale</h2>
 <p>Given the layout just described, we will write a kernel that converts a color image to grayscale. This is an <em>embarrassingly parallel</em> problem since each pixel can be converted independently of the others. We will use the following formula to convert each pixel:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>gray <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.299f</span> <span style="color:#f92672">*</span> red <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.587f</span> <span style="color:#f92672">*</span> green <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.114f</span> <span style="color:#f92672">*</span> blue
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>gray <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.299f</span> <span style="color:#f92672">*</span> red <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.587f</span> <span style="color:#f92672">*</span> green <span style="color:#f92672">+</span> <span style="color:#ae81ff">0.114f</span> <span style="color:#f92672">*</span> blue
 </span></span></code></pre></div><p>A CPU implementation would require a <code>for</code> loop over the exact number of pixels. The CUDA kernel for this is straightforward since it only depends on the current pixel. The only real challenge is to compute the correct indices for each thread.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">colorToGrayscale</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>rgbImage,
 </span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>grayImage,
 </span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">int</span> numRows, <span style="color:#66d9ef">int</span> numCols)
@@ -1066,7 +1066,7 @@
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>In this example, we assume an RGB image where each pixel is represented by three unsigned characters. It is standard convention in C to pass a pointer to the first element of the array. This implies that we cannot use the <code>[]</code> operator to access the elements in a multidimensional way. Instead, we must compute the index ourselves. If you are not currently familiar with flat indexing, you certainly will be by the end of this course.</p>
 <p>In C, multi-dimensional arrays are stored in row-major order. To compute the index of row <code>j</code> and column <code>i</code> in a 2D array, we need to skip over <code>j</code> rows and <code>i</code> columns. The total number of columns is the width of the array. The total number of rows is the height of the array. The index is computed as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> j <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> i;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> j <span style="color:#f92672">*</span> width <span style="color:#f92672">+</span> i;
 </span></span></code></pre></div><p>This is represented in the following figure.</p>
 
 
@@ -1100,7 +1100,7 @@
 <p>As stated above, we are going to launch 20 blocks in a \(4 \times 5\) grid. Each block will have 256 threads arranged in a \(16 \times 16\) 2D configuration. This totals to \(20 \times 256 = 5120\) threads. The example figure above shows this configuration overlaid on a \(76 \times 62\) image. That means we have 4712 pixels that need to be converted. The remaining 408 threads will be idle.</p>
 <p>You might be wondering if all 5120 threads launch at the same time. What if the number of pixels exceeded the number of threads available on the GPU? The short answer is that the GPU will launch as many threads as possible, but the long answer is slightly more complicated and will be discussed in a later lesson.</p>
 <p>In any case, our kernel can be launched using the following code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">gridSize</span>(<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>colorToGrayscale<span style="color:#f92672">&lt;&lt;&lt;</span>gridSize, blockSize<span style="color:#f92672">&gt;&gt;&gt;</span>(rgbImage, grayImage, numRows, numCols);
 </span></span></code></pre></div><h2 id="no-longer-embarrassing-overlapping-data">No longer embarrassing: overlapping data</h2>
@@ -1134,9 +1134,9 @@
 </figure>
 </div>
 <p>Given a pixel location \((x, y)\), we can compute the index of the pixel in the neighborhood as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (y <span style="color:#f92672">+</span> ky) <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> (x <span style="color:#f92672">+</span> kx);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> (y <span style="color:#f92672">+</span> ky) <span style="color:#f92672">*</span> numCols <span style="color:#f92672">+</span> (x <span style="color:#f92672">+</span> kx);
 </span></span></code></pre></div><p>Where \(ky\) and \(kx\) are the row and column indices of the kernel. The kernel is centered on the pixel of interest, so \(ky\) and \(kx\) range from \(-2\) to \(2\). The total number of pixels in the neighborhood is \(5 \times 5 = 25\). The weighted average is computed as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> numPixels <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> ky <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>; ky <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">2</span>; ky<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> kx <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>; kx <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">2</span>; kx<span style="color:#f92672">++</span>) {
@@ -1159,7 +1159,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
 <p>This operation is only defined on compatible matrices. That is, the number of columns in \(A\) must equal the number of rows in \(B\). The resulting matrix \(C\) will have \(m\) rows and \(p\) columns.</p>
 <h3 id="cpu-implementation">CPU Implementation</h3>
 <p>The CPU implementation of matrix multiplication is straightforward. There is a double <code>for</code> loop to iterate through each element in the <em>output</em> matrix. The inner loop computes the dot product of the $i$th row of \(A\) and the $j$th column of \(B\). The dot product is computed by summing the element-wise product of the two vectors.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">matrixMultiplyCPU</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> p) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">matrixMultiplyCPU</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> p) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> m; i<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> p; j<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">float</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
@@ -1200,7 +1200,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
 </figure>
 </div>
 <p>The output matrix is separated into blocks based on our block size. When writing the kernel, it is necessary to make sure that the index is not out of bounds.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">matrixMultiplyGPU</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>A, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>B, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>C, <span style="color:#66d9ef">int</span> m, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> p) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> row <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> col <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
@@ -1214,7 +1214,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h3 id="launch-configuration">Launch Configuration</h3>
 <p>The launch configuration is similar to the previous examples. We will launch a 2D grid of blocks, each with a 2D arrangement of threads. The block size will be \(16 \times 16\) and the grid size will be \(m / 16 \times p / 16\). The kernel is launched as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">blockSize</span>(<span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>dim3 <span style="color:#a6e22e">gridSize</span>((p <span style="color:#f92672">+</span> blockSize.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize.x,
 </span></span><span style="display:flex;"><span>              (m <span style="color:#f92672">+</span> blockSize.y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize.y, <span style="color:#ae81ff">1</span>);
 </span></span><span style="display:flex;"><span>matrixMultiplyGPU<span style="color:#f92672">&lt;&lt;&lt;</span>gridSize, blockSize<span style="color:#f92672">&gt;&gt;&gt;</span>(A_d, B_d, C_d, m, n, p);
@@ -1300,7 +1300,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1327,9 +1327,9 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2802,7 +2802,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2834,7 +2834,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -2997,7 +2997,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3236,7 +3236,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3288,7 +3288,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3332,7 +3332,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3384,7 +3384,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3470,7 +3470,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3666,7 +3666,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -3975,7 +3975,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4081,7 +4081,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4098,7 +4098,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4177,7 +4177,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4254,7 +4254,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4521,7 +4521,7 @@ C_{ij} = \sum_{k=1}^n A_{ik} B_{kj}\quad \text{for } i = 1, \ldots, m \text{ and
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;

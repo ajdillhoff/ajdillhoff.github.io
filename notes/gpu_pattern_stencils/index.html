@@ -28,11 +28,11 @@
 
 
 
-<link rel="shortcut icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" href="/images/favicon_hu_71bad647508eb4f1.png" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_d9d5e47e9d458711.png">
-<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_71bad647508eb4f1.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_df0cceaffcc091ea.png">
+<link rel="shortcut icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" href="/images/favicon_hu_916f6cabdcb2efdf.png" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_hu_412669c5016caf82.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon_hu_916f6cabdcb2efdf.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/favicon_hu_9acf9139c716f3b4.png">
 
 
 
@@ -1012,7 +1012,7 @@
 <p>A <strong>stencil</strong> is a geometric pattern of weights applied at each point of a structured grid. The points on the grid will derive their values from neighboring points using some numerical approximation. For example, this is used to solve differential equations. Consider a 1D grid of discretized values from a function \(f(x)\). The finite difference approximation can be used to find \(f&rsquo;(x)\):</p>
 <p>\[ f&rsquo;(x) = \frac{f(x+h) - f(x-h)}{2h} + O(h^2) \]</p>
 <p>In code, this would look like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">finite_difference</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>f, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>df, <span style="color:#66d9ef">float</span> h) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">finite_difference</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>f, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>df, <span style="color:#66d9ef">float</span> h) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
 </span></span><span style="display:flex;"><span>    df[i] <span style="color:#f92672">=</span> (f[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">-</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]) <span style="color:#f92672">/</span> (<span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> h);
 </span></span><span style="display:flex;"><span>}
@@ -1076,7 +1076,7 @@
 <p>A <em>stencil sweep</em> is the process of applying the stencil to all points on the grid, similar to how a convolution is applied. There are many similarities between the two, but the subtle differences will require us to think differently about how to optimize them.</p>
 <h2 id="example-basic-stencil">Example: Basic Stencil</h2>
 <p>The code below presents a naive kernel for a stencil pattern using a 3D seven-point stencil.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.z <span style="color:#f92672">*</span> blockDim.z <span style="color:#f92672">+</span> threadIdx.z;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> blockDim.y <span style="color:#f92672">+</span> threadIdx.y;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
@@ -1094,7 +1094,7 @@
 </span></span></code></pre></div><p>This example assumes the input and output are 3D grids. For this particular stencil, you should try to identify the number of memory accesses and operations performed. Can you already see some opportunities for optimization?</p>
 <h2 id="tiled-stencil">Tiled Stencil</h2>
 <p>Just like with convolution, it is possible to use shared memory to improve the performance of a stencil. The code below shows a tiled stencil kernel that uses shared memory.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
 </span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> tile[IN_TILE_DIM][IN_TILE_DIM][IN_TILE_DIM];
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.z <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.z <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
@@ -1133,7 +1133,7 @@
 <p>A solution to this is to increase the amount of work each thread performs, AKA <em>thread coarsening</em>. The price paid for parallelism in the stencil pattern is the low frequency of memory reuse.</p>
 <p>Each thread performs more work in the \(z\) direction for a 3D seven-point stencil. All threads collaborate to load in a \(z\) layer at time from \(z-1\) to \(z+1\). There are then 3 different shared memory tiles per block. After computing values in the current output tile, the shared memory is rearranged for the next layer. This means that there are more transfers between shared memory as opposed to global memory.</p>
 <p>The threads are launched to work with a 2D tile at a time, so the size of the block is now \(T^2\). This means we can use a larger value for \(T\). The compute to memory ratio is almost doubled under this scheme. Additionally, the amount of shared memory required is \(3T^2\) rather than \(T^3\).</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> iStart <span style="color:#f92672">=</span> blockIdx.z <span style="color:#f92672">*</span> OUT_TILE_DIM;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
@@ -1200,7 +1200,7 @@
 <h2 id="register-tiling">Register Tiling</h2>
 <p>In the coarsening solution presented above, each thread works with a single element in the previous and next shared memory tiles. There are 4 elements in that example that really need to be loaded from shared memory. For the 3 elements that are only required by the current thread, they can be loaded into registers.</p>
 <p>Since only the values in the \(x-y\) direction are required for shared memory, the amount of memory used is reduced by \(\frac{1}{3}\).</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stencil_kernel</span>(<span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>in, <span style="color:#66d9ef">float</span> <span style="color:#f92672">*</span>out, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> N) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> iStart <span style="color:#f92672">=</span> blockIdx.z <span style="color:#f92672">*</span> OUT_TILE_DIM;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> blockIdx.y <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> OUT_TILE_DIM <span style="color:#f92672">+</span> threadIdx.x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
@@ -1332,7 +1332,7 @@
 
   
 
-<script crossorigin="anonymous" defer integrity="sha512-O3Gt6e&#43;f3Tg2jV7BQiwrvST30aT6ovL0IJlAgmZ8o9wOf32w556pDNmSlfSQZrC/7a24I8&#43;QTmbSLHbybufaIQ==" type="application/javascript">(() => {
+<script crossorigin="anonymous" defer integrity="sha512-PCA3VI3FhsYMRozmKh2yH5xzofni0wL1HJq1cDMA2f7T2WWRXFhoFJmG//dsX10V6AMQ6ts79BvqI41Uw3GDfQ==" type="application/javascript">(() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1359,9 +1359,9 @@
     mod
   ));
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js
   var require_popper = __commonJS({
-    "ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
+    "ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/gohugoio/hugo-mod-jslibs-dist/popperjs/v2@v2.21100.20000/package/dist/cjs/popper.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       function getWindow(node) {
@@ -2834,7 +2834,7 @@
     }
   });
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/data.js
   var elementMap = /* @__PURE__ */ new Map();
   var data_default = {
     set(element, key, instance) {
@@ -2866,7 +2866,7 @@
     }
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/index.js
   var MILLISECONDS_MULTIPLIER = 1e3;
   var TRANSITION_END = "transitionend";
   var parseSelector = (selector) => {
@@ -3029,7 +3029,7 @@
     return list[Math.max(0, Math.min(index, listLength - 1))];
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/event-handler.js
   var namespaceRegex = /[^.]*(?=\..*)\.|.*/;
   var stripNameRegex = /\..*/;
   var stripUidRegex = /::\d+$/;
@@ -3268,7 +3268,7 @@
   }
   var event_handler_default = EventHandler;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/manipulator.js
   function normalizeData(value) {
     if (value === "true") {
       return true;
@@ -3320,7 +3320,7 @@
   };
   var manipulator_default = Manipulator;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/config.js
   var Config = class {
     // Getters
     static get Default() {
@@ -3364,7 +3364,7 @@
   };
   var config_default = Config;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/base-component.js
   var VERSION = "5.3.3";
   var BaseComponent = class extends config_default {
     constructor(element, config) {
@@ -3416,7 +3416,7 @@
   };
   var base_component_default = BaseComponent;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dom/selector-engine.js
   var getSelector = (element) => {
     let selector = element.getAttribute("data-bs-target");
     if (!selector || selector === "#") {
@@ -3502,7 +3502,7 @@
   };
   var selector_engine_default = SelectorEngine;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/collapse.js
   var NAME = "collapse";
   var DATA_KEY = "bs.collapse";
   var EVENT_KEY = `.${DATA_KEY}`;
@@ -3698,7 +3698,7 @@
   });
   defineJQueryPlugin(Collapse);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/dropdown.js
   var Popper = __toESM(require_popper());
   var NAME2 = "dropdown";
   var DATA_KEY2 = "bs.dropdown";
@@ -4007,7 +4007,7 @@
   });
   defineJQueryPlugin(Dropdown);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/backdrop.js
   var NAME3 = "backdrop";
   var CLASS_NAME_FADE = "fade";
   var CLASS_NAME_SHOW3 = "show";
@@ -4113,7 +4113,7 @@
   };
   var backdrop_default = Backdrop;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/component-functions.js
   var enableDismissTrigger = (component, method = "hide") => {
     const clickEvent = `click.dismiss${component.EVENT_KEY}`;
     const name = component.NAME;
@@ -4130,7 +4130,7 @@
     });
   };
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/focustrap.js
   var NAME4 = "focustrap";
   var DATA_KEY3 = "bs.focustrap";
   var EVENT_KEY3 = `.${DATA_KEY3}`;
@@ -4209,7 +4209,7 @@
   };
   var focustrap_default = FocusTrap;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/util/scrollbar.js
   var SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
   var SELECTOR_STICKY_CONTENT = ".sticky-top";
   var PROPERTY_PADDING = "padding-right";
@@ -4286,7 +4286,7 @@
   };
   var scrollbar_default = ScrollBarHelper;
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/modal.js
   var NAME5 = "modal";
   var DATA_KEY4 = "bs.modal";
   var EVENT_KEY4 = `.${DATA_KEY4}`;
@@ -4553,7 +4553,7 @@
   enableDismissTrigger(Modal);
   defineJQueryPlugin(Modal);
 
-  // ns-hugo-imp:/home/alex/.cache/hugo_cache/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
+  // ns-hugo-imp:/tmp/hugo_cache_alex/modules/filecache/modules/pkg/mod/github.com/twbs/bootstrap@v5.3.3+incompatible/js/src/scrollspy.js
   var NAME6 = "scrollspy";
   var DATA_KEY5 = "bs.scrollspy";
   var EVENT_KEY5 = `.${DATA_KEY5}`;
